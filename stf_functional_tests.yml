@@ -6,6 +6,7 @@
   tags:
     - collectd-write-qdr-edge-only
     - collectd-write-qdr-mesh
+    - enable-stf
   tasks:
       - name: "[Test] Check that collectd container is running"
         shell: |
@@ -46,6 +47,7 @@
     - collectd-write-qdr-mesh
     - ceilometer-write-qdr-edge-only
     - ceilometer-write-qdr-mesh
+    - enable-stf
   tasks:
       - name: "[Test] Check that the metrics_qdr container is running"
         shell: |
