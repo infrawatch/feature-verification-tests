@@ -1,5 +1,16 @@
 #!usr/bin/env ansible-playbook
 ---
+- name: "Add alias for OSP13 to use docker instead of podman"
+  hosts: overcloud_nodes
+  become: true
+  tags:
+    - OSP13
+  tasks:
+    - lineinfile:
+        path: /root/.bashrc
+        line: "alias podman='docker'"
+        create: yes
+
 - name: "Check that collectd is running and generating any metrics"
   hosts: overcloud_nodes
   become: true
