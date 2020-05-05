@@ -1,5 +1,24 @@
 #!usr/bin/env ansible-playbook
 ---
+- name: "Create output file on undercloud machine"
+  hosts: undercloud-0
+  gather_facts: false
+  vars:
+    output_file: stf_test_run_results.txt
+  tasks:
+      - name: Delete old file if existing
+        file:
+          path: "{{ output_file }}"
+          state: absent
+        ignore_errors: true
+
+
+      - name: Create output file
+        file:
+          path: "{{ output_file }}"
+          mode: "u=rw,g=r,o=r"
+          state: touch
+
 - name: "Check that collectd is running and generating any metrics"
   hosts: overcloud_nodes
   become: true
@@ -8,25 +27,39 @@
     - collectd-write-qdr-mesh
     - enable-stf
   tasks:
-      - name: "[Test] Check that collectd container is running"
-        shell: |
-            podman ps | grep collectd
-        register: collectd
-        failed_when: collectd.stdout_lines|length != 1
+      - name: Check that collectd container is running.
+        shell: podman ps
+        register: podman_nodes
+
+      - set_fact:
+          status_string: "PASS"
+        when: "'collectd' in podman_nodes['stdout']"
+
+      - name: write to the file
+        lineinfile:
+          path: /home/stack/stf_test_run_results.txt
+          line: "{{ inventory_hostname }} collectd container status: {{ status_string | default('FAIL') }}"
+        delegate_to: "{{ groups['undercloud'] | first }}"
 
       - name: "[Test] Check for a non-zero number of metrics from collectd"
-        shell: |
-            podman exec collectd collectdctl -s /var/run/collectd-socket listval | wc -l
+        shell: podman exec collectd collectdctl -s /var/run/collectd-socket listval | wc -l
         register: num_metrics
-        failed_when: num_metrics.stdout|int == 0
+      - set_fact:
+          metrics_status: "PASS"
+        when: "num_metrics.stdout|int != 0"
+
+      - name: write to the file
+        lineinfile:
+          path: /home/stack/stf_test_run_results.txt
+          line: "{{ inventory_hostname }} collectd metrics status: {{ metrics_status | default('FAIL') }}"
+        delegate_to: "{{ groups['undercloud'] | first }}"
 
       - name: "[Debug] Check for a non-zero number of metrics from collectd"
         debug:
            var: num_metrics
 
       - name: "[Setup] Get the value of some metric from collectd"
-        shell: |
-            podman exec collectd collectdctl -s /var/run/collectd-socket listval | tail -1
+        shell: podman exec collectd collectdctl -s /var/run/collectd-socket listval | tail -1
         register: met
 
       - name: "[Debug] Get the value of some metric from collectd"
@@ -34,10 +67,20 @@
           var: met
 
       - name: "[Test] Get the value of some metric from collectd"
-        shell: |
-            podman exec collectd collectdctl -s /var/run/collectd-socket getval {{ met.stdout }}
+        shell: podman exec collectd collectdctl -s /var/run/collectd-socket getval {{ met.stdout }}
         register: stat
-        failed_when: stat.stdout_lines|length < 1
+        ignore_errors: yes
+      - set_fact:
+          metrics_value: "PASS"
+        when: "stat.stdout_lines|length == 1"
+        ignore_errors: yes
+
+      - name: write to the file
+        lineinfile:
+          path: /home/stack/stf_test_run_results.txt
+          line: "{{ inventory_hostname }} collectd metrics value status: {{ metrics_value | default('FAIL') }}"
+        delegate_to: "{{ groups['undercloud'] | first }}"
+
 
 - name: "Check that metrics_qdr container is running and receiving ANY messages."
   hosts: overcloud_nodes
@@ -49,11 +92,19 @@
     - ceilometer-write-qdr-mesh
     - enable-stf
   tasks:
-      - name: "[Test] Check that the metrics_qdr container is running"
-        shell: |
-           podman ps | grep metrics_qdr
-        register: qdr
-        failed_when: qdr.stdout_lines|length != 1
+      - name: Check that qdr container is running.
+        shell: podman ps
+        register: podman_nodes
+
+      - set_fact:
+          qdr_status: "PASS"
+        when: "'metrics_qdr' in podman_nodes['stdout']"
+
+      - name: write to the file
+        lineinfile:
+          path: /home/stack/stf_test_run_results.txt
+          line: "{{ inventory_hostname }} metrics_qdr  container status: {{ qdr_status | default('FAIL') }}"
+        delegate_to: "{{ groups['undercloud'] | first }}"
 
       - name: "[Setup] Get Qdr bus address"
         shell: |
@@ -65,11 +116,31 @@
           var: bus_addr
 
       - name: "[Test] Get number of messages received"
-        shell: |
-             podman exec metrics_qdr qdstat -b {{ bus_addr.stdout }}:5666 -g | grep "Ingress Count" | awk '{print $3}'
+        shell: podman exec metrics_qdr qdstat -b {{ bus_addr.stdout }}:5666 -g | grep "Ingress Count" | awk '{print $3}'
         register: num_rx
-        failed_when: num_rx.stdout|int == 0
+        ignore_errors: true
+      - set_fact:
+          messages_value: "PASS"
+        when: num_rx.stdout|int != 0
 
+
+      - name: write to the file
+        lineinfile:
+          path: /home/stack/stf_test_run_results.txt
+          line: "{{ inventory_hostname }} metrics_qdr number of messages: {{ messages_value | default('FAIL') }}"
+        delegate_to: "{{ groups['undercloud'] | first }}"
       - name: "[Debug] Get the number of messages received"
         debug:
           var: num_rx
+
+- name: Count passed and failed tests
+  hosts: undercloud-0
+  gather_facts: false
+  tasks:
+      - name:
+        shell: |
+          echo "PASS: `less stf_test_run_results.txt | grep PASS -c`" >> stf_test_run_results.txt
+          echo "FAIL: `less stf_test_run_results.txt | grep FAIL -c`" >> stf_test_run_results.txt
+        register: command_result
+        ignore_errors: true
+        delegate_to: "{{ groups['undercloud'] | first }}"
