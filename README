@@ -32,9 +32,15 @@ OR
 
     ansible-playbook -i `infrared workspace inventory` stf_functional_tests.yml --tags "<one of the tags from above>"
 
+To get a summarised output of the tests at the end, whitelist the provided logging callback.::
+
+    ANSIBLE_CALLBACK_WHITELIST=custom_logger ansible-playbook -i `infrared workspace inventory` stf_functional_tests.yml
+
+The logging callback will summarise the tests run on each node and whether they passes or failed.
+The callback will only report on the status of tasks that have a name beinging with "[Test]".
 
 Note::
-    If you haven't deployed using infrared, youcan still run the tests if you create your own inventory file, containing one group of hosts called ``overcloud_nodes``.
+    If you haven't deployed using infrared, you can still run the tests if you create your own inventory file, containing one group of hosts called ``overcloud_nodes``.
 
 
 Adding new tests
@@ -54,7 +60,7 @@ The changes required in this repo for tests is a new role in ``run_stf_tests.yml
         - collectd-write-qdr-mesh
         - some-other-template-name
       tasks:
-        - name: My test name
+        - name: "[Test] My test name"
           shell: |
               my_test_command
           register: command_output
