@@ -52,7 +52,7 @@
   tasks:
       - name: "[Test] Check that qdr container is running."
         shell: |
-          podman ps | grep collectd
+          podman ps | grep metrics_qdr
         register: podman_nodes
         failed_when: podman_nodes.stdout_lines|length != 1
 
