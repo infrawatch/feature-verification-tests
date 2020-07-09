@@ -1,5 +1,18 @@
 #!usr/bin/env ansible-playbook
 ---
+- name: "Add symlink for podman->docker so we don't have to change the commands in OSP13"
+  hosts: overcloud_nodes
+  become: true
+  tags:
+    - OSP13
+  tasks:
+    - file:
+        src: /usr/bin/docker
+        dest: /usr/bin/podman
+        owner: root
+        group: wheel
+        state: link
+
 - name: "Check that collectd is running and generating any metrics"
   hosts: overcloud_nodes
   ignore_errors: true
