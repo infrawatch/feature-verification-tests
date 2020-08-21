@@ -84,3 +84,14 @@ The task can then be imported in ``stf_functional_tests.yml`` like so::
 ```
 
 
+Configuration
+-------------
+The following vars can be passed to change the bahaviour.
+
+* collectd_container_name
+  The name of the container where collectd is running, e.g. ``collectd-test``
+  default: ``collectd``
+
+* qdr_container_name
+  The name of the container where qdr is running, e.g. ``metrics_qdr``, ``qdr-test``
+  default: ``metrics_qdr``
