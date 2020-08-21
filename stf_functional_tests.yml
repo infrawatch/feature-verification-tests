@@ -22,35 +22,7 @@
     - collectd-write-qdr-mesh
     - enable-stf
   tasks:
-      - name: "[Test] Check that collectd container is running."
-        shell: |
-          podman ps | grep collectd
-        register: podman_nodes
-        failed_when: podman_nodes.stdout_lines|length != 1
-
-      - name: "[Test] Check for a non-zero number of metrics from collectd"
-        shell: |
-          podman exec collectd collectdctl -s /var/run/collectd-socket listval | wc -l
-        register: num_metrics
-        failed_when: "not (num_metrics.stdout|int !=0 )"
-
-
-      - name: "[Debug] Check for a non-zero number of metrics from collectd"
-        debug:
-           var: num_metrics
-
-      - name: "[Setup] Get the value of some metric from collectd"
-        shell: podman exec collectd collectdctl -s /var/run/collectd-socket listval | tail -1
-        register: met
-
-      - name: "[Debug] Get the value of some metric from collectd"
-        debug:
-          var: met
-
-      - name: "[Test] Get the value of some metric from collectd"
-        shell: podman exec collectd collectdctl -s /var/run/collectd-socket getval {{ met.stdout }}
-        register: stat
-        failed_when: not(stat.stdout_lines|length == 1)
+    - import_tasks: tasks/test_collectd.yml
 
 - name: "Check that metrics_qdr container is running and receiving ANY messages."
   hosts: overcloud_nodes
@@ -63,27 +35,4 @@
     - ceilometer-write-qdr-mesh
     - enable-stf
   tasks:
-      - name: "[Test] Check that qdr container is running."
-        shell: |
-          podman ps | grep metrics_qdr
-        register: podman_nodes
-        failed_when: podman_nodes.stdout_lines|length != 1
-
-      - name: "[Setup] Get Qdr bus address"
-        shell: |
-            podman exec metrics_qdr cat /etc/qpid-dispatch/qdrouterd.conf | grep -5 listener | grep -3 "port: 5666" | grep host | awk '{print $2}'
-        register: bus_addr
-
-      - name: "[Debug] Get Qdr bus address"
-        debug:
-          var: bus_addr
-
-      - name: "[Test] Get number of messages received"
-        shell: podman exec metrics_qdr qdstat -b {{ bus_addr.stdout }}:5666 -g | grep "Ingress Count" | awk '{print $3}'
-        register: num_rx
-        failed_when: num_rx.stdout|int == 0 or num_rx.stdout_lines|length == 0
-
-      - name: "[Debug] Get the number of messages received"
-        debug:
-          var: num_rx
-
+    - import_tasks: tasks/test_qdr.yml
