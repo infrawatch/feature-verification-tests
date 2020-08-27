@@ -71,7 +71,7 @@ adapted from any manual testing that is done.
 The task can then be imported in ``stf_functional_tests.yml`` like so::
 
 ```
-     - name: Collectd checks
+    - name: Collectd checks
       hosts: overcloud_nodes
       become: true
       tags:
