@@ -8,7 +8,7 @@ The deployment templates are in infrared, and have the following names:
  - 'ceilometer-write-qdr-mesh'
  - 'enable-stf'
 
-The tags for the ansible playbook correspond to these templates and run the appropriate trests for each deployment.
+The tags for the ansible playbook correspond to these templates and run the appropriate tests for each deployment.
 
 The current set of functional tests are:
 
@@ -86,7 +86,7 @@ The task can then be imported in ``stf_functional_tests.yml`` like so::
 
 Configuration
 -------------
-The following vars can be passed to change the bahaviour.
+The following vars can be passed to change the behaviour.
 
 * collectd_container_name
   The name of the container where collectd is running, e.g. ``collectd-test``
