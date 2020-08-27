@@ -74,6 +74,8 @@ The task can then be imported in ``stf_functional_tests.yml`` like so::
     - name: Collectd checks
       hosts: overcloud_nodes
       become: true
+      roles:
+        - "{{ playbook_dir }}"
       tags:
         - collectd-write-qdr-edge-only
         - collectd-write-qdr-mesh

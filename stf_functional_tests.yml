@@ -1,4 +1,3 @@
-#!usr/bin/env ansible-playbook
 ---
 - name: "Add symlink for podman->docker so we don't have to change the commands in OSP13"
   hosts: overcloud_nodes
@@ -13,32 +12,12 @@
         group: wheel
         state: link
 
-- name: "Set up defaults"
-  hosts: overcloud_nodes
-  tags: always
-  tasks:
-    - include_vars:
-        file: defaults/main.yml
-        name: play_vars
-
-    - set_fact: "{{item.key}}={{item.value}}"
-      loop: "{{ play_vars|dict2items}}"
-
-- name: "Set up defaults"
-  hosts: overcloud_nodes
-  tags: always
-  tasks:
-    - include_vars:
-        file: defaults/main.yml
-        name: play_vars
-
-    - set_fact: "{{item.key}}={{item.value}}"
-      loop: "{{ play_vars|dict2items}}"
-
 - name: "Check that collectd is running and generating any metrics"
   hosts: overcloud_nodes
   ignore_errors: true
   become: true
+  roles:
+    - "{{ playbook_dir }}"
   tags:
     - collectd-write-qdr-edge-only
     - collectd-write-qdr-mesh
@@ -50,6 +29,8 @@
   hosts: overcloud_nodes
   ignore_errors: true
   become: true
+  roles:
+    - "{{ playbook_dir }}"
   tags:
     - collectd-write-qdr-edge-only
     - collectd-write-qdr-mesh
