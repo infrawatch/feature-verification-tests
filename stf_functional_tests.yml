@@ -16,26 +16,19 @@
   hosts: overcloud_nodes
   ignore_errors: true
   become: true
-  roles:
-    - "{{ playbook_dir }}"
-  tags:
-    - collectd-write-qdr-edge-only
-    - collectd-write-qdr-mesh
-    - enable-stf
   tasks:
-    - import_tasks: tasks/test_collectd.yml
-
-- name: "Check that metrics_qdr container is running and receiving ANY messages."
-  hosts: overcloud_nodes
-  ignore_errors: true
-  become: true
-  roles:
-    - "{{ playbook_dir }}"
-  tags:
-    - collectd-write-qdr-edge-only
-    - collectd-write-qdr-mesh
-    - ceilometer-write-qdr-edge-only
-    - ceilometer-write-qdr-mesh
-    - enable-stf
-  tasks:
-    - import_tasks: tasks/test_qdr.yml
+    - import_role: name="{{ playbook_dir }}"
+    - name: "Run collectd tests"
+      import_tasks: tasks/test_collectd.yml
+      tags:
+        - collectd-write-qdr-edge-only
+        - collectd-write-qdr-mesh
+        - enable-stf
+    - name: "Run metrics_qdr tests"
+      import_tasks: tasks/test_qdr.yml
+      tags:
+        - collectd-write-qdr-edge-only
+        - collectd-write-qdr-mesh
+        - ceilometer-write-qdr-edge-only
+        - ceilometer-write-qdr-mesh
+        - enable-stf
