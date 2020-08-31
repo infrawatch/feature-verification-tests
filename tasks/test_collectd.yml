@@ -1,23 +1,23 @@
 ---
 - name: "[Test] Check that collectd container is running."
   shell: |
-    podman ps | grep {{ collectd_container_name }}
-  register: podman_nodes
-  failed_when: podman_nodes.stdout_lines|length != 1
+    {{ container_bin }} ps | grep {{ collectd_container_name }}
+  register: container_nodes
+  failed_when: container_nodes.stdout_lines|length != 1
 
 - name: "[Test] Check for a non-zero number of metrics from collectd"
   shell: |
-    podman exec {{ collectd_container_name }} collectdctl -s /var/run/collectd-socket listval | wc -l
+    {{ container_bin }} exec {{ collectd_container_name }} collectdctl -s /var/run/collectd-socket listval | wc -l
   register: num_metrics
   failed_when: "not (num_metrics.stdout|int !=0 )"
-
 
 - name: "[Debug] Check for a non-zero number of metrics from collectd"
   debug:
      var: num_metrics
 
 - name: "[Setup] Get the value of some metric from collectd"
-  shell: podman exec {{ collectd_container_name }} collectdctl -s /var/run/collectd-socket listval | tail -1
+  shell: |
+    {{ container_bin }} exec {{ collectd_container_name }} collectdctl -s /var/run/collectd-socket listval | tail -1
   register: met
 
 - name: "[Debug] Get the value of some metric from collectd"
@@ -25,6 +25,7 @@
     var: met
 
 - name: "[Test] Get the value of some metric from collectd"
-  shell: podman exec {{ collectd_container_name }} collectdctl -s /var/run/collectd-socket getval {{ met.stdout }}
+  shell: |
+    {{ container_bin }} exec {{ collectd_container_name }} collectdctl -s /var/run/collectd-socket getval {{ met.stdout }}
   register: stat
   failed_when: not(stat.stdout_lines|length == 1)
