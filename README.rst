@@ -8,7 +8,7 @@ The deployment templates are in infrared, and have the following names:
  - 'ceilometer-write-qdr-mesh'
  - 'enable-stf'
 
-The tags for the ansible playbook correspond to these templates and run the appropriate trests for each deployment.
+The tags for the ansible playbook correspond to these templates and run the appropriate tests for each deployment.
 
 The current set of functional tests are:
 
@@ -41,32 +41,59 @@ The callback will only report on the status of tasks that have a name beinging w
 
 Note::
     If you haven't deployed using infrared, you can still run the tests if you create your own inventory file, containing one group of hosts called ``overcloud_nodes``.
-
+    Alternatively, you can create your own playbook that imports the tasks in ``tasks/*.yml``
 
 Adding new tests
 ----------------
 
-Adding a new test for existing deployment templates requires no changes in Jenkins.
-Adding tests for new deployment templates requires that the template is in Infrared and deployed in Jenkins.
+Adding a new test for existing deployment templates requires no changes in
+Jenkins.
+Adding tests for new deployment templates requires that the template is in
+Infrared and deployed in Jenkins.
 
-The changes required in this repo for tests is a new role in ``run_stf_tests.yml`` with a tag, e.g.::
+The changes required in this repo for tests is to add additional tasks under
+``tasks/test_<your_test_name>.yml``.
+
+```
+     - name: "[Test] My test name"
+       shell: |
+           my_test_command
+       register: command_output
+       failed_when: command_output.stdout == some_value
+
+```
+
+Most of the functional tests are a series of shell commands that one would run
+when verifying that particular features were deployed correctly, and can be
+adapted from any manual testing that is done.
+
+
+The task can then be imported in ``stf_functional_tests.yml`` like so::
 
 ```
     - name: Collectd checks
       hosts: overcloud_nodes
       become: true
+      roles:
+        - "{{ playbook_dir }}"
       tags:
         - collectd-write-qdr-edge-only
         - collectd-write-qdr-mesh
         - some-other-template-name
       tasks:
-        - name: "[Test] My test name"
-          shell: |
-              my_test_command
-          register: command_output
-          failed_when: command_output.stdout == some_value
+        - import_tasks: tasks/test_<your_test_name>
 
 ```
 
-Most of the functional tests are a series of shell commands that one would run when verifying that particular features were deployed correctly, and can be adapted from any manual testing that is done.
 
+Configuration
+-------------
+The following vars can be passed to change the behaviour.
+
+* collectd_container_name
+  The name of the container where collectd is running, e.g. ``collectd-test``
+  default: ``collectd``
+
+* qdr_container_name
+  The name of the container where qdr is running, e.g. ``metrics_qdr``, ``qdr-test``
+  default: ``metrics_qdr``
