@@ -5,8 +5,11 @@
   become: true
   tasks:
     - import_role: name="{{ playbook_dir }}"
-
+      tags:
+        - always
     - name: "Update container_bin var"
+      tags:
+        - always
       block:
         - stat:
             path: "/usr/bin/podman"
