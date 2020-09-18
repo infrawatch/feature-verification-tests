@@ -39,7 +39,7 @@ To get a summarised output of the tests at the end, use the provided logging cal
 The logging callback will summarise the tests run on each node and whether they passed or failed.
 The callback will only report on the status of tasks that have a name beginning with ``[Test]``.
 
-Note::
+.. note::
     If you haven't deployed using infrared, you can still run the tests if you create your own inventory file, containing one group of hosts called ``overcloud_nodes``.
     Alternatively, you can create your own playbook that imports the tasks in ``tasks/*.yml``
 
