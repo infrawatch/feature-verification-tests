@@ -1,0 +1,53 @@
+---
+# Note! - The task splitted into two different tasks because
+#         in case one of the flavors provided without extra specs,
+#         it will be ignored and not created
+
+- name: Git clone pysensu repo
+  command: git clone https://github.com/sangoma/pysensu
+  register: checkmyconf
+  check_mode: no
+  ignore_errors: yes
+  changed_when: no
+
+- name: copy sensu_results.py script
+  copy:
+    src: sensu_results.py
+    dest: /root/pysensu/sensu_results.py
+    owner: root
+    group: root
+    mode: 0755
+
+
+- name: copy sensu query  script
+  copy:
+    src: sensu_query.sh
+    dest: /root/pysensu/sensu_query.sh
+    owner: root
+    group: root
+    mode: 0755
+
+
+- name: copy sensu_results.sh script
+  copy:
+    src: sensu_results.sh
+    dest: /root/pysensu/sensu_results.sh
+    owner: root
+    group: root
+    mode: 0755
+
+
+- name: Execute sensu query
+  shell: "/bin/bash /root/pysensu/sensu_query.sh &"
+
+- name: Execute sensu results script
+  shell: "/bin/bash /root/pysensu/sensu_results.sh > output.txt &"
+  
+- name: get contents of file
+  command: cat /root/output.txt
+  register: outputtxt
+  become: true
+
+- name: Check weather all containers are healthy.
+  debug:
+    msg: "{{outputtxt.stdout}}"

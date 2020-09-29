@@ -1,0 +1,69 @@
+---
+
+### Run triggers
+setup_os_env: true
+create_networks: true
+create_flavors: true
+images_upload: true
+overcloud_delete: false
+boot_instance: true
+clear_env: false
+
+### Networks
+### Define the networks that should be created on the overcloud.
+### 'External: true' value could be defined just for the external network.
+### Allocation pools could be defined as an option in case specific pool range should be defined.
+### Otherwise, pool will be calculated by 'cidr' value.
+### 'network_type' and 'ip_version' arguments could be defined as an option.
+### By default, 'network_type' uses 'vlan', 'ip_version' uses 'ipv4'
+### 'gateway_ip' could be defined in case there is a need to specify gateway ip address.
+### 'shared', define whether this network is shared or not.
+
+networks:
+  - name: public
+    physical_network: public
+    segmentation_id: 25
+    network_type: vxlan
+    external: true
+    allocation_pool_start: 10.0.0.12
+    allocation_pool_end: 10.0.0.100
+    cidr: 10.0.0.0/24
+    enable_dhcp: false
+    gateway_ip: 10.0.0.254
+    router_name: router1
+    shared: true
+    ip_version: 4
+  - name: private
+    physical_network: tenant
+    segmentation_id: 32
+    cidr: 172.20.0.0/24
+    router_name: router1
+
+dns_nameservers:
+  - 8.8.8.8
+  - 8.8.4.4
+
+#Default images to upload
+images:
+  - name: centos
+    url: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
+
+# Default flavor to create
+flavors:
+  - name: nfv-flavor
+    ram: 4096
+    disk: 20
+    vcpus: 4
+    property:
+      - "hw:mem_page_size": "1GB"
+        "hw:numa_mem.0": "4096"
+        "hw:numa_nodes": "1"
+        "hw:numa_cpus.0": "0,1,2,3"
+        "hw:cpu_policy": "dedicated"
+
+group_name: tested_vms
+instances:
+  - name: vm1
+
+remove_instances:
+  - name: vm1
