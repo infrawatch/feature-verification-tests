@@ -2,28 +2,43 @@
 
 ### Run triggers
 setup_os_env: true
-create_networks: true
-create_flavors: true
-images_upload: true
+user: false
+network: true
+net_port: true
+quota: false
+volume: false
+aggregate: false
+flavor: true
+image: true
+keypair: true
+security_group: true
+instance: false
 overcloud_delete: false
-boot_instance: true
-clear_env: false
+resources_output: false
+resource_generate_inventory: False
 
-### Networks
-### Define the networks that should be created on the overcloud.
-### 'External: true' value could be defined just for the external network.
-### Allocation pools could be defined as an option in case specific pool range should be defined.
-### Otherwise, pool will be calculated by 'cidr' value.
-### 'network_type' and 'ip_version' arguments could be defined as an option.
-### By default, 'network_type' uses 'vlan', 'ip_version' uses 'ipv4'
-### 'gateway_ip' could be defined in case there is a need to specify gateway ip address.
-### 'shared', define whether this network is shared or not.
+### Set the state of the resource.
+### The state could be 'present' or 'absent'.
+resource_state: present
 
+### The name of the "cloud", the tasks should be run on.
+### The "cloud" represents a stack (undercloud/overcloud), or a user that the playbook should interact with.
+### All "clouds" configuration resides within the "~/.config/openstack/clouds.yaml" file.
+### A different cloud name could be set on each resource.
+### As a result multiple users resources could be created at a single playbook run.
+cloud_name: overcloud
+
+users:
+  - name: test_user1
+    pass: 12345678
+    project: test_project1
+    domain: default
+    role: member
 networks:
-  - name: public
-    physical_network: public
+  - name: nova
+    physical_network: nova
     segmentation_id: 25
-    network_type: vxlan
+    network_type: vlan
     external: true
     allocation_pool_start: 10.0.0.12
     allocation_pool_end: 10.0.0.100
@@ -48,22 +63,66 @@ images:
   - name: centos
     url: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
 
+# Default aggregation groups to create
+aggregate_groups:
+  - name: TREX_AG
+    hosts:
+      - compute-0.localdomain
+      - compute-1.localdomain
+    metadata:
+      - flavor=trex_ag
+        flavor=dut_ag
+
 # Default flavor to create
 flavors:
-  - name: nfv-flavor
+  - name: stf_flavor
     ram: 4096
     disk: 20
     vcpus: 4
-    property:
-      - "hw:mem_page_size": "1GB"
-        "hw:numa_mem.0": "4096"
-        "hw:numa_nodes": "1"
-        "hw:numa_cpus.0": "0,1,2,3"
-        "hw:cpu_policy": "dedicated"
+    extra_specs:
+      "hw:mem_page_size": "1GB"
+      "hw:numa_mem.0": "4096"
+      "hw:numa_nodes": "1"
+      "hw:numa_cpus.0": "0,1,2,3"
+      "hw:cpu_policy": "dedicated"
 
-group_name: tested_vms
+connection_user: cloud_user
+keypairs:
+  - name: test_keypair
+
+security_groups:
+  - name: test_secgroup
+    rules:
+      - protocol: icmp
+        port_range_min: -1
+        port_range_max: -1
+        remote_ip_prefix: 0.0.0.0/0
+      - protocol: tcp
+        port_range_min: 22
+        port_range_max: 22
+        remote_ip_prefix: 0.0.0.0/0
+
 instances:
   - name: vm1
+    groups:
+      - vm_group
+    flavor: stf_flavor
+    image: centos
+    key_name: test_keypair
+    sec_groups: test_secgroup
+    floating_ip:
+      ext_net: public
+      int_net: private1
+    nics:
+      - port-name=private_net1_port1
+    net_ports:
+      - name: private_net1_port1
+        network: private_net1
+        type: normal
+        sec_groups: test_secgroup
 
-remove_instances:
-  - name: vm1
+# The path to the file output of the created resources.
+resources_output_file: /home/stack/resources_output_file.yml
+
+# Virtual environment path
+venv_path: "/tmp/ansible_venv"
