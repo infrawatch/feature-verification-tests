@@ -40,7 +40,7 @@
     path: "{{ clouds_yaml_file_path | dirname }}"
     mode: '0775'
 
-- name: Create clouds.yaml if doesn't exist
+- name: Create clouds.yaml or overwrite if exist
   blockinfile:
     content: 'clouds:'
     dest: "{{ clouds_yaml_file_path }}"

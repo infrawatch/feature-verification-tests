@@ -1,7 +1,4 @@
 ---
-# Note! - The task splitted into two different tasks because
-#         in case one of the flavors provided without extra specs,
-#         it will be ignored and not created.
 - name: "Flavors {{ resource_state }}"
   vars:
     ansible_python_interpreter: "{{ venv_path }}/bin/python"
