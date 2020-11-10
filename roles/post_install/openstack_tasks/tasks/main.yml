@@ -5,11 +5,6 @@
   import_tasks: setup_openstack_env.yml
   when: setup_os_env
 
-- name: Security groups creation
-  tags: security_group
-  import_tasks: security_groups.yml
-  when: security_group and resource_state == 'present'
-
 - name: Aggregate groups
   tags: aggregate
   import_tasks: aggregate.yml
@@ -34,10 +29,6 @@
   tags: instance
   import_tasks: instances.yml
   when: instance and resource_state == 'present'
-
-- name: Generate resources output file
-  tags: resources_output
-  import_tasks: resources_output.yml
 
 - name: Print created files
   vars:
