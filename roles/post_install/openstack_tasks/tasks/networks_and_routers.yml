@@ -1,0 +1,117 @@
+---
+
+- name: Create networks
+  vars:
+    ansible_python_interpreter: "/tmp/ansible_venv/bin/python"
+  os_network:
+    cloud: overcloud
+    name: "{{ item.name }}"
+    provider_network_type: "{{ item.network_type | default('vlan') }}"
+    provider_physical_network: "{{ item.physical_network | default(omit) }}"
+    provider_segmentation_id: "{{ item.segmentation_id | default(omit) }}"
+    external: "{{ item.external | default('false') }}"
+    shared: "{{ item.shared | default(omit) }}"
+    state: present
+  with_items: "{{ networks }}"
+
+- name: Create subnets
+  vars:
+    ansible_python_interpreter: "/tmp/ansible_venv/bin/python"
+  os_subnet:
+    cloud: overcloud
+    name: "{{ item.name }}_subnet"
+    allocation_pool_start: "{{ item.allocation_pool_start | default(omit) }}"
+    allocation_pool_end: "{{ item.allocation_pool_end | default(omit) }}"
+    cidr: "{{ item.cidr }}"
+    dns_nameservers: "{{ dns_nameservers }}"
+    enable_dhcp: "{{ item.enable_dhcp | default('true') }}"
+    network_name: "{{ item.name }}"
+    gateway_ip: "{{ item.gateway_ip | default(omit) }}"
+    ip_version: "{{ item.ip_version | default('4') }}"
+    state: present
+  with_items: "{{ networks }}"
+  register: openstack_networks
+
+- name: Create router and set router gateway
+  vars:
+    ansible_python_interpreter: "/tmp/ansible_venv/bin/python"
+  os_router:
+    cloud: overcloud
+    name: "{{ item[0].router_name }}"
+    network: "{{ item[0].name }}"
+    state: present
+  when: "item[1].item.external is defined and item[1].item.external == true"
+  with_together:
+    - "{{ networks }}"
+    - "{{ openstack_networks.results }}"
+
+# TODO: Refactor the task in order to match the following scenarios:
+#       * Add more than single internal interface to the router (currently stopping on a first match).
+#       * Check the behavior of the task in case 'external' var omitted and 'router_name' var exists.
+- name: Set router interface
+  vars:
+    ansible_python_interpreter: "/tmp/ansible_venv/bin/python"
+  os_router:
+    cloud: overcloud
+    name: "{{ item[0].router_name }}"
+    interfaces: "{{ item[0].name }}_subnet"
+    state: present
+  when: "item[1].item.external is defined and item[1].item.external == false"
+  with_together:
+    - "{{ networks }}"
+    - "{{ openstack_networks.results }}"
+
+- name: Delete networks and routers
+  block:
+    - name: Delete network ports
+      vars:
+        ansible_python_interpreter: "{{ venv_path }}/bin/python"
+      os_port:
+        cloud: "{{ item.0.cloud_name | default(cloud_name) }}"
+        name: "{{ item.1.name }}"
+        network: "{{ item.1.network }}"
+        vnic_type: "{{ item.1.type }}"
+        validate_certs: "{{ validate_certs | default (omit) }}"
+        state: absent
+      loop: "{{ instances | subelements('net_ports', 'skip_missing=True') }}"
+      when: net_port
+
+    # The os_router module unable to detach the interface from the router
+    - name: Detach router interfaces
+      command: >
+        openstack --os-cloud "{{ item.cloud_name | default(cloud_name) }}"
+        router remove subnet "{{ item.router_name }}" "{{ item.name }}_subnet"
+      when: "item.external is defined and not item.external"
+      loop: "{{ networks }}"
+      register: detach_interfaces
+      failed_when:
+        - detach_interfaces.rc == 1
+        - detach_interfaces.stderr.find('No Subnet found') == -1
+
+    - name: Delete router
+      vars:
+        ansible_python_interpreter: "{{ venv_path }}/bin/python"
+      os_router:
+        cloud: "{{ item.cloud_name | default(cloud_name) }}"
+        name: "{{ item.router_name }}"
+        validate_certs: "{{ validate_certs | default (omit) }}"
+        state: absent
+      loop: "{{ networks }}"
+      when:
+        - item.external is defined
+        - item.router_name is defined
+
+    - name: Delete networks
+      vars:
+        ansible_python_interpreter: "{{ venv_path }}/bin/python"
+      os_network:
+        cloud: "{{ item.cloud_name | default(cloud_name) }}"
+        name: "{{ item.name }}"
+        validate_certs: "{{ validate_certs | default (omit) }}"
+        state: absent
+      loop: "{{ networks }}"
+      register: delete_networks
+      failed_when:
+        - delete_networks.msg is defined
+        - delete_networks.msg.find('rule:delete_network is disallowed by policy') == -1
+  when: resource_state == 'absent'

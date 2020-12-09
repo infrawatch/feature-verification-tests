@@ -1,0 +1,46 @@
+---
+
+# In order to prevent deletion of the OSP admin user and breaking
+# the environemnt by mistake, skip any manipulation with the "admin" user.
+- name: "Projects {{ resource_state }}"
+  vars:
+    ansible_python_interpreter: "{{ venv_path }}/bin/python"
+  os_project:
+    cloud: "{{ item.cloud_name | default(cloud_name) }}"
+    name: "{{ item.project }}"
+    domain_id: "{{ item.domain }}"
+    state: "{{ resource_state }}"
+    validate_certs: "{{ validate_certs | default(omit) }}"
+  loop: "{{ users | flatten(levels=1) }}"
+  when: item.name != 'admin'
+
+- name: "Users {{ resource_state }}"
+  vars:
+    ansible_python_interpreter: "{{ venv_path }}/bin/python"
+  os_user:
+    cloud: "{{ item.cloud_name | default(cloud_name) }}"
+    name: "{{ item.name }}"
+    password: "{{ item.pass }}"
+    default_project: "{{ item.project }}"
+    domain: "{{ item.domain }}"
+    state: "{{ resource_state }}"
+    validate_certs: "{{ validate_certs | default(omit) }}"
+  loop: "{{ users | flatten(levels=1) }}"
+  register: reg_users
+  when: item.name != 'admin'
+
+- name: Add user to role
+  vars:
+    ansible_python_interpreter: "{{ venv_path }}/bin/python"
+  os_user_role:
+    cloud: "{{ item.cloud_name | default(cloud_name) }}"
+    user: "{{ item.name }}"
+    project: "{{ item.project }}"
+    role: "{{ item.role }}"
+    state: "{{ resource_state }}"
+    validate_certs: "{{ validate_certs | default(omit) }}"
+  loop: "{{ users | flatten(levels=1) }}"
+  when:
+    - reg_users.changed
+    - reg_users.results.0.user is defined
+    - item.name != 'admin'
