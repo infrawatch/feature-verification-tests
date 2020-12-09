@@ -30,6 +30,20 @@
   import_tasks: instances.yml
   when: instance and resource_state == 'present'
 
+- name: Networks
+  tags: network
+  import_tasks: networks_and_routers.yml
+
+- name: Quota
+  tags: quota
+  import_tasks: quota.yml
+  when: quota
+
+- name: Projects, users and roles creation
+  tags: user
+  import_tasks: users.yml
+  when: user and resource_state == 'present'
+
 - name: Print created files
   vars:
     msg: |
