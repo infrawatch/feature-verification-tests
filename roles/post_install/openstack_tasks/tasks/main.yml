@@ -32,7 +32,7 @@
 
 - name: Networks
   tags: network
-  import_tasks: networks
+  import_tasks: networks_and_routers.yml
 
 - name: Quota
   tags: quota
