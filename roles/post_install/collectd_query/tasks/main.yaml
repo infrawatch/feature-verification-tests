@@ -1,0 +1,51 @@
+- name: copy shell scripts that executes prometheus query for collectd metrics
+  copy:
+    src: "{{ item }}"
+    dest: "/tmp"
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    ['query_collectd_cpu_ceph_bytes.sh','query_collectd_cpu_percent.sh','query_collectd_interface_tx_total.sh']
+
+
+
+- name: execute promethues collectd cpu  query 
+  shell: "/bin/bash /tmp/query_collectd_cpu_percent.sh &"
+
+- name: Check whether collectd cpu metrics received in prometheus for all overcloud nodes
+  command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_cpu_percent
+  register: checkmyconf
+  check_mode: no
+  changed_when: no
+
+- name: Check whether collectd cpu metrics log created and received in Prometheeus.
+  debug: msg="COLLECTD CPU METRICS RECEIVED FOR ALL OVERCLOUD NODES"
+  when: checkmyconf.rc == 0
+
+- name: execute collectd  cpu ceph  query
+  shell: "/bin/bash /tmp/query_collectd_cpu_ceph_bytes.sh &"
+
+- name: Check whether collectd cpu ceph metrics received in prometheus for all overcloud nodes
+  command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/cpu_ceph_bytes
+  register: checkmyconf
+  check_mode: no
+  changed_when: no
+
+- name: Check whether collectd cpu ceph metrics log created and received  in Prometheeus.
+  debug: msg="COLLECTD CPU CEPH METRICS RECEIVED FOR ALL OVERCLOUD NODES"
+  when: checkmyconf.rc == 0
+
+
+- name: execute collectd interface TX total query
+  shell: "/bin/bash /tmp/query_collectd_interface_tx_total.sh &"
+
+- name: Check whether collectd interface TX total  metrics received  in prometheus for all overcloud nodes
+  command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/collectd_interface_tx_total
+  register: checkmyconf
+  check_mode: no
+  changed_when: no
+
+- name: Check whether collectd interface TX total metrics log created and received in Prometheeus.
+  debug: msg="COLLECTD INTERFACE TOTAL TX  METRICS RECEIVED FOR ALL OVERCLOUD NODES"
+  when: checkmyconf.rc == 0

@@ -1,0 +1,1 @@
+curl -k "https://prometheus-operated-service-telemetry.apps.leonidcluster.lab.upshift.rdu2.redhat.com/api/v1/query?" --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0",type_instance="user",service="default-cloud1-coll-meter-smartgateway"}[1m]' > /tmp/query_collectd_cpu_percent

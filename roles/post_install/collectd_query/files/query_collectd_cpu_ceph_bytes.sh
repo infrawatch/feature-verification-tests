@@ -1,0 +1,1 @@
+curl -k "https://prometheus-operated-service-telemetry.apps.leonidcluster.lab.upshift.rdu2.redhat.com/api/v1/query?" --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.0",type_instance="AsyncMessengerWorker0.msgrRunningTotalTime"}[1m]' > /tmp/cpu_ceph_bytes

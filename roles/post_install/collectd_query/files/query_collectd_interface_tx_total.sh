@@ -1,0 +1,1 @@
+curl -k "https://prometheus-operated-service-telemetry.apps.leonidcluster.lab.upshift.rdu2.redhat.com/api/v1/query?" --data-urlencode 'query=collectd_interface_if_packets_tx_total {type_instance="base",service="default-cloud1-coll-meter-smartgateway"}[1m]' > /tmp/collectd_interface_tx_total
