@@ -7,7 +7,7 @@
 
 - name: "[Setup] Get Qdr bus address"
   shell: |
-      {{ container_bin }} exec {{ qdr_container_name }} cat /etc/qpid-dispatch/qdrouterd.conf | grep -5 listener | grep -3 "port: 5666" | grep host | awk '{print $2}'
+      {{ container_bin }} exec {{ qdr_container_name }} cat /etc/qpid-dispatch/qdrouterd.conf | grep -C 5 listener | grep -C 3 "port: 5666" | grep host | awk '{print $2}'
   register: bus_addr
 
 - name: "[Debug] Get Qdr bus address"
