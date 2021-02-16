@@ -54,8 +54,8 @@ users:
     domain: default
     role: member
 networks:
-  - name: nova
-    physical_network: nova
+  - name: tenant
+    physical_network: tenant
     segmentation_id: 25
     network_type: vlan
     external: true
