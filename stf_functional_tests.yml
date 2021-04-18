@@ -21,15 +21,11 @@
     - name: "Run collectd tests"
       import_tasks: tasks/test_collectd.yml
       tags:
-        - collectd-write-qdr-edge-only
-        - collectd-write-qdr-mesh
+        - stf-connectors-osp13
         - enable-stf
 
     - name: "Run metrics_qdr tests"
       import_tasks: tasks/test_qdr.yml
       tags:
-        - collectd-write-qdr-edge-only
-        - collectd-write-qdr-mesh
-        - ceilometer-write-qdr-edge-only
-        - ceilometer-write-qdr-mesh
+        - stf-connectors-osp13
         - enable-stf
