@@ -21,15 +21,21 @@
     - name: "Run collectd tests"
       import_tasks: tasks/test_collectd.yml
       tags:
-        - collectd-write-qdr-edge-only
-        - collectd-write-qdr-mesh
         - enable-stf
+        - stf-connectors-osp13
 
     - name: "Run metrics_qdr tests"
       import_tasks: tasks/test_qdr.yml
       tags:
-        - collectd-write-qdr-edge-only
-        - collectd-write-qdr-mesh
-        - ceilometer-write-qdr-edge-only
-        - ceilometer-write-qdr-mesh
         - enable-stf
+        - stf-connectors-osp13
+
+- name: "Run e2e tests"
+  hosts: undercloud-0
+  ignore_errors: true
+  become: true
+  become_method: sudo
+  become_user: root
+  tasks:
+    - name: "Run collectd Prometheus queries"  
+      import_tasks: tasks/test_e2e.yml

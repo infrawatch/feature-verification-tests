@@ -43,9 +43,6 @@ The callback will only report on the status of tasks that have a name beginning 
     If you haven't deployed using infrared, you can still run the tests if you create your own inventory file, containing one group of hosts called ``overcloud_nodes``.
     Alternatively, you can create your own playbook that imports the tasks in ``tasks/*.yml``
 
-If you would like to run openstack post install tasks playbbok,you can run the following command::
-    
-    ansible-playbbok -i `infrared workspace inventory` openstack_tasks.yml
 Adding new tests
 ----------------
 
