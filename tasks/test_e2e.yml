@@ -54,7 +54,7 @@
       failed_when:
         - checkmyconf.rc != 0
     - debug:
-        msg="COLLECTD INTERFACE TOTAL TX  METRICS RECEIVED FOR ALL OVERCLOUD NODES"
+        msg="COLLECTD INTERFACE TOTAL TX  METRICS RECEIVED FOR ANY OVERCLOUD NODES"
 
     - name: "[Test] Check whether collectd cpu metrics log created and received in Prometheus"
       command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_cpu_percent
@@ -63,7 +63,7 @@
       failed_when:
         - checkmyconf.rc != 0
     - debug:
-        msg="COLLECTD CPU METRICS RECEIVED FOR ALL OVERCLOUD NODES"
+        msg="COLLECTD CPU METRICS RECEIVED FOR ANY OVERCLOUD NODES"
 
 
     - name: "[Test] Check whether collectd memory metrics log created and received in Prometheus"
@@ -73,7 +73,7 @@
       failed_when:
         - checkmyconf.rc != 0
     - debug:
-        msg="COLLECTD MEMORY METRICS RECEIVED FOR ALL OVERCLOUD NODES"
+        msg="COLLECTD MEMORY METRICS RECEIVED FOR ANY OVERCLOUD NODES"
 
 
     - name: "[Test] Check whether collectd load metrics log created and received in Prometheus"
@@ -83,5 +83,4 @@
       failed_when:
         - checkmyconf.rc != 0
     - debug:
-        msg="COLLECTD LOAD  METRICS RECEIVED FOR ALL OVERCLOUD NODES"
-    
+        msg="COLLECTD LOAD  METRICS RECEIVED FOR ANY OVERCLOUD NODES"
