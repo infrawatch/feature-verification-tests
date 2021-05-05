@@ -38,7 +38,7 @@
       failed_when:
         - checkmyconf.rc !=0
 
-    - name: "[Test] Check whether ceph bytes metrics received in prometheus for any ceph nodes"
+    - name: "[Test] Check whether collectd ceph bytes metrics created and received in Prometheus for any ceph nodes"
       command: egrep 'ceph' /tmp/query_ceph_ceph_bytes
       register: checkmyconf
       changed_when: no
