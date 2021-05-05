@@ -44,44 +44,33 @@
       changed_when: no
       failed_when:
         - checkmyconf.rc != 0
-    - debug:
-        msg="COLLECTD CEPH BYTES METRRICS RECEIVED FOR ANY CEPH NODES"
 
-    - name: "[Test] Check whether collectd interface TX total metrics received in prometheus for all overcloud nodes"
+    - name: "[Test] Check whether collectd interface TX total metrics created and received in Prometheus for any overcloud node"
       command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_interface_tx_total
       register: checkmyconf
       changed_when: no
       failed_when:
         - checkmyconf.rc != 0
-    - debug:
-        msg="COLLECTD INTERFACE TOTAL TX  METRICS RECEIVED FOR ALL OVERCLOUD NODES"
 
-    - name: "[Test] Check whether collectd cpu metrics log created and received in Prometheus"
+    - name: "[Test] Check whether collectd cpu metrics created and received in Prometheus for any overcloud node"
       command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_cpu_percent
       register: checkmyconf
       changed_when: no
       failed_when:
         - checkmyconf.rc != 0
-    - debug:
-        msg="COLLECTD CPU METRICS RECEIVED FOR ALL OVERCLOUD NODES"
 
 
-    - name: "[Test] Check whether collectd memory metrics log created and received in Prometheus"
+    - name: "[Test] Check whether collectd memory metrics created and received in Prometheus for any overcloud node"
       command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_memory
       register: checkmyconf
       changed_when: no
       failed_when:
         - checkmyconf.rc != 0
-    - debug:
-        msg="COLLECTD MEMORY METRICS RECEIVED FOR ALL OVERCLOUD NODES"
 
 
-    - name: "[Test] Check whether collectd load metrics log created and received in Prometheus"
+    - name: "[Test] Check whether collectd load metrics created and received in Prometheus for any overcloud node"
       command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_load_longterm
       register: checkmyconf
       changed_when: no
       failed_when:
         - checkmyconf.rc != 0
-    - debug:
-        msg="COLLECTD LOAD  METRICS RECEIVED FOR ALL OVERCLOUD NODES"
-    
