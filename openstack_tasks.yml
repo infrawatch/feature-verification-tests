@@ -1,7 +1,0 @@
----
-
-- name: Openstack tasks
-  hosts: "{{ osp_tasks_host | default('undercloud') }}"
-  gather_facts: False
-  roles:
-    - post_install/openstack_tasks
