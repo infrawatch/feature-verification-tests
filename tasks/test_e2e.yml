@@ -1,0 +1,76 @@
+    - name: "Extract URL from stf-connectors template"
+      shell: grep interconnect /home/stack/virt/stf-connectors-osp16-edge.yaml | sed 's;.*\(-service-telemetry.*\);prometheus-operated\1;'
+      register: prom_url
+      failed_when: "prom_url.stdout_lines|length == 0"
+    - debug:
+        var: prom_url.stdout_lines
+    
+    - debug: 
+        msg: The URL is {{ prom_url.stdout_lines }}
+
+    - name: "Capture ceph_ceph_bytes metrics"
+      shell: /usr/bin/curl -k http://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.0"}[1m]' > /tmp/query_ceph_ceph_bytes
+      register: checkmyconf
+      failed_when:
+        - checkmyconf.rc !=0 
+    
+    - name: "Capture collectd_cpu_percent"
+      shell: /usr/bin/curl -k http://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0",type_instance="user",service="default-cloud1-coll-meter-smartgateway"}[1m]' > /tmp/query_collectd_cpu_percent
+      register: checkmyconf
+      failed_when:
+        - checkmyconf.rc !=0
+    
+    - name: "Capture collectd_iinterface_tx_total"
+      shell: /usr/bin/curl -k http://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_interface_if_packets_tx_total {type_instance="base"}[1m]' > /tmp/query_collectd_interface_tx_total
+      register: checkmyconf
+      failed_when:
+        - checkmyconf.rc !=0
+    
+    - name: "Capture collectd_memory"
+      shell: /usr/bin/curl -k curl -k http://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_memory {plugin_instance="base"}[1m]' > /tmp/query_collectd_memory
+      register: checkmyconf
+      failed_when:
+        - checkmyconf.rc !=0
+
+    - name: "Capture collectd_load_longterm"
+      shell: /usr/bin/curl -k curl -k http://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_load_longterm {plugin_instance="base"}[1m]' > /tmp/query_load_longterm
+      register: checkmyconf
+      failed_when:
+        - checkmyconf.rc !=0
+
+    - name: "[Test] Check whether ceph bytes metrics received in prometheus for any ceph nodes"
+      command: egrep 'ceph' /tmp/query_ceph_ceph_bytes
+      register: checkmyconf
+      changed_when: no
+      failed_when:
+        - checkmyconf.rc != 0
+
+    - name: "[Test] Check whether collectd interface TX total metrics created and received in Prometheus for any overcloud node"
+      command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_interface_tx_total
+      register: checkmyconf
+      changed_when: no
+      failed_when:
+        - checkmyconf.rc != 0
+
+    - name: "[Test] Check whether collectd cpu metrics created and received in Prometheus for any overcloud node"
+      command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_cpu_percent
+      register: checkmyconf
+      changed_when: no
+      failed_when:
+        - checkmyconf.rc != 0
+
+
+    - name: "[Test] Check whether collectd memory metrics created and received in Prometheus for any overcloud node"
+      command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_memory
+      register: checkmyconf
+      changed_when: no
+      failed_when:
+        - checkmyconf.rc != 0
+
+
+    - name: "[Test] Check whether collectd load metrics created and received in Prometheus for any overcloud node"
+      command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_load_longterm
+      register: checkmyconf
+      changed_when: no
+      failed_when:
+        - checkmyconf.rc != 0
