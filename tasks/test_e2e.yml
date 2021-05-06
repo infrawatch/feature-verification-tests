@@ -1,5 +1,5 @@
     - name: "Extract URL from stf-connectors template"
-      shell: grep interconnect /home/stack/virt/stf-connectors-osp16-edge.yaml | sed 's;.*\(-service-telemetry.*\);prometheus-operated\1;'
+      shell: grep interconnect /home/stack/virt/stf-connectors* | sed 's;.*\(-service-telemetry.*\);prometheus-operated\1;'
       register: prom_url
       failed_when: "prom_url.stdout_lines|length == 0"
     - debug:
