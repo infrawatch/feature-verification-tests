@@ -4,18 +4,18 @@
       failed_when: "prom_url.stdout_lines|length == 0"
     - debug:
         var: prom_url.stdout_lines
-    
-    - debug: 
+
+    - debug:
         msg: The URL is {{ prom_url.stdout_lines }}
+
+    - name: "Capture collectd_cpu_percent"
+      shell: /usr/bin/curl -k http://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0",type_instance="user",service="default-cloud1-coll-meter-smartgateway"}[1m]' > /tmp/query_collectd_cpu_percent
+      register: checkmyconf
+      failed_when:
+        - checkmyconf.rc !=0
 
     - name: "Capture ceph_ceph_bytes metrics"
       shell: /usr/bin/curl -k http://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.0"}[1m]' > /tmp/query_ceph_ceph_bytes
-      register: checkmyconf
-      failed_when:
-        - checkmyconf.rc !=0 
-    
-    - name: "Capture collectd_cpu_percent"
-      shell: /usr/bin/curl -k http://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0",type_instance="user",service="default-cloud1-coll-meter-smartgateway"}[1m]' > /tmp/query_collectd_cpu_percent
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
