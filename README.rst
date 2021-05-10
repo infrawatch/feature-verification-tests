@@ -2,10 +2,8 @@ These are the functional tests for stf client-side. They check that OpenStack is
 
 The deployment templates are in infrared, and have the following names:
 
-* ``collectd-write-qdr-edge-only``
-* ``collectd-write-qdr-mesh``
-* ``ceilometer-write-qdr-edge-only``
-* ``ceilometer-write-qdr-mesh``
+* ``stf-connectors-osp13``
+* ``stf-connectors-osp16-edge``
 * ``enable-stf``
 
 The tags for the ansible playbook correspond to these templates and run the appropriate tests for each deployment.
@@ -73,8 +71,8 @@ The task can then be imported in ``stf_functional_tests.yml`` like so::
       roles:
         - "{{ playbook_dir }}"
       tags:
-        - collectd-write-qdr-edge-only
-        - collectd-write-qdr-mesh
+        - enable-stf
+        - stf-connectors-osp13
         - some-other-template-name
       tasks:
         - import_tasks: tasks/test_<your_test_name>
