@@ -40,5 +40,4 @@
     - name: "Run collectd Prometheus queries"  
       import_tasks: tasks/test_e2e.yml
       tags:
-        - enable-stf
-        - stf-connectors-osp13
+        - enable-stf-ceph
