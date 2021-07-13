@@ -21,13 +21,13 @@
     - name: "Run collectd tests"
       import_tasks: tasks/test_collectd.yml
       tags:
-        - enable-stf
+        - custom-stf-ceph
         - stf-connectors-osp13
 
     - name: "Run metrics_qdr tests"
       import_tasks: tasks/test_qdr.yml
       tags:
-        - enable-stf
+        - custom-stf-ceph
         - stf-connectors-osp13
 
 - name: "Run e2e tests"
@@ -40,4 +40,4 @@
     - name: "Run collectd Prometheus queries"  
       import_tasks: tasks/test_e2e.yml
       tags:
-        - enable-stf
+        - custom-stf-ceph
