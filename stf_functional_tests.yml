@@ -22,12 +22,14 @@
       import_tasks: tasks/test_collectd.yml
       tags:
         - custom-stf-ceph
+        - custom-stf-ceph-osp13
         - stf-connectors-osp13
 
     - name: "Run metrics_qdr tests"
       import_tasks: tasks/test_qdr.yml
       tags:
         - custom-stf-ceph
+        - custom-stf-ceph-osp13
         - stf-connectors-osp13
 
 - name: "Run e2e tests"
