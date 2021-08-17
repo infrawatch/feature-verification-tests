@@ -24,6 +24,7 @@
         - custom-stf-ceph
         - custom-stf-ceph-osp13
         - stf-connectors-osp13
+        - gnocchi-connectors-swift
 
     - name: "Run metrics_qdr tests"
       import_tasks: tasks/test_qdr.yml
@@ -31,6 +32,7 @@
         - custom-stf-ceph
         - custom-stf-ceph-osp13
         - stf-connectors-osp13
+        - gnocchi-connectors-swift
 
 - name: "Run e2e tests"
   hosts: undercloud-0
@@ -43,3 +45,4 @@
       import_tasks: tasks/test_e2e.yml
       tags:
         - custom-stf-ceph
+        - gnocchi-connectors-swift
