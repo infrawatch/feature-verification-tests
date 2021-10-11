@@ -17,10 +17,10 @@
 
 - name: "[Debug] Get the value of some metric from collectd"
   debug:
-    var: metrics.stdout_lines[-1]
+    var: metrics.stdout_lines[-20]
 
 - name: "[Test] Get the value of some metric from collectd"
   command: |
-    {{ container_bin }} exec {{ collectd_container_name }} collectdctl -s /var/run/collectd-socket getval {{ metrics.stdout_lines[-1] }}
+    {{ container_bin }} exec {{ collectd_container_name }} collectdctl -s /var/run/collectd-socket getval {{ metrics.stdout_lines[-20] }}
   register: stat
   failed_when: stat.stdout_lines|length == 0
