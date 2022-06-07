@@ -9,31 +9,31 @@
         msg: The URL is {{ prom_url.stdout_lines }}
 
     - name: "Capture collectd_cpu_percent"
-      shell: /usr/bin/curl -k -u "internal:z7a9vwey0fcFcC7sFMQS" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0"}[1m]' > /tmp/query_collectd_cpu_percent
+      shell: /usr/bin/curl -k -u "internal:1tp9zXur-t8Ve,wPkVgE" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0"}[1m]' > /tmp/query_collectd_cpu_percent
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
 
     - name: "Capture ceph_ceph_bytes metrics"
-      shell: /usr/bin/curl -k -u "internal:z7a9vwey0fcFcC7sFMQS" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.0"}[1m]' > /tmp/query_ceph_ceph_bytes
+      shell: /usr/bin/curl -k -u "internal:1tp9zXur-t8Ve,wPkVgE" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.0"}[1m]' > /tmp/query_ceph_ceph_bytes
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
     
     - name: "Capture collectd_iinterface_tx_total"
-      shell: /usr/bin/curl -k -u "internal:z7a9vwey0fcFcC7sFMQS" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_interface_if_packets_tx_total {type_instance="base"}[1m]' > /tmp/query_collectd_interface_tx_total
+      shell: /usr/bin/curl -k -u "internal:1tp9zXur-t8Ve,wPkVgE" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_interface_if_packets_tx_total {type_instance="base"}[1m]' > /tmp/query_collectd_interface_tx_total
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
     
     - name: "Capture collectd_memory"
-      shell: /usr/bin/curl -k -u "internal:z7a9vwey0fcFcC7sFMQS" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_memory {plugin_instance="base"}[1m]' > /tmp/query_collectd_memory
+      shell: /usr/bin/curl -k -u "internal:1tp9zXur-t8Ve,wPkVgE" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_memory {plugin_instance="base"}[1m]' > /tmp/query_collectd_memory
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
 
     - name: "Capture collectd_load_longterm"
-      shell: /usr/bin/curl -k -u "internal:z7a9vwey0fcFcC7sFMQS" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_load_longterm {plugin_instance="base"}[1m]' > /tmp/query_load_longterm
+      shell: /usr/bin/curl -k -u "internal:1tp9zXur-t8Ve,wPkVgE" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_load_longterm {plugin_instance="base"}[1m]' > /tmp/query_load_longterm
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
