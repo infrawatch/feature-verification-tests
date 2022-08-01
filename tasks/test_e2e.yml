@@ -8,51 +8,51 @@
     - debug:
         msg: The URL is {{ prom_url.stdout_lines }}
 
-    - name: "Capture collectd_cpu_percent"
+    - name: "RHELOSP-37759"
       shell: /usr/bin/curl -k -u "internal:1tp9zXur-t8Ve,wPkVgE" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0"}[1m]' > /tmp/query_collectd_cpu_percent
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
 
-    - name: "Capture ceph_ceph_bytes metrics"
+    - name: "RHELOSP-57528"
       shell: /usr/bin/curl -k -u "internal:1tp9zXur-t8Ve,wPkVgE" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.0"}[1m]' > /tmp/query_ceph_ceph_bytes
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
     
-    - name: "Capture collectd_iinterface_tx_total"
+    - name: "RHELOSP-57536"
       shell: /usr/bin/curl -k -u "internal:1tp9zXur-t8Ve,wPkVgE" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_interface_if_packets_tx_total {type_instance="base"}[1m]' > /tmp/query_collectd_interface_tx_total
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
     
-    - name: "Capture collectd_memory"
+    - name: "RHELOSP-37762"
       shell: /usr/bin/curl -k -u "internal:1tp9zXur-t8Ve,wPkVgE" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_memory {plugin_instance="base"}[1m]' > /tmp/query_collectd_memory
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
 
-    - name: "Capture collectd_load_longterm"
+    - name: "RHELOSP-117539"
       shell: /usr/bin/curl -k -u "internal:1tp9zXur-t8Ve,wPkVgE" -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? --data-urlencode 'query=collectd_load_longterm {plugin_instance="base"}[1m]' > /tmp/query_load_longterm
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
 
-    - name: "[Test] Check whether collectd ceph bytes metrics created and received in Prometheus for any ceph nodes"
+    - name: "RHELOSP-37224"
       command: egrep 'ceph' /tmp/query_ceph_ceph_bytes
       register: checkmyconf
       changed_when: no
       failed_when:
         - checkmyconf.rc != 0
 
-    - name: "[Test] Check whether collectd interface TX total metrics created and received in Prometheus for any overcloud node"
+    - name: "RHELOSP-37218"
       command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_interface_tx_total
       register: checkmyconf
       changed_when: no
       failed_when:
         - checkmyconf.rc != 0
 
-    - name: "[Test] Check whether collectd cpu metrics created and received in Prometheus for any overcloud node"
+    - name: "RHELOSP-37636"
       command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_cpu_percent
       register: checkmyconf
       changed_when: no
@@ -60,7 +60,7 @@
         - checkmyconf.rc != 0
 
 
-    - name: "[Test] Check whether collectd memory metrics created and received in Prometheus for any overcloud node"
+    - name: "RHELOSP-37670"
       command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_memory
       register: checkmyconf
       changed_when: no
@@ -68,7 +68,7 @@
         - checkmyconf.rc != 0
 
 
-    - name: "[Test] Check whether collectd load metrics created and received in Prometheus for any overcloud node"
+    - name: "RHELOSP-37757"
       command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_load_longterm
       register: checkmyconf
       changed_when: no

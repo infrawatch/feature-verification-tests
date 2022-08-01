@@ -1,5 +1,5 @@
 ---
-- name: "[Test] Check that qdr container is running."
+- name: "RHELOSP-60117"
   shell: |
     {{ container_bin }} ps | grep {{ qdr_container_name }}
   register: container_nodes
@@ -14,7 +14,7 @@
   debug:
     var: bus_addr
 
-- name: "[Test] Get number of messages received"
+- name: "RHELOSP-60410"
   shell: |
     {{ container_bin }} exec {{ qdr_container_name }} qdstat -b {{ bus_addr.stdout }}:5666 -g | grep "Ingress Count" | awk '{print $3}'
   register: num_rx

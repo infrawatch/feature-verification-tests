@@ -13,7 +13,7 @@ DOCUMENTATION = '''
         - This summarises tasks per host and outputs it to a log file
 '''
 
-MSG_FORMAT = "{host} {task}: {status}\n"
+MSG_FORMAT = "{task}={status}\n"
 
 class CallbackModule(CallbackBase):
     """
@@ -24,7 +24,7 @@ class CallbackModule(CallbackBase):
     CALLBACK_NAME = 'log_to_file'
     CALLBACK_NEEDS_WHITELIST = True
 
-    MSG_FORMAT = "{host} {task}: {status}\n"
+    MSG_FORMAT = "{task}={status}\n"
 
     def __init__(self):
 
@@ -32,7 +32,7 @@ class CallbackModule(CallbackBase):
         self.current_task = ''
         self.passed = 0
         self.failed = 0
-        self.path = os.path.join(os.getcwd(), "stf_test_run_results.txt")
+        self.path = os.path.join(os.getcwd(), "test_run_result.out")
         # either create the file or truncate the existing file
         with open(self.path, 'w') as fp:
             pass
@@ -40,28 +40,28 @@ class CallbackModule(CallbackBase):
     def playbook_on_task_start(self, task, is_conditional):
         self.current_task = str(task)
 
-    def playbook_on_stats(self, stats):
-        with open(self.path, 'a') as fd:
-            fd.write("PASSED: {}\n".format(self.passed))
-            fd.write("FAILED: {}\n".format(self.failed))
+#    def playbook_on_stats(self, stats):
+#        with open(self.path, 'a') as fd:
+#            fd.write("passed: {}\n".format(self.passed))
+#            fd.write("failed: {}\n".format(self.failed))
 
     def log(self, host, category):
-        # only interested in the test tasks, not setup or debug
-        if self.current_task.startswith("[Test]"):
+         # only interested in the test tasks, not setup or debug
+         if self.current_task.startswith("RHELOSP"):
 
-            if category == "FAIL":
-               self.failed +=1
-            if category == "PASS":
-                self.passed +=1
+             if category == "failed":
+                self.failed +=1
+             if category == "passed":
+                 self.passed +=1
      
-            with open(self.path, 'a') as fd:
-                fd.write(self.MSG_FORMAT.format(host=host, task=self.current_task, status=category))
+             with open(self.path, 'a') as fd:
+                 fd.write(self.MSG_FORMAT.format(task=self.current_task, status=category))
 
     def runner_on_failed(self, host, res, ignore_errors=False):
-        self.log(host, 'FAIL')
+         self.log(host,'failed')
 
     def runner_on_ok(self, host, res):
-        self.log(host, 'PASS')
+         self.log(host,'passed')
 
     def runner_on_skipped(self, host, res, item=None):
-        self.log(host, 'SKIP')
+         self.log(host, 'skipped')
