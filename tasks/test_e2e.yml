@@ -38,7 +38,7 @@
       failed_when:
         - checkmyconf.rc !=0
 
-    - name: "RHELOSP-37224"
+    - name: "RHELOSP-37757"
       command: egrep 'ceph' /tmp/query_ceph_ceph_bytes
       register: checkmyconf
       changed_when: no
@@ -68,7 +68,7 @@
         - checkmyconf.rc != 0
 
 
-    - name: "RHELOSP-37757"
+    - name: "RHELOSP-37224"
       command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_load_longterm
       register: checkmyconf
       changed_when: no
