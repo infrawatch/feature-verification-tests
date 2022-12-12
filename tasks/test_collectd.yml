@@ -13,7 +13,7 @@
 
 - name: "[Debug] Check for a non-zero number of metrics from collectd"
   debug:
-     var: metrics
+    var: metrics
 
 - name: "[Debug] Get the value of some metric from collectd"
   debug:
