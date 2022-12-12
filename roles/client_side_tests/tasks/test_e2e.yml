@@ -1,14 +1,15 @@
 ---
 - name: "Extract URL from stf-connectors template"
   shell: grep interconnect /home/stack/virt/stf-connectors* | sed 's;.*\(-service-telemetry.*\);default-prometheus-proxy\1;'
-  changed: false
   register: prom_url
+  changed_when: false
   failed_when: "prom_url.stdout_lines|length == 0"
 
 - name: "[tmp] Set prom creds"
   set_fact:
     prom_user: "internal"
     prom_pass: "1tp9zXur-t8Ve,wPkVgE"
+
 - debug:
     var: prom_url.stdout_lines
 
@@ -23,6 +24,7 @@
         --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0"}[1m]' \
         --output /tmp/query_collectd_cpu_percent
   register: checkmyconf
+  changed_when: false
   failed_when:
     - checkmyconf.rc !=0
 
@@ -34,6 +36,7 @@
       --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.5"}[1m]' \
       --output /tmp/query_ceph_ceph_bytes
   register: checkmyconf
+  changed_when: false
   failed_when:
     - checkmyconf.rc !=0
 
@@ -45,6 +48,7 @@
         --data-urlencode 'query=collectd_interface_if_packets_tx_total {type_instance="base"}[1m]' \
         --output /tmp/query_collectd_interface_tx_total
   register: checkmyconf
+  changed_when: false
   failed_when:
     - checkmyconf.rc !=0
 
@@ -56,6 +60,7 @@
         --data-urlencode 'query=collectd_memory {plugin_instance="base"}[1m]' \
         --output /tmp/query_collectd_memory
   register: checkmyconf
+  changed_when: false
   failed_when:
     - checkmyconf.rc !=0
 
@@ -67,6 +72,7 @@
        --data-urlencode 'query=collectd_load_longterm {plugin_instance="base"}[1m]' \
        --output /tmp/query_load_longterm
   register: checkmyconf
+  changed_when: false
   failed_when:
     - checkmyconf.rc !=0
 

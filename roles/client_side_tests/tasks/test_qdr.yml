@@ -3,12 +3,14 @@
   shell: |
     {{ container_bin }} ps | grep {{ qdr_container_name }}
   register: container_nodes
+  changed_when: false
   failed_when: container_nodes.stdout_lines|length != 1
 
 - name: "[Setup] Get Qdr bus address"
   shell: |
       {{ container_bin }} exec {{ qdr_container_name }} cat /etc/qpid-dispatch/qdrouterd.conf | grep -C 5 listener | grep -C 3 "port: 5666" | grep host | awk '{print $2}'
   register: bus_addr
+  changed_when: false
 
 - name: "[Debug] Get Qdr bus address"
   debug:
@@ -18,6 +20,7 @@
   shell: |
     {{ container_bin }} exec {{ qdr_container_name }} qdstat -b {{ bus_addr.stdout }}:5666 -g | grep "Ingress Count" | awk '{print $3}'
   register: num_rx
+  changed_when: false
   failed_when: num_rx.stdout|int == 0 or num_rx.stdout_lines|length == 0
 
 - name: "[Debug] Get the number of messages received"
