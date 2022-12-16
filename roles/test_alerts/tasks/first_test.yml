@@ -1,0 +1,33 @@
+---
+# Assuming we've already logged in...
+# Following procedure on https://infrawatch.github.io/documentation/#creating-an-alert-rule-in-prometheus_assembly-advanced-features
+# Assuming we're in teh right project already...
+
+- name: "Create the alert"
+  ansible.builtin.shell:
+    cmd: |
+      oc apply -f - <<EOF
+      apiVersion: monitoring.coreos.com/v1
+      kind: PrometheusRule
+      metadata:
+        creationTimestamp: null
+        labels:
+          prometheus: default
+          role: alert-rules
+        name: prometheus-alarm-rules
+        namespace: service-telemetry
+      spec:
+        groups:
+          - name: ./openstack.rules
+            rules:
+              - alert: Collectd metrics receive rate is zero
+                expr: rate(sg_total_collectd_msg_received_count[1m]) == 0
+      EOF
+  changed_when: false
+
+- name: "Check that the alert was created"
+  ansible.builtin.command:
+    cmd: |
+      curl -k --user "{{ prom_user }}:{{ prom_pass }}" https://{{ prom_host }}/api/v1/rules
+  register: output
+  changed_when: false
