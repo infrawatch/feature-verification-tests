@@ -1,26 +1,32 @@
 ---
-- name: "Extract URL from stf-connectors template"
-  shell: grep interconnect /home/stack/virt/stf-connectors* | sed 's;.*\(-service-telemetry.*\);default-prometheus-proxy\1;'
-  register: prom_url
-  changed_when: false
-  failed_when: "prom_url.stdout_lines|length == 0"
+- debug: var=prom_url
+- name: "If there's no url set, then grab it from a file"
+  when: "{{ prom_url is not defined }}"
+  block:
+  - name: "Extract URL from stf-connectors template"
+    shell: grep interconnect /home/stack/virt/stf-connectors* | sed 's;.*\(-service-telemetry.*\);default-prometheus-proxy\1;'
+    register: cmd_output
+    changed_when: false
+    failed_when: "cmd_output.stdout_lines|length == 0"
 
-- name: "[tmp] Set prom creds"
-  set_fact:
-    prom_user: "internal"
-    prom_pass: "1tp9zXur-t8Ve,wPkVgE"
+  - name: "[tmp] set prom creds"
+    set_fact:
+      prom_url: "{{ cmd_output.stdout_lines[0] }}"
+
+  - debug:
+      var: cmd_output.stdout_lines
+
+  - debug:
+      msg: The URL is {{ cmd_output.stdout_lines }}
 
 - debug:
-    var: prom_url.stdout_lines
-
-- debug:
-    msg: The URL is {{ prom_url.stdout_lines }}
+    msg: The URL is {{ prom_url }}
 
 - name: "RHELOSP-37759"
   shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
-        -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? \
+        -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0"}[1m]' \
         --output /tmp/query_collectd_cpu_percent
   register: checkmyconf
@@ -32,9 +38,9 @@
   shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
-      -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? \
-      --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.5"}[1m]' \
-      --output /tmp/query_ceph_ceph_bytes
+        -g https://{{ prom_url }}/api/v1/query? \
+        --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.5"}[1m]' \
+        --output /tmp/query_ceph_ceph_bytes
   register: checkmyconf
   changed_when: false
   failed_when:
@@ -44,7 +50,7 @@
   shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
-        -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? \
+        -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=collectd_interface_if_packets_tx_total {type_instance="base"}[1m]' \
         --output /tmp/query_collectd_interface_tx_total
   register: checkmyconf
@@ -56,7 +62,7 @@
   shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
-        -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? \
+        -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=collectd_memory {plugin_instance="base"}[1m]' \
         --output /tmp/query_collectd_memory
   register: checkmyconf
@@ -68,7 +74,7 @@
   shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
-       -g https://{{ prom_url.stdout_lines[0] }}/api/v1/query? \
+       -g https://{{ prom_url }}/api/v1/query? \
        --data-urlencode 'query=collectd_load_longterm {plugin_instance="base"}[1m]' \
        --output /tmp/query_load_longterm
   register: checkmyconf
