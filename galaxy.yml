@@ -1,0 +1,13 @@
+---
+namespace: 'infrawatch'
+name: 'functional_tests'
+version: '0.0.1'
+repository: http://github.com/infrawatch/functional-tests
+description: "Tests for STF components"
+license:
+  - "Apache-2.0"
+readme: 'README.rst'
+# dependencies:
+#   - namespace.role >= version
+authors:
+  - 'Red Hat CloudOps team'
