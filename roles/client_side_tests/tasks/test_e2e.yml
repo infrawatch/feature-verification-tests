@@ -1,29 +1,37 @@
 ---
-- debug: var=prom_url
+- name: "Show the prom_url"
+  ansible.builtin.debug:
+    var: prom_url
+
 - name: "If there's no url set, then grab it from a file"
-  when: "{{ prom_url is not defined }}"
+  when: prom_url is not defined
   block:
-  - name: "Extract URL from stf-connectors template"
-    shell: grep interconnect /home/stack/virt/stf-connectors* | sed 's;.*\(-service-telemetry.*\);default-prometheus-proxy\1;'
-    register: cmd_output
-    changed_when: false
-    failed_when: "cmd_output.stdout_lines|length == 0"
+    - name: "Extract URL from stf-connectors template"
+      ansible.builtin.shell:
+        cmd: |
+          grep interconnect /home/stack/virt/stf-connectors* | sed 's;.*\(-service-telemetry.*\);default-prometheus-proxy\1;'
+      register: cmd_output
+      changed_when: false
+      failed_when: "cmd_output.stdout_lines|length == 0"
 
-  - name: "[tmp] set prom creds"
-    set_fact:
-      prom_url: "{{ cmd_output.stdout_lines[0] }}"
+    - name: "[tmp] set prom creds"
+      ansible.builtin.set_fact:
+        prom_url: "{{ cmd_output.stdout_lines[0] }}"
 
-  - debug:
-      var: cmd_output.stdout_lines
+    - name: "Show the command output"
+      ansible.builtin.debug:
+        var: cmd_output.stdout_lines
 
-  - debug:
-      msg: The URL is {{ cmd_output.stdout_lines }}
+    - name: "Add info for the the user"
+      ansible.builtin.debug:
+        msg: The URL is {{ cmd_output.stdout_lines }}
 
-- debug:
+- name: "Add debug info to check the prom_url value"
+  ansible.builtin.debug:
     msg: The URL is {{ prom_url }}
 
 - name: "RHELOSP-37759"
-  shell:
+  ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
         -g https://{{ prom_url }}/api/v1/query? \
@@ -35,7 +43,7 @@
     - checkmyconf.rc !=0
 
 - name: "RHELOSP-57528"
-  shell:
+  ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
         -g https://{{ prom_url }}/api/v1/query? \
@@ -47,7 +55,7 @@
     - checkmyconf.rc !=0
 
 - name: "RHELOSP-57536"
-  shell:
+  ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
         -g https://{{ prom_url }}/api/v1/query? \
@@ -59,7 +67,7 @@
     - checkmyconf.rc !=0
 
 - name: "RHELOSP-37762"
-  shell:
+  ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
         -g https://{{ prom_url }}/api/v1/query? \
@@ -71,7 +79,7 @@
     - checkmyconf.rc !=0
 
 - name: "RHELOSP-117539"
-  shell:
+  ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
        -g https://{{ prom_url }}/api/v1/query? \
@@ -83,35 +91,35 @@
     - checkmyconf.rc !=0
 
 - name: "RHELOSP-37757"
-  command: egrep 'ceph' /tmp/query_ceph_ceph_bytes
+  ansible.builtin.command: egrep 'ceph' /tmp/query_ceph_ceph_bytes
   register: checkmyconf
   changed_when: false
   failed_when:
     - checkmyconf.rc != 0
 
 - name: "RHELOSP-37218"
-  command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_interface_tx_total
+  ansible.builtin.command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_interface_tx_total
   register: checkmyconf
   changed_when: false
   failed_when:
     - checkmyconf.rc != 0
 
 - name: "RHELOSP-37636"
-  command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_cpu_percent
+  ansible.builtin.command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_cpu_percent
   register: checkmyconf
   changed_when: false
   failed_when:
     - checkmyconf.rc != 0
 
 - name: "RHELOSP-37670"
-  command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_memory
+  ansible.builtin.command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_memory
   register: checkmyconf
   changed_when: false
   failed_when:
     - checkmyconf.rc != 0
 
 - name: "RHELOSP-37224"
-  command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_load_longterm
+  ansible.builtin.command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_load_longterm
   register: checkmyconf
   changed_when: false
   failed_when:
