@@ -93,4 +93,15 @@ The following vars can be passed to change the behaviour.
 
   The name of the container where qdr is running, e.g. ``metrics_qdr``, ``qdr-test``
 
-  default: ``metrics_qdr``
+  default: ``metrics_qdr`
+
+
+
+
+Running e2e tests against existing STF
+--------------------------------------
+
+E2E tests are currently running  against predeployed STF that installed  on top of OpenShift deployed in QuickLab insfrastracture.
+There is an inventory file called stf.inf that should be uncluded in the ansible-playbbok command along side with the Infrared inventory file.
+
+      ANSIBLE_CALLBACK_WHITELIST=custom_logger ansible-playbook -i `ir workspace inventory` -i stf.inv  playbooks/stf_functional_tests.yml --tags <TAGS>

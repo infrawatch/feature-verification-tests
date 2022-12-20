@@ -37,21 +37,11 @@
         - gnocchi-connectors-swift
 
 - name: "Run e2e tests"
-  hosts: undercloud-0
+  hosts: stf
   ignore_errors: true
-  become: true
-  become_method: sudo
-  become_user: root
   tasks:
     - name: "Run collectd Prometheus queries"  
       import_tasks: tasks/test_e2e.yml
-      vars:
-        prom_user: "{{ ( prom_secret.stdout_lines[0] | b64decode | split(':'))[0] }}"
-        prom_pass: "{{ prom_secret.stdout_lines[1] | b64decode }}"
-        prom_url: "{{ prom_route.stdout }}"
-        stf_user: "quicklab"
-        stf_host: "{{ stf_fqdn.stdout }}"
-
       tags:
         - custom-stf-ceph
         - stf-connectors-osp13-ffu
