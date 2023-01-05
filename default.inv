@@ -48,16 +48,6 @@
 #NOTE: Here is the example of ceph nodes group. 
 #ceph-0
 
-[prometheus_hosts]
-#localhost
-
-[zookeeper_hosts]
-#NOTE: currently one zookeeper host is supported
-#hostname
-
-[kafka_hosts]
-#hostname
-
 [stf]
 quicklab  ansible_host="10.0.91.89" ansible_user="quicklab" ansible_ssh_private_key_file="/root/.ssh/quicklab.key"
 
