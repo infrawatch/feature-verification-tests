@@ -1,0 +1,63 @@
+# NOTE: for defining hosts both hostnames and IP addresses forms can be used
+# however it is advised to keep it consistent over the file, especially if
+# the same host is used by multiple containers
+# e.g. if some host will be described by IP address at first('127.0.0.1')
+# and at some place the same host will be called using its hostname
+# ('localhost') then ansible will treat them as different entities and
+# synchronization problems during parallel dependencies installation
+# may occur)
+
+
+[hypervisor]
+#NOTE: hypervisor host for VIRT deployment
+#hostname
+
+[undercloud]
+#hostname
+
+[overcloud_nodes]
+#NOTE: Here is the example of overcloud nodes group
+#controller-0
+#controller-1
+#controller-2
+#compute-0
+#compute-1
+#ceph-0
+
+[openstack_nodes]
+#NOTE: Here is the example of openstack nodes group
+#controller-0
+#controller-1
+#controller-2
+#compute-0
+#compute-1
+#ceph-0
+
+[controller]
+#NOTE: Here is the example of controller  nodes group. 
+#controller-0
+#controller-1
+#controller-2
+
+[compute]
+#NOTE: Here is the example of compute  nodes group. 
+#compute-0
+#compute-1
+
+[ceph]
+#NOTE: Here is the example of ceph nodes group. 
+#ceph-0
+
+[prometheus_hosts]
+#localhost
+
+[zookeeper_hosts]
+#NOTE: currently one zookeeper host is supported
+#hostname
+
+[kafka_hosts]
+#hostname
+
+[stf]
+quicklab  ansible_host="10.0.91.89" ansible_user="quicklab" ansible_ssh_private_key_file="/root/.ssh/quicklab.key"
+

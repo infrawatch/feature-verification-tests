@@ -29,8 +29,8 @@
         cmd: >-
           /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
             -g https://{{ prom_url }}/api/v1/query? \
-             --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0"}[1m]' \
-             --output /tmp/query_collectd_cpu_percent
+            --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0"}[1m]' \
+            --output /tmp/query_collectd_cpu_percent
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
@@ -40,8 +40,8 @@
         cmd: >-
           /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
             -g https://{{ prom_url }}/api/v1/query? \
-             --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.5"}[1m]' \
-             --output /tmp/query_ceph_ceph_bytes
+            --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.5"}[1m]' \
+            --output /tmp/query_ceph_ceph_bytes
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
@@ -51,8 +51,8 @@
         cmd: >-
           /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
             -g https://{{ prom_url }}/api/v1/query? \
-             --data-urlencode 'query=collectd_interface_if_packets_tx_total {type_instance="base"}[1m]' \
-             --output /tmp/query_collectd_interface_tx_total
+            --data-urlencode 'query=collectd_interface_if_packets_tx_total {type_instance="base"}[1m]' \
+            --output /tmp/query_collectd_interface_tx_total
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
@@ -62,8 +62,8 @@
         cmd: >-
           /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
             -g https://{{ prom_url }}/api/v1/query? \
-             --data-urlencode 'query=collectd_memory {plugin_instance="base"}[1m]' \
-              --output /tmp/query_collectd_memory
+            --data-urlencode 'query=collectd_memory {plugin_instance="base"}[1m]' \
+            --output /tmp/query_collectd_memory
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
@@ -73,8 +73,8 @@
         cmd: >-
           /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
             -g https://{{ prom_url }}/api/v1/query? \
-             --data-urlencode 'query=collectd_load_longterm {plugin_instance="base"}[1m]' \
-             --output /tmp/query_load_longterm 
+            --data-urlencode 'query=collectd_load_longterm {plugin_instance="base"}[1m]' \
+            --output /tmp/query_load_longterm 
       register: checkmyconf
       failed_when:
         - checkmyconf.rc !=0
