@@ -102,6 +102,6 @@ Running e2e tests against existing STF
 --------------------------------------
 
 E2E tests are currently running  against predeployed STF that installed  on top of OpenShift deployed in QuickLab insfrastracture.
-There is an inventory file called stf.inf that should be uncluded in the ansible-playbbok command along side with the Infrared inventory file.
+There is an inventory file called stf.inf that should be included in the ansible-playbook command along side with the Infrared inventory file.
 
       ANSIBLE_CALLBACK_WHITELIST=custom_logger ansible-playbook -i `ir workspace inventory` -i stf.inv  playbooks/stf_functional_tests.yml --tags <TAGS>
