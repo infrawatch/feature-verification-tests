@@ -36,6 +36,12 @@
         - stf-connectors-osp13-ffu
         - gnocchi-connectors-swift
 
+- name: "Obtain OCP key file"
+  hosts: localhost
+  tasks:
+    - name: "Download OpenShift key file"
+      shell: curl -k https://gitlab.cee.redhat.com/cee_ops/quicklab/raw/master/docs/quicklab.key --output ~/.ssh/quicklab.key; chmod 600 ~/.ssh/quicklab.key
+
 - name: "Run e2e tests"
   hosts: stf
   ignore_errors: true

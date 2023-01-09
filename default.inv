@@ -49,5 +49,5 @@
 #ceph-0
 
 [stf]
-quicklab  ansible_host="10.0.91.89" ansible_user="quicklab" ansible_ssh_private_key_file="/home/quicklab/.ssh/quicklab.key"
+quicklab  ansible_host="10.0.91.89" ansible_user="quicklab" ansible_ssh_private_key_file=" ~/.ssh/quicklab.key"
 
