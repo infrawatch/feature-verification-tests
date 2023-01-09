@@ -17,10 +17,15 @@
 
     - name: "Get the prom creds from the secret"
       set_fact:
-        prom_user: "{{ ( prom_secret.stdout_lines[0] | b64decode | split(':'))[0] }}"
+        prom_user_decoded: "{{ ( prom_secret.stdout_lines[0] | b64decode ) }}"
         prom_pass: "{{ prom_secret.stdout_lines[1] | b64decode }}"
         prom_url: "{{ prom_route.stdout }}"
     - debug: var=prom_user
+
+    - name: Fetch user
+      set_fact:
+        prom_user: "{{ prom_user_decoded.split(':')[0] }}"
+      when: prom_user_decoded is defined
 
 
  
