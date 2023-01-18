@@ -1,0 +1,126 @@
+---
+- name: "Show the prom_url"
+  ansible.builtin.debug:
+    var: prom_url
+
+- name: "If there's no url set, then grab it from a file"
+  when: prom_url is not defined
+  block:
+    - name: "Extract URL from stf-connectors template"
+      ansible.builtin.shell:
+        cmd: |
+          grep interconnect /home/stack/virt/stf-connectors* | sed 's;.*\(-service-telemetry.*\);default-prometheus-proxy\1;'
+      register: cmd_output
+      changed_when: false
+      failed_when: "cmd_output.stdout_lines|length == 0"
+
+    - name: "[tmp] set prom creds"
+      ansible.builtin.set_fact:
+        prom_url: "{{ cmd_output.stdout_lines[0] }}"
+
+    - name: "Show the command output"
+      ansible.builtin.debug:
+        var: cmd_output.stdout_lines
+
+    - name: "Add info for the the user"
+      ansible.builtin.debug:
+        msg: The URL is {{ cmd_output.stdout_lines }}
+
+- name: "Add debug info to check the prom_url value"
+  ansible.builtin.debug:
+    msg: The URL is {{ prom_url }}
+
+- name: "RHELOSP-37759"
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
+        -g https://{{ prom_url }}/api/v1/query? \
+        --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0"}[1m]' \
+        --output /tmp/query_collectd_cpu_percent
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc !=0
+
+- name: "RHELOSP-57528"
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
+        -g https://{{ prom_url }}/api/v1/query? \
+        --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.5"}[1m]' \
+        --output /tmp/query_ceph_ceph_bytes
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc !=0
+
+- name: "RHELOSP-57536"
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
+        -g https://{{ prom_url }}/api/v1/query? \
+        --data-urlencode 'query=collectd_interface_if_packets_tx_total {type_instance="base"}[1m]' \
+        --output /tmp/query_collectd_interface_tx_total
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc !=0
+
+- name: "RHELOSP-37762"
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
+        -g https://{{ prom_url }}/api/v1/query? \
+        --data-urlencode 'query=collectd_memory {plugin_instance="base"}[1m]' \
+        --output /tmp/query_collectd_memory
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc !=0
+
+- name: "RHELOSP-117539"
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
+       -g https://{{ prom_url }}/api/v1/query? \
+       --data-urlencode 'query=collectd_load_longterm {plugin_instance="base"}[1m]' \
+       --output /tmp/query_load_longterm
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc !=0
+
+- name: "RHELOSP-37757"
+  ansible.builtin.command: egrep 'ceph' /tmp/query_ceph_ceph_bytes
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc != 0
+
+- name: "RHELOSP-37218"
+  ansible.builtin.command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_interface_tx_total
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc != 0
+
+- name: "RHELOSP-37636"
+  ansible.builtin.command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_cpu_percent
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc != 0
+
+- name: "RHELOSP-37670"
+  ansible.builtin.command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_memory
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc != 0
+
+- name: "RHELOSP-37224"
+  ansible.builtin.command: egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_load_longterm
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc != 0

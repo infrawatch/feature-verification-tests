@@ -1,26 +1,30 @@
 ---
 - name: "RHELOSP-60406"
-  shell: |
+  ansible.builtin.shell: |
+    set -o pipefail
     {{ container_bin }} ps | grep {{ collectd_container_name }}
   register: container_nodes
+  changed_when: false
   failed_when: container_nodes.stdout_lines|length != 1
 
 - name: "RHELOSP-60411"
-  command: |
+  ansible.builtin.command: |
     {{ container_bin }} exec {{ collectd_container_name }} collectdctl -s /var/run/collectd-socket listval
   register: metrics
+  changed_when: false
   failed_when: "metrics.stdout_lines|length == 0"
 
 - name: "[Debug] Check for a non-zero number of metrics from collectd"
-  debug:
-     var: metrics
+  ansible.builtin.debug:
+    var: metrics
 
 - name: "[Debug] Get the value of some metric from collectd"
-  debug:
+  ansible.builtin.debug:
     var: metrics.stdout_lines[-20]
 
 - name: "RHELOSP-69331"
-  command: |
+  ansible.builtin.command: |
     {{ container_bin }} exec {{ collectd_container_name }} collectdctl -s /var/run/collectd-socket getval {{ metrics.stdout_lines[-20] }}
   register: stat
+  changed_when: false
   failed_when: stat.stdout_lines|length == 0
