@@ -1,0 +1,17 @@
+---
+# Assuming we've already logged in...
+# Following procedure on https://infrawatch.github.io/documentation/#creating-an-alert-rule-in-prometheus_assembly-advanced-features
+# Assuming we're in teh right project already...
+
+- name: "Set metrics retention to 7d""
+  ansible.builtin.shell:
+    cmd: |
+      oc patch stf/default --type merge -p '{"spec": {"backends": {"metrics": {"prometheus": {"storage": {"retention": "7d"}}}}}}'
+  changed_when: false
+
+- name: "Check that the retention was set"
+  ansible.builtin.command:
+    cmd: |
+      oc describe pod prometheus-default-0  | grep -o 'storage.tsdb.retention.time=7d' | wc -l
+  register: output
+  failed_when: "output.stdout|int == 0"
