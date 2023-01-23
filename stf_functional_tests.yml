@@ -52,6 +52,21 @@
       import_role:
         name: client_side_tests
         tasks_from: test_e2e
+      
+    - name: "Test Alerts"
+      import_role:
+        name: test_alerts
+        tasks_from: first_test
+    
+    - name: "Test metrics retention"
+      import_role:
+        name: test_metrics_retention
+        tasks_from: metrics_retention_test
+
+    - name: "Test snmpTraps"
+      import_role:
+        name: test_snmpTraps
+        tasks_from: snmpTraps_test
       tags:
         - custom-stf-ceph
         - stf-connectors-osp13-ffu

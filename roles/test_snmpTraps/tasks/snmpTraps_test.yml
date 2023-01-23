@@ -1,0 +1,23 @@
+---
+# Assuming we've already logged in...
+# Following procedure on https://infrawatch.github.io/documentation/#creating-an-alert-rule-in-prometheus_assembly-advanced-features
+# Assuming we're in teh right project already...
+
+- name: "Set the alerting.alertmanager.receivers.snmpTraps parameters"
+  ansible.builtin.shell:
+    cmd: |
+      oc patch stf/default --type merge -p '{"spec":{"alerting":{"alertmanager":{"receivers":{"snmpTraps":{"enabled":true,"target":"10.10.10.10"}}}}}}'
+  changed_when: false
+
+- name: "Interrupt metrics flow by preventing the QDR"
+  ansible.builtin.shell:
+    cmd: |
+      for i in {1..3}; do oc delete po -l application=default-interconnect;  done
+  changed_when: false
+
+- name: "Check for snmpTraps logs"
+  ansible.builtin.shell:
+    cmd: |
+      oc logs -l "app=default-snmp-webhook"  | grep "Sending SNMP trap" | wc -l
+  register: output
+  failed_when: "output.stdout|int == 0"
