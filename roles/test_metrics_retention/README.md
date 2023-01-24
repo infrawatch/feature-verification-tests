@@ -1,5 +1,5 @@
 test_metrics_retention
-=========
+======================
 
 Tests for metrics retention  functionality deployed in STF
 

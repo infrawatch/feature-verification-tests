@@ -1,5 +1,5 @@
 test_snmpTraps
-=========
+==============
 
 Tests for the snmpTraps functionality deployed in STF
 
