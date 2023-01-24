@@ -61,13 +61,11 @@
     - name: "Test metrics retention"
       import_role:
         name: test_metrics_retention
-        tasks_from: metrics_retention_test
 
     - name: "Test snmpTraps"
       import_role:
         name: test_snmpTraps
-        tasks_from: snmpTraps_test
-      tags:
-        - custom-stf-ceph
-        - stf-connectors-osp13-ffu
-        - gnocchi-connectors-swift
+  tags:
+    - custom-stf-ceph
+    - stf-connectors-osp13-ffu
+    - gnocchi-connectors-swift

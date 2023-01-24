@@ -1,7 +1,7 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+test_alerts
 
 Requirements
 ------------
@@ -30,7 +30,7 @@ Including an example of how to use your role (for instance, with variables passe
 License
 -------
 
-BSD
+Apache 2
 
 Author Information
 ------------------
