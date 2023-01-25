@@ -1,7 +1,7 @@
-Role Name
-=========
+test_metrics_retention
+======================
 
-test_alerts
+Tests for metrics retention  functionality deployed in STF
 
 Requirements
 ------------

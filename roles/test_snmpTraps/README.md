@@ -1,7 +1,7 @@
-Role Name
-=========
+test_snmpTraps
+==============
 
-test_alerts
+Tests for the snmpTraps functionality deployed in STF
 
 Requirements
 ------------
