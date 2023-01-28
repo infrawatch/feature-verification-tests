@@ -1,0 +1,90 @@
+---
+# Assuming we've already logged in...
+# Following procedure on https://infrawatch.github.io/documentation/#high-availability_assembly-advanced-features
+# Assuming we're in teh right project already...
+
+- name: "Add highAvailability.enabled: true to the spec section"
+  ansible.builtin.shell:
+    cmd: |
+      oc patch stf/default --type merge -p '{"spec":{"highAvailability":{"enabled": true}}}' ; sleep 120
+  changed_when: false
+
+- name: "Verify that AMQP Interconnect shows two containers"
+  ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep default-interconnect| wc -l
+  register: output
+  failed_when: "output.stdout|int !=2"
+  
+
+- name: "Verify that Alert Manager  shows two containers"
+  ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep alertmanager| wc -l
+  register: output
+  failed_when: "output.stdout|int !=2"
+
+
+- name: "Verify that Prometheus shows two containers"
+  ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep prometheus-default| wc -l
+  register: output
+  failed_when: "output.stdout|int !=2"
+
+
+-name: "Verify that Ceilometer Events Smartgateway shows two containers"
+ ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep default-cloud1-ceil-event| wc -l
+  register: output
+  failed_when: "output.stdout|int !=2"
+
+
+-name: "Verify that Ceilometer Metrics  Smartgateway shows two containers"
+ ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep default-cloud1-ceil-meter| wc -l
+  register: output
+  failed_when: "output.stdout|int !=2"
+
+
+-name: "Verify that Collectd Events Smartgateway shows two containers"
+ ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep default-cloud1-coll-event| wc -l
+  register: output
+  failed_when: "output.stdout|int !=2"
+
+
+-name: "Verify that Collectd Metrics Smartgateway shows two containers"
+ ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep default-cloud1-coll-meter| wc -l
+  register: output
+  failed_when: "output.stdout|int !=2"
+
+
+-name: "Verify that Collectd Sensubility shows two containers"
+ ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep default-cloud1-sens-meter| wc -l
+  register: output
+  failed_when: "output.stdout|int !=2"
+
+
+-name: "Verify that ElasticSearch shows three containers"
+  ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep elasticsearch-es-default| wc -l
+  register: output
+  failed_when: "output.stdout|int !=3"
+
+
+-name: "Disbale HighAvailability after running test"
+ ansible.builtin.shell:
+    cmd: |
+      oc patch stf/default --type merge -p '{"spec":{"highAvailability":{"enabled": false}}}' ; sleep 120
+ changed_when: false
+
+
