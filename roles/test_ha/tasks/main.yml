@@ -6,8 +6,10 @@
 - name: "Add highAvailability.enabled: true to the spec section"
   ansible.builtin.shell:
     cmd: |
-      oc patch stf/default --type merge -p '{"spec":{"highAvailability":{"enabled": true}}}' ; sleep 120
+      oc patch stf/default --type merge -p '{"spec":{"highAvailability":{"enabled": true}}}' && sleep 120
   changed_when: false
+
+
 
 - name: "Verify that AMQP Interconnect shows two containers"
   ansible.builtin.shell:
@@ -15,7 +17,9 @@
       oc get pods | grep default-interconnect| wc -l
   register: output
   failed_when: "output.stdout|int !=2"
+  changed_when: false
   
+
 
 - name: "Verify that Alert Manager  shows two containers"
   ansible.builtin.shell:
@@ -23,6 +27,8 @@
       oc get pods | grep alertmanager| wc -l
   register: output
   failed_when: "output.stdout|int !=2"
+  changed_when: false
+
 
 
 - name: "Verify that Prometheus shows two containers"
@@ -31,6 +37,8 @@
       oc get pods | grep prometheus-default| wc -l
   register: output
   failed_when: "output.stdout|int !=2"
+  changed_when: false
+
 
 
 -name: "Verify that Ceilometer Events Smartgateway shows two containers"
@@ -39,6 +47,8 @@
       oc get pods | grep default-cloud1-ceil-event| wc -l
   register: output
   failed_when: "output.stdout|int !=2"
+  changed_when: false
+
 
 
 -name: "Verify that Ceilometer Metrics  Smartgateway shows two containers"
@@ -47,6 +57,8 @@
       oc get pods | grep default-cloud1-ceil-meter| wc -l
   register: output
   failed_when: "output.stdout|int !=2"
+  changed_when: false
+
 
 
 -name: "Verify that Collectd Events Smartgateway shows two containers"
@@ -55,6 +67,8 @@
       oc get pods | grep default-cloud1-coll-event| wc -l
   register: output
   failed_when: "output.stdout|int !=2"
+  changed_when: false
+
 
 
 -name: "Verify that Collectd Metrics Smartgateway shows two containers"
@@ -63,6 +77,8 @@
       oc get pods | grep default-cloud1-coll-meter| wc -l
   register: output
   failed_when: "output.stdout|int !=2"
+  changed_when: false
+
 
 
 -name: "Verify that Collectd Sensubility shows two containers"
@@ -71,6 +87,8 @@
       oc get pods | grep default-cloud1-sens-meter| wc -l
   register: output
   failed_when: "output.stdout|int !=2"
+  changed_when: false
+
 
 
 -name: "Verify that ElasticSearch shows three containers"
@@ -79,12 +97,14 @@
       oc get pods | grep elasticsearch-es-default| wc -l
   register: output
   failed_when: "output.stdout|int !=3"
+  changed_when: false
+
 
 
 -name: "Disbale HighAvailability after running test"
  ansible.builtin.shell:
     cmd: |
-      oc patch stf/default --type merge -p '{"spec":{"highAvailability":{"enabled": false}}}' ; sleep 120
+      oc patch stf/default --type merge -p '{"spec":{"highAvailability":{"enabled": false}}}' &&  sleep 120
  changed_when: false
 
 
