@@ -62,9 +62,9 @@
       import_role:
         name: test_metrics_retention
 
-    - name: "Test snmpTraps"
+    - name: "Test snmp traps"
       import_role:
-        name: test_snmpTraps
+        name: test_snmp_traps
   tags:
     - custom-stf-ceph
     - stf-connectors-osp13-ffu
