@@ -1,9 +1,12 @@
-- name: Get the default-prometheus-htpasswd secret
-  ansible.builtin.shell: 
+- name: "Get the default-prometheus-htpasswd secret"
+  ansible.builtin.shell:
     cmd: |
       oc  get secret default-prometheus-htpasswd -ojson | jq '.data.auth, .data.password' |  sed 's/"//g'
   register: prom_secret
-- debug: 
+  changed_when: false
+
+- name: "Show the prom_secret value"
+  debug:
     var: prom_secret | string
 
 - name: "Get the prom URL"
@@ -11,8 +14,10 @@
     cmd: |
       oc get route/default-prometheus-proxy -ojson | jq '.spec.host' | sed 's/"//g'
   register: prom_route
+  changed_when: false
 
-- debug:
+- name: "Show the prom_route value"
+  debug:
     var: prom_route.stdout
 
 - name: "Get the prom creds from the secret"
@@ -20,16 +25,16 @@
     prom_user_decoded: "{{ ( prom_secret.stdout_lines[0] | b64decode ) }}"
     prom_pass: "{{ prom_secret.stdout_lines[1] | b64decode }}"
     prom_url: "{{ prom_route.stdout }}"
-    
-- debug: 
+
+- name: "Show the prom_user value"
+  debug:
     var: prom_user
 
-- name: Fetch user
+- name: "Fetch user"
   ansible.builtin.set_fact:
     prom_user: "{{ prom_user_decoded.split(':')[0] }}"
   when: prom_user_decoded is defined
 
- 
 - name: "RHELOSP-37759"
   ansible.builtin.shell:
     cmd: >-
@@ -38,6 +43,7 @@
         --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0"}[1m]' \
         --output /tmp/query_collectd_cpu_percent
   register: checkmyconf
+  changed_when: false
   failed_when:
     - checkmyconf.rc !=0
 
@@ -49,48 +55,52 @@
         --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.5"}[1m]' \
         --output /tmp/query_ceph_ceph_bytes
   register: checkmyconf
+  changed_when: false
   failed_when:
     - checkmyconf.rc !=0
-    
+
 - name: "RHELOSP-57536"
-  ansible.builtin.shell: 
+  ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
         -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=collectd_interface_if_packets_tx_total {type_instance="base"}[1m]' \
         --output /tmp/query_collectd_interface_tx_total
   register: checkmyconf
+  changed_when: false
   failed_when:
     - checkmyconf.rc !=0
-    
+
 - name: "RHELOSP-37762"
-  ansible.builtin.shell: 
+  ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
         -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=collectd_memory {plugin_instance="base"}[1m]' \
         --output /tmp/query_collectd_memory
   register: checkmyconf
+  changed_when: false
   failed_when:
     - checkmyconf.rc !=0
 
 - name: "RHELOSP-117539"
-  ansible.builtin.shell: 
+  ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
         -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=collectd_load_longterm {plugin_instance="base"}[1m]' \
-        --output /tmp/query_load_longterm 
+        --output /tmp/query_load_longterm
   register: checkmyconf
+  changed_when: false
   failed_when:
     - checkmyconf.rc !=0
 
 - name: "RHELOSP-37757"
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: >-
        egrep 'ceph' /tmp/query_ceph_ceph_bytes
   register: checkmyconf
-  changed_when: no
+  changed_when: false
   failed_when:
     - checkmyconf.rc != 0
 
@@ -99,7 +109,7 @@
     cmd: >-
        egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_interface_tx_total
   register: checkmyconf
-  changed_when: no
+  changed_when: false
   failed_when:
     - checkmyconf.rc != 0
 
@@ -108,26 +118,26 @@
     cmd: >-
       egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_cpu_percent
   register: checkmyconf
-  changed_when: no
+  changed_when: false
   failed_when:
     - checkmyconf.rc != 0
 
 
 - name: "RHELOSP-37670"
-  ansible.builtin.shell: 
+  ansible.builtin.shell:
     cmd: >-
       egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_memory
   register: checkmyconf
-  changed_when: no
+  changed_when: false
   failed_when:
     - checkmyconf.rc != 0
 
 
 - name: "RHELOSP-37224"
-  ansible.builtin.shell: 
-    cmd: >- 
+  ansible.builtin.shell:
+    cmd: >-
       egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_load_longterm
   register: checkmyconf
-  changed_when: no
+  changed_when: false
   failed_when:
     - checkmyconf.rc != 0
