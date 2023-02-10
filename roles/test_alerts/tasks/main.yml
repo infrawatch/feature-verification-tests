@@ -1,0 +1,4 @@
+---
+- name: "Test Creating an alert rule in Prometheus"
+  include_tasks:
+    file: test_create_an_alert.yml
