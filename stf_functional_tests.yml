@@ -65,6 +65,14 @@
     - name: "Test snmpTraps"
       import_role:
         name: test_snmpTraps
+
+    - name: "Test HA"
+      import_role:
+        name: "test_ha"
+
+    - name: "Test observabilityStrategy"
+      import_role:
+        name: test_observabilityStrategy
   tags:
     - custom-stf-ceph
     - stf-connectors-osp13-ffu

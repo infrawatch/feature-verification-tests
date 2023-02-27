@@ -1,0 +1,93 @@
+---
+# Assuming we've already logged in...
+# Following procedure on https://infrawatch.github.io/documentation/#configuring-observability-strategy_assembly-installing-the-core-components-of-stf
+# Assuming we're in teh right project already...
+
+
+- name: "Add observabilityStrategy: none to the spec section"
+  ansible.builtin.shell:
+    cmd: |
+      oc patch stf/default --type merge -p '{"spec":{"observabilityStrategy": "none"}}'
+  changed_when: false
+
+
+- name: "Delete Grafana object"
+  ansible.builtin.shell:
+    cmd: |
+      oc delete grafana default && while oc get po -l app=grafana | grep grafana; do sleep 1; done;
+  changed_when: false
+
+
+- name: "Delete Prometheus object"
+  ansible.builtin.shell:
+    cmd: |
+      oc delete prometheus default && while oc get po -l app=prometheus | grep prometheus; do sleep 1; done;
+  changed_when: false
+
+
+- name: "Delete Alertmanager object"
+  ansible.builtin.shell:
+    cmd: |
+      oc delete alertmanager default && while oc get po -l app=alertmanager | grep alertmanager; do sleep 1; done;
+  changed_when: false
+
+
+- name: "Delete ElasticSearch  object"
+  ansible.builtin.shell:
+    cmd: |
+      oc delete elasticsearches.elasticsearch.k8s.elastic.co elasticsearch &&  while oc get po | grep elasticsearch; do sleep 1; done;
+  changed_when: false
+
+
+- name: "Wait 2 minutes before checking that pods didn't return"
+  ansible.builtin.shell:
+     cmd: |
+       sleep 120
+  changed_when: false
+
+
+- name: "Verify that there no events SG pods"
+  ansible.builtin.shell:
+     cmd: |
+       oc get pods | grep event| wc -l
+  register: output
+  failed_when: "output.stdout|int !=0"
+  changed_when: false
+
+
+
+- name: "Verify that Grafana pod didn't respawn"
+  ansible.builtin.shell:
+     cmd: |
+       oc get pods | grep grafana-deployment | wc -l
+  register: output
+  failed_when: "output.stdout|int !=0"
+  changed_when: false
+
+
+- name: "Verify that Prometheus pod didn't respawn"
+  ansible.builtin.shell:
+     cmd: |
+       oc get pods | grep prometheus-default | wc -l
+  register: output
+  failed_when: "output.stdout|int !=0"
+  changed_when: false
+
+
+- name: "Verify that Alertmanager pod didn't respawn"
+  ansible.builtin.shell:
+     cmd: |
+       oc get pods | grep alertmanager-default | wc -l
+  register: output
+  failed_when: "output.stdout|int !=0"
+  changed_when: false
+
+
+- name: "Verify that elasticsearch pod didn't respawn"
+  ansible.builtin.shell:
+     cmd: |
+       oc get pods | grep elasticsearch | wc -l
+  register: output
+  failed_when: "output.stdout|int !=0"
+  changed_when: false
+
