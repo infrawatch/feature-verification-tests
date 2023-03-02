@@ -68,7 +68,7 @@
 
     - name: "Test HA"
       import_role:
-        name: "test_ha"
+        name: test_ha
 
     - name: "Test observabilityStrategy"
       import_role:

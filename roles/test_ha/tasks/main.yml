@@ -6,9 +6,13 @@
 - name: "Add highAvailability.enabled: true to the spec section"
   ansible.builtin.shell:
     cmd: |
-      oc patch stf/default --type merge -p '{"spec":{"highAvailability":{"enabled": true}}}' && sleep 120
+      oc patch stf/default --type merge -p '{"spec":{"highAvailability":{"enabled": true}}}'
   changed_when: false
 
+
+- name: "Wait 3 minutes to make sure all HA pods are up and running"
+  ansible.builtin.pause:
+    minutes: 3
 
 
 - name: "Verify that AMQP Interconnect shows two containers"
@@ -92,7 +96,7 @@
 
 
 - name: "Verify that ElasticSearch shows three containers"
-   ansible.builtin.shell:
+  ansible.builtin.shell:
      cmd: |
        oc get pods | grep elasticsearch-es-default| wc -l
   register: output
@@ -104,5 +108,10 @@
 - name: "Disbale HighAvailability after running test"
   ansible.builtin.shell:
      cmd: |
-       oc patch stf/default --type merge -p '{"spec":{"highAvailability":{"enabled": false}}}' &&  sleep 120
- changed_when: false
+       oc patch stf/default --type merge -p '{"spec":{"highAvailability":{"enabled": false}}}'
+  changed_when: false
+
+
+- name: "Wait 3 minutes to make sure all HA pods are destroyed"
+  ansible.builtin.pause:
+    minutes: 3
