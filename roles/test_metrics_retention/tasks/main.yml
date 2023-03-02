@@ -1,12 +1,12 @@
 ---
-# Assuming we've already logged in...
 # Following procedure on https://infrawatch.github.io/documentation/#metrics-retention-time-period_assembly-advanced-features
-# Assuming we're in teh right project already...
+# Assuming we've already logged in.
+# Assuming we're in the right project already...
 
-- name: "Set metrics retention to 7d"
+- name: "Set metrics retention to 17d"
   ansible.builtin.shell:
     cmd: |
-      oc patch stf/default --type merge -p '{"spec":{"backends":{"metrics":{"prometheus":{"enabled":true,"scrapeInterval":"10s","storage":{"retention": "17d","strategy": "ephemeral"}}}}}}'
+      oc patch stf/default --type merge -p '{"spec": {"backends": {"metrics": {"prometheus": {"enabled": true, "scrapeInterval": "10s", "storage": {"retention": "17d", "strategy": "ephemeral"}}}}}}'
   changed_when: false
 
 - name: "Check that the retention was set"

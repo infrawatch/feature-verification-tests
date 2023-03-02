@@ -1,12 +1,12 @@
 ---
 # Assuming we've already logged in...
 # Following procedure on https://infrawatch.github.io/documentation/#configuring-snmp-traps_assembly-advanced-features
-# Assuming we're in teh right project already...
+# Assuming we're in the right project already...
 
 - name: "Set the alerting.alertmanager.receivers.snmpTraps parameters"
   ansible.builtin.shell:
     cmd: |
-      oc patch stf/default --type merge -p '{"spec":{"alerting":{"alertmanager":{"receivers":{"snmpTraps":{"enabled":true,"target":"10.10.10.10"}}}}}}'
+      oc patch stf/default --type merge -p '{"spec": {"alerting": {"alertmanager": {"receivers": {"snmpTraps": {"enabled": true, "target": "10.10.10.10" }}}}}}'
   changed_when: false
 
 - name: "Interrupt metrics flow by preventing the QDR"
@@ -20,4 +20,5 @@
     cmd: |
       oc logs -l "app=default-snmp-webhook"  | grep "Sending SNMP trap" | wc -l
   register: output
+  changed_when: false
   failed_when: "output.stdout|int == 0"
