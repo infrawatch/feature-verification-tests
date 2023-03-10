@@ -40,9 +40,8 @@
 
 
 - name: "Wait 2 minutes before checking that pods didn't return"
-  ansible.builtin.shell:
-     cmd: |
-       sleep 120
+  ansible.builtin.pause:
+     minutes: 2
   changed_when: false
 
 
@@ -91,3 +90,15 @@
   failed_when: "output.stdout|int !=0"
   changed_when: false
 
+
+- name: "Remove obesrvabilityStrategy"
+  ansible.builtin.shell:
+     cmd: |
+       oc patch stf/default --type='json'  -p '[{"op": "remove", "path": "/spec/observabilityStrategy"}]'
+  changed_when: false
+
+
+- name: "Waite 2 minutes to make sure all destroyed pods are back"
+  ansible.builtin.pause:
+    minutes: 2 
+  changed_when: false
