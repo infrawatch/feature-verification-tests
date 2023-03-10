@@ -72,7 +72,7 @@
 
     - name: "Test observabilityStrategy"
       ansible.builtin.import_role:
-        name: test_observabilityStrategy
+        name: test_observability_strategy
   tags:
     - custom-stf-ceph
     - stf-connectors-osp13-ffu
