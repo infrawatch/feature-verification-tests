@@ -55,12 +55,24 @@
   changed_when: false
 
 
-- name: "Verify that the alert is firing in Prometheus UI"
+- name: "Verify that the alert is active in Alertmanager"
   ansible.builtin.shell: 
     cmd: >-
       oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c 'wget --header \
         "Authorization':' Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
-        https://default-alertmanager-proxy:9095/api/v1/alerts -q -O -' | grep 'Collectd metrics receive rate is zero' | wc -l
+        https://default-alertmanager-proxy:9095/api/v1/alerts -q -O -' | grep 'active' | grep 'Collectd metrics receive rate is zero' | wc -l
+  register: output
+  changed_when: false
+  failed_when: "output.stdout|int == 0"
+
+
+
+- name: "Verify that the alert is firing in Prometheus"
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
+        -g https://{{ prom_url }}/api/v1/alerts \
+        | grep 'firing' | grep 'Collectd metrics receive rate is zero' | wc -l
   register: output
   changed_when: false
   failed_when: "output.stdout|int == 0"
