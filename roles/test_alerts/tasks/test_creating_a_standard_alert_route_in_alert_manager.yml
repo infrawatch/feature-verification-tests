@@ -46,3 +46,36 @@
       - name: 'null'
 
 - debug: var=expected
+
+
+- name: "Interrupt metrics flow by preventing the QDR from running"
+  ansible.builtin.shell:
+    cmd: |
+      for i in {1..15}; do oc delete po -l application=default-interconnect; sleep 1; done
+  changed_when: false
+
+
+- name: "Verify that the alert is firing in Prometheus UI"
+  ansible.builtin.shell: 
+    cmd: >-
+      oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c 'wget --header \
+        "Authorization':' Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+        https://default-alertmanager-proxy:9095/api/v1/alerts -q -O -' | grep 'Collectd metrics receive rate is zero' | wc -l
+  register: output
+  changed_when: false
+  failed_when: "output.stdout|int == 0"
+
+
+- name: "Wait 4 minutes to make sure all SG pods are back to normal"
+  ansible.builtin.pause:
+    minutes: 4
+  changed_when: false
+
+
+- name: "Remove alertmanagerConfigManifest from the ServiceTelemetry object"
+  ansible.builtin.shell:
+    cmd: |
+      oc patch stf/default --type='json' -p '[{"op": "remove", "path": "/spec/alertmanagerConfigManifest"}]'
+  changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
