@@ -1,8 +1,8 @@
 ---
 - name: "Test Creating an alert rule in Prometheus"
-  include_tasks:
+  ansible.builtin.include_tasks:
     file: test_create_an_alert.yml
 
 - name: "Test Creating a standard alert route in Alertmanager"
-  include_tasks:
+  ansible.builtin.include_tasks:
     file: test_creating_a_standard_alert_route_in_alert_manager.yml

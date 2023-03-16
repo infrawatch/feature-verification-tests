@@ -11,7 +11,9 @@
   register: cmd_output
   failed_when: cmd_output.rc != 0
 
-- debug: var=cmd_output
+- name: "Show the command output"
+  ansible.builtin.debug:
+    var: cmd_output
 
   # oc get secret alertmanager-default -o go-template='{{index .data "alertmanager.yaml" | base64decode }}'
   # Can't use -o go-template becasue of the "{{" and "}}", which are mistaken for templating syntax.
@@ -23,30 +25,13 @@
   register: cmd_output
   changed_when: false
 
-- debug: var=cmd_output
-
 - name: "Decode the updated secret"
-  set_fact:
+  ansible.builtin.set_fact:
     alertmanager_secret: "{{ cmd_output.stdout | b64decode | to_yaml }}"
 
-- debug: var=alertmanager_secret
-
-# Convert the output to yaml?
-- set_fact:
-    expected:
-      global:
-        resolve_timeout: 10m
-      route:
-        group_by: ['job']
-        group_wait: 30s
-        group_interval: 5m
-        repeat_interval: 12h
-        receiver: 'null'
-      receivers:
-      - name: 'null'
-
-- debug: var=expected
-
+- name: "Show the alertmanager.yaml contents"
+  ansible.builtin.debug:
+    var: alertmanager_secret
 
 - name: "Interrupt metrics flow by preventing the QDR from running"
   ansible.builtin.shell:
@@ -64,7 +49,6 @@
   register: output
   changed_when: false
   failed_when: "output.stdout|int == 0"
-
 
 
 - name: "Verify that the alert is firing in Prometheus"
