@@ -1,2 +1,3 @@
+---
 prom_user: "{{ ( prom_secret.stdout_lines[0] | b64decode | split(':'))[0] }}"
 prom_pass: "{{ prom_secret.stdout_lines[1] | b64decode }}"

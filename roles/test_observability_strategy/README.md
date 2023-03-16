@@ -1,5 +1,5 @@
-test_observabilityStrategy
-==============
+test_observability_strategy
+===========================
 
 Tests for the Observability Strategy functionality deployed in STF
 

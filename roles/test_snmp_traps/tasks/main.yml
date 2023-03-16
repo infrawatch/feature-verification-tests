@@ -9,7 +9,7 @@
       oc patch stf/default --type merge -p '{"spec": {"alerting": {"alertmanager": {"receivers": {"snmpTraps": {"enabled": true, "target": "10.10.10.10" }}}}}}'
   changed_when: false
 
-- name: "Interrupt metrics flow by preventing the QDR"
+- name: "Interrupt metrics flow by preventing the QDR from running"
   ansible.builtin.shell:
     cmd: |
       for i in {1..30}; do oc delete po -l application=default-interconnect; sleep 1; done
@@ -22,3 +22,9 @@
   register: output
   changed_when: false
   failed_when: "output.stdout|int == 0"
+
+
+- name: "Wait 2 minutes to make sure all SG pods are back to normal"
+  ansible.builtin.pause:
+    minutes: 2
+  changed_when: false

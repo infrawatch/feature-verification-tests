@@ -5,7 +5,7 @@
   become: true
   tasks:
     - name: "Import the client_side tests to load default vars"
-      import_role:
+      ansible.builtin.import_role:
         name: client_side_tests
       tags:
         - always
@@ -14,16 +14,16 @@
         - always
       block:
         - name: "Check for podman executable"
-          stat:
+          ansible.builtin.stat:
             path: "/usr/bin/podman"
           register: st_pod
         - name: "Set container_bin=docker when podman isn't there"
-          set_fact:
+          ansible.builtin.set_fact:
             container_bin: docker
           when: not st_pod.stat.exists
 
     - name: "Run collectd tests"
-      import_role:
+      ansible.builtin.import_role:
         name: client_side_tests
         tasks_from: test_collectd
       tags:
@@ -34,7 +34,7 @@
         - gnocchi-connectors-swift
 
     - name: "Run metrics_qdr tests"
-      import_role:
+      ansible.builtin.import_role:
         name: client_side_tests
         tasks_from: test_qdr
       tags:
@@ -49,29 +49,29 @@
   ignore_errors: true
   tasks:
     - name: "Run collectd Prometheus queries"
-      import_role:
+      ansible.builtin.import_role:
         name: client_side_tests
         tasks_from: test_e2e
 
     - name: "Test Alerts"
-      import_role:
+      ansible.builtin.import_role:
         name: test_alerts
 
     - name: "Test metrics retention"
-      import_role:
+      ansible.builtin.import_role:
         name: test_metrics_retention
 
     - name: "Test snmp traps"
-      import_role:
+      ansible.builtin.import_role:
         name: test_snmp_traps
 
     - name: "Test HA"
-      import_role:
+      ansible.builtin.import_role:
         name: test_ha
 
     - name: "Test observabilityStrategy"
-      import_role:
-        name: test_observabilityStrategy
+      ansible.builtin.import_role:
+        name: test_observability_strategy
   tags:
     - custom-stf-ceph
     - stf-connectors-osp13-ffu
