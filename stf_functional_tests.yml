@@ -56,7 +56,6 @@
     - name: "Test Alerts"
       ansible.builtin.import_role:
         name: test_alerts
-        tasks_from: first_test
 
     - name: "Test metrics retention"
       ansible.builtin.import_role:

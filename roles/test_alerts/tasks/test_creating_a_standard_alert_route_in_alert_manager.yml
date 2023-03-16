@@ -1,0 +1,77 @@
+---
+# Test creating an alert route in alertmanager following the procedure in: https://infrawatch.github.io/documentation/#creating-an-alert-route-in-alertmanager_assembly-advanced-features
+
+# Pre-check: is the value of global.timeout = 5m in the alertmanager secret
+  # TODO: put the patch into a file. and use --patch-file instead of -p OR slurp the file from files/
+- name: "Patch the ServiceTelemetry object for the STF deployment"
+  ansible.builtin.shell:
+    cmd: |
+      oc patch stf default --type merge -p '{"spec": {"alertmanagerConfigManifest": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: 'alertmanager-default'\n  namespace: 'service-telemetry'\ntype: Opaque\nstringData:\n  alertmanager.yaml: |-\n    global:\n      resolve_timeout: 10m\n    route:\n      group_by: ['job']\n      group_wait: 30s\n      group_interval: 5m\n      repeat_interval: 12h\n      receiver: 'null'\n    receivers:\n    - name: 'null'\n"}}'
+  changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
+- name: "Show the command output"
+  ansible.builtin.debug:
+    var: cmd_output
+
+  # oc get secret alertmanager-default -o go-template='{{index .data "alertmanager.yaml" | base64decode }}'
+  # Can't use -o go-template becasue of the "{{" and "}}", which are mistaken for templating syntax.
+  # The alertmanager.yaml key needed to be surrounded by [".."] because of the period in the key name.
+- name: "Get the updated secret"
+  ansible.builtin.shell:
+    cmd: |
+      oc get secret alertmanager-default -ojson | jq '.data | .["alertmanager.yaml"]'
+  register: cmd_output
+  changed_when: false
+
+- name: "Decode the updated secret"
+  ansible.builtin.set_fact:
+    alertmanager_secret: "{{ cmd_output.stdout | b64decode | to_yaml }}"
+
+- name: "Show the alertmanager.yaml contents"
+  ansible.builtin.debug:
+    var: alertmanager_secret
+
+- name: "Interrupt metrics flow by preventing the QDR from running"
+  ansible.builtin.shell:
+    cmd: |
+      for i in {1..15}; do oc delete po -l application=default-interconnect; sleep 1; done
+  changed_when: false
+
+
+- name: "Verify that the alert is active in Alertmanager"
+  ansible.builtin.shell: 
+    cmd: >-
+      oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c 'wget --header \
+        "Authorization':' Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+        https://default-alertmanager-proxy:9095/api/v1/alerts -q -O -' | grep 'active' | grep 'Collectd metrics receive rate is zero' | wc -l
+  register: output
+  changed_when: false
+  failed_when: "output.stdout|int == 0"
+
+
+- name: "Verify that the alert is firing in Prometheus"
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
+        -g https://{{ prom_url }}/api/v1/alerts \
+        | grep 'firing' | grep 'Collectd metrics receive rate is zero' | wc -l
+  register: output
+  changed_when: false
+  failed_when: "output.stdout|int == 0"
+
+
+- name: "Wait 4 minutes to make sure all SG pods are back to normal"
+  ansible.builtin.pause:
+    minutes: 4
+  changed_when: false
+
+
+- name: "Remove alertmanagerConfigManifest from the ServiceTelemetry object"
+  ansible.builtin.shell:
+    cmd: |
+      oc patch stf/default --type='json' -p '[{"op": "remove", "path": "/spec/alertmanagerConfigManifest"}]'
+  changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
