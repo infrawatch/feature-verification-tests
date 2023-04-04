@@ -97,7 +97,6 @@
     var: cmd_output
 
 
-
 - name: "Verify that Grafana pod didn't respawn"
   ansible.builtin.shell:
     cmd: |
@@ -126,7 +125,6 @@
     var: cmd_output
 
 
-
 - name: "Verify that Alertmanager pod didn't respawn"
   ansible.builtin.shell:
     cmd: |
@@ -139,7 +137,6 @@
 - name: "Show the command output"
   ansible.builtin.debug:
     var: cmd_output
-
 
 
 - name: "Verify that elasticsearch pod didn't respawn"

@@ -28,14 +28,14 @@
       oc get pods | grep default-interconnect| wc -l
   register: cmd_output
   failed_when: "cmd_output.stdout|int !=2"
-  changed_when: fals
+  changed_when: false
 
 - name: "Show the command output"
   ansible.builtin.debug:
-    var: cmd_outpute
+    var: cmd_output
 
 
-- name: "Verify that Alert Manager  shows two containers"
+- name: "Verify that Alert Manager shows two containers"
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep alertmanager| wc -l
@@ -63,7 +63,6 @@
     var: cmd_output
 
 
-
 - name: "Verify that Ceilometer Events Smartgateway shows two containers"
   ansible.builtin.shell:
     cmd: |
@@ -76,7 +75,6 @@
 - name: "Show the command output"
   ansible.builtin.debug:
     var: cmd_output
-
 
 - name: "Verify that Ceilometer Metrics  Smartgateway shows two containers"
   ansible.builtin.shell:

@@ -1,6 +1,6 @@
 ---
 - name: |
-    "RHELOSP-60117"
+    RHELOSP-60117
      Description: Check that metrics_qdr container is running
   ansible.builtin.shell: |
     set -o pipefail
@@ -21,7 +21,7 @@
     var: bus_addr
 
 - name: |
-    "RHELOSP-60410"
+    RHELOSP-60410
      Description: Get number of messages received from QDR
   ansible.builtin.shell: |
     set -o pipefail

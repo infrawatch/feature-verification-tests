@@ -37,7 +37,7 @@
   when: prom_user_decoded is defined
 
 - name: | 
-    "RHELOSP-37759"
+    RHELOSP-37759
      Description: Query Prometheus for collectd_cpu_percent metrics and save the output into the file
   ansible.builtin.shell:
     cmd: >-
@@ -51,7 +51,7 @@
     - checkmyconf.rc !=0
 
 - name: |
-    "RHELOSP-57528"
+    RHELOSP-57528
      Description: Query Prometheus for ceph_ceph_bytes metrics and save the output into the file
   ansible.builtin.shell:
     cmd: >-
@@ -65,7 +65,7 @@
     - checkmyconf.rc !=0
 
 - name: | 
-    "RHELOSP-57536"
+    RHELOSP-57536
      Description: Query Prometheus for collectd_load_longterm metrics and save the output into the file
   ansible.builtin.shell:
     cmd: >-
@@ -79,7 +79,7 @@
     - checkmyconf.rc !=0
 
 - name: |
-    "RHELOSP-37762"
+    RHELOSP-37762
      Description: Query Prometheus for collectd_memory metrics and save the output into the file
   ansible.builtin.shell:
     cmd: >-
@@ -93,7 +93,7 @@
     - checkmyconf.rc !=0
 
 - name: |
-    "RHELOSP-117539"
+    RHELOSP-117539
      Description: Query Prometheus for collectd_load_longterm metrics and save the output into the file
   ansible.builtin.shell:
     cmd: >-
@@ -107,7 +107,7 @@
     - checkmyconf.rc !=0
 
 - name: |
-    "RHELOSP-37757"
+    RHELOSP-37757
      Description: Read content of query_ceph_ceph_bytes file and check that metrics are present
   ansible.builtin.command:
     cmd: >-
@@ -118,7 +118,7 @@
     - checkmyconf.rc != 0
 
 - name: |
-    "RHELOSP-37218"
+    RHELOSP-37218
      Description: Read content of query_collectd_interface_tx_total file and check that metrics are present
   ansible.builtin.shell:
     cmd: >-
@@ -129,8 +129,8 @@
     - checkmyconf.rc != 0
 
 - name: |
-    "RHELOSP-37636"
-     Description: Read content of query_collectd_cpu_percent file and check that metrics are present
+    RHELOSP-37636
+     Description: Read contents of query_collectd_cpu_percent file and check that metrics are present
   ansible.builtin.shell:
     cmd: >-
       egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_cpu_percent
@@ -141,7 +141,7 @@
 
 
 - name: |
-    "RHELOSP-37670"
+    RHELOSP-37670
      Description: Read content of query_collectd_memory file and check that metrics are present
   ansible.builtin.shell:
     cmd: >-
@@ -153,8 +153,8 @@
 
 
 - name: |
-    "RHELOSP-37224"
-     Description: Read content of query_load_longterm file and check that metrics are present
+    RHELOSP-37224
+     Description: Read contents of query_load_longterm file and check that metrics are present
   ansible.builtin.shell:
     cmd: >-
       egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_load_longterm
