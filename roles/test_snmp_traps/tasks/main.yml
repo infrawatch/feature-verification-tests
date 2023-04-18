@@ -12,10 +12,6 @@
   failed_when: cmd_output.rc != 0
 
 
-- name: "Show the command output"
-  ansible.builtin.debug:
-    var: cmd_output
-
 
 - name: "Interrupt metrics flow by preventing the QDR from running"
   ansible.builtin.shell:
@@ -31,10 +27,6 @@
   changed_when: false
   failed_when: "cmd_output.stdout|int == 0"
 
-
-- name: "Show the command output"
-  ansible.builtin.debug:
-    var: cmd_output
 
 
 - name: "Wait 2 minutes to make sure all SG pods are back to normal"
