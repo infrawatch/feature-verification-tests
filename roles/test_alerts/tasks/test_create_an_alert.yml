@@ -28,10 +28,6 @@
   failed_when: cmd_output.rc != 0
 
 
-- name: "Show the command output"
-  ansible.builtin.debug:
-    var: cmd_output
-
 - name: "Check that the alert was created"
   ansible.builtin.command:
     cmd: |
@@ -39,8 +35,3 @@
   register: cmd_output
   changed_when: false
   failed_when: cmd_output.rc != 0
-
-- name: "Show the command output"
-  ansible.builtin.debug:
-    var: cmd_output
-
