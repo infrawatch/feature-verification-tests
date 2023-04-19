@@ -9,13 +9,17 @@
     cmd: |
       oc patch stf/default --type merge -p '{"spec":{"observabilityStrategy": "none"}}'
   changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
 
 
-- name: "Delete Grafana object"
   ansible.builtin.shell:
     cmd: |
       oc delete grafana default && while oc get po -l app=grafana | grep grafana; do sleep 1; done;
   changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
 
 
 - name: "Delete Prometheus object"
@@ -23,6 +27,8 @@
     cmd: |
       oc delete prometheus default && while oc get po -l app=prometheus | grep prometheus; do sleep 1; done;
   changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
 
 
 - name: "Delete Alertmanager object"
@@ -30,6 +36,9 @@
     cmd: |
       oc delete alertmanager default && while oc get po -l app=alertmanager | grep alertmanager; do sleep 1; done;
   changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
 
 
 - name: "Delete ElasticSearch  object"
@@ -37,6 +46,8 @@
     cmd: |
       oc delete elasticsearches.elasticsearch.k8s.elastic.co elasticsearch &&  while oc get po | grep elasticsearch; do sleep 1; done;
   changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
 
 
 - name: "Wait 2 minutes before checking that pods didn't return"
@@ -48,45 +59,50 @@
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep event| wc -l
-  register: output
-  failed_when: "output.stdout|int !=0"
+  register: cmd_output
+  failed_when: "cmd_output.stdout|int !=0"
   changed_when: false
+
 
 
 - name: "Verify that Grafana pod didn't respawn"
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep grafana-deployment | wc -l
-  register: output
-  failed_when: "output.stdout|int !=0"
+  register: cmd_output
+  failed_when: "cmd_output.stdout|int !=0"
   changed_when: false
+
 
 
 - name: "Verify that Prometheus pod didn't respawn"
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep prometheus-default | wc -l
-  register: output
-  failed_when: "output.stdout|int !=0"
+  register: cmd_output
+  failed_when: "cmd_output.stdout|int !=0"
   changed_when: false
+
 
 
 - name: "Verify that Alertmanager pod didn't respawn"
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep alertmanager-default | wc -l
-  register: output
-  failed_when: "output.stdout|int !=0"
+  register: cmd_output
+  failed_when: "cmd_output.stdout|int !=0"
   changed_when: false
+
 
 
 - name: "Verify that elasticsearch pod didn't respawn"
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep elasticsearch | wc -l
-  register: output
-  failed_when: "output.stdout|int !=0"
+  register: cmd_output
+  failed_when: "cmd_output.stdout|int !=0"
   changed_when: false
+
 
 
 - name: "Remove obesrvabilityStrategy"
@@ -94,6 +110,9 @@
      cmd: |
        oc patch stf/default --type='json'  -p '[{"op": "remove", "path": "/spec/observabilityStrategy"}]'
   changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
 
 
 - name: "Wait 2 minutes to make sure all destroyed pods are back"

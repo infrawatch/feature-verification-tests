@@ -49,5 +49,5 @@
 #ceph-0
 
 [stf]
-quicklab  ansible_host="10.0.91.89" ansible_user="quicklab" ansible_ssh_private_key_file="playbooks/quicklab.key"
+ocp_cluster  ansible_host="10.0.91.89" ansible_user="quicklab" ansible_ssh_private_key_file="playbooks/quicklab.key"
 

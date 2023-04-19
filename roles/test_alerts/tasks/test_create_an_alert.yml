@@ -24,10 +24,14 @@
                 expr: rate(sg_total_collectd_msg_received_count[1m]) == 0
       EOF
   changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
 
 - name: "Check that the alert was created"
   ansible.builtin.command:
     cmd: |
       curl -k --user "{{ prom_user }}:{{ prom_pass }}" https://{{ prom_url }}/api/v1/rules
-  register: output
+  register: cmd_output
   changed_when: false
+  failed_when: cmd_output.rc != 0
