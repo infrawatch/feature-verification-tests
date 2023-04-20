@@ -1,5 +1,5 @@
   #In this test we choose one container (logrotate_crond),checking that it is running 
-  #and then stopping the container and startting it again and check that it's health status changes accordingly.
+  #and then stopping the container and starting it again and checking that its health status changes accordingly.
 
 - name: |
     Check that logrotate_crond container is running on controller-0
