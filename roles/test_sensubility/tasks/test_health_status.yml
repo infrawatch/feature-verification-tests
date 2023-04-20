@@ -1,3 +1,6 @@
+  #In this test we choose one container (logrotate_crond),checking that it is running 
+  #and then stopping the container and startting it again and check that it's health status changes accordingly.
+
 - name: |
     Check that logrotate_crond container is running on controller-0
     Description: Check that logrotate_crond container is running on controller-0
@@ -10,6 +13,7 @@
   register: container_nodes
   changed_when: false
   failed_when: container_nodes.stdout_lines|length != 1
+
 
 
 - name: |
@@ -25,7 +29,9 @@
 
 
 
-- name: Check that logrotate_crond container has stopped
+- name: |
+    Check that logrotate_crond container has stopped
+    Description: Stop logrotate_crond container on controller-0
   ansible.builtin.shell: |
     set -o pipefail
     {{ container_bin }} ps | grep logrotate_crond 
@@ -35,7 +41,11 @@
   changed_when: false
   failed_when: container_nodes.stdout_lines|length != 0
  
-- name: Check that health status of container changed to 0
+
+
+- name: |
+    Check that health status of container changed to 0
+    Description: Check that health status of container changed to 0
   ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
@@ -48,7 +58,9 @@
   
 
 
-- name: Start logrotate_crond container
+- name: |
+    Start logrotate_crond container
+    Description: Start logrotate_crond container
   ansible.builtin.shell:
     cmd: |
        systemctl start tripleo_logrotate_crond
@@ -59,7 +71,9 @@
 
 
 
-- name:  Check that health status of container changed to 1
+- name:  |
+    Check that health status of container changed to 1
+    Description: Check that health status of container changed to 1
   ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
