@@ -1,4 +1,4 @@
-test_ha
+test_sensubility
 ==============
 
 Tests for Collectd Sensubility
