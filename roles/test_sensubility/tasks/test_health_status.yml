@@ -31,9 +31,8 @@
 
 - name: |
     Check that logrotate_crond container has stopped
-    Description: Stop logrotate_crond container on controller-0
+    Description: Check that logrotate_crond container has stopped
   ansible.builtin.shell: |
-    set -o pipefail
     {{ container_bin }} ps | grep logrotate_crond 
   delegate_to: "{{ groups['overcloud_nodes'][0] }}"
   become: true
