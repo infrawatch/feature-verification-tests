@@ -1,3 +1,2 @@
 ---
 container_bin: 'podman'
-collectd_container_name: 'collectd'

@@ -24,8 +24,7 @@
 
     - name: "Run collectd tests"
       ansible.builtin.import_role:
-        name: client_side_tests
-        tasks_from: test_collectd
+        name: test_collectd
       tags:
         - custom-stf-ceph
         - custom-stf-ceph-osp13
