@@ -1,7 +1,6 @@
 ---
-- name: |
-    RHELOSP-60117
-     Description: Check that metrics_qdr container is running
+- name: RHELOSP-60117
+#     Description: Check that metrics_qdr container is running
   ansible.builtin.shell: |
     set -o pipefail
     {{ container_bin }} ps | grep {{ qdr_container_name }}
@@ -20,9 +19,8 @@
   ansible.builtin.debug:
     var: bus_addr
 
-- name: |
-    RHELOSP-60410
-     Description: Get number of messages received from QDR
+- name: RHELOSP-60410
+#     Description: Get number of messages received from QDR
   ansible.builtin.shell: |
     set -o pipefail
     {{ container_bin }} exec {{ qdr_container_name }} qdstat -b {{ bus_addr.stdout }}:5666 -g | grep "Ingress Count" | awk '{print $3}'
