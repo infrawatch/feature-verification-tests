@@ -1,4 +1,3 @@
 ---
 container_bin: 'podman'
 collectd_container_name: 'collectd'
-qdr_container_name: 'metrics_qdr'

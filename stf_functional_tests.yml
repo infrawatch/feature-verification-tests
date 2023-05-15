@@ -35,8 +35,7 @@
 
     - name: "Run metrics_qdr tests"
       ansible.builtin.import_role:
-        name: client_side_tests
-        tasks_from: test_qdr
+        name: test_qdr
       tags:
         - custom-stf-ceph
         - custom-stf-ceph-osp13
