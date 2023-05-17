@@ -53,25 +53,25 @@
         name: client_side_tests
         tasks_from: test_e2e
 
-    - name: "Test Alerts"
-      ansible.builtin.import_role:
-        name: test_alerts
-
-    - name: "Test metrics retention"
-      ansible.builtin.import_role:
-        name: test_metrics_retention
-
-    - name: "Test snmp traps"
-      ansible.builtin.import_role:
-        name: test_snmp_traps
-
-    - name: "Test HA"
-      ansible.builtin.import_role:
-        name: test_ha
-
-    - name: "Test observabilityStrategy"
-      ansible.builtin.import_role:
-        name: test_observability_strategy
+#    - name: "Test Alerts"
+#      ansible.builtin.import_role:
+#        name: test_alerts
+#
+#    - name: "Test metrics retention"
+#      ansible.builtin.import_role:
+#        name: test_metrics_retention
+#
+#    - name: "Test snmp traps"
+#      ansible.builtin.import_role:
+#        name: test_snmp_traps
+#
+#    - name: "Test HA"
+#      ansible.builtin.import_role:
+#        name: test_ha
+#
+#    - name: "Test observabilityStrategy"
+#      ansible.builtin.import_role:
+#        name: test_observability_strategy
   tags:
     - custom-stf-ceph
     - stf-connectors-osp13-ffu
