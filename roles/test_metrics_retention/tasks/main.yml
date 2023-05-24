@@ -3,25 +3,6 @@
 # Assuming we've already logged in.
 # Assuming we're in the right project already...
 
-- name: "Set metrics retention to 17d"
-  ansible.builtin.shell:
-    cmd: |
-      oc patch stf/default --type merge -p '{"spec": {"backends": {"metrics": {"prometheus": {"enabled": true, "scrapeInterval": "10s", "storage": {"retention": "17d", "strategy": "ephemeral"}}}}}}'
-  changed_when: false
-  register: cmd_output
-  failed_when: cmd_output.rc != 0
-
-
-- name: "Wait 2 minutes for prometheus container to restart"
-  ansible.builtin.pause:
-    minutes: 2
-  changed_when: false
-
-
-- name: "Check that the retention was set"
-  ansible.builtin.shell:
-    cmd: |
-      oc describe pod prometheus-default-0  | grep -o 'storage.tsdb.retention.time=17d' | wc -l
-  register: cmd_output
-  changed_when: false
-  failed_when: "cmd_output.stdout|int == 0"
+- name: "Test updating the metrics retention time"
+  ansible.builtin.include_tasks:
+    file: test_update_metrics_retention.yml
