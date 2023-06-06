@@ -1,0 +1,38 @@
+---
+- name: "Get the default-prometheus-htpasswd secret"
+  ansible.builtin.shell:
+    cmd: |
+      oc  get secret default-prometheus-htpasswd -ojson | jq '.data.auth, .data.password' |  sed 's/"//g'
+  register: prom_secret
+  changed_when: false
+
+- name: "Show the prom_secret value"
+  ansible.builtin.debug:
+    var: prom_secret | string
+
+- name: "Get the prom URL"
+  ansible.builtin.shell:
+    cmd: |
+      oc get route/default-prometheus-proxy -ojson | jq '.spec.host' | sed 's/"//g'
+  register: prom_route
+  changed_when: false
+
+- name: "Show the prom_route value"
+  ansible.builtin.debug:
+    var: prom_route.stdout
+
+- name: "Get the prom creds from the secret"
+  ansible.builtin.set_fact:
+    prom_user_decoded: "{{ (prom_secret.stdout_lines[0] | b64decode) }}"
+    prom_pass: "{{ prom_secret.stdout_lines[1] | b64decode }}"
+    prom_url: "{{ prom_route.stdout }}"
+
+- name: "Show the prom_user value"
+  ansible.builtin.debug:
+    var: prom_user
+
+- name: "Fetch user"
+  ansible.builtin.set_fact:
+    prom_user: "{{ prom_user_decoded.split(':')[0] }}"
+  when: prom_user_decoded is defined
+

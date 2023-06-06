@@ -1,0 +1,4 @@
+---
+# defaults file for roles/test_qdr
+container_bin: 'podman'
+qdr_container_name: 'metrics_qdr'

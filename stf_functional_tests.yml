@@ -24,8 +24,7 @@
 
     - name: "Run collectd tests"
       ansible.builtin.import_role:
-        name: client_side_tests
-        tasks_from: test_collectd
+        name: test_collectd
       tags:
         - custom-stf-ceph
         - custom-stf-ceph-osp13
@@ -35,8 +34,7 @@
 
     - name: "Run metrics_qdr tests"
       ansible.builtin.import_role:
-        name: client_side_tests
-        tasks_from: test_qdr
+        name: test_qdr
       tags:
         - custom-stf-ceph
         - custom-stf-ceph-osp13
@@ -51,7 +49,6 @@
     - name: "Run collectd Prometheus queries"
       ansible.builtin.import_role:
         name: client_side_tests
-        tasks_from: test_e2e
 
     - name: "Test Alerts"
       ansible.builtin.import_role:
