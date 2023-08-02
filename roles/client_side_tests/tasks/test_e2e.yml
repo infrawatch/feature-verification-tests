@@ -22,7 +22,7 @@
     cmd: >-
       /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
         -g https://{{ prom_url }}/api/v1/query? \
-        --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.5"}[1m]' \
+        --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.1"}[1m]' \
         --output /tmp/query_ceph_ceph_bytes
   register: checkmyconf
   changed_when: false
