@@ -4,11 +4,6 @@
   ignore_errors: true
   become: true
   tasks:
-    - name: "Import the client_side tests to load default vars"
-      ansible.builtin.import_role:
-        name: client_side_tests
-      tags:
-        - always
     - name: "Update container_bin var"
       tags:
         - always
