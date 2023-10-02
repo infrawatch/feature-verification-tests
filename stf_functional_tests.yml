@@ -45,6 +45,11 @@
       ansible.builtin.import_role:
         name: client_side_tests
 
+    
+    - name: "Test Collectd Sensubility"
+      ansible.builtin.import_role:
+        name: test_sensubility
+
     - name: "Test Alerts"
       ansible.builtin.import_role:
         name: test_alerts
