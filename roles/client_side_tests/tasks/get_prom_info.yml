@@ -4,6 +4,7 @@
     cmd: |
       cat /opt/ci/shiftstack-ci/clusters/{{ ocp_cluster_name }}/auth/kubeadmin-password
   register: kube_pass
+  when: ocp_cluster_name is defined
 
 - name: "Login to kube"
   ansible.builtin.shell:
