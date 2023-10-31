@@ -1,10 +1,11 @@
+---
 - name: "Get kube password"
   ansible.builtin.shell:
     cmd: |
       cat /opt/ci/shiftstack-ci/clusters/{{ ocp_cluster_name }}/auth/kubeadmin-password
   register: kube_pass
 
-  -name: "Login to kube":
+- name: "Login to kube":
   ansible.builtin.shell:
     cmd: |
       oc login --u kubeadmin -p {{ kube_pass.stdout }}
