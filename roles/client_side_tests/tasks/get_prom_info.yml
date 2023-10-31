@@ -1,4 +1,3 @@
----
 - name: "Get kube password"
   ansible.builtin.shell:
     cmd: |
