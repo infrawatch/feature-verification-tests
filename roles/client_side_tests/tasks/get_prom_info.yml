@@ -9,6 +9,7 @@
   ansible.builtin.shell:
     cmd: |
       oc login --u kubeadmin -p {{ kube_pass.stdout }}
+  changed_when: false
 
 - name: "Get the default-prometheus-htpasswd secret"
   ansible.builtin.shell:
