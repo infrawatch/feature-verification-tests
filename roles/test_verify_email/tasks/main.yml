@@ -4,9 +4,10 @@
 - name: Copy a file from local machine to a remote directory
   ansible.builtin.copy:
     src: "{{ role_path }}/files/alertmanager.yaml"
-    dest: "{{ ansible_env.PWD  }}/alertmanager.yaml" 
+    dest: "{{ ansible_env.PWD }}/alertmanager.yaml"
+    mode: 0666 
 
-- name: Create Alertmanager Secret
+- name: Apply configuration for Alertmanager
   ansible.builtin.command: >
       oc apply -f "{{ ansible_env.PWD }}/alertmanager.yaml"
 
@@ -14,25 +15,21 @@
   ansible.builtin.shell:
     cmd: |
       for i in {1..30}; do oc delete po -l application=default-interconnect; sleep 1; done
-  changed_when: false
 
 - name: "Check for alertmanager logs"
   ansible.builtin.shell:
     cmd: |
       oc logs alertmanager-default-0 -c alertmanager  | grep 'receiver=email' | wc -l
   register: cmd_output
-  changed_when: false
   failed_when: "cmd_output.stdout|int == 0"
 
 - name: "Wait 2 minutes to make sure all SG pods are back to normal"
   ansible.builtin.pause:
     minutes: 2
-  changed_when: false
 
 - name: "Remove alertmanagerConfigManifest from the ServiceTelemetry object"
   ansible.builtin.shell:
     cmd: |
       oc patch stf/default --type='json' -p '[{"op": "remove", "path": "/spec/alertmanagerConfigManifest"}]'
-  changed_when: false
   register: cmd_output
   failed_when: cmd_output.rc != 0
