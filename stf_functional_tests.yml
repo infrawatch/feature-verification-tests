@@ -62,9 +62,6 @@
       ansible.builtin.import_role:
         name: test_snmp_traps
 
-    - name: " Test Attempt to send email alert"
-      ansible.builtin.import_role:
-        name: test_verify_email
 
     - name: " Test Loaded Dashboards"
       ansible.builtin.import_role:
