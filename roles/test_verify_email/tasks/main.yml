@@ -1,16 +1,34 @@
 ---
 # tasks file for roles/test_verify_email
 
-- name: Copy a file from local machine to a remote directory
-  ansible.builtin.copy:
-    src: "{{ role_path }}/files/alertmanager.yaml"
-    dest: "{{ ansible_env.PWD }}/alertmanager.yaml"
-    mode: 0666
-    changed_when: false
+- name: "Create the alert"
+  ansible.builtin.shell:
+    cmd: |
+      oc apply -f - <<EOF
+      apiVersion: monitoring.coreos.com/v1
+      kind: PrometheusRule
+      metadata:
+        creationTimestamp: null
+        labels:
+          prometheus: default
+          role: alert-rules
+        name: prometheus-alarm-rules
+        namespace: service-telemetry
+      spec:
+        groups:
+          - name: ./openstack.rules
+            rules:
+              - alert: Collectd metrics receive rate is zero
+                expr: rate(sg_total_collectd_msg_received_count[1m]) == 0
+      EOF
+  changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
 
-- name: Apply configuration for Alertmanager
-  ansible.builtin.command: >
-      oc apply -f "{{ ansible_env.PWD }}/alertmanager.yaml"
+- name: "Patch the ServiceTelemetry object for the STF deployment"
+  ansible.builtin.shell:
+    cmd: |
+      oc patch stf default --type merge -p '{"spec": {"alertmanagerConfigManifest": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: 'alertmanager-default'\n  namespace: 'service-telemetry'\ntype: Opaque\nstringData:\n  alertmanager.yaml: |-\n    global:\n      resolve_timeout: 10m\n    route:\n      group_by: ['job']\n      group_wait: 30s\n      group_interval: 5m\n      repeat_interval: 12h\n      receiver: 'email'\n    receivers:\n    - name: 'email'\n      - email_configs:\n      - to: mx@redhat.com"}}'
   changed_when: false
 
 - name: "Interrupt metrics flow by preventing the QDR from running"
