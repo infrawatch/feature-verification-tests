@@ -1,0 +1,97 @@
+---
+- name: Config ServiceTelemetry to use multiCloud
+  ansible.builtin.shell:
+    cmd: |
+      oc apply -f - <<EOF
+      apiVersion: infra.watch/v1beta1
+      kind: ServiceTelemetry
+      metadata:
+        name: default
+        namespace: service-telemetry
+      spec:
+        clouds:
+        - name: cloud1
+          events:
+            collectors:
+            - collectorType: collectd
+              subscriptionAddress: collectd/cloud1-notify
+            - collectorType: ceilometer
+              subscriptionAddress: anycast/ceilometer/cloud1-event.sample
+          metrics:
+            collectors:
+            - collectorType: collectd
+              subscriptionAddress: collectd/cloud1-telemetry
+            - collectorType: ceilometer
+              subscriptionAddress: anycast/ceilometer/cloud1-metering.sample
+        - name: cloud2
+          events:
+            collectors:
+            - collectorType: collectd
+              subscriptionAddress: collectd/cloud1-notify
+            - collectorType: ceilometer
+              subscriptionAddress: anycast/ceilometer/cloud1-event.sample
+          metrics:
+            collectors:
+            - collectorType: collectd
+              subscriptionAddress: collectd/cloud1-telemetry
+            - collectorType: ceilometer
+              subscriptionAddress: anycast/ceilometer/cloud1-metering.sample
+      EOF
+  changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
+- name: Verify smart-gatway pods in both clouds
+  block:
+    - name: Check pods in cloud1
+      ansible.builtin.shell:
+        cmd: |
+          oc get po -l app=smart-gateway | grep cloud1
+      retries: 60
+      delay: 10
+      register: pods_cloud1
+      ignore_errors: true
+
+    - name: Check pods in cloud2
+      ansible.builtin.shell:
+        cmd: |
+          oc get po -l app=smart-gateway | grep cloud2
+      retries: 60
+      delay: 10
+      register: pods_cloud2
+      ignore_errors: true
+
+    - name: Check pods in cloud1 and cloud2
+      fail:
+        msg: "Smart-gatway Pods do not exist in either cloud1 or cloud2"
+      when: pods_cloud1.rc != 0 and pods_cloud2.rc != 0
+
+- name: Querying metrics data from cloud1
+  block:
+    - name: "Run Pometheus Query for cloud 1"
+      ansible.builtin.shell:
+        cmd: |
+          oc exec -n service-telemetry prometheus-default-0 -- wget -qO- 'localhost:9090/api/v1/query?query=collectd_uptime{service="default-cloud1-coll-meter"}'
+      register: prometheus_output_cloud1
+
+    - name: Check if the output contains success
+      debug:
+        msg: 
+          - "Query for cloud1 was successful."
+          - "{{ prometheus_output_cloud1.stdout }}"
+      when: '"success" in prometheus_output_cloud1.stdout'
+
+- name: Querying metrics data from cloud2
+  block:
+    - name: "Run Pometheus Query for cloud 2"
+      ansible.builtin.shell:
+        cmd: |
+          oc exec -n service-telemetry prometheus-default-0 -- wget -qO- 'localhost:9090/api/v1/query?query=collectd_uptime{service="default-cloud2-coll-meter"}'
+      register: prometheus_output_cloud2
+
+    - name: Check if the output contains success
+      debug:
+        msg: 
+          - "Query for cloud2 was successful."
+          - "{{ prometheus_output_cloud2.stdout }}"
+      when: '"success" in prometheus_output_cloud2.stdout'

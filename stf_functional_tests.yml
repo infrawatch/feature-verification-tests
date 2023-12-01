@@ -69,6 +69,10 @@
     - name: "Test observabilityStrategy"
       ansible.builtin.import_role:
         name: test_observability_strategy
+
+    - name: "Test MultiCloud"
+      ansible.builtin.import_role:
+        name: test_multi-cloud
   tags:
     - custom-stf-ceph
     - stf-connectors-osp13-ffu
