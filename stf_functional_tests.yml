@@ -72,7 +72,7 @@
 
     - name: "Test MultiCloud"
       ansible.builtin.import_role:
-        name: test_multi-cloud
+        name: test_multi_cloud
   tags:
     - custom-stf-ceph
     - stf-connectors-osp13-ffu
