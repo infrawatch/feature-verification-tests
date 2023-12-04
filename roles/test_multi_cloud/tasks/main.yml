@@ -87,18 +87,18 @@
       changed_when: false
 
 - name: Querying metrics data from cloud2
-      block:
-        - name: "Run Pometheus Query for cloud 2"
-          ansible.builtin.shell:
-            cmd: |
-              oc exec -n service-telemetry prometheus-default-0 -- wget -qO- 'localhost:9090/api/v1/query?query=collectd_uptime{service="default-cloud2-coll-meter"}'
-          register: prometheus_output_cloud2
-          changed_when: false
+  block:
+    - name: "Run Pometheus Query for cloud 2"
+      ansible.builtin.shell:
+        cmd: |
+          oc exec -n service-telemetry prometheus-default-0 -- wget -qO- 'localhost:9090/api/v1/query?query=collectd_uptime{service="default-cloud2-coll-meter"}'
+      register: prometheus_output_cloud2
+      changed_when: false
 
-        - name: Check if the output contains success
-          ansible.builtin.debug:
-            msg: 
-              - "Query for cloud2 was successful."
-              - "{{ prometheus_output_cloud2.stdout }}"
-          when: '"success" in prometheus_output_cloud2.stdout'
-          changed_when: false
+    - name: Check if the output contains success
+      ansible.builtin.debug:
+        msg: 
+          - "Query for cloud2 was successful."
+          - "{{ prometheus_output_cloud2.stdout }}"
+      when: '"success" in prometheus_output_cloud2.stdout'
+      changed_when: false
