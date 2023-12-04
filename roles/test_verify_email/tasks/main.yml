@@ -1,0 +1,54 @@
+---
+# tasks file for roles/test_verify_email
+
+- name: "Create the alert"
+  ansible.builtin.shell:
+    cmd: |
+      oc apply -f - <<EOF
+      apiVersion: monitoring.coreos.com/v1
+      kind: PrometheusRule
+      metadata:
+        creationTimestamp: null
+        labels:
+          prometheus: default
+          role: alert-rules
+        name: prometheus-alarm-rules
+        namespace: service-telemetry
+      spec:
+        groups:
+          - name: ./openstack.rules
+            rules:
+              - alert: Collectd metrics receive rate is zero
+                expr: rate(sg_total_collectd_msg_received_count[1m]) == 0
+      EOF
+  changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
+- name: "Patch the ServiceTelemetry object for the STF deployment"
+  ansible.builtin.shell:
+    cmd: |
+      oc patch stf default --type merge -p '{"spec": {"alertmanagerConfigManifest": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: 'alertmanager-default'\n  namespace: 'service-telemetry'\ntype: Opaque\nstringData:\n  alertmanager.yaml: |-\n    global:\n      resolve_timeout: 10m\n    route:\n      group_by: ['job']\n      group_wait: 30s\n      group_interval: 5m\n      repeat_interval: 12h\n      receiver: 'email'\n    receivers:\n    - name: 'email'\n      - email_configs:\n      - to: mx@redhat.com"}}'
+  changed_when: false
+
+- name: "Interrupt metrics flow by preventing the QDR from running"
+  ansible.builtin.shell:
+    cmd: |
+      for i in {1..60}; do oc delete po -l application=default-interconnect; sleep 1; done
+  changed_when: false
+
+- name: "Check for alertmanager logs"
+  ansible.builtin.shell:
+    cmd: |
+      oc logs alertmanager-default-0 -c alertmanager  | grep 'receiver=email' | wc -l
+  register: cmd_output
+  failed_when: "cmd_output.stdout|int == 0"
+  changed_when: false
+
+- name: "Remove alertmanagerConfigManifest from the ServiceTelemetry object"
+  ansible.builtin.shell:
+    cmd: |
+      oc patch stf/default --type='json' -p '[{"op": "remove", "path": "/spec/alertmanagerConfigManifest"}]'
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+  changed_when: false

@@ -44,8 +44,7 @@
     - name: "Run collectd Prometheus queries"
       ansible.builtin.import_role:
         name: client_side_tests
-
-    
+   
     - name: "Test Collectd Sensubility"
       ansible.builtin.import_role:
         name: test_sensubility
@@ -61,6 +60,10 @@
     - name: "Test snmp traps"
       ansible.builtin.import_role:
         name: test_snmp_traps
+
+    - name: " Test Attempt to send email alert"
+      ansible.builtin.import_role:
+        name: test_verify_email
 
     - name: "Test HA"
       ansible.builtin.import_role:
