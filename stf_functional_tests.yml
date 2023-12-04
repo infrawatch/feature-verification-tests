@@ -44,8 +44,7 @@
     - name: "Run collectd Prometheus queries"
       ansible.builtin.import_role:
         name: client_side_tests
-
-    
+   
     - name: "Test Collectd Sensubility"
       ansible.builtin.import_role:
         name: test_sensubility

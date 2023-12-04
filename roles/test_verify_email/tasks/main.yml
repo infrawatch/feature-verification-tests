@@ -34,7 +34,7 @@
 - name: "Interrupt metrics flow by preventing the QDR from running"
   ansible.builtin.shell:
     cmd: |
-      for i in {1..30}; do oc delete po -l application=default-interconnect; sleep 1; done
+      for i in {1..60}; do oc delete po -l application=default-interconnect; sleep 1; done
   changed_when: false
 
 - name: "Check for alertmanager logs"
@@ -43,11 +43,6 @@
       oc logs alertmanager-default-0 -c alertmanager  | grep 'receiver=email' | wc -l
   register: cmd_output
   failed_when: "cmd_output.stdout|int == 0"
-  changed_when: false
-
-- name: "Wait 2 minutes to make sure all SG pods are back to normal"
-  ansible.builtin.pause:
-    minutes: 2
   changed_when: false
 
 - name: "Remove alertmanagerConfigManifest from the ServiceTelemetry object"
