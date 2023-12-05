@@ -27,15 +27,15 @@
           events:
             collectors:
             - collectorType: collectd
-              subscriptionAddress: collectd/cloud1-notify
+              subscriptionAddress: collectd/cloud2-notify
             - collectorType: ceilometer
-              subscriptionAddress: anycast/ceilometer/cloud1-event.sample
+              subscriptionAddress: anycast/ceilometer/cloud2-event.sample
           metrics:
             collectors:
             - collectorType: collectd
-              subscriptionAddress: collectd/cloud1-telemetry
+              subscriptionAddress: collectd/cloud2-telemetry
             - collectorType: ceilometer
-              subscriptionAddress: anycast/ceilometer/cloud1-metering.sample
+              subscriptionAddress: anycast/ceilometer/cloud2-metering.sample
       EOF
   changed_when: false
   register: cmd_output
