@@ -47,7 +47,7 @@
     Description: Check that health status of container changed to 0
   ansible.builtin.shell:
     cmd: >-
-      /usr/bin/curl -k -H "Authorization: Bearer {{prom_token}}" \
+      /usr/bin/curl -k {{ prom_auth_string }}" \
         -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="{{ groups['overcloud_nodes'][0] }}"}[10m])' \
         | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0 | wc -l
@@ -75,7 +75,7 @@
     Description: Check that health status of container changed to 1
   ansible.builtin.shell:
     cmd: >-
-      /usr/bin/curl -k -H "Authorization: Bearer {{prom_token}}" \
+      /usr/bin/curl -k {{ prom_auth_string }}" \
         -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="{{ groups['overcloud_nodes'][0] }}"}[10m])' \
         | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' |  grep -o '[0-9]\+' | grep 1 | wc -l
