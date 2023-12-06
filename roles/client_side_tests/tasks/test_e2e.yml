@@ -7,7 +7,7 @@
 #     Description: Query Prometheus for collectd_cpu_percent metrics and save the output into the file
   ansible.builtin.shell:
     cmd: >-
-      /usr/bin/curl -k -H "Authorization: Bearer {{prom_token}}" \
+      /usr/bin/curl -k {{prom_auth_string}} \
         -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0"}[1m]' \
         --output /tmp/query_collectd_cpu_percent
@@ -20,7 +20,7 @@
 #     Description: Query Prometheus for ceph_ceph_bytes metrics and save the output into the file
   ansible.builtin.shell:
     cmd: >-
-      /usr/bin/curl -k -H "Authorization: Bearer {{prom_token}}" \
+      /usr/bin/curl -k {{prom_auth_string}} \
         -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.1"}[1m]' \
         --output /tmp/query_ceph_ceph_bytes
@@ -33,7 +33,7 @@
 #     Description: Query Prometheus for collectd_interface_if_packets_tx_total metrics and save the output into the file
   ansible.builtin.shell:
     cmd: >-
-      /usr/bin/curl -k -H "Authorization: Bearer {{prom_token}}" \
+      /usr/bin/curl -k {{prom_auth_string}} \
         -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=collectd_interface_if_packets_tx_total {type_instance="base"}[1m]' \
         --output /tmp/query_collectd_interface_tx_total
@@ -46,7 +46,7 @@
 #     Description: Query Prometheus for collectd_memory metrics and save the output into the file
   ansible.builtin.shell:
     cmd: >-
-      /usr/bin/curl -k -H "Authorization: Bearer {{prom_token}}" \
+      /usr/bin/curl -k {{prom_auth_string}} \
         -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=collectd_memory {plugin_instance="base"}[1m]' \
         --output /tmp/query_collectd_memory
@@ -59,7 +59,7 @@
 #     Description: Query Prometheus for collectd_load_longterm metrics and save the output into the file
   ansible.builtin.shell:
     cmd: >-
-      /usr/bin/curl -k -H "Authorization: Bearer {{prom_token}}" \
+      /usr/bin/curl -k {{prom_auth_string}} \
         -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=collectd_load_longterm {plugin_instance="base"}[1m]' \
         --output /tmp/query_load_longterm
