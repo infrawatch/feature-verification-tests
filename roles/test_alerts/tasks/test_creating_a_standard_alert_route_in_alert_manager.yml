@@ -54,7 +54,7 @@
 - name: "Verify that the alert is firing in Prometheus"
   ansible.builtin.shell:
     cmd: >-
-      /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
+      /usr/bin/curl -k {{ prom_auth_string }} \
         -g https://{{ prom_url }}/api/v1/alerts \
         | grep 'firing' | grep 'Collectd metrics receive rate is zero' | wc -l
   register: cmd_output

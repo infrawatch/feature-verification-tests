@@ -31,7 +31,7 @@
 - name: "Check that the alert was created"
   ansible.builtin.command:
     cmd: |
-      curl -k --user "{{ prom_user }}:{{ prom_pass }}" https://{{ prom_url }}/api/v1/rules
+      curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
   register: cmd_output
   changed_when: false
   failed_when: cmd_output.rc != 0

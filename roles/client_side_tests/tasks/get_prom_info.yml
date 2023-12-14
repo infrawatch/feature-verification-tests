@@ -1,27 +1,47 @@
 ---
-- name: "Get kube password"
-  ansible.builtin.shell:
-    cmd: |
-      cat /opt/ci/shiftstack-ci/clusters/{{ ocp_cluster_name }}/auth/kubeadmin-password
-  register: kube_pass
-  when: ocp_cluster_name is defined
+- when: prom_auth_method == 'password'
+  block:
+  - name: "Get the default-prometheus-htpasswd secret"
+    ansible.builtin.shell:
+      cmd: |
+        oc  get secret default-prometheus-htpasswd -ojson | jq '.data.auth, .data.password' |  sed 's/"//g'
+    register: prom_secret
+    changed_when: false
 
-- name: "Login to kube"
-  ansible.builtin.shell:
-    cmd: |
-      oc login --u kubeadmin -p {{ kube_pass.stdout }}
-  changed_when: false
+  - name: "Show the prom_secret value"
+    ansible.builtin.debug:
+      var: prom_secret | string
 
-- name: "Get the default-prometheus-htpasswd secret"
-  ansible.builtin.shell:
-    cmd: |
-      oc  get secret default-prometheus-htpasswd -ojson | jq '.data.auth, .data.password' |  sed 's/"//g'
-  register: prom_secret
-  changed_when: false
+  - name: "Get the prom creds from the secret"
+    ansible.builtin.set_fact:
+      prom_user_decoded: "{{ (prom_secret.stdout_lines[0] | b64decode) }}"
+      prom_pass: "{{ prom_secret.stdout_lines[1] | b64decode }}"
 
-- name: "Show the prom_secret value"
-  ansible.builtin.debug:
-    var: prom_secret | string
+  - name: "Fetch user"
+    ansible.builtin.set_fact:
+      prom_user: "{{ prom_user_decoded.split(':')[0] }}"
+    when: prom_user_decoded is defined
+
+  - name: "Show the prom_user value"
+    ansible.builtin.debug:
+      var: prom_user
+
+  - name: "Set prom auth string for password auth user"
+    ansible.builtin.set_fact:
+      prom_auth_string: '-u "{{ prom_user }}:{{ prom_pass }}"'
+
+- when: prom_auth_method == 'token'
+  block:
+    - name: "Generate an access token for prometheus"
+      ansible.builtin.shell:
+        cmd: |
+          oc create token stf-prometheus-reader
+      register: prom_token_out
+      changed_when: false
+
+    - name: "Set prom auth string for password auth user"
+      ansible.builtin.set_fact:
+        prom_auth_string: '-H "Authorization: Bearer {{ prom_token_out.stdout }}"'
 
 - name: "Get the prom URL"
   ansible.builtin.shell:
@@ -34,18 +54,6 @@
   ansible.builtin.debug:
     var: prom_route.stdout
 
-- name: "Get the prom creds from the secret"
+- name: "Set the prom URL"
   ansible.builtin.set_fact:
-    prom_user_decoded: "{{ (prom_secret.stdout_lines[0] | b64decode) }}"
-    prom_pass: "{{ prom_secret.stdout_lines[1] | b64decode }}"
     prom_url: "{{ prom_route.stdout }}"
-
-- name: "Show the prom_user value"
-  ansible.builtin.debug:
-    var: prom_user
-
-- name: "Fetch user"
-  ansible.builtin.set_fact:
-    prom_user: "{{ prom_user_decoded.split(':')[0] }}"
-  when: prom_user_decoded is defined
-
