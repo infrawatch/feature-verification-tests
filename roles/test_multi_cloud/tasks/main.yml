@@ -74,7 +74,7 @@
     - name: "Run Pometheus Query for cloud 1"
       ansible.builtin.shell:
         cmd: |
-          oc exec -n service-telemetry prometheus-default-0 -- wget -qO- 'localhost:9090/api/v1/query?query=collectd_uptime{service="default-cloud1-coll-meter"}'
+          oc exec -n service-telemetry prometheus-default-0 -- wget -qO- 'localhost:9090/api/v1/query?query=sg_total_collectd_metric_decode_count{service="default-cloud1-coll-meter"}'
       register: prometheus_output_cloud1
       changed_when: false
 
@@ -83,7 +83,7 @@
         msg: 
           - "Query for cloud1 was successful."
           - "{{ prometheus_output_cloud1.stdout }}"
-      when: '"success" in prometheus_output_cloud1.stdout'
+      when: '"sg_total_collectd_metric_decode_count" in prometheus_output_cloud1.stdout '
       changed_when: false
 
 - name: Querying metrics data from cloud2
@@ -91,7 +91,7 @@
     - name: "Run Pometheus Query for cloud 2"
       ansible.builtin.shell:
         cmd: |
-          oc exec -n service-telemetry prometheus-default-0 -- wget -qO- 'localhost:9090/api/v1/query?query=collectd_uptime{service="default-cloud2-coll-meter"}'
+          oc exec -n service-telemetry prometheus-default-0 -- wget -qO- 'localhost:9090/api/v1/query?query=sg_total_collectd_metric_decode_count{service="default-cloud2-coll-meter"}'
       register: prometheus_output_cloud2
       changed_when: false
 
@@ -100,5 +100,5 @@
         msg: 
           - "Query for cloud2 was successful."
           - "{{ prometheus_output_cloud2.stdout }}"
-      when: '"success" in prometheus_output_cloud2.stdout'
+      when: '"sg_total_collectd_metric_decode_count" in prometheus_output_cloud2.stdout'
       changed_when: false
