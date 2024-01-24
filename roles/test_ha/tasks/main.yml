@@ -53,7 +53,7 @@
   changed_when: false
 
 - name: "RHELOSP-144991"
-# description: Verify that Ceilometer Metrics Smartgateway shows two containers
+# description: "Verify that Ceilometer Metrics Smartgateway shows two containers"
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep default-cloud1-ceil-meter| wc -l
@@ -105,8 +105,6 @@
   changed_when: false
   register: cmd_output
   failed_when: cmd_output.rc != 0
-
-
 
 - name: "Wait 3 minutes to make sure all HA pods are destroyed"
   ansible.builtin.pause:
