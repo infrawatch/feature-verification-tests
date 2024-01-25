@@ -16,8 +16,8 @@
   ansible.builtin.pause:
     minutes: 3
 
-- name: "RHELOSP-144994
-# description: "Verify that AMQP Interconnect shows two containers"
+- name: "RHELOSP-144994" 
+# description: Verify that AMQP Interconnect shows two containers
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep default-interconnect| wc -l
