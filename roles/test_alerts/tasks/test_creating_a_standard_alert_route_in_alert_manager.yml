@@ -54,7 +54,7 @@
   failed_when: cmd_output.stdout|int == 0
 
 - name: "RHELOSP-148699"
-- name: "Verify that the alert is firing in Prometheus"
+# description: "Verify that the alert is firing in Prometheus"
   ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k {{ prom_auth_string }} \
