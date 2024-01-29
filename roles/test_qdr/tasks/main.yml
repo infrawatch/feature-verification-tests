@@ -8,7 +8,7 @@
   changed_when: false
   failed_when: container_nodes.stdout_lines|length != 1
 
-- name: "[Setup] Get Qdr bus address"
+- name: "RHELOSP- [Setup] Get Qdr bus address"
   ansible.builtin.shell: |
     set -o pipefail
     {{ container_bin }} exec {{ qdr_container_name }} cat /etc/qpid-dispatch/qdrouterd.conf | grep -C 5 listener | grep -C 3 "port: 5666" | grep host | awk '{print $2}'
