@@ -3,7 +3,7 @@
 
 # Pre-check: is the value of global.timeout = 5m in the alertmanager secret
   # TODO: put the patch into a file. and use --patch-file instead of -p OR slurp the file from files/
-- name: "Patch the ServiceTelemetry object for the STF deployment"
+- name: "RHELOSP- Patch the ServiceTelemetry object for the STF deployment"
   ansible.builtin.shell:
     cmd: |
       oc patch stf default --type merge -p '{"spec": {"alertmanagerConfigManifest": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: 'alertmanager-default'\n  namespace: 'service-telemetry'\ntype: Opaque\nstringData:\n  alertmanager.yaml: |-\n    global:\n      resolve_timeout: 10m\n    route:\n      group_by: ['job']\n      group_wait: 30s\n      group_interval: 5m\n      repeat_interval: 12h\n      receiver: 'null'\n    receivers:\n    - name: 'null'\n"}}'
@@ -33,14 +33,14 @@
   ansible.builtin.debug:
     var: alertmanager_secret
 
-- name: "Interrupt metrics flow by preventing the QDR from running"
+- name: "RHELOSP- Interrupt metrics flow by preventing the QDR from running"
   ansible.builtin.shell:
     cmd: |
       for i in {1..15}; do oc delete po -l application=default-interconnect; sleep 1; done
   changed_when: false
 
 
-- name: "Verify that the alert is active in Alertmanager"
+- name: "RHELOSP- Verify that the alert is active in Alertmanager"
   ansible.builtin.shell: 
     cmd: >-
       oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c 'wget --header \
@@ -51,7 +51,7 @@
   failed_when: cmd_output.stdout|int == 0
 
 
-- name: "Verify that the alert is firing in Prometheus"
+- name: "RHELOSP- Verify that the alert is firing in Prometheus"
   ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k {{ prom_auth_string }} \
@@ -67,7 +67,7 @@
     minutes: 2
 
 
-- name: "Remove alertmanagerConfigManifest from the ServiceTelemetry object"
+- name: "RHELOSP- Remove alertmanagerConfigManifest from the ServiceTelemetry object"
   ansible.builtin.shell:
     cmd: |
       oc patch stf/default --type='json' -p '[{"op": "remove", "path": "/spec/alertmanagerConfigManifest"}]'
