@@ -18,7 +18,7 @@
   changed_when: false
 
 
-- name: "Check that the retention was set"
+- name: "RHELOSP- Check that retention metrics set to 17d"
   ansible.builtin.shell:
     cmd: |
       oc describe pod prometheus-default-0  | grep -o 'storage.tsdb.retention.time=17d' | wc -l
