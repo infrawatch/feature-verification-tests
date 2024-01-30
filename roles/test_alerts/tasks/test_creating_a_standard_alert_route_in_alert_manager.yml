@@ -70,7 +70,8 @@
     minutes: 2
 
 
-- name: "Remove alertmanagerConfigManifest from the ServiceTelemetry object"
+- name: "RHELOSP-A.1"
+  # Remove alertmanagerConfigManifest from the ServiceTelemetry object
   ansible.builtin.shell:
     cmd: |
       oc patch stf/default --type='json' -p '[{"op": "remove", "path": "/spec/alertmanagerConfigManifest"}]'
