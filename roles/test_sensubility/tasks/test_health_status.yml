@@ -1,9 +1,8 @@
   #In this test we choose one container (logrotate_crond),checking that it is running 
   #and then stopping the container and starting it again and checking that its health status changes accordingly.
 
-- name: |
-    Check that logrotate_crond container is running on controller-0
-    Description: Check that logrotate_crond container is running on controller-0
+- name: RHELOSP-S.1
+  # Description: Check that logrotate_crond container is running on controller-0
   delegate_to: "{{ groups['overcloud_nodes'][0] }}"
   become: true
   delegate_facts: True
@@ -16,9 +15,8 @@
 
 
 
-- name: |
-    Stop logrotate_crond container on controller-0
-    Description: Stop logrotate_crond container on controller-0
+- name: RHELOSP-S.2
+  # Description: Stop logrotate_crond container on controller-0
   ansible.builtin.shell:
     cmd: |
        systemctl stop tripleo_logrotate_crond
@@ -29,9 +27,8 @@
 
 
 
-- name: |
-    Check that logrotate_crond container has stopped
-    Description: Check that logrotate_crond container has stopped
+- name: RHELOSP-S.3
+  # Description: Check that logrotate_crond container has stopped
   ansible.builtin.shell: |
     {{ container_bin }} ps | grep logrotate_crond 
   delegate_to: "{{ groups['overcloud_nodes'][0] }}"
@@ -42,9 +39,8 @@
  
 
 
-- name: |
-    Check that health status of container changed to 0
-    Description: Check that health status of container changed to 0
+- name: RHELOSP-S.4
+  # Description: Check that health status of container changed to 0
   ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k {{ prom_auth_string }}" \
@@ -57,9 +53,8 @@
   
 
 
-- name: |
-    Start logrotate_crond container
-    Description: Start logrotate_crond container
+- name: RHELOSP-S.5
+  # Description: Start logrotate_crond container
   ansible.builtin.shell:
     cmd: |
        systemctl start tripleo_logrotate_crond
@@ -70,9 +65,8 @@
 
 
 
-- name:  |
-    Check that health status of container changed to 1
-    Description: Check that health status of container changed to 1
+- name: RHELOSP-S.6
+  # Description: Check that health status of container changed to 1
   ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k {{ prom_auth_string }}" \
