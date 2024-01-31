@@ -4,7 +4,7 @@
 # Assuming we're in the right project already...
 
 - name: "RHELOSP-144987"
-# description: "Set the alerting.alertmanager.receivers.snmpTraps parameters"
+  # description: "Set the alerting.alertmanager.receivers.snmpTraps parameters"
   ansible.builtin.shell:
     cmd: |
       oc patch stf/default --type merge -p '{"spec": {"alerting": {"alertmanager": {"receivers": {"snmpTraps": {"enabled": true, "target": "10.10.10.10" }}}}}}'
@@ -14,14 +14,14 @@
 
 
 - name: "RHELOSP-144966"
-# description: "Interrupt metrics flow by preventing the QDR from running"
+  # description: "Interrupt metrics flow by preventing the QDR from running"
   ansible.builtin.shell:
     cmd: |
       for i in {1..30}; do oc delete po -l application=default-interconnect; sleep 1; done
   changed_when: false
 
 - name: "RHELOSP-144481"
-# description: "Check for snmpTraps logs"
+  # description: "Check for snmpTraps logs"
   ansible.builtin.shell:
     cmd: |
       oc logs -l "app=default-snmp-webhook"  | grep "Sending SNMP trap" | wc -l
