@@ -97,7 +97,7 @@
   failed_when: "cmd_output.stdout|int !=0"
   changed_when: false
 
-- name: "RHELOSP-"
+- name: "RHELOSP-O.1"
 # description: "Remove obesrvabilityStrategy"
   ansible.builtin.shell:
      cmd: |
