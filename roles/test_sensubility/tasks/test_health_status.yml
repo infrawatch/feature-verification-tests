@@ -42,11 +42,11 @@
 - name: RHELOSP-S.4
   # Description: Check that health status of container changed to 0
   ansible.builtin.shell:
-    cmd: >-
-      /usr/bin/curl -k {{ prom_auth_string }}" \
-        -g https://{{ prom_url }}/api/v1/query? \
-        --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="{{ groups['overcloud_nodes'][0] }}"}[10m])' \
-        | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0 | wc -l
+    cmd: /usr/bin/curl -k {{ prom_auth_string }}" -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="{{ groups['overcloud_nodes'][0] }}"}[10m])' | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0 | wc -l
+    #  /usr/bin/curl -k {{ prom_auth_string }}" \
+    #    -g https://{{ prom_url }}/api/v1/query? \
+    #    --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="{{ groups['overcloud_nodes'][0] }}"}[10m])' \
+    #    | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0 | wc -l
   register: output
   changed_when: false
   failed_when: "output.stdout|int != 1"
