@@ -47,7 +47,7 @@
   ansible.builtin.shell: 
     cmd: >-
       oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c 'wget --header \
-        "Authorization':' Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+        "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
         https://default-alertmanager-proxy:9095/api/v1/alerts -q -O -' | grep 'active' | grep 'Collectd metrics receive rate is zero' | wc -l
   register: cmd_output
   changed_when: false
