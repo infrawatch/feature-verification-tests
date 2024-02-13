@@ -1,0 +1,6 @@
+---
+- project:
+    name: infrawatch/functional-test
+    github-check:
+      jobs:
+        - noop
