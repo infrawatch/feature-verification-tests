@@ -72,8 +72,6 @@
     - name: "Test observabilityStrategy"
       ansible.builtin.import_role:
         name: test_observability_strategy
-  retries: 60
-  delay: 60
   tags:
     - custom-stf-ceph
     - stf-connectors-osp13-ffu
