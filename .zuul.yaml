@@ -4,7 +4,7 @@
     parent: telemetry-operator-multinode-autoscaling
     description: |
       Run the stf functional tests on osp18
-    post-run:
+    run:
       - stf_functional_tests.yml
 
 
