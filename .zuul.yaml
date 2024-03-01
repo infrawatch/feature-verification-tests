@@ -1,0 +1,6 @@
+---
+- project:
+    name: infrawatch/feature-verification-tests
+    github-check:
+      jobs:
+        - noop
