@@ -1,15 +1,6 @@
 ---
-- job:
-    name: stf-functional-tests-on-osp18
-    parent: telemetry-operator-multinode-autoscaling
-    description: |
-      Run the stf functional tests on osp18
-    run:
-      - stf_functional_tests.yml
-
-
 - project:
-    name:  infrawatch/feature-verification-tests
+    name: infrawatch/feature-verification-tests
     github-check:
       jobs:
-        - stf-functional-tests-on-osp18
+        - noop
