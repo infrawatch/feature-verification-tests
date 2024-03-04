@@ -4,9 +4,8 @@
     parent: telemetry-operator-multinode-autoscaling
     description: |
       Run the stf functional tests on osp18
-    run:
+    post-run:
       - stf_functional_tests.yml
-
 
 - project:
     name:  infrawatch/feature-verification-tests
