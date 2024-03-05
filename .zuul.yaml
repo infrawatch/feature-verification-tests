@@ -1,14 +1,20 @@
 ---
 - job:
     name: feature-verification-tests-osp18
-    parent: base
+    parent: telemetry-operator-multinode-autoscaling
     description: |
       Run the stf functional tests on osp18
-    run:
-      - stf_functional_tests.yml
+    run: stf_functional_tests.yml
+
+- project-template:
+    name: feature-verification-tests-osp18-template
+    github-check:
+      jobs:
+        - feature-verification-tests-osp18
 
 - project:
     name: infrawatch/feature-verification-tests
-    check:
-      jobs:
-        - feature-verification-tests-osp18
+    templates:
+      - feature-verification-tests-osp18-template
+
+
