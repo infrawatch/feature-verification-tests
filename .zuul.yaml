@@ -1,7 +1,7 @@
 ---
 - job:
-    name: stf-functional-tests-on-osp18
-    parent: telemetry-operator-multinode-autoscaling
+    name: feature-verification-tests-osp18
+    parent: base
     description: |
       Run the stf functional tests on osp18
     run:
@@ -11,4 +11,4 @@
     name: infrawatch/feature-verification-tests
     check:
       jobs:
-        - stf-functional-tests-on-osp18
+        - feature-verification-tests-osp18
