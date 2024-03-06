@@ -1,0 +1,23 @@
+---
+- job:
+    name: feature-verification-tests-osp18
+    override-checkout: master
+    parent: telemetry-operator-multinode-autoscaling
+    description: |
+      Run the stf functional tests on osp18
+    run: stf_functional_tests.yml
+
+- project-template:
+    name: feature-verification-tests-osp18-template
+    github-check:
+      debug: true
+      jobs:
+        - noop
+        - openstack-k8s-operators-content-provider
+        - feature-verification-tests-osp18
+        - telemetry-operator-multinode-autoscaling
+
+- project:
+    name: infrawatch/feature-verification-tests
+    templates:
+      - feature-verification-tests-osp18-template
