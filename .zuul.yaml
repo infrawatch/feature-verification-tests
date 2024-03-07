@@ -9,10 +9,10 @@
 - project-template:
     name: feature-verification-tests-osp18-template
     github-check:
+    debug: true
       jobs:
-        - feature-verification-tests-osp18: &content_provider
-            dependencies:
-              - openstack-k8s-operators-content-provider
+        - openstack-k8s-operators-content-provider
+        - feature-verification-tests-osp18
 
 - project:
     name: infrawatch/feature-verification-tests
