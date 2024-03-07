@@ -8,6 +8,7 @@
 
 - project-template:
     name: feature-verification-tests-osp18-template
+    dependencies: ["openstack-k8s-operators-content-provider"]
     github-check:
       jobs:
         - feature-verification-tests-osp18
