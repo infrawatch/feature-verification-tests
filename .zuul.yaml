@@ -9,7 +9,7 @@
 - project-template:
     name: feature-verification-tests-osp18-template
     github-check:
-    debug: true
+      debug: true
       jobs:
         - openstack-k8s-operators-content-provider
         - feature-verification-tests-osp18
