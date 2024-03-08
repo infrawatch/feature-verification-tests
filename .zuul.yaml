@@ -4,6 +4,9 @@
     parent: telemetry-operator-multinode-autoscaling
     description: |
       Run the stf functional tests on osp18
+    required-projects:
+      - name: github.com/openstack-k8s-operators/dataplane-operator
+        override-checkout: main
     run: stf_functional_tests.yml
 
 - project-template:
@@ -11,8 +14,6 @@
     github-check:
       debug: true
       jobs:
-        - openstack-k8s-operators-content-provider:
-              override-checkout: main
         - feature-verification-tests-osp18
 
 - project:
