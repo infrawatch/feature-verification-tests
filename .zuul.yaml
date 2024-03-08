@@ -7,6 +7,12 @@
     required-projects:
       - name: github.com/openstack-k8s-operators/dataplane-operator
         override-checkout: main
+      - name: github.com/openstack-k8s-operators/infra-operator
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/openstack-operator
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/openstack-must-gather
+        override-checkout: main
     run: stf_functional_tests.yml
 
 - project-template:
