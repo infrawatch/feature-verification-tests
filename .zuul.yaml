@@ -5,6 +5,7 @@
     description: |
       Run the stf functional tests on osp18
     required-projects:
+      - name: github.com/infrawatch/service-telemetry-operator
       - name: github.com/openstack-k8s-operators/dataplane-operator
         override-checkout: main
       - name: github.com/openstack-k8s-operators/infra-operator
