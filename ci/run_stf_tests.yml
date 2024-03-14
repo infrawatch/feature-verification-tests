@@ -1,0 +1,25 @@
+---
+- hosts: all
+  name: Create zuul-output log dir
+  gather_facts: false
+  tasks:
+    - name: Create log dir
+      ansible.builtin.file:
+        path: "{{ ansible_user_dir }}/zuul-output/logs"
+        state: directory
+        mode: "0755"
+
+- hosts: controller
+  tasks:
+    - name: Set callback plugin
+      ansible.builtin.set_fact:
+        ANSIBLE_STDOUT_CALLBACK: "callback_plugins.customer_logger"
+
+    - name: Run the stf_functional_tests playbook
+      ansible.builtin.include_tasks: stf_functional_tests.yml
+
+    - name: "Copy generated logs"
+      ansible.builtin.copy:
+        src: "/var/log/ansible/hosts/*"
+        dest: "{{ ansible_user_dir }}/zuul-output/logs"
+
