@@ -38,7 +38,7 @@
         - gnocchi-connectors-swift
 
 - name: "Run e2e tests"
-  hosts: stf
+  hosts: ocp_cluster
   ignore_errors: true
   tasks:
     - name: "Run collectd Prometheus queries"
