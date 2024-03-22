@@ -13,8 +13,6 @@ DOCUMENTATION = '''
         - This summarises tasks per host and outputs it to a log file
 '''
 
-MSG_FORMAT = "{task}={status}\n"
-
 class CallbackModule(CallbackBase):
     """
     logs playbook results, per host, in /var/log/ansible/hosts
@@ -32,7 +30,8 @@ class CallbackModule(CallbackBase):
         self.current_task = ''
         self.passed = 0
         self.failed = 0
-        self.path = os.path.join(os.getcwd(), "test_run_result.out")
+        self.output_dir = os.getcwd()
+        self.path = os.path.join(self.output_dir, "test_run_result.out")
         # either create the file or truncate the existing file
         with open(self.path, 'w') as fp:
             pass
@@ -53,9 +52,15 @@ class CallbackModule(CallbackBase):
                 self.failed +=1
              if category == "passed":
                  self.passed +=1
-     
+
+             test_result_message = self.MSG_FORMAT.format(task=self.current_task, status=category)
+
              with open(self.path, 'a') as fd:
-                 fd.write(self.MSG_FORMAT.format(task=self.current_task, status=category))
+                 fd.write(test_result_message)
+
+             file_name = "_".join(["test_run_result", host])
+             with open(os.path.join(self.output_dir, file_name ) , 'a') as fd:
+                 fd.write(test_result_message)
 
     def runner_on_failed(self, host, res, ignore_errors=False):
          self.log(host,'failed')
