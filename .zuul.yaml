@@ -17,7 +17,8 @@
       - name: github.com/openstack-k8s-operators/telemetry-operator
         override-checkout: main
     run:
-      - ci/run_stf_tests.yml
+      - zuul_stf_tests.yml
+      - ci/collect_logs.yml
 
 - project:
     name: infrawatch/feature-verification-tests

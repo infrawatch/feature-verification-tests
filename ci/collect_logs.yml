@@ -1,0 +1,37 @@
+---
+- hosts: all
+  name: "Create zuul-output log dir"
+  gather_facts: false
+  tasks:
+    - name: "Create log dir"
+      ansible.builtin.file:
+        path: "{{ ansible_user_dir }}/zuul-output/logs"
+        state: directory
+        mode: "0755"
+
+- hosts: controller
+  name: Collect logs on the controller
+  gather_facts: false
+  tasks:
+    - name: Create log dir
+      ansible.builtin.file:
+        path: "{{ ansible_user_dir }}/zuul-output/logs/controller"
+        state: directory
+        mode: "0755"
+
+    - name: Collect general openshift cr info
+      ansible.builtin.shell: |
+        cp /var/log/ansible/hosts/controller/test_run_result.out .
+      args:
+        chdir: "{{ ansible_user_dir }}/zuul-output/logs/controller"
+
+- hosts: all
+  name: Copy files from controller on node
+  gather_facts: false
+  tasks:
+    - name: Copy files from controller on node
+      ansible.builtin.include_role:
+        name: fetch-output
+        
+  
+
