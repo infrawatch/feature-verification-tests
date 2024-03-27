@@ -1,0 +1,8 @@
+---
+- hosts: controller
+  name: "Prepare the environment for running stf_functional_tests"
+  gather_facts: false
+  tasks:
+    - name: Update callback environment variable
+      ansible.builtin.set_fact:
+        ANSIBLE_CALLBACK_WHITELIST: "custom_logger"
