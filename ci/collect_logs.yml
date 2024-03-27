@@ -21,12 +21,10 @@
 
     - name: Copy ansible logs
       ansible.builtin.shell: |
-        cp /var/log/ansible/hosts/controller/test_run_result.out .
+        cp {{ ansible_env.HOME }}/test_run_result.out .
       args:
         chdir: "{{ ansible_user_dir }}/zuul-output/logs/controller"
       changed_when: true
-      ignore_errors: true
-
 
 - hosts: all
   name: Copy files from controller on node
