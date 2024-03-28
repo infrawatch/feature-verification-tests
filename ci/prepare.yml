@@ -1,0 +1,13 @@
+---
+- name: enable callback plugin in ansible.cfg
+  hosts: controller
+  gather_facts: no
+  become: true
+  tasks:
+    - name: Add line after [defaults]
+      ansible.builtin.blockinfile:
+        path: /etc/ansible/ansible.cfg
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+        block: |
+          callback_whitelist = custom_logger
+        insertafter: "^\\[defaults\\]"
