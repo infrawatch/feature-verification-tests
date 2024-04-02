@@ -3,6 +3,8 @@
   hosts: all
   ignore_errors: true
   become: true
+  environment:
+    PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"
   tasks:
     - name: "Update container_bin var"
       tags:
@@ -40,7 +42,14 @@
 - name: "Run e2e tests"
   hosts: controller
   ignore_errors: true
+  environment:
+    PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"
   tasks:
+    - name: "Log into the cluster"
+      ansible.builtin.import_role:
+        name: rhol_crc
+        tasks_from: add_crc_creds.yml
+
     - name: "Run collectd Prometheus queries"
       ansible.builtin.import_role:
         name: client_side_tests

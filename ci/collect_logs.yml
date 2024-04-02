@@ -25,6 +25,7 @@
       args:
         chdir: "{{ ansible_user_dir }}/zuul-output/logs/controller"
       changed_when: true
+      delegate_to: localhost
 
 - hosts: all
   name: Copy files from controller on node
