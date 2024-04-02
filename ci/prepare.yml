@@ -11,7 +11,7 @@
         block: |
           callback_whitelist = custom_logger
         insertafter: "^\\[defaults\\]"
-      delegate_to: localhost
+      #delegate_to: localhost
 
     - name: "Log into the cluster"
       ansible.builtin.import_role:
