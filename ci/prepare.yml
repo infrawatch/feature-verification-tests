@@ -17,3 +17,4 @@
       ansible.builtin.import_role:
         name: rhol_crc
         tasks_from: add_crc_creds.yml
+      #https://github.com/openstack-k8s-operators/ci-framework/blob/9f9d01c1611a9408903e2aab5f6264d406891936/ci_framework/roles/rhol_crc/tasks/add_crc_creds.yml

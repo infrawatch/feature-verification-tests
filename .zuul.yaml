@@ -4,8 +4,12 @@
     parent: telemetry-operator-multinode-autoscaling
     description: |
       Run the stf functional tests on osp18
+    roles:  # adds in dependent roles i.e. put it in the role path
+      - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects:
       - name: github.com/infrawatch/service-telemetry-operator
+      - name: openstack-k8s-operators/ci-framework
+        override-checkout: main
       - name: github.com/openstack-k8s-operators/dataplane-operator
         override-checkout: main
       - name: github.com/openstack-k8s-operators/infra-operator
