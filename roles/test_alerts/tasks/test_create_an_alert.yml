@@ -3,7 +3,8 @@
 # Assuming we're in the right project already...
 # Following procedure on https://infrawatch.github.io/documentation/#creating-an-alert-rule-in-prometheus_assembly-advanced-features
 
-- name: "Create the alert"
+- name: "RHELOSP-144965"
+# description: Create the alert
   ansible.builtin.shell:
     cmd: |
       oc apply -f - <<EOF
@@ -27,8 +28,8 @@
   register: cmd_output
   failed_when: cmd_output.rc != 0
 
-
-- name: "Check that the alert was created"
+- name: "RHELOSP-144480"
+# description: Check that the alert was created
   ansible.builtin.command:
     cmd: |
       curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules

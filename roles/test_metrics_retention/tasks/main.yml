@@ -3,7 +3,9 @@
 # Assuming we've already logged in.
 # Assuming we're in the right project already...
 
-- name: "Set metrics retention to 17d"
+
+- name: "RHELOSP-144988"
+# description: "Set metrics retention to 17d"
   ansible.builtin.shell:
     cmd: |
       oc patch stf/default --type merge -p '{"spec": {"backends": {"metrics": {"prometheus": {"enabled": true, "scrapeInterval": "10s", "storage": {"retention": "17d", "strategy": "ephemeral"}}}}}}'
@@ -18,7 +20,8 @@
   changed_when: false
 
 
-- name: "Check that the retention was set"
+- name: "RHELOSP-144484"
+# description: "Check that the retention was set"
   ansible.builtin.shell:
     cmd: |
       oc describe pod prometheus-default-0  | grep -o 'storage.tsdb.retention.time=17d' | wc -l

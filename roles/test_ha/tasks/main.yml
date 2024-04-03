@@ -3,7 +3,8 @@
 # Following procedure on https://infrawatch.github.io/documentation/#high-availability_assembly-advanced-features
 # Assuming we're in teh right project already...
 
-- name: "Add highAvailability.enabled: true to the spec section"
+- name: "RHELOSP-144992"
+# description: "Add highAvailability.enabled: true to the spec section"
   ansible.builtin.shell:
     cmd: |
       oc patch stf/default --type merge -p '{"spec":{"highAvailability":{"enabled": true}}}'
@@ -11,13 +12,12 @@
   register: cmd_output
   failed_when: cmd_output.rc != 0
 
-
 - name: "Wait 3 minutes to make sure all HA pods are up and running"
   ansible.builtin.pause:
     minutes: 3
 
-
-- name: "Verify that AMQP Interconnect shows two containers"
+- name: "RHELOSP-144994" 
+# description: Verify that AMQP Interconnect shows two containers
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep default-interconnect| wc -l
@@ -25,7 +25,8 @@
   failed_when: "cmd_output.stdout|int !=2"
   changed_when: false
 
-  
+- name: "RHELOSP-144989"
+# description: Verify that Alert Manager shows two containers
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep alertmanager| wc -l
@@ -33,9 +34,8 @@
   failed_when: "cmd_output.stdout|int !=2"
   changed_when: false
 
-
-
-- name: "Verify that Prometheus shows two containers"
+- name: "RHELOSP-144995"
+# description: "Verify that Prometheus shows two containers"
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep prometheus-default| wc -l
@@ -43,9 +43,8 @@
   failed_when: "cmd_output.stdout|int !=2"
   changed_when: false
 
-
-
-- name: "Verify that Ceilometer Events Smartgateway shows two containers"
+- name: "RHELOSP-144993"
+# description: "Verify that Ceilometer Events Smartgateway shows two containers"
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep default-cloud1-ceil-event| wc -l
@@ -53,7 +52,8 @@
   failed_when: "cmd_output.stdout|int !=2"
   changed_when: false
 
-
+- name: "RHELOSP-144991"
+# description: "Verify that Ceilometer Metrics Smartgateway shows two containers"
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep default-cloud1-ceil-meter| wc -l
@@ -61,9 +61,8 @@
   failed_when: "cmd_output.stdout|int !=2"
   changed_when: false
 
-
-
-- name: "Verify that Collectd Events Smartgateway shows two containers"
+- name: "RHELOSP-144990"
+# description:  "Verify that Collectd Events Smartgateway shows two containers"
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep default-cloud1-coll-event| wc -l
@@ -71,9 +70,8 @@
   failed_when: "cmd_output.stdout|int !=2"
   changed_when: false
 
-
-
-- name: "Verify that Collectd Metrics Smartgateway shows two containers"
+- name: "RHELOSP-144999"
+# description: "Verify that Collectd Metrics Smartgateway shows two containers"
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep default-cloud1-coll-meter| wc -l
@@ -81,9 +79,8 @@
   failed_when: "cmd_output.stdout|int !=2"
   changed_when: false
 
-
-
-- name: "Verify that Collectd Sensubility shows two containers"
+- name: "RHELOSP-144998" 
+# description: "Verify that Collectd Sensubility shows two containers"
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep default-cloud1-sens-meter| wc -l
@@ -91,9 +88,8 @@
   failed_when: "cmd_output.stdout|int !=2"
   changed_when: false
 
-
-
-- name: "Verify that ElasticSearch shows three containers"
+- name: "RHELOSP-144997" 
+# description: "Verify that ElasticSearch shows three containers"
   ansible.builtin.shell:
     cmd: |
       oc get pods | grep elasticsearch-es-default| wc -l
@@ -101,17 +97,14 @@
   failed_when: "cmd_output.stdout|int !=3"
   changed_when: false
 
-
-
-- name: "Disbale HighAvailability after running test"
+- name: "RHELOSP-144996" 
+# description: "Disable HighAvailability after running test"
   ansible.builtin.shell:
     cmd: |
       oc patch stf/default --type merge -p '{"spec":{"highAvailability":{"enabled": false}}}'
   changed_when: false
   register: cmd_output
   failed_when: cmd_output.rc != 0
-
-
 
 - name: "Wait 3 minutes to make sure all HA pods are destroyed"
   ansible.builtin.pause:
