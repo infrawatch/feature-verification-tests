@@ -20,6 +20,8 @@
         override-checkout: main
       - name: github.com/openstack-k8s-operators/telemetry-operator
         override-checkout: main
+    pre-run:
+      - ci/pre-2node.yml
     run:
       - zuul_stf_tests.yml
 
