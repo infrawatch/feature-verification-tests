@@ -9,7 +9,7 @@
         state: directory
         mode: "0755"
 
-- hosts: controller
+- hosts: localhost
   name: Collect logs on the controller
   gather_facts: false
   tasks:
@@ -25,7 +25,6 @@
       args:
         chdir: "{{ ansible_user_dir }}/zuul-output/logs/controller"
       changed_when: true
-      delegate_to: localhost
 
 - hosts: all
   name: Copy files from controller on node
