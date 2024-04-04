@@ -1,6 +1,6 @@
 ---
 - name: "Do pre-work to get kubeconfig"
-  hosts: all
+  hosts: controller
   vars:
     ci_framework_dir: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}"
   environment:
