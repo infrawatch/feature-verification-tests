@@ -21,7 +21,7 @@
 
     - name: Copy ansible logs
       ansible.builtin.shell: |
-        cp {{ ansible_env.HOME }}/test_run_result.out .
+        cp  {{ playbook_dir }}/test_run_result.out .
       args:
         chdir: "{{ ansible_user_dir }}/zuul-output/logs/controller"
       changed_when: true

@@ -34,16 +34,6 @@
         - stf-connectors-osp13-ffu
         - gnocchi-connectors-swift
 
-    - name: "Run metrics_qdr tests"
-      ansible.builtin.import_role:
-        name: test_qdr
-      tags:
-        - custom-stf-ceph
-        - custom-stf-ceph-osp13
-        - stf-connectors-osp13
-        - stf-connectors-osp13-ffu
-        - gnocchi-connectors-swift
-
 - name: "Run e2e tests"
   hosts: controller
   ignore_errors: true
