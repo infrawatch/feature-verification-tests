@@ -1,6 +1,15 @@
 ---
+- job:
+    name: test-functional-tests
+    parent: base
+    description: |
+      A minimal job to test the custom logger and test result reporting for feature-verification-tests
+    nodeset: centos-stream-9
+    run:
+      - ci/run.yml
+
 - project:
     name: infrawatch/feature-verification-tests
     github-check:
       jobs:
-        - noop
+        - test-functional-tests

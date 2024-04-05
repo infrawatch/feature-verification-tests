@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  ignore_errors: true
+  tasks:
+     # TODO: add the other roles here.
+    - name: Run a role
+      ansible.builtin.include_role:
+        name: client_side_tests

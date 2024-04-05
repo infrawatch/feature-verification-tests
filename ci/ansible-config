@@ -1,0 +1,4 @@
+[defaults]
+callbacks_enabled=custom_logger
+;callback_plugins=~/.ansible/plugins/callback:/usr/share/ansible/plugins/callback
+;roles_path=~/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles
