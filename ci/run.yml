@@ -1,0 +1,33 @@
+- hosts: controller
+  tasks:
+    - name: Install ansible so that ansible-playbook is available
+      ansible.builtin.pip:
+        name:
+          - ansible
+
+    - name: Set the repo dir
+      ansible.builtin.set_fact:
+        fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
+
+
+    - name: "Run a playbook locally on the target host"
+      ansible.builtin.shell:
+        cmd: |
+          ansible-playbook ci/stf_tests.yml
+        chdir: "{{ fvt_dir }}"
+      register: output
+
+    - name: Save the output of the playbook run to a logfile
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/stf_test.log"
+        line: "{{ output.stdout_lines }}"
+        create: yes
+
+    - name: "Run a playbook to gather logs on the target host"
+      ansible.builtin.shell:
+        cmd: |
+          ansible-playbook ci/collect_logs.yml
+        chdir: "{{ fvt_dir }}"
+
+
+

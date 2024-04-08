@@ -23,9 +23,7 @@
     pre-run:
       - ci/pre-2node.yml
     run:
-      - ci/zuul_stf_tests.yml
-    post-run:
-      - ci/collect_logs.yml
+      - ci/run.yml
 
 - project:
     name: infrawatch/feature-verification-tests

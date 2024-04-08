@@ -1,6 +1,6 @@
 ---
 - name: "Check that collectd is running and generating any metrics"
-  hosts: all
+  hosts: localhost
   ignore_errors: true
   become: true
   environment:
@@ -35,7 +35,7 @@
         - gnocchi-connectors-swift
 
 - name: "Run e2e tests"
-  hosts: controller
+  hosts: localhost
   ignore_errors: true
   environment:
     PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"

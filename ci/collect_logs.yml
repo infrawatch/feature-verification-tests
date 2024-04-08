@@ -9,7 +9,7 @@
         state: directory
         mode: "0755"
 
-- hosts: controller
+- hosts: localhost
   name: Collect logs on the controller
   gather_facts: false
   tasks:
@@ -21,9 +21,10 @@
 
     - name: Run log collection
       ansible.builtin.command:
-        chdir: "{{ ansible_user_dir }}/src/github.com/infrawatch/feature-verification-tests"
-        cmd: >-
-          ansible-playbook ci/collect_node_logs.yml
+      ansible.builtin.shell: |
+        cp {{ ansible_env.HOME }}/*.log .
+      args:
+        chdir: "{{ ansible_user_dir }}/zuul-output/logs/controller"
 
 - hosts: all
   name: Copy files from controller on node
