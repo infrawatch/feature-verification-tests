@@ -9,13 +9,30 @@
       ansible.builtin.set_fact:
         fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
 
-
     - name: "Run a playbook locally on the target host"
       ansible.builtin.shell:
         cmd: |
           ansible-playbook ci/stf_tests.yml
         chdir: "{{ fvt_dir }}"
       register: output
+
+    - name: Show the output of the playbook run (TODO: add this to a logfile so that it gets uploaded with the logs)
+      ansible.builtin.debug:
+        var: output.stdout_lines
+
+      # The test_run_results.out should be moved to the appropriate log dir, alongside the ansile playbook output from above
+    - name: Show the outputs
+      ansible.builtin.shell:
+        cmd: |
+          cat {{ fvt_dir }}/ci/test_run_result_localhost
+          cat {{ fvt_dir }}/ci/test_run_result.out
+      # This should be slurp and assert, with a message reporting the results
+    - name: Get the number of fails
+      ansible.builtin.shell:
+        cmd: |
+          cat {{ fvt_dir }}/ci/test_run_result.out | grep "=failed"
+      register: result
+      failed_when: "result.stdout_lines | length > 0"
 
     - name: Save the output of the playbook run to a logfile
       ansible.builtin.lineinfile:
