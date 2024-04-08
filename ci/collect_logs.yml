@@ -9,7 +9,7 @@
         state: directory
         mode: "0755"
 
-- hosts: localhost
+- hosts: controller
   name: Collect logs on the controller
   gather_facts: false
   tasks:
@@ -19,12 +19,31 @@
         state: directory
         mode: "0755"
 
-    - name: Copy ansible logs
-      ansible.builtin.shell: |
-        cp  {{ playbook_dir }}/test_run_result.out .
-      args:
-        chdir: "{{ ansible_user_dir }}/zuul-output/logs/controller"
-      changed_when: true
+    - name: Generate log file name date
+      register: filename_date
+      ansible.builtin.command:
+        cmd: date +%F-%R
+
+    - name: Ensure ansible.log is at the expected location
+      register: ansible_log_state
+      ansible.builtin.stat:
+        path: "{{ ansible_user_dir }}/ansible.log"
+
+    - name: Copy ansible log if exists
+      when:
+        - ansible_log_state.stat.exists is defined
+        - ansible_log_state.stat.exists | bool
+      block:
+        - name: Copy ansible log to proper location
+          ansible.builtin.copy:
+            src: "{{ ansible_user_dir }}/ansible.log"
+            dest: "{{ ansible_user_dir }}/zuul-output/logs/controller/logs/ansible.log-{{ filename_date.stdout|trim }}"
+            remote_src: true
+
+        - name: Remove original log from home directory
+          ansible.builtin.file:
+            path: "{{ ansible_user_dir }}/ansible.log"
+            state: absent
 
 - hosts: all
   name: Copy files from controller on node
