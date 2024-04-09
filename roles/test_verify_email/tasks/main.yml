@@ -1,7 +1,7 @@
 ---
 # tasks file for roles/test_verify_email
 
-- name: RHELOSP-V.1 
+- name: "RHELOSP-176042"
   # "Create the alert"
   ansible.builtin.shell:
     cmd: |
@@ -26,21 +26,21 @@
   register: cmd_output
   failed_when: cmd_output.rc != 0
 
-- name: RHELOSP-V.2
+- name: "RHELOSP-176043"
   # "Patch the ServiceTelemetry object for the STF deployment"
   ansible.builtin.shell:
     cmd: |
       oc patch stf default --type merge -p '{"spec": {"alertmanagerConfigManifest": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: 'alertmanager-default'\n  namespace: 'service-telemetry'\ntype: Opaque\nstringData:\n  alertmanager.yaml: |-\n    global:\n      resolve_timeout: 10m\n    route:\n      group_by: ['job']\n      group_wait: 30s\n      group_interval: 5m\n      repeat_interval: 12h\n      receiver: 'email'\n    receivers:\n    - name: 'email'\n      - email_configs:\n      - to: mx@redhat.com"}}'
   changed_when: false
 
-- name: RHELOSP-V.3 
+- name: "RHELOSP-176044" 
   # "Interrupt metrics flow by preventing the QDR from running"
   ansible.builtin.shell:
     cmd: |
       for i in {1..60}; do oc delete po -l application=default-interconnect; sleep 1; done
   changed_when: false
 
-- name: RHELOSP-V.4
+- name: "RHELOSP-176045"
   # "Check for alertmanager logs"
   ansible.builtin.shell:
     cmd: |
@@ -49,7 +49,7 @@
   failed_when: "cmd_output.stdout|int == 0"
   changed_when: false
 
-- name: RHELOSP-V.5 
+- name: "RHELOSP-176046" 
   # "Remove alertmanagerConfigManifest from the ServiceTelemetry object"
   ansible.builtin.shell:
     cmd: |
