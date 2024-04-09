@@ -1,7 +1,7 @@
   #In this test we choose one container (logrotate_crond),checking that it is running 
   #and then stopping the container and starting it again and checking that its health status changes accordingly.
 
-- name: RHELOSP-S.1
+- name: RHELOSP-176011
   # Description: Check that logrotate_crond container is running on controller-0
   delegate_to: "{{ groups['overcloud_nodes'][0] }}"
   become: true
@@ -15,7 +15,7 @@
 
 
 
-- name: RHELOSP-S.2
+- name: RHELOSP-176012
   # Description: Stop logrotate_crond container on controller-0
   ansible.builtin.shell:
     cmd: |
@@ -27,7 +27,7 @@
 
 
 
-- name: RHELOSP-S.3
+- name: RHELOSP-176037
   # Description: Check that logrotate_crond container has stopped
   ansible.builtin.shell: |
     {{ container_bin }} ps | grep logrotate_crond 
@@ -39,7 +39,7 @@
  
 
 
-- name: RHELOSP-S.4
+- name: RHELOSP-176036
   # Description: Check that health status of container changed to 0
   ansible.builtin.shell:
     cmd: /usr/bin/curl -k {{ prom_auth_string }}" -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="{{ groups['overcloud_nodes'][0] }}"}[10m])' | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0 | wc -l
@@ -53,7 +53,7 @@
   
 
 
-- name: RHELOSP-S.5
+- name: RHELOSP-176035
   # Description: Start logrotate_crond container
   ansible.builtin.shell:
     cmd: |
@@ -65,7 +65,7 @@
 
 
 
-- name: RHELOSP-S.6
+- name: RHELOSP-176038
   # Description: Check that health status of container changed to 1
   ansible.builtin.shell:
     cmd: >-
