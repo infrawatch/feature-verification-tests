@@ -68,7 +68,7 @@
     minutes: 2
 
 
-- name: "RHELOSP-A.1"
+- name: "RHELOSP-176039"
   # Remove alertmanagerConfigManifest from the ServiceTelemetry object
   ansible.builtin.shell:
     cmd: |
