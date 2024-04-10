@@ -26,7 +26,7 @@
     - name: Get the number of fails
       ansible.builtin.shell:
         cmd: |
-          cat {{ fvt_dir }}/ci/test_run_result.out | grep "=failed"
+          cat {{ fvt_dir }}/test_run_result.out | grep "=failed"
       register: result
       failed_when: "result.stdout_lines | length > 0"
 
