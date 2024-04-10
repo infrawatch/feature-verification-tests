@@ -12,7 +12,7 @@
     - name: "Run a playbook locally on the target host"
       ansible.builtin.shell:
         cmd: |
-          ansible-playbook ci/stf_tests.yml
+          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook ci/stf_tests.yml
         chdir: "{{ fvt_dir }}"
       register: output
 
