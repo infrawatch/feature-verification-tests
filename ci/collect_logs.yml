@@ -19,10 +19,15 @@
         state: directory
         mode: "0755"
 
+    - name: Set the repo dir
+      ansible.builtin.set_fact:
+        fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
+
     - name: Run log collection
       ansible.builtin.command:
       ansible.builtin.shell: |
         cp {{ ansible_env.HOME }}/*.log .
+        cp {{ fvt_dir }}/ci/test_run_result.out .
       args:
         chdir: "{{ ansible_user_dir }}/zuul-output/logs/controller"
 
