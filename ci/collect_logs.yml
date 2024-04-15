@@ -23,7 +23,6 @@
       ansible.builtin.command:
       ansible.builtin.shell: |
         cp {{ ansible_env.HOME }}/*.log .
-        cp {{ ansible_env.HOME }}/test_run_result.out .
       args:
         chdir: "{{ ansible_user_dir }}/zuul-output/logs/controller"
 

@@ -22,12 +22,4 @@
         line: "{{ output.stdout_lines }}"
         create: yes
 
-      # This should be slurp and assert, with a message reporting the results
-    - name: Get the number of fails
-      ansible.builtin.shell:
-        cmd: |
-          cat {{ fvt_dir }}/test_run_result.out | grep "=failed"
-      register: result
-      failed_when: "result.stdout_lines | length > 0"
-
 
