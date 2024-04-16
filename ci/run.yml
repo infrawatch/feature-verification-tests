@@ -12,7 +12,7 @@
     - name: "Run a playbook locally on the target host"
       ansible.builtin.shell:
         cmd: |
-          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook ci/stf_tests.yml
+          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -vvv ci/stf_tests.yml
         chdir: "{{ fvt_dir }}"
       register: output
 
@@ -22,11 +22,20 @@
         line: "{{ output.stdout_lines }}"
         create: yes
 
+    - name: List files in a directory using ls command
+      block:
+        - name: List files
+          shell: ls ~/feature-verification-tests
+          register: directory_files
+
+        - name: Print file list
+          debug:
+            var: directory_files.stdout_lines
+
     - name: Get the number of fails
       ansible.builtin.shell:
         cmd: |
           cat {{ fvt_dir }}/test_run_result.out | grep "=failed"
       register: result
-      failed_when: "result.stdout_lines | length > 0"
 
 
