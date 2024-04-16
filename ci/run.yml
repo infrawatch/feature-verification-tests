@@ -9,12 +9,6 @@
       ansible.builtin.set_fact:
         fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
 
-    - name: Copy the callback_plugin to enable it
-      ansible.builtin.copy:
-        src: "{{ fvt_dir }}/callback_plugins/"
-        dest: "{{ fvt_dir }}/ci/callback_plugins/"
-        remote_src: yes
-
     - name: "Run a playbook locally on the target host"
       ansible.builtin.shell:
         cmd: |
