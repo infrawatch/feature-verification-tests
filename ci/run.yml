@@ -12,8 +12,8 @@
     - name: "Run a playbook locally on the target host"
       ansible.builtin.shell:
         cmd: |
-          ANSIBLE_CONFIG=ansible.cfg ansible-playbook stf_tests.yml
-        chdir: "{{ fvt_dir }}/ci"
+          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook ci/stf_tests.yml
+        chdir: "{{ fvt_dir }}"
       register: output
 
     - name: Save the output of the playbook run to a logfile
@@ -25,7 +25,7 @@
     - name: Get the number of fails
       ansible.builtin.shell:
         cmd: |
-          cat {{ fvt_dir }}/ci/test_run_result.out | grep "=failed"
+          cat {{ fvt_dir }}/test_run_result.out | grep "=failed"
       register: result
       failed_when: "result.stdout_lines | length > 0"
 
