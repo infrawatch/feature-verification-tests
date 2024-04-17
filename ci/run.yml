@@ -22,20 +22,8 @@
         line: "{{ output.stdout_lines }}"
         create: yes
 
-    - name: List files in a directory using ls command
-      block:
-        - name: List files
-          shell: ls {{ fvt_dir }}
-          register: directory_files
-
-        - name: Print file list
-          debug:
-            var: directory_files.stdout_lines
-
-    - name: Get the number of fails
-      ansible.builtin.shell:
-        cmd: |
-          cat {{ fvt_dir }}/test_run_result.out | grep "=failed"
-      register: result
+    - name: Move callback_plugin result to home dir
+      ansible.builtin.shell: |
+        cp  {{ fvt_dir }}/test_run_result.out {{ ansible_env.HOME }}/test_run_result.log
 
 
