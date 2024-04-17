@@ -26,7 +26,7 @@
     - name: Run log collection
       ansible.builtin.command:
       ansible.builtin.shell: |
-        cp {{ ansible_env.HOME }}/*.log .
+        cp {{ ansible_env.HOME }}/stf_test.log .
         cp {{ fvt_dir }}/test_run_result.out .
       args:
         chdir: "{{ ansible_user_dir }}/zuul-output/logs/controller"

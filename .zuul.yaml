@@ -24,8 +24,6 @@
       - ci/pre-2node.yml
     run:
       - ci/run.yml
-    post-run:
-      - ci/collect_logs.yml
 
 - project:
     name: infrawatch/feature-verification-tests
