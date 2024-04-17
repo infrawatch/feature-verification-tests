@@ -1,3 +1,0 @@
----
-container_bin: 'podman'
-prom_auth_method: token
