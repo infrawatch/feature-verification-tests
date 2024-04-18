@@ -4,18 +4,6 @@
       ansible.builtin.pip:
         name:
           - ansible
-          
-    - name: Search for kubeconfig file
-      command: sudo find / -name kubeconfig
-      register: kubeconfig_search_result
-      ignore_errors: yes
-
-    - name: Display found kubeconfig files
-      debug:
-        var: kubeconfig_search_result.stdout_lines
-    - name: Set the repo dir
-      ansible.builtin.set_fact:
-        fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
 
     - name: "Run a playbook locally on the target host"
       ansible.builtin.shell:
