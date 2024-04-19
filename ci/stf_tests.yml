@@ -2,6 +2,7 @@
 - name: "Run e2e tests"
   hosts: localhost
   ignore_errors: true
+  gather_facts: true
   environment:
     PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"
     KUBECONFIG: "{{ cifmw_rhol_crc_kubeconfig }}"
