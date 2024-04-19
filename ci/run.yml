@@ -23,4 +23,3 @@
     - name: Move callback_plugin result to home dir
       ansible.builtin.shell: |
         cp  {{ fvt_dir }}/test_run_result.out {{ ansible_env.HOME }}/test_run_result.log
-        cp  {{ fvt_dir }}/test_run_result.localhost {{ ansible_env.HOME }}/test_run_result.log
