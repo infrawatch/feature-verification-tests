@@ -1,4 +1,6 @@
 - hosts: controller
+  vars:
+    fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
   tasks:
     - name: Install ansible so that ansible-playbook is available
       ansible.builtin.pip:
@@ -8,7 +10,7 @@
     - name: "Run a playbook locally on the target host"
       ansible.builtin.shell:
         cmd: |
-          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -vvv ci/stf_tests.yml
+          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v ci/stf_tests.yml
         chdir: "{{ fvt_dir }}"
       register: output
 
@@ -21,3 +23,4 @@
     - name: Move callback_plugin result to home dir
       ansible.builtin.shell: |
         cp  {{ fvt_dir }}/test_run_result.out {{ ansible_env.HOME }}/test_run_result.log
+        cp  {{ fvt_dir }}/test_run_result.localhost {{ ansible_env.HOME }}/test_run_result.log

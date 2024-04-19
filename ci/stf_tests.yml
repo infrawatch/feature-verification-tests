@@ -4,7 +4,7 @@
   ignore_errors: true
   environment:
     PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"
-    cifmw_rhol_crc_kubeconfig: "{{ ansible_user_dir }}/.crc/machines/crc/kubeconfig"
+    KUBECONFIG: "{{ cifmw_rhol_crc_kubeconfig }}"
   tasks:
     - name: "Log into the cluster"
       ansible.builtin.import_role:
