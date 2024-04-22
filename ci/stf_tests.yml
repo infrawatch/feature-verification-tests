@@ -5,7 +5,7 @@
   gather_facts: true
   environment:
     PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"
-    KUBECONFIG: "{{ ansible_env.HOME }}/.crc/machines/crc/kubeconfig"
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
   tasks:
     - name: "Log into the cluster"
       ansible.builtin.import_role:
