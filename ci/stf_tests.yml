@@ -5,8 +5,17 @@
   gather_facts: true
   environment:
     PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"
   tasks:
+    - name: Search for kubeconfig file
+      command: sudo find / -name '*kube*'
+      register: kubeconfig_search_result
+      ignore_errors: yes
+
+    - name: Display found kubeconfig files
+      debug:
+        var: kubeconfig_search_result.stdout_lines
+
     - name: "Log into the cluster"
       ansible.builtin.import_role:
         name: rhol_crc
