@@ -45,19 +45,22 @@ class CallbackModule(CallbackBase):
 #            fd.write("failed: {}\n".format(self.failed))
 
     def log(self, host, category):
-        if category == "failed":
-            self.failed +=1
-        if category == "passed":
-            self.passed +=1
+         # only interested in the test tasks, not setup or debug
+         if self.current_task.startswith("RHELOSP"):
 
-        test_result_message = self.MSG_FORMAT.format(task=self.current_task, status=category)
+             if category == "failed":
+                self.failed +=1
+             if category == "passed":
+                 self.passed +=1
 
-        with open(self.path, 'a') as fd:
-            fd.write(test_result_message)
+             test_result_message = self.MSG_FORMAT.format(task=self.current_task, status=category)
 
-        file_name = "_".join(["test_run_result", host])
-        with open(os.path.join(self.output_dir, file_name ) , 'a') as fd:
-            fd.write(test_result_message)
+             with open(self.path, 'a') as fd:
+                 fd.write(test_result_message)
+
+             file_name = "_".join(["test_run_result", host])
+             with open(os.path.join(self.output_dir, file_name ) , 'a') as fd:
+                 fd.write(test_result_message)
 
     def runner_on_failed(self, host, res, ignore_errors=False):
          self.log(host,'failed')

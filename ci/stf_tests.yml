@@ -2,25 +2,13 @@
 - name: "Run e2e tests"
   hosts: localhost
   ignore_errors: true
-  gather_facts: true
+  gather_facts: false
   environment:
-    PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"
-    KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
   tasks:
-    - name: Search for kubeconfig file
-      command: sudo find / -name '*kube*'
-      register: kubeconfig_search_result
-      ignore_errors: yes
-
-    - name: Display found kubeconfig files
-      debug:
-        var: kubeconfig_search_result.stdout_lines
-
-    - name: "Log into the cluster"
-      ansible.builtin.import_role:
-        name: rhol_crc
-        tasks_from: add_crc_creds.yml
-
-    - name: "Run collectd Prometheus queries"
-      ansible.builtin.import_role:
-        name: client_side_tests
+    - name: "try to run oc command"
+      ansible.builtin.command:
+        cmd:
+          oc get csv --namespace=openshift-operators -l operators.coreos.com/cluster-observability-operator.openshift-operators
+      register: output
