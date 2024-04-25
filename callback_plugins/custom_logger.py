@@ -16,29 +16,25 @@ class CallbackModule(CallbackBase):
     def playbook_on_stats(self, stats):
         # Log results for each host
         for host in stats.processed:
-            summary = stats.summarize(host)
-            self.results[host] = summary
-            self._log_results(host, summary)
+            self._log_results(host)
 
-    def _log_results(self, host, summary):
+    def _log_results(self, host):
         file_path = os.path.join(self.output_dir, f"test_run_results.log")
         with open(file_path, 'w') as f:
             f.write(f"Host: {host}\n")
-            f.write(f"Tasks Succeeded: {summary['ok']}\n")
-            f.write(f"Tasks Failed: {summary['failures']}\n")
-            f.write(f"Tasks Skipped: {summary['skipped']}\n")
-            if 'failed_task_names' in self.results[host]:
-                f.write("Failed Tasks:\n")
-                for task_name in self.results[host]['failed_task_names']:
-                    f.write(f"  - {task_name}\n")
-            if 'ok_task_names' in self.results[host]:
-                f.write("Succeeded Tasks:\n")
-                for task_name in self.results[host]['ok_task_names']:
-                    f.write(f"  - {task_name}\n")
+            f.write(f"Tasks Succeeded: {self.results[host]['ok']}\n")
+            f.write(f"Tasks Failed: {self.results[host]['failed']}\n")
+            f.write(f"Tasks Skipped: {self.results[host]['skipped']}\n")
+            f.write("Failed Tasks:\n")
+            for task_name in self.results[host]['failed_task_names']:
+                f.write(f"  - {task_name}\n")
+            f.write("Succeeded Tasks:\n")
+            for task_name in self.results[host]['ok_task_names']:
+                f.write(f"  - {task_name}\n")
 
     def v2_runner_on_ok(self, result):
-        host = result._host
-        task_name = result.current_task
+        host = result._host.get_name()
+        task_name = result._task.get_name()
         self._log_task_result(host, 'ok', task_name)
 
     def v2_runner_on_failed(self, result, ignore_errors=False):
@@ -53,13 +49,9 @@ class CallbackModule(CallbackBase):
 
     def _log_task_result(self, host, result, task_name):
         if host not in self.results:
-            self.results[host] = {'ok': 0, 'failures': 0, 'skipped': 0}
+            self.results[host] = {'ok': 0, 'failed': 0, 'skipped': 0, 'failed_task_names':[], 'ok_task_names':[] }
         if result == 'failed':
-            if 'failed_task_names' not in self.results[host]:
-                self.results[host]['failed_task_names'] = []
             self.results[host]['failed_task_names'].append(task_name)
         elif result == 'ok':
-            if 'ok_task_names' not in self.results[host]:
-                self.results[host]['ok_task_names'] = []
             self.results[host]['ok_task_names'].append(task_name)
         self.results[host][result] += 1
