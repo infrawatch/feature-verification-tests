@@ -4,6 +4,12 @@
   ignore_errors: true
   gather_facts: false
   tasks:
+      - name: "try to run oc command"
+      ansible.builtin.command:
+        cmd:
+          oc login -u {{ cifmw_openshift_user }} -p {{ cifmw_openshift_password }} {{ cifmw_openshift_api }}
+      register: login
+
     - name: "try to run oc command"
       ansible.builtin.command:
         cmd:

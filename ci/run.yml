@@ -14,7 +14,6 @@
         chdir: "{{ fvt_dir }}"
       environment:
           KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-          PATH: "{{ cifmw_path }}"
       register: output
 
     - name: Save the output of the playbook run to a logfile

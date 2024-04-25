@@ -2,9 +2,6 @@
 - job:
     name: functional-tests-on-osp18
     parent: telemetry-operator-multinode-autoscaling
-    vars:
-      cifmw_extras:
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
     description: |
       Run the stf functional tests on osp18
     roles:  # adds in dependent roles i.e. put it in the role path
