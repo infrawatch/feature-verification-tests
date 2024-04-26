@@ -3,13 +3,10 @@
   hosts: localhost
   ignore_errors: true
   gather_facts: false
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"
   tasks:
-    - name: "login to cluster"
-      ansible.builtin.command:
-          cmd:
-            oc login -u {{ cifmw_openshift_user }} -p {{ cifmw_openshift_password }} {{ cifmw_openshift_api }}
-      register: login
-
     - name: "try to run oc command"
       ansible.builtin.command:
         cmd:

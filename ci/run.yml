@@ -1,7 +1,19 @@
 - hosts: controller
   vars:
     fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
   tasks:
+    - name: Debug Environment Variable
+      debug:
+        msg: "The value of the 'environment' variable is {{ environment }}"
+
+    - name: "try to run oc command"
+      ansible.builtin.command:
+        cmd:
+          oc get csv --namespace=openshift-operators -l operators.coreos.com/cluster-observability-operator.openshift-operators
+      register: output
+
     - name: Install ansible so that ansible-playbook is available
       ansible.builtin.pip:
         name:
@@ -10,10 +22,8 @@
     - name: "Run a playbook locally on the target host"
       ansible.builtin.shell:
         cmd: |
-          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v ci/stf_tests.yml
+          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v ci/stf_tests.yml -e "cifmw_openshift_kubeconfig={{ cifmw_openshift_kubeconfig }}"
         chdir: "{{ fvt_dir }}"
-      environment:
-          KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
       register: output
 
     - name: Save the output of the playbook run to a logfile
