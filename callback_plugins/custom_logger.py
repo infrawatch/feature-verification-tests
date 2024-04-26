@@ -15,11 +15,23 @@ class CallbackModule(CallbackBase):
 
     def playbook_on_stats(self, stats):
         # Log results for each host
-        for host in stats.processed:
+        hosts= stats.processed
+        for host in hosts:
             self._log_results(host)
+        self._summary_results(hosts)
+
+    def _summary_results(self, hosts):
+        file_path = os.path.join(self.output_dir, f"test_run_result.out")
+        for host in hosts:
+            with open(file_path, 'w') as f:
+                f.write(f"Host: {host}\n")
+                f.write(f"Tasks Succeeded: {self.results[host]['ok']}\n")
+                f.write(f"Tasks Failed: {self.results[host]['failed']}\n")
+                f.write(f"Tasks Skipped: {self.results[host]['skipped']}\n")
+                f.write(f"More Details: {host}_results.log\n" )
 
     def _log_results(self, host):
-        file_path = os.path.join(self.output_dir, f"test_run_results.log")
+        file_path = os.path.join(self.output_dir, f"{host}_results.log")
         with open(file_path, 'w') as f:
             f.write(f"Host: {host}\n")
             f.write(f"Tasks Succeeded: {self.results[host]['ok']}\n")
