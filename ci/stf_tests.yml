@@ -4,7 +4,7 @@
   ignore_errors: true
   gather_facts: false
   environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    KUBECONFIG: "/home/zuul/.crc/machines/crc/kubeconfig"
     PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"
   tasks:
     - name: "Log into the cluster"
