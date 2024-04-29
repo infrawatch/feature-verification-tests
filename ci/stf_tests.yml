@@ -7,6 +7,11 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"
   tasks:
+    - name: "Log into the cluster"
+      ansible.builtin.import_role:
+        name: rhol_crc
+        tasks_from: add_crc_creds.yml
+        
     - name: "try to run oc command"
       ansible.builtin.command:
         cmd:
