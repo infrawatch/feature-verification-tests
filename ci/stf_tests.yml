@@ -15,5 +15,5 @@
     - name: "try to run oc command"
       ansible.builtin.command:
         cmd:
-          oc get csv --namespace=openshift-operators -l operators.coreos.com/cluster-observability-operator.openshift-operators
+           oc get pods
       register: output
