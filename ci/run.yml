@@ -3,17 +3,10 @@
     fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
   tasks:
     - name: Debug Environment Variable
       debug:
         msg: "The value of the 'environment' variable is {{ environment }}"
-
-    - name: "try to run oc command"
-      ansible.builtin.command:
-        cmd:
-          oc get csv --namespace=openshift-operators -l operators.coreos.com/cluster-observability-operator.openshift-operators
-      register: output
 
     - name: Install ansible so that ansible-playbook is available
       ansible.builtin.pip:
