@@ -1,0 +1,12 @@
+name: "Test"
+  hosts: controller
+  gather_facts: false
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  tasks:
+    - name: "try to run oc command"
+      ansible.builtin.command:
+        cmd:
+           oc get pods
+      register: output
