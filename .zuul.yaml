@@ -1,7 +1,8 @@
 ---
 - job:
     name: functional-tests-on-osp18
-    parent: telemetry-operator-multinode-autoscaling
+    parent: podified-multinode-edpm-deployment-crc
+    dependencies: ["openstack-k8s-operators-content-provider"]
     description: |
       Deploy OpenStack with Autoscaling features enabled
     vars:
@@ -44,4 +45,6 @@
     name: infrawatch/feature-verification-tests
     github-check:
       jobs:
+        - openstack-k8s-operators-content-provider:
+              override-checkout: main
         - functional-tests-on-osp18
