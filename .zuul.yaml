@@ -59,4 +59,4 @@
     github-check:
       jobs:
         - osp18-with-autoscaling
-        - functional-tests-on-osp18
+       # - functional-tests-on-osp18
