@@ -8,3 +8,15 @@
         cmd:
            oc get pods
       register: output
+      
+    - name: Install ansible so that ansible-playbook is available
+      ansible.builtin.pip:
+        name:
+          - ansible
+
+    - name: "Run a playbook locally on the target host"
+      ansible.builtin.shell:
+        cmd: |
+          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v ci/stf_tests.yml
+        chdir: "{{ fvt_dir }}"
+      register: output
