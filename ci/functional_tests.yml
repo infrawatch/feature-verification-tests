@@ -1,0 +1,14 @@
+---
+- name: "Run e2e tests"
+  hosts: localhost
+  ignore_errors: true
+  gather_facts: false
+  environment:
+    KUBECONFIG: "/home/zuul/.crc/machines/crc/kubeconfig"
+    PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"
+  tasks:        
+    - name: "try to run oc command"
+      ansible.builtin.command:
+        cmd:
+           oc get pods -n openstack-operators
+      register: output

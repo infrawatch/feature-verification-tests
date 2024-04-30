@@ -1,0 +1,34 @@
+- hosts: controller
+  vars:
+    fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  tasks:
+    - name: " debug task to try running oc command"
+      ansible.builtin.command:
+        cmd:
+           oc get pods -n openstack-operators
+      register: output
+
+    - name: Install ansible so that ansible-playbook is available
+      ansible.builtin.pip:
+        name:
+          - ansible
+
+    - name: "Run a playbook locally on the target host"
+      ansible.builtin.shell:
+        cmd: |
+          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v ci/functional_tests.yml
+        chdir: "{{ fvt_dir }}"
+      register: output
+
+    - name: Save the output of the playbook run to a logfile
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/functional_tests.log"
+        line: "{{ output.stdout_lines }}"
+        create: yes
+
+    - name: Move callback_plugin result to home dir
+      ansible.builtin.shell: |
+        cp  {{ fvt_dir }}/test_run_result.out {{ ansible_env.HOME }}/test_run_result.log
