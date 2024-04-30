@@ -1,0 +1,73 @@
+---
+- name: "Run functional test playbooks"
+  hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
+  gather_facts: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars:
+    fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
+    ci_framework_logs: "{{ ansible_env.HOME }}/ci-framework-data/logs"
+  tasks:
+    - name: "Create log dir"
+      ansible.builtin.file:
+        path: "{{ ci_framework_logs }}/functional-tests"
+        state: directory
+        mode: "0755"
+
+    # Prepare the env
+    - name: Setup the env before running the autoscaling functional test
+      block:
+          # TODO: Look at replacing this with something NOT from install_yamls.
+        - community.general.make:
+            chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
+            target: edpm_deploy_instance
+          tags:
+            - setup
+
+          # TODO: Convert this to a kustomization and pass it to the deployment
+          # First step might be to use -k in the patch to pass a kustomization to oc patch
+        - name: Patch the openstackversions to use the master containers for aodh and heat
+          ansible.builtin.shell:
+            cmd: |
+              oc patch openstackversions openstack-galera-network-isolation --type merge --patch-file ci/patch.yaml
+            chdir: "{{ fvt_dir }}"
+          tags:
+            - setup
+
+          # TODO:Look for a workaround for this.
+        - name: Patch observabilityclient into openstackclient
+          ansible.builtin.shell:
+            cmd: |
+              oc exec openstackclient -- python3 -m ensurepip --upgrade
+              oc exec openstackclient -- python3 -m pip install --upgrade aodhclient
+              oc exec openstackclient -- python3 -m pip install --upgrade python-observabilityclient
+          tags:
+            - setup
+
+        - name: Wait until the oscp is resolved the changes to continue
+          ansible.builtin.shell:
+            cmd: |
+              oc get oscp | grep "Setup complete"
+          retries: 24
+          timeout: 5
+          until: output.stdout_lines | length == 1
+          register: output
+          tags:
+            - setup
+
+    - name: "Run a playbook locally on the target host"
+      ansible.builtin.shell:
+        cmd: |
+          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v -e "cifmw_openshift_kubeconfig={{ cifmw_openshift_kubeconfig }}" -e "cifmw_path={{ cifmw_path }}" ci/telemetry_autoscaling.yml
+        chdir: "{{ fvt_dir }}"
+      register: output
+
+    - name: Print output result
+      ansible.builtin.debug:
+        var: output
+
+    - name: Move callback_plugin result to log dir
+      ansible.builtin.shell:
+        cmd: |
+          cp  {{ fvt_dir }}/test_run_result.out {{ ci_framework_logs }}/functional-tests/test_run_result.log

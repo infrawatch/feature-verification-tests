@@ -3,6 +3,7 @@
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
   vars:
+    fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
     ci_framework_logs: "{{ ansible_env.HOME }}/ci-framework-data/logs"
     openstack_cmd: "oc rsh openstackclient openstack"
     metrics_backend: "prometheus"
