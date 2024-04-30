@@ -9,6 +9,22 @@
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
+    roles:  
+      - zuul: github.com/openstack-k8s-operators/ci-framework
+    required-projects:
+      - name: github.com/infrawatch/service-telemetry-operator
+      - name: openstack-k8s-operators/ci-framework
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/dataplane-operator
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/infra-operator
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/openstack-operator
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/openstack-must-gather
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/telemetry-operator
+        override-checkout: main
     run:
       - ci/run.yml
       - ci/test.yml
@@ -34,9 +50,6 @@
         override-checkout: main
       - name: github.com/openstack-k8s-operators/telemetry-operator
         override-checkout: main
-    vars:
-      cifmw_extras:
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
     run:
       - ci/run.yml
       - ci/test.yml
