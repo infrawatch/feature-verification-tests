@@ -3,7 +3,6 @@
   gather_facts: false
   vars:
     fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
-    ansible_user_dir: "{{ lookup('env', 'HOME') }}"
   tasks:
     - name: Set custom cifmw PATH reusable fact
       when:
@@ -15,10 +14,10 @@
       environment:
         PATH: "{{ cifmw_path }}"
         KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-      ansible.builtin.command:
+      ansible.builtin.shell:
         cmd: |
+          eval $(crc oc-env)
           oc login -u kubeadmin -p 123456789
-        chdir: "{{ ansible_user_dir }}/.crc/bin/oc"
 
     - name: Install ansible so that ansible-playbook is available
       ansible.builtin.pip:
