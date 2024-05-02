@@ -1,10 +1,19 @@
-- hosts: controller
+---
+- hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
+  gather_facts: false
   vars:
     fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"
+    PATH: "{{ cifmw_path }}"
   tasks:
+    - name: Login as kubeadmin
+      environment:
+        PATH: "{{ ansible_user_dir }}/.crc/bin/oc/:{{ ansible_env.PATH }}"
+        KUBECONFIG: "{{ ansible_user_dir }}/.crc/machines/crc/kubeconfig"
+      ansible.builtin.command:
+        cmd: oc login -u kubeadmin -p 123456789
+
     - name: " debug task to try running oc command"
       ansible.builtin.command:
         cmd:
