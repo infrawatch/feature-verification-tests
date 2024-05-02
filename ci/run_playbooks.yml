@@ -1,5 +1,5 @@
 ---
-- hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
+- hosts:  "{{ cifmw_zuul_target_host | default('controller')  }}"
   gather_facts: false
   vars:
     fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
