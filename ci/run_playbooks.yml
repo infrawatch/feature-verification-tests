@@ -3,6 +3,7 @@
   gather_facts: false
   vars:
     fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
+    ansible_user_dir: "{{ lookup('env', 'HOME') }}"
   tasks:
     - name: Set custom cifmw PATH reusable fact
       when:
