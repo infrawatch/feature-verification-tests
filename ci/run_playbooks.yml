@@ -10,28 +10,14 @@
       ansible.builtin.set_fact:
         cifmw_path: "{{ ansible_user_dir }}/.crc/bin:{{ ansible_user_dir }}/.crc/bin/oc:{{ ansible_user_dir }}/bin:{{ ansible_env.PATH }}"
 
-    - name: Find oc executable
-      find:
-        paths: "/"
-        patterns: "oc"
-      register: oc_search_result
-
-    - name: Print oc executable path
-      debug:
-        msg: "Found oc executable at {{ oc_search_result.files[0].path }}"
-      when: oc_search_result.matched > 0
-
-    - name: Print PATH Environment Variable
-      debug:
-        msg: "The value of the 'PATH' environment variable is {{ lookup('env', 'PATH') }}"
-
     - name: Login as kubeadmin
       environment:
         PATH: "{{ cifmw_path }}"
         KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
       ansible.builtin.command:
-        cmd: oc login -u kubeadmin -p 123456789
-
+        cmd: |
+          oc login -u kubeadmin -p 123456789
+        chdir: "{{ ansible_user_dir }}/.crc/bin/oc"
 
     - name: Install ansible so that ansible-playbook is available
       ansible.builtin.pip:
