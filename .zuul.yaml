@@ -34,7 +34,8 @@
                 override-checkout: main
               - name: openstack-k8s-operators/edpm-ansible
                 override-checkout: main
-
+              - name: github.com/openstack-k8s-operators/telemetry-operator
+                override-checkout: main
 
 - project:
     name: infrawatch/feature-verification-tests
