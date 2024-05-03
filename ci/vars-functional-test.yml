@@ -1,0 +1,5 @@
+---
+post_ctlplane_deploy:
+  - name: run functional test
+    source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/functional_tests.yml"
+    type: playbook
