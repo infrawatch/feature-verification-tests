@@ -1,22 +1,18 @@
 ---
 - hosts:  "{{ cifmw_zuul_target_host | default('controller')  }}"
   gather_facts: false
+  environment:
+    PATH: "{{ cifmw_path }}"
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
   vars:
     fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
   tasks:
-    - name: Set custom cifmw PATH reusable fact
-      when:
-        - cifmw_path is not defined
-      ansible.builtin.set_fact:
-        cifmw_path: "{{ ansible_user_dir }}/.crc/bin:{{ ansible_user_dir }}/.crc/bin/oc:{{ ansible_user_dir }}/bin:{{ ansible_env.PATH }}"
-
     - name: Login as kubeadmin
       environment:
         PATH: "{{ cifmw_path }}"
         KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
       ansible.builtin.shell:
         cmd: |
-          eval $(crc oc-env)
           oc login -u kubeadmin -p 123456789
 
     - name: Install ansible so that ansible-playbook is available
