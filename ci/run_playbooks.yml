@@ -1,20 +1,10 @@
 ---
-- hosts:  "{{ cifmw_zuul_target_host | default('controller')  }}"
+- name: "Run functional tests playbook"
+  hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: false
-  environment:
-    PATH: "{{ cifmw_path }}"
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
   vars:
     fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
   tasks:
-    - name: Login as kubeadmin
-      environment:
-        PATH: "{{ cifmw_path }}"
-        KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-      ansible.builtin.shell:
-        cmd: |
-          oc login -u kubeadmin -p 123456789
-
     - name: Install ansible so that ansible-playbook is available
       ansible.builtin.pip:
         name:
@@ -32,6 +22,15 @@
         path: "{{ ansible_env.HOME }}/functional_tests.log"
         line: "{{ output.stdout_lines }}"
         create: yes
+
+    - name: Read logfile contents
+      ansible.builtin.slurp:
+        src: "{{ ansible_env.HOME }}/functional_tests.log"
+      register: logfile_contents
+
+    - name: Display logfile contents
+      ansible.builtin.debug:
+        msg: "{{ logfile_contents['content'] | b64decode }}"
 
     - name: Move callback_plugin result to home dir
       ansible.builtin.shell: |
