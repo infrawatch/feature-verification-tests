@@ -35,3 +35,10 @@
     - name: Move callback_plugin result to home dir
       ansible.builtin.shell: |
         cp  {{ fvt_dir }}/test_run_result.out {{ ansible_env.HOME }}/test_run_result.log
+
+    - name: "Run a playbook on the target host to collect logs"
+      ansible.builtin.shell:
+        cmd: |
+          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v ci/collect_logs.yml 
+        chdir: "{{ fvt_dir }}"
+      register: output

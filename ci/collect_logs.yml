@@ -1,0 +1,31 @@
+---
+# Based on https://raw.githubusercontent.com/openstack-k8s-operators/nova-operator/bc10c4f579f8538899ac7bc5f87bfdb62d7042a4/ci/nova-operator-base/playbooks/collect-logs.yaml
+- hosts: "{{ cifmw_target_hook_host | default('localhost')  }}"
+  name: Collect logs on the controller
+  vars:
+    logfile_dir: "{{ ansible_user_dir }}/zuul-output/logs/controller"
+  gather_facts: false
+  tasks:
+    - name: "Create log dir"
+      ansible.builtin.file:
+        path: "{{ ansible_user_dir }}/zuul-output/logs"
+        state: directory
+        mode: "0755"
+
+    - name: "Create controller log dir"
+      ansible.builtin.file:
+        path: "{{ logfile_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: "Copy generated logs"
+      ansible.builtin.shell: |
+        cp {{ ansible_env.HOME }}/*.log .
+      args:
+        chdir: "{{ logfile_dir }}"
+      changed_when: true
+      ignore_errors: true
+
+    - name: Copy files from controller on node
+      ansible.builtin.include_role:
+        name: fetch-output
