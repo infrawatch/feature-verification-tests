@@ -5,7 +5,7 @@
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
-  tasks:        
+  tasks:      
     - name: "try to run oc command"
       ansible.builtin.command:
         cmd:

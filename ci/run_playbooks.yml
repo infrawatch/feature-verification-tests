@@ -4,35 +4,35 @@
   gather_facts: false
   vars:
     fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
+    ta_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/telemetry_autoscaling'].src_dir }}"
     ci_framework_logs: "{{ ansible_user_dir }}/ci-framework-data/logs"
   tasks:
-    - name: Install ansible so that ansible-playbook is available
-      ansible.builtin.pip:
-        name:
-          - ansible
+    - name: "Create log dir"
+      ansible.builtin.file:
+        path: "{{ ci_framework_logs }}/functional-test"
+        state: directory
+        mode: "0755"
 
     - name: "Run a playbook locally on the target host"
       ansible.builtin.shell:
         cmd: |
-          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v -e "cifmw_openshift_kubeconfig={{ cifmw_openshift_kubeconfig }}" -e "cifmw_path={{ cifmw_path }}" ci/functional_tests.yml 
-        chdir: "{{ fvt_dir }}"
+          ANSIBLE_CONFIG={{ fvt_dir }}/ci/ansible.cfg ansible-playbook -vvv playbooks/autoscaling_osp18.yaml -e stack_name=vnf14 
+        chdir: "{{ ta_dir }}"
       register: output
+
+#    - name: "Run a playbook locally on the target host"
+#      ansible.builtin.shell:
+#        cmd: |
+#          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v -e "cifmw_openshift_kubeconfig={{ cifmw_openshift_kubeconfig }}" -e "cifmw_path={{ cifmw_path }}" ci/functional_tests.yml 
+#        chdir: "{{ fvt_dir }}"
+#      register: output
 
     - name: Save the output of the playbook run to a logfile
       ansible.builtin.lineinfile:
-        path: "{{ ci_framework_logs }}/functional_tests.log"
+        path: "{{ ci_framework_logs }}/functional-test/functional_tests.log"
         line: "{{ output.stdout_lines }}"
         create: yes
 
-    - name: Read logfile contents
-      ansible.builtin.slurp:
-        src: "{{ ci_framework_logs }}/functional_tests.log"
-      register: logfile_contents
-
-    - name: Display logfile contents
-      ansible.builtin.debug:
-        msg: "{{ logfile_contents['content'] | b64decode }}"
-
     - name: Move callback_plugin result to home dir
       ansible.builtin.shell: |
-        cp  {{ fvt_dir }}/test_run_result.out {{ ci_framework_logs }}/test_run_result.log
+        cp  {{ fvt_dir }}/test_run_result.out {{ ci_framework_logs }}/functional-test/test_run_result.log
