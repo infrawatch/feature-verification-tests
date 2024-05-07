@@ -3,8 +3,8 @@
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: false
   vars:
-    fvt_dir: "{{ ansible_env.HOME}}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
-    ci-framework-logs: "{{ ansible_user_dir }}/ci-framework-data/logs"
+    fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
+    ci_framework_logs: "{{ ansible_user_dir }}/ci-framework-data/logs"
   tasks:
     - name: Install ansible so that ansible-playbook is available
       ansible.builtin.pip:
@@ -20,13 +20,13 @@
 
     - name: Save the output of the playbook run to a logfile
       ansible.builtin.lineinfile:
-        path: "{{ ci-framework-logs }}/functional_tests.log"
+        path: "{{ ci_framework_logs }}/functional_tests.log"
         line: "{{ output.stdout_lines }}"
         create: yes
 
     - name: Read logfile contents
       ansible.builtin.slurp:
-        src: "{{ ci-framework-logs }}/functional_tests.log"
+        src: "{{ ci_framework_logs }}/functional_tests.log"
       register: logfile_contents
 
     - name: Display logfile contents
@@ -35,4 +35,4 @@
 
     - name: Move callback_plugin result to home dir
       ansible.builtin.shell: |
-        cp  {{ fvt_dir }}/test_run_result.out {{ ci-framework-logs }}/test_run_result.log
+        cp  {{ fvt_dir }}/test_run_result.out {{ ci_framework_logs }}/test_run_result.log
