@@ -4,7 +4,6 @@
   gather_facts: false
   vars:
     fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
-    ta_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/telemetry_autoscaling'].src_dir }}"
     ci_framework_logs: "{{ ansible_user_dir }}/ci-framework-data/logs"
   tasks:
     - name: "Create log dir"
@@ -13,12 +12,19 @@
         state: directory
         mode: "0755"
 
+    - name: Clone telemetry_autoscaling repository
+      git:
+        repo: https://github.com/infrawatch/telemetry_autoscaling.git
+        dest: "{{ ansible_env.HOME }}/telemetry_autoscaling"
+        version: efoley_dev
+
     - name: "Run a playbook locally on the target host"
       ansible.builtin.shell:
         cmd: |
-          ANSIBLE_CONFIG={{ fvt_dir }}/ci/ansible.cfg ansible-playbook -vvv playbooks/autoscaling_osp18.yaml -e stack_name=vnf14 
-        chdir: "{{ ta_dir }}"
+          ANSIBLE_CONFIG={{ fvt_dir }}/ci/ansible.cfg ansible-playbook -vvv playbooks/autoscaling_osp18.yaml -e stack_name=vnf14
+        chdir: "{{ ansible_env.HOME }}/telemetry_autoscaling"
       register: output
+
 
 #    - name: "Run a playbook locally on the target host"
 #      ansible.builtin.shell:

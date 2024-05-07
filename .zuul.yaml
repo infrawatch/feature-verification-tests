@@ -23,8 +23,6 @@
         override-checkout: main
       - name: github.com/openstack-k8s-operators/telemetry-operator
         override-checkout: main
-      - name: github.com/infrawatch/telemetry_autoscaling
-        override-checkout: efoley_dev
 
 - project:
     name: infrawatch/feature-verification-tests
