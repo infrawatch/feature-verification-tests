@@ -3,9 +3,16 @@
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
   vars:
-    fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
+    # (efoley) workaround(hardcode_zuul)
+    # TODO: figure out how to get zuul into this env.
+    # Might be a case of pulling in one of the existing params files that is available in the ci-framework artifact dir, which should include a zuul-params file.
+    # fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
+    fvt_dir: "{{ ansible_env.HOME }}/src/github.com/infrawatch/feature-verification-tests"
     ci_framework_logs: "{{ ansible_env.HOME }}/ci-framework-data/logs"
   tasks:
+    # workaround(hardcode_zuul)
+    # To include the params here, I might need to do an include_vars to pull in the zuul-params.
+    # Then zuul should be available, and we can have a set_fact: fvt_dir
     - name: "Create log dir"
       ansible.builtin.file:
         path: "{{ ci_framework_logs }}/functional-tests"
