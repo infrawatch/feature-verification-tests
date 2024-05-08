@@ -3,8 +3,8 @@
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
   vars:
-    fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
-    ci_framework_logs: "{{ ansible_env.HOME  }}/ci-framework-data/logs"
+    fvt_dir: "{{ ansible_env.HOME }}/src/github.com/infrawatch/feature-verification-tests"
+    ci_framework_logs: "{{ ansible_env.HOME }}/ci-framework-data/logs"
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
@@ -23,7 +23,7 @@
             dest: "{{ ansible_env.HOME }}/telemetry_autoscaling"
             version: efoley_dev
 
-        - name: "Run a playbook locally on the target host"
+        - name: "Run a playbook telemetry_autoscaling on the target host"
           ansible.builtin.shell:
             cmd: |
               ANSIBLE_CONFIG={{ fvt_dir }}/ci/ansible.cfg ansible-playbook -vvv playbooks/autoscaling_osp18.yaml -e stack_name=vnf14
@@ -40,7 +40,7 @@
         - name: Move callback_plugin result to log dir
           ansible.builtin.shell: 
             cmd: |
-              cp  {{ ansible_env.HOME }}/telemetry_autoscaling/test_run_result.out {{ ci_framework_logs }}/functional-test/autoscaling/test_run_result.log
+              cp  {{ ansible_env.HOME }}/telemetry_autoscaling/test_run_result.out {{ ci_framework_logs }}/functional-tests/autoscaling/test_run_result.log
 
       rescue:
         - debug:
