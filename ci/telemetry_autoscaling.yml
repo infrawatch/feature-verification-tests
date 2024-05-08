@@ -40,7 +40,7 @@
         - name: Move callback_plugin result to log dir
           ansible.builtin.shell: 
             cmd: |
-              cp  {{ fvt_dir }}/test_run_result.out {{ ci_framework_logs }}/functional-test/autoscaling/test_run_result.log
+              cp  {{ ansible_env.HOME }}/telemetry_autoscaling/test_run_result.out {{ ci_framework_logs }}/functional-test/autoscaling/test_run_result.log
 
       rescue:
         - debug:
