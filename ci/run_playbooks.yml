@@ -19,4 +19,13 @@
         chdir: "{{ fvt_dir }}"
       register: output
 
+    - name: Print output result
+      ansible.builtin.debug:
+        var: output
+
+    - name: Move callback_plugin result to log dir
+      ansible.builtin.shell: 
+        cmd: |
+          cp  {{ fvt_dir }}/test_run_result.out {{ ci_framework_logs }}/functional-test/test_run_result.log
+
 
