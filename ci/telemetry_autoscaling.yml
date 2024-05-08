@@ -1,0 +1,47 @@
+---
+- name: Telemetry autoscaling tests
+  hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
+  gather_facts: false
+  vars:
+    fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
+    ci_framework_logs: "{{ ansible_env.HOME  }}/ci-framework-data/logs"
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  tasks:      
+    - name: Clone telemetry_autoscaling and run playbook locally
+      block:
+        - name: Create log dir for autoscaling test
+          ansible.builtin.file:
+            path: "{{ ci_framework_logs }}/functional-tests/autoscaling"
+            state: directory
+            mode: "0755"
+
+        - name: Clone telemetry_autoscaling repository
+          git:
+            repo: https://github.com/infrawatch/telemetry_autoscaling.git
+            dest: "{{ ansible_env.HOME }}/telemetry_autoscaling"
+            version: efoley_dev
+
+        - name: "Run a playbook locally on the target host"
+          ansible.builtin.shell:
+            cmd: |
+              ANSIBLE_CONFIG={{ fvt_dir }}/ci/ansible.cfg ansible-playbook -vvv playbooks/autoscaling_osp18.yaml -e stack_name=vnf14
+            chdir: "{{ ansible_env.HOME }}/telemetry_autoscaling"
+          register: output
+          ignore_errors: true
+
+        - name: Save the output of the playbook run to a logfile
+          ansible.builtin.lineinfile:
+            path: "{{ ci_framework_logs }}/functional-tests/autoscaling/telemetry_autoscaling.log"
+            line: "{{ output.stdout_lines }}"
+            create: yes
+        
+        - name: Move callback_plugin result to log dir
+          ansible.builtin.shell: 
+            cmd: |
+              cp  {{ fvt_dir }}/test_run_result.out {{ ci_framework_logs }}/functional-test/autoscaling/test_run_result.log
+
+      rescue:
+        - debug:
+            msg: "An error occurred while cloning telemetry_autoscaling or running playbook."

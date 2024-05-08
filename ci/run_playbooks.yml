@@ -1,44 +1,22 @@
 ---
-- name: "Run functional tests playbook"
+- name: "Run functional test playbooks"
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: false
   vars:
     fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
-    ci_framework_logs: "{{ ansible_user_dir }}/ci-framework-data/logs"
+    ci_framework_logs: "{{ ansible_env.HOME }}/ci-framework-data/logs"
   tasks:
     - name: "Create log dir"
       ansible.builtin.file:
-        path: "{{ ci_framework_logs }}/functional-test"
+        path: "{{ ci_framework_logs }}/functional-tests"
         state: directory
         mode: "0755"
-
-    - name: Clone telemetry_autoscaling repository
-      git:
-        repo: https://github.com/infrawatch/telemetry_autoscaling.git
-        dest: "{{ ansible_env.HOME }}/telemetry_autoscaling"
-        version: efoley_dev
 
     - name: "Run a playbook locally on the target host"
       ansible.builtin.shell:
         cmd: |
-          ANSIBLE_CONFIG={{ fvt_dir }}/ci/ansible.cfg ansible-playbook -vvv playbooks/autoscaling_osp18.yaml -e stack_name=vnf14
-        chdir: "{{ ansible_env.HOME }}/telemetry_autoscaling"
+          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v -e "cifmw_openshift_kubeconfig={{ cifmw_openshift_kubeconfig }}" -e "cifmw_path={{ cifmw_path }}" ci/telemetry_autoscaling.yml 
+        chdir: "{{ fvt_dir }}"
       register: output
 
 
-#    - name: "Run a playbook locally on the target host"
-#      ansible.builtin.shell:
-#        cmd: |
-#          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v -e "cifmw_openshift_kubeconfig={{ cifmw_openshift_kubeconfig }}" -e "cifmw_path={{ cifmw_path }}" ci/functional_tests.yml 
-#        chdir: "{{ fvt_dir }}"
-#      register: output
-
-    - name: Save the output of the playbook run to a logfile
-      ansible.builtin.lineinfile:
-        path: "{{ ci_framework_logs }}/functional-test/functional_tests.log"
-        line: "{{ output.stdout_lines }}"
-        create: yes
-
-    - name: Move callback_plugin result to home dir
-      ansible.builtin.shell: |
-        cp  {{ fvt_dir }}/test_run_result.out {{ ci_framework_logs }}/functional-test/test_run_result.log
