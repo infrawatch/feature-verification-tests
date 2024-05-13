@@ -1,7 +1,7 @@
 ---
 # temp: skip os-net-setup
 cifmw_os_net_setup_config: []
-post_ctlplane_deploy:
+post_deploy:
   - name: run functional test
     source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_playbooks.yml"
     type: playbook
