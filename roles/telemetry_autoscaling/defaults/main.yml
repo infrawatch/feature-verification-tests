@@ -1,5 +1,0 @@
----
-# defaults file for telemetry_autoscaling
-openstack_cmd: "openstack"
-stack_name: vnf
-metrics_backend: gnocchi
