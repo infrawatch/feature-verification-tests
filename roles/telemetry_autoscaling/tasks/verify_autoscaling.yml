@@ -1,0 +1,42 @@
+---
+# This doesn't work when using prom as the metrics backend
+# TODO: Add a metrics_backend option
+- name: Test service API endpoint(metric) for autoscaling
+  when: metrics_backend == "gnocchi"
+  ansible.builtin.shell: |
+    #source ~/stackrc;
+    {{ openstack_cmd }} endpoint list --service metric;
+  register: result
+  failed_when: result.rc >= 1
+
+- name: Test service API endpoint(alarm) for autoscaling
+  ansible.builtin.shell: |
+    #source ~/stackrc;
+    {{ openstack_cmd }} endpoint list --service alarming;
+  register: result
+  failed_when: result.rc >= 1
+
+- name: Test service API endpoint(heat) for autoscaling
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    {{ openstack_cmd }} endpoint list --service orchestration;
+  register: result
+  failed_when: result.rc >= 1
+
+  # need selection criteria to decide when to run these.
+  # Need alternative for OSP18.
+- name: Verify that the services are running on the overcloud
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    sudo podman ps --filter=name='heat|gnocchi|ceilometer|aodh';
+  register: result
+  failed_when: result.rc >= 1
+  ignore_errors: true
+
+- name: Verify that the time-series database service is available
+  when: metrics_backend == "gnocchi"
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    {{ openstack_cmd }} metric status --fit-width;
+  register: result
+  failed_when: result.rc >= 1

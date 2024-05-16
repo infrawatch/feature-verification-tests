@@ -1,0 +1,15 @@
+---
+# tasks file for telemetry_autoscaling
+  # TODO: Update the pre-checks to include the resources that the stack expects to exist
+  # i.e. networks, flavor, image, security group
+- name: Check pre-reqs for autoscaling
+  ansible.builtin.include_tasks: verify_autoscaling.yml
+
+- name: Create the heat templates
+  ansible.builtin.include_tasks: configure_heat.yml
+
+- name: Launch the stack
+  ansible.builtin.include_tasks: creating_stack.yml
+
+- name: Run the autoscaling tests
+  ansible.builtin.include_tasks: test_autoscaling.yml

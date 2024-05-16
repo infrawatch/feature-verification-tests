@@ -1,0 +1,131 @@
+---
+- name: Copy the templates to openstackclient pod
+  ansible.builtin.shell: |
+    oc cp $HOME/templates/autoscaling/vnf/template.yaml openstackclient:/tmp
+    oc cp $HOME/templates/autoscaling/vnf/resources.yaml openstackclient:/tmp
+    oc cp $HOME/templates/autoscaling/vnf/instance.yaml openstackclient:/tmp
+
+  # template location was $HOME/templates/autoscaling/vnf/
+- name: "[temp] Set the location to copy the template to"
+  ansible.builtin.set_fact:
+    template_location: '/tmp'
+
+  # I need to pass parameters to the stack create
+  # TODO: Define parameters as vars, and add them to the role.
+  # TODO: Update pre-checks to make sure the image, flavor, key, network and external_network exist.
+  # Temperority use the install_yamls/devinstall make edpm_deploy_instance to make these resources.
+  # This maketarget uses the devsetup/scripts/edpm-deploy-instance.sh script
+  # TODO: Either update the test to create the required resources, or add checks to make sure they exist.
+- ansible.builtin.set_fact:
+    stack_image: cirros
+    stack_flavor: m1.small
+    #stack_keyname:
+    stack_network: private
+    stack_external_network: public
+- name: Create the stack
+  ansible.builtin.shell: |
+    #source ~/overcloudrc;
+    {{ openstack_cmd }} stack create \
+    -t {{ template_location }}/template.yaml \
+    -e {{ template_location }}/resources.yaml \
+    {{ stack_name }};
+  register: result
+  failed_when: result.rc >= 1
+
+- name: Print the result
+  ansible.builtin.debug:
+    var: result
+
+    #- name: Wait for 60 sec
+    #  ansible.builtin.pause:
+    #    minutes: 1
+        
+- name: Verify that the stack was created successfully
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    {{ openstack_cmd }} stack show {{ stack_name }};
+  register: result
+  until: '"CREATE_COMPLETE" in result.stdout'
+  timeout: 30
+  retries: 20
+
+- name: Verify that the stack resources are created
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
+    {{ openstack_cmd }} stack resource list $STACK_ID;
+  register: result
+  timeout: 30
+  retries: 20
+  until: '"CREATE_COMPLETE" in result.stdout'
+    #  failed_when: '"CREATE_COMPLETE" not in result.stdout'
+    
+- name: Verify that ceilometer_cpu metric exist 
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    {{ openstack_cmd }} metric list
+  register: result
+  failed_when: result.rc >= 1
+
+- name: Print the result
+  ansible.builtin.debug:
+    var: result
+
+- name: Verify that an instance was launched by the stack creation
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
+    {{ openstack_cmd }} server list --long | grep $STACK_ID;
+  register: result
+  failed_when: result.rc >= 1
+
+- name: Verify that the alarms were created for the stack
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    {{ openstack_cmd }} alarm list
+  register: result
+  failed_when: result.rc >= 1
+
+- name: Note the physical_resource_id values for the cpu_alarm_low resource
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
+    {{ openstack_cmd }} stack resource list $STACK_ID |grep -i cpu_alarm_low | awk '{print $4}'
+  register: physical_resource_id_low
+
+- name: Note the physical_resource_id values for the cpu_alarm_high resource
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
+    {{ openstack_cmd }} stack resource list $STACK_ID |grep -i cpu_alarm_high | awk '{print $4}'
+  register: physical_resource_id_high
+
+- name: Verify physical_resource_id match the alarm id for cpu_alarm_low
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    {{ openstack_cmd }} alarm list |grep -i cpu_alarm_low | awk '{print $2}'
+  register: alarm_id_low
+  failed_when:
+    - physical_resource_id_low.stdout != alarm_id_low.stdout
+
+- name: Verify physical_resource_id match the alarm id for cpu_alarm_high
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    {{ openstack_cmd }} alarm list |grep -i cpu_alarm_high | awk '{print $2}'
+  register: alarm_id_high
+  failed_when:
+    - physical_resource_id_high.stdout != alarm_id_high.stdout
+
+  # TODO: get alt check for prom
+- name: Verify that metric resources exist for the stack
+  when: metrics_backend == "gnocchi"
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
+    {{ openstack_cmd }} metric resource search \
+    --sort-column launched_at -c id \
+    -c display_name -c launched_at \
+    -c deleted_at --type instance \
+    server_group="$STACK_ID"
+  register: result
+  failed_when: result.rc >= 1
