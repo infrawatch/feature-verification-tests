@@ -221,10 +221,9 @@
               {% endif -%}
               {% if metrics_backend == "prometheus" -%}
               str_replace:
-                template: "(rate(ceilometer_cpu{resource_name=~'stack_name.*'}[150s]))/10000000"
+                template: "(rate(ceilometer_cpu{resource_name=~'server_name_prefix.*'}[150s]))/10000000"
                 params:
                   server_name_prefix: {get_param: server_name_prefix}
-                  stack_name: {get_param: OS::stack_name}
               {%- endif %}
 
         cpu_alarm_low:
@@ -259,10 +258,9 @@
               {% endif -%}
               {% if metrics_backend == "prometheus" -%}
               str_replace:
-                template: "(rate(ceilometer_cpu{resource_name=~'stack_name.*'}[150s]))/10000000"
+                template: "(rate(ceilometer_cpu{resource_name=~'server_name_prefix.*'}[150s]))/10000000"
                 params:
                   server_name_prefix: {get_param: server_name_prefix}
-                  stack_name: {get_param: OS::stack_name}
               {% endif %}
 
       outputs:
