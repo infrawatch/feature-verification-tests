@@ -1,5 +1,5 @@
 ---
-  
+
 - name: Verify "{{ item }}" logging credentials
   ansible.builtin.shell:
     cmd: |
@@ -22,3 +22,4 @@
   ansible.builtin.shell:
     echo "credentials,{{ item }},{{ exists }}" >> "{{ cred_out_file }}"
   changed_when: false
+

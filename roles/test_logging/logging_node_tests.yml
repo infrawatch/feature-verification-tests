@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: "Remove {{ node_out_file }} file if present"
+      ansible.builtin.shell:
+        cmd: rm -f "{{ node_out_file }}"
+      ignore_errors: yes
+      changed_when: false
+        
+    - name: Verify OSP nodes are running
+      become: true
+      ansible.builtin.shell:
+        cmd: |
+          NODENAME="{{ item }}"
+          NODE_FOUND=$(virsh list --state-running | grep "{{ item }}" | awk '{print $2;}')
+          NODESTATUS=$(virsh list --state-running | grep "{{ item }}" | awk '{print $3;}')
+          echo "${NODENAME},${NODE_FOUND},${NODESTATUS}" >> "{{ node_out_file }}"
+      changed_when: false
+      loop: "{{ node_list }}"

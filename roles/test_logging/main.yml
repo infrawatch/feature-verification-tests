@@ -1,0 +1,412 @@
+- name: Prepare Logging Tests
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  
+  vars:
+    ansible_user: "{{ lookup('env', 'USER') }}"      
+    APATH: "{{ lookup('env', 'PATH') }}"
+    AHOME: "{{ lookup('env', 'HOME') }}"
+
+  environment:
+    PATH: "{{ APATH }}:{{ AHOME }}/.local/bin/:/usr/local/bin/"
+
+  tasks:
+    - name: "Log into OCP"
+      ansible.builtin.shell:
+        cmd: |
+          oc login -u kubeadmin -p "12345678" https://api.crc.testing:6443
+      ignore_errors: true
+      changed_when: false
+
+
+- name: Verify Needed projects exist
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+     proj_out_file: project_logging_tests.log
+     proj_list:
+       - openshift-openstack-infra
+       - openshift
+       - openstack-operators
+       - openshift-logging
+  tasks:
+    - name: Remove "{{ proj_out_file }}"
+      ansible.builtin.shell:
+        cmd: rm -f "{{ proj_out_file }}"
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Verify projects created
+      include_tasks: logging_proj_tests.yml
+      loop: "{{ proj_list }}"
+
+
+- name: Verify Logging credentials exist
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    cred_out_file: credentials_logging_tests.log
+    cred_list:
+      - alertingrules.loki.grafana.com
+      - lokistacks.loki.grafana.com
+      - recordingrules.loki.grafana.com
+      - rulerconfigs.loki.grafana.com
+
+  tasks:
+    - name: Remove "{{ cred_out_file }}"
+      ansible.builtin.shell:
+        cmd: rm -f "{{ cred_out_file }}"
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Verify credentials created
+      include_tasks: logging_cred_tests.yml
+      loop: "{{ cred_list }}"
+
+
+- name: Verify OSP nodes are running
+  ansible.builtin.import_playbook: logging_node_tests.yml
+  vars:
+    node_out_file: osp_nodes_running_tests.log
+    node_list:
+      - undercloud
+      - edpm-compute-0
+      - edpm-compute-1
+      - " compute-0"
+      - " compute-1"
+      - controller-0
+      - controller-1
+      - controller-2
+      - ceph-0
+      - crc
+
+
+- name: Verify logging pods are running in openstack-operators
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    pod_status_str: "Running"      
+    nspace: openstack-operators
+    pod_out_file: pods_running_openstack-operators.log
+    pod_list:
+      - telemetry-operator-controller-manager
+      - dataplane-operator-controller-manager
+
+  tasks:
+    - name: Remove "{{ pod_out_file }}"
+      ansible.builtin.shell:
+        cmd: rm -f "{{ pod_out_file }}"
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Verify Completed Pods
+      include_tasks: logging_pod_tests.yml
+      loop: "{{ pod_list }}"
+
+
+
+- name: Verify logging pods are running in openstack
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    pod_status_str: "Running"
+    nspace: openstack
+    pod_out_file: pods_running_openstack.log
+    pod_list:
+      - openstackclient
+
+  tasks:
+    - name: Remove "{{ pod_out_file }}"
+      ansible.builtin.shell:
+        cmd: rm -f "{{ pod_out_file }}"
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Verify Completed Pods
+      include_tasks: logging_pod_tests.yml
+      loop: "{{ pod_list }}"
+
+
+- name: Verify logging pods are running in openshift-operators-redhat
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    pod_status_str: "Running"
+    nspace: openshift-operators-redhat
+    pod_out_file: pods_running_openshift-operators-redhat.log
+    pod_list:
+      - loki-operator-controller-manager
+
+  tasks:
+    - name: Remove "{{ pod_out_file }}"
+      ansible.builtin.shell:
+        cmd: rm -f "{{ pod_out_file }}"
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Verify Completed Pods
+      include_tasks: logging_pod_tests.yml
+      loop: "{{ pod_list }}"
+
+
+- name: Verify logging pods are running in minio-dev
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    pod_status_str: "Running"
+    nspace: minio-dev
+    pod_out_file: pods_running_minio.log
+    pod_list:
+      - minio
+
+  tasks:
+    - name: Remove "{{ pod_out_file }}"
+      ansible.builtin.shell:
+        cmd: rm -f "{{ pod_out_file }}"
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Verify Completed Pods
+      include_tasks: logging_pod_tests.yml
+      loop: "{{ pod_list }}"
+
+
+- name: Verify logging pods for EDPM completed
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    pod_out_file: pods_completed_openstack.log
+    nspace: openstack
+    pod_status_str: "Completed"
+    pod_list:
+      - bootstrap-edpm-deployment
+      - configure-network-edpm-deployment
+      - configure-os-edpm-deployment
+      - download-cache-edpm-deployment
+      - install-certs-edpm-deployment
+      - install-os-edpm-deployment
+      - libvirt-edpm-deployment
+      - logging-edpm-deployment-logging-openstack-edpm
+      - neutron-metadata-edpm-deployment
+      - nova-custom-edpm-deployment
+      - ovn-edpm-deployment
+      - reboot-os-edpm-deployment
+      - repo-setup-edpm-deployment
+      - run-os-edpm-deployment
+      - ssh-known-hosts-edpm-deployment
+      - telemetry-edpm-deployment
+      - validate-network-edpm-deployment
+
+  tasks:
+    - name: Remove "{{ pod_out_file }}"
+      ansible.builtin.shell:
+        cmd: rm -f "{{ pod_out_file }}"
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Verify Completed Pods
+      include_tasks: logging_pod_tests.yml
+      loop: "{{ pod_list }}"
+
+
+- name: Verify logging services are running in openshift-logging
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    services_out_file: services_logging_openshift-logging.log
+    nspace: openshift-logging
+    services_list:
+      - cluster-logging-operator-metrics
+      - logging-loki-compactor-grpc
+      - logging-loki-compactor-http
+      - logging-loki-distributor-grpc
+      - logging-loki-distributor-http
+      - logging-loki-gateway-http
+      - logging-loki-gossip-ring
+      - logging-loki-index-gateway-grpc
+      - logging-loki-index-gateway-http
+      - logging-loki-ingester-grpc
+      - logging-loki-ingester-http
+      - logging-loki-querier-grpc
+      - logging-loki-querier-http
+      - logging-loki-query-frontend-grpc
+      - logging-loki-query-frontend-http
+      - logging-view-plugin
+      - openstack-logging
+
+  tasks:
+    - name: Remove "{{ services_out_file }}"
+      ansible.builtin.shell:
+        cmd: rm -f "{{ services_out_file }}"
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Run Services Test in "{{ nspace }}"
+      include_tasks: logging_services_tests.yml
+      loop: "{{ services_list }}"
+
+
+- name: Verify logging services are running in openshack
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    services_out_file: services_logging_openstack.log
+    nspace: openstack
+    services_out_file: 
+    services_list:
+      - nova-internal
+      - nova-metadata-internal
+      - nova-novncproxy-cell1-public
+      - nova-public
+
+  tasks:
+    - name: Remove "{{ services_out_file }}"
+      ansible.builtin.shell:
+        cmd: rm -f "{{ services_out_file }}"
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Run Services test in "{{ nspace }}" 
+      include_tasks: logging_services_tests.yml
+      loop: "{{ services_list }}"
+
+
+- name: --TODO-- Verify packagemanifests exist
+  hosts: localhost 
+  connection: local
+  gather_facts: no
+  vars:
+    packagemanifests_list:
+      - loki-operator Community Operators
+      - loki-operator Red Hat Operators
+      - loki-helm-operator Community Operators
+
+  tasks:
+    - name: Verify packagemanifests exist
+      ansible.builtin.shell:
+        cmd: echo "Verify packagemanifests {{ item }}"
+        # oc get packagemanifests | grep loki
+      ignore_errors: yes
+      changed_when: false
+      loop: "{{ packagemanifests_list }}"
+
+
+- name: --TODO-- Verify subscriptions exist in openshift-operators-redhat
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    subscription_list:
+      - loki-operator
+
+  tasks:
+    - name: Verify subscriptions working
+      ansible.builtin.shell:
+        cmd: echo "Verify subscription {{ item }}"
+        # oc get pod -n openshift-operators-redhat
+      ignore_errors: yes
+      changed_when: false
+      loop: "{{ subscription_list }}"
+
+
+- name: --TODO-- Verify running containers on edpm-compute nodes
+  hosts: localhost #ctlplane_nodes
+  connection: local
+  gather_facts: no
+  vars:
+    container_list:
+      - openstack-ceilometer-compute
+      - openstack-ceilometer-ipmi
+      - node-exporter     
+
+  tasks:
+    - name: Verify containers on edpm-compute nodes
+      ansible.builtin.shell:
+        cmd: echo "Verify containers on edpm-compute nodes"
+      ignore_errors: yes
+      changed_when: false
+      loop: "{{ container_list }}"
+
+
+- name: --TODO-- Verify existance of files
+  hosts: localhost #ctlplane_nodes
+  connection: local
+  gather_facts: no
+  vars:
+    file_list:
+      - /etc/rsyslog.d/10-telemetry.conf
+
+  tasks:
+    - name: Verify File
+      ansible.builtin.shell:
+        cmd: echo "File exists - {{ item }} "
+      ignore_errors: yes
+      changed_when: false
+      loop: "{{ file_list }}"
+
+
+- name: --TODO-- Verify journalctl identifiers are reporting
+  hosts: localhost #ctlplane_nodes
+  connection: local
+  gather_facts: no
+  vars:
+    identifiers_list:
+      - ceilometer_agent_compute
+      - nova_compute
+      - ceilometer_agent_impi
+      - node_exporter
+
+  tasks:
+    - name: Verify journalctl identifiers 
+      ansible.builtin.shell:
+        cmd: echo "Identifier checked - {{ item }} "
+        # journalctl -t "{{ item }}" --no-pager  >> output.log
+      ignore_errors: yes
+      changed_when: false
+      loop: "{{ identifiers_list }}"
+
+
+- name: --TODO-- Verify Openstack endpoints
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    endpoints_list:
+      - nova:compute:public
+      - nova:compute:internal
+      - placement:placement:public
+      - placement:placement:internal
+      - swift:object-store:public
+      - swift:object-store:internal
+      - cinderv3:volumev3:public
+      - cinderv3:volumev3:internal
+      - barbican:key-manager:public
+      - barbican:key-manager:internal
+      - keystone:identity:public
+      - keystone:identity:internal
+      - glance:image:public
+      - glance:image:internal
+      - neutron:network:public
+      - neutron:network:internal
+
+  tasks:      
+    - name:      
+      ansible.builtin.shell:
+        cmd: echo "OSP Endpoints checked - {{ item }} "
+        # oc get project openstack
+        # kubectl exec openstackclient -- openstack endpoint list -f table  >> output.log
+      ignore_errors: yes
+      changed_when: false
+      loop: "{{ endpoints_list }}"
