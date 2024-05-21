@@ -46,7 +46,7 @@ class CallbackModule(CallbackBase):
 
     def log(self, host, category):
          # only interested in the test tasks, not setup or debug
-         if self.current_task.startswith("RHELOSP"):
+         if self.current_task.startswith("RHELOSP") or self.current_task.startswith("RHOSO"):
 
              if category == "failed":
                 self.failed +=1
