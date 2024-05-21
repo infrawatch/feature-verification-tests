@@ -221,7 +221,6 @@
   hosts: localhost
   connection: local
   gather_facts: no
-
   vars:
     services_out_file: services_logging_openshift-logging.log
     nspace: openshift-logging
@@ -260,11 +259,9 @@
   hosts: localhost
   connection: local
   gather_facts: no
-
   vars:
     services_out_file: services_logging_openstack.log
     nspace: openstack
-    services_out_file: 
     services_list:
       - nova-internal
       - nova-metadata-internal

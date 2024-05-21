@@ -1,6 +1,6 @@
 ---
 
-- name: Get "{{ pod_status_str }}" Pod Instance name in "{{ nspace }}" 
+- name: Get Pod Instance "{{ pod_status_str }} - {{ nspace }}" 
   ansible.builtin.shell:
     cmd: |
       oc get pods -n  "{{ nspace }}" | grep "{{ item }}" | grep "{{ pod_status_str }}" | awk '{print $1;}'
@@ -15,12 +15,12 @@
   changed_when: false
   ignore_errors: yes
 
-- name: Test service "{{ item }}" exists
+- name: Test service exists - "{{ item }}"
   set_fact:
     exists: PASSED
   when: output.rc == 0
 
-- name: Test service "{{ item }}" does not exist
+- name: Test service does not exist - "{{ item }}"
   set_fact:
      exists: FAILED
   when: output.rc != 0

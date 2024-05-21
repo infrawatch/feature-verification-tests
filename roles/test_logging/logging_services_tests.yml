@@ -1,6 +1,6 @@
 ---
 
-- name: Verify "{{ item }}" Service Running in "{{ nspace }}"
+- name: Verify Service Running - "{{ item }} {{ nspace }}"
   ansible.builtin.shell:
     cmd: |
       oc get service -n "{{ nspace }}" "{{ item }}"
@@ -8,12 +8,12 @@
   changed_when: false
   ignore_errors: yes
 
-- name: If "{{ item }}" service exists
+- name: If service exists - "{{ item }}"
   set_fact:
     exists: PASSED 
   when: output.rc == 0
 
-- name: If  "{{ item }}" service does *not* exist
+- name: If service does *not* exist - "{{ item }}"
   set_fact:
      exists: FAILED
   when: output.rc != 0

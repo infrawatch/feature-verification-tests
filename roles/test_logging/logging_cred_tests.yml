@@ -1,6 +1,6 @@
 ---
 
-- name: Verify "{{ item }}" logging credentials
+- name: Verify logging credentials "{{ item }}"
   ansible.builtin.shell:
     cmd: |
       oc get crd "{{ item }}"
@@ -8,12 +8,12 @@
   changed_when: false
   ignore_errors: yes
 
-- name: Test credential "{{ item }}" exists
+- name: Test credential exists "{{ item }}"
   set_fact:
     exists: PASSED
   when: output.rc == 0
 
-- name: Test credential "{{ item }}" does not exist
+- name: Test credential does not exist "{{ item }}"
   set_fact:
      exists: FAILED
   when: output.rc != 0

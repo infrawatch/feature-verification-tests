@@ -1,6 +1,6 @@
 ---
 
-- name: Verify Project "{{ item }}" exists
+- name: Verify Project exists - "{{ item }}"
   ansible.builtin.shell: 
     cmd: |
       oc project "{{ item }}"
@@ -8,12 +8,12 @@
   changed_when: false
   ignore_errors: yes
 
-- name: Test project "{{ item }}" exists
+- name: Test project exists - "{{ item }}"
   set_fact:
     exists: PASSED
   when: output.rc == 0
 
-- name: Test project "{{ item }}" does *not* exist
+- name: Test project does *not* exist - "{{ item }}"
   set_fact:
      exists: FAILED
   when: output.rc != 0

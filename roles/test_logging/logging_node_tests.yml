@@ -1,5 +1,6 @@
 ---
-- hosts: localhost
+- name: Run node test
+  hosts: localhost
   connection: local
   gather_facts: no
 
