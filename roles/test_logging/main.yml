@@ -68,9 +68,11 @@
 
 
 - name: Verify OSP nodes are running
-  ansible.builtin.import_playbook: logging_node_tests.yml
+  hosts: localhost
+  connection: local
+  gather_facts: no
   vars:
-    node_out_file: osp_nodes_running_tests.log
+    node_out_file: nodes_osp_tests.log
     node_list:
       - undercloud
       - edpm-compute-0
@@ -82,6 +84,17 @@
       - controller-2
       - ceph-0
       - crc
+
+  tasks:
+    - name: Remove "{{ node_out_file }}"
+      ansible.builtin.shell:
+        cmd: rm -f "{{ node_out_file }}"
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Verify nodes deployed
+      include_tasks: logging_node_tests.yml
+      loop: "{{ node_list }}"
 
 
 - name: Verify logging pods are running in openstack-operators
@@ -280,41 +293,47 @@
       loop: "{{ services_list }}"
 
 
-- name: --TODO-- Verify packagemanifests exist
+- name: Verify packagemanifests exist
   hosts: localhost 
   connection: local
   gather_facts: no
   vars:
+    manifest_out_file: manifest_logging_tests.log
     packagemanifests_list:
-      - loki-operator Community Operators
-      - loki-operator Red Hat Operators
-      - loki-helm-operator Community Operators
+      - "loki-operator 2"
+      - "loki-helm-operator 1"
 
   tasks:
-    - name: Verify packagemanifests exist
+    - name: Remove "{{ manifest_out_file }}"
       ansible.builtin.shell:
-        cmd: echo "Verify packagemanifests {{ item }}"
-        # oc get packagemanifests | grep loki
+        cmd: rm -f "{{ manifest_out_file }}"
       ignore_errors: yes
       changed_when: false
+
+    - name: Run packagemanifest tests
+      include_tasks: logging_manifest_tests.yml
       loop: "{{ packagemanifests_list }}"
 
 
-- name: --TODO-- Verify subscriptions exist in openshift-operators-redhat
+- name: Verify subscriptions exist in openshift-operators-redhat
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
+    nspace: openshift-operators-redhat 
+    subscript_out_file: subscript_logging_tests.log 
     subscription_list:
       - loki-operator
 
   tasks:
-    - name: Verify subscriptions working
+    - name: Remove "{{ subscript_out_file }}"
       ansible.builtin.shell:
-        cmd: echo "Verify subscription {{ item }}"
-        # oc get pod -n openshift-operators-redhat
+        cmd: rm -f "{{ subscript_out_file }}"
       ignore_errors: yes
       changed_when: false
+
+    - name: Run packagemanifest tests
+      include_tasks: logging_subscription_tests.yml
       loop: "{{ subscription_list }}"
 
 

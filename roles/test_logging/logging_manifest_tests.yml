@@ -1,0 +1,39 @@
+---
+
+- name: Get number of packages
+  ansible.builtin.shell:
+    cmd: |
+      echo "{{ item }}" | awk '{print $2;}'
+  register: num_expected
+  changed_when: false
+
+- name: Get package name
+  ansible.builtin.shell:
+    cmd: |
+      echo "{{ item }}" | awk '{print $1;}'
+  register: name
+  changed_when: false
+
+- name: Get packagemanifest
+  ansible.builtin.shell:
+    cmd: |
+      oc get packagemanifests | grep "{{ name.stdout }}" | wc -l
+  register: num_found 
+  changed_when: false
+
+- name: Set Pass State
+  set_fact:
+    exists: PASSED
+  when: num_expected.stdout == num_found.stdout
+
+- name: Set Fail State
+  set_fact:
+     exists: FAILED
+  when:  num_expected.stdout != num_found.stdout
+
+- name: Push result to "{{ manifest_out_file }}"
+  ansible.builtin.shell:
+    echo "{{ name.stdout }},{{ num_found.stdout }},{{ exists }}" >> "{{ manifest_out_file }}"
+  changed_when: false
+
+
