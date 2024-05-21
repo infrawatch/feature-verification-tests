@@ -13,7 +13,7 @@
         path: "{{ logs_dir }}"
         state: directory
         mode: "0755"
-      
+
     - name: "Set dynamic KUBECONFIG and PATH vars"
       copy:
         content: |
@@ -23,7 +23,7 @@
         dest: "{{ env_vars_file }}"
 
     # Prepare the env
-    - name: Setup the env before running the autoscaling functional test
+    - name: Setup the required resoureces before running the autoscaling functional test
       block:
           # TODO: Look at replacing this with something NOT from install_yamls.
         - community.general.make:
@@ -32,23 +32,22 @@
           tags:
             - setup
 
-          # TODO: Convert this to a kustomization and pass it to the deployment
-          # First step might be to use -k in the patch to pass a kustomization to oc patch
         - name: Patch the openstackversions to use the master containers for aodh and heat
           ansible.builtin.shell:
             cmd: |
               oc patch openstackversions openstack-galera-network-isolation --type merge --patch-file ci/patch.yaml
             chdir: "{{ fvt_dir }}"
+          when: "{{ patch_openstackversions | bool }}"
           tags:
             - setup
 
-          # TODO:Look for a workaround for this.
         - name: Patch observabilityclient into openstackclient
           ansible.builtin.shell:
             cmd: |
               oc exec openstackclient -- python3 -m ensurepip --upgrade
               oc exec openstackclient -- python3 -m pip install --upgrade aodhclient
               oc exec openstackclient -- python3 -m pip install --upgrade python-observabilityclient
+          when: "{{ patch_openstackversions | bool }}"
           tags:
             - setup
 
@@ -60,6 +59,7 @@
           timeout: 5
           until: output.stdout_lines | length == 1
           register: output
+          when: "{{ patch_openstackversions | bool }}"
           tags:
             - setup
 
@@ -77,6 +77,6 @@
             content: "{{ output.stdout }}"
             dest: "{{ logs_dir }}/ansible_run.log"
 
-#    - name: Include report result 
+#    - name: Include report result
 #      ansible.builtin.include_tasks:
 #        file: report_result.yaml
