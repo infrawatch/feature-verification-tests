@@ -1,0 +1,95 @@
+---
+- name: Telemetry autoscaling tests
+  hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
+  gather_facts: true
+  vars:
+    fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
+    ci_framework_logs: "{{ ansible_env.HOME }}/ci-framework-data/logs"
+    openstack_cmd: "oc rsh openstackclient openstack"
+    metrics_backend: "prometheus"
+    stack_image: "cirros"
+    stack_flavor: "m1.small"
+    stack_network: "private"
+    stack_external_network: "public"
+    stack_name: "vnf"
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  tasks:
+    - name: Run the autoscaling test
+      block:
+        - name: Create log dir for autoscaling test
+          ansible.builtin.file:
+            path: "{{ ci_framework_logs }}/functional-tests/autoscaling"
+            state: directory
+            mode: "0755"
+
+         # NOTE: the tags are for testing/development, eventually, the role will just be imported, and main.yml will run through the tasks
+        - import_role:
+            name: telemetry_autoscaling
+            tasks_from: verify_autoscaling
+          tags:
+            - precheck
+
+        - import_role:
+            name: telemetry_autoscaling
+            tasks_from: configure_heat
+          tags:
+            - setup
+
+        - import_role:
+            name: telemetry_autoscaling
+            tasks_from: creating_stack
+          tags:
+            - create
+
+        - import_role:
+            name: telemetry_autoscaling
+            tasks_from: test_autoscaling
+          tags:
+            - test
+
+      rescue:
+        - debug:
+            msg: "An error occurred while running the telemetry_autoscaling role"
+
+    - name: Check that the stack exists
+      ansible.builtin.command:
+        cmd: |
+          oc rsh openstackclient openstack stack show {{ stack_name }}
+      ignore_errors: true
+      register: output
+      tags: [never, cleanup]
+
+    - name: Remove the stack if it exists
+      ansible.builtin.command:
+        cmd: |
+          oc rsh openstackclient openstack stack delete {{ stack_name }}
+      when: output.rc == 0
+      tags:
+        - never
+        - cleanup
+
+    - name: Check whether a stack already exists with the same name
+      ansible.builtin.shell:
+        cmd: oc rsh openstackclient openstack stack list | grep {{ stack_name }}
+      register: output
+      until: output.stdout_lines == 0
+      ignore_errors: true
+      retries: 50
+      timeout: 5
+      tags:
+        - never
+        - cleanup
+
+      # TODO: Get the name of the openstackversions object.
+      # TODO: Work on getting the patches into kustomize format, so that we can use them by passing into the job vars, and can skip setup.
+      # This is so we can test it locally.
+
+    - name: Revert the version update
+      ansible.builtin.shell:
+        cmd: |
+          oc patch openstackversions openstack-galera-network-isolation --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
+      tags:
+        - never
+        - cleanup
