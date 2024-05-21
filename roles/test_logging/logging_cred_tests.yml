@@ -1,0 +1,24 @@
+---
+  
+- name: Verify "{{ item }}" logging credentials
+  ansible.builtin.shell:
+    cmd: |
+      oc get crd "{{ item }}"
+  register: output
+  changed_when: false
+  ignore_errors: yes
+
+- name: Test credential "{{ item }}" exists
+  set_fact:
+    exists: PASSED
+  when: output.rc == 0
+
+- name: Test credential "{{ item }}" does not exist
+  set_fact:
+     exists: FAILED
+  when: output.rc != 0
+
+- name: Push results to "{{ cred_out_file }}"
+  ansible.builtin.shell:
+    echo "credentials,{{ item }},{{ exists }}" >> "{{ cred_out_file }}"
+  changed_when: false
