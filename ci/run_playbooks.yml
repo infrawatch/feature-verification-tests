@@ -10,7 +10,7 @@
   tasks:
     - name: "Create log dir"
       ansible.builtin.file:
-        path: "{{ ci_framework_logs }}/functional-tests"
+        path: "{{ logs_dir }}"
         state: directory
         mode: "0755"
       
@@ -62,18 +62,28 @@
           tags:
             - setup
 
-    - name: "Run telemetry tests playbook locally on the target host"
-      ansible.builtin.shell:
-        cmd: |
-          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars }}" ci/telemetry_autoscaling.yml
-        chdir: "{{ fvt_dir }}"
-      register: output
+    
+    - name: Setup the env before running the autoscaling functional test
+      block:
+        - name: Create log dir for autoscaling test
+          ansible.builtin.file:
+            path: "{{ logs_dir }}/autoscaling"
+            state: directory
+            mode: "0755"
 
-    - name: Print output result
-      ansible.builtin.debug:
-        var: output
+        - name: "Run telemetry tests playbook locally on the target host"
+          ansible.builtin.shell:
+            cmd: |
+              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars }}" ci/telemetry_autoscaling.yml
+            chdir: "{{ fvt_dir }}"
+          register: output
 
-    - name: Move callback_plugin result to log dir
-      ansible.builtin.shell:
-        cmd: |
-          cp  {{ fvt_dir }}/test_run_result.out {{ ci_framework_logs }}/functional-tests/test_run_result.log
+        - name: Save ansible output to a file
+          ansible.builtin.copy:
+            content: "{{ output.stdout }}"
+            dest: {{ logs_dir }}/autoscaling/ansible_run.log
+
+        - name: Move callback_plugin result to log dir
+          ansible.builtin.shell:
+            cmd: |
+              cp  {{ fvt_dir }}/test_run_result.out {{ logs_dir }}/autoscaling/test_run_result.log

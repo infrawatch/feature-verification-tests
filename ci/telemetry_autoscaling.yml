@@ -11,12 +11,6 @@
   tasks:
     - name: Run the autoscaling test
       block:
-        - name: Create log dir for autoscaling test
-          ansible.builtin.file:
-            path: "{{ ci_framework_logs }}/functional-tests/autoscaling"
-            state: directory
-            mode: "0755"
-
          # NOTE: the tags are for testing/development, eventually, the role will just be imported, and main.yml will run through the tasks
         - import_role:
             name: telemetry_autoscaling
