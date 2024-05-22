@@ -1,0 +1,38 @@
+---
+- name: Run tests to make sure the custom_logger plugin is running as expected
+  ignore_errors: true
+  hosts: localhost
+  tasks:
+    - name: RHOSO-01 show some message
+      debug: msg="You can start the task name with the test ID."
+
+    - name: Show a var, this is the RHOSO-02 test
+      debug: msg="You can place the test ID anywhere in the task name."
+
+    - name: |
+        Check how a multiline string task name is
+        handles for RHOSO-03
+      debug: msg="You can use a multiline string for the task name."
+
+    - name: try a test where there is no ID, just the RHOSO prefix
+      debug: msg="This shouldn't work, but it does -- this task result will be reported."
+
+    - name: Need to check for RHELOSP-042 test ID
+      debug: msg="eventually, we want to look for one prefix only, but it should be configurable"
+
+    - name: What happens when the ID is at the end RHELOSP-043
+      debug: msg="You can put the test ID at the end of the task name."
+
+    - name: This is a negative test
+      debug: msg="This task will not be reported by the custom_logger"
+
+    - name: Check what happens with multiple matches RHELOSP-054 RHOSO-056
+      debug: msg="If there are two test IDs, only the first one is reported."
+
+    - name: Check what happens with lowercase rhoso-066
+      debug: msg="The test ID must be uppercase"
+
+    - name: Check that failed tests are also represented RHOSO-078
+      when: true
+      fail:
+        msg: "If the task fails, the status will be reported since there's a test ID."
