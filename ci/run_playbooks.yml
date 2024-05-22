@@ -5,15 +5,21 @@
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
-  vars:
-    fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
-    ci_framework_logs: "{{ ansible_env.HOME }}/ci-framework-data/logs"
+  vars_files:
+    - vars/common.yml
   tasks:
     - name: "Create log dir"
       ansible.builtin.file:
         path: "{{ ci_framework_logs }}/functional-tests"
         state: directory
         mode: "0755"
+      
+    - name: "Set dynamic KUBECONFIG and PATH vars"
+      copy:
+        content: |
+          cifmw_openshift_kubeconfig: "{{ cifmw_openshift_kubeconfig }}"
+          cifmw_path: "{{ cifmw_path }}"
+        dest: "{{ env_vars }}"
 
     # Prepare the env
     - name: Setup the env before running the autoscaling functional test
@@ -56,10 +62,10 @@
           tags:
             - setup
 
-    - name: "Run a playbook locally on the target host"
+    - name: "Run telemetry tests playbook locally on the target host"
       ansible.builtin.shell:
         cmd: |
-          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v -e "cifmw_openshift_kubeconfig={{ cifmw_openshift_kubeconfig }}" -e "cifmw_path={{ cifmw_path }}" ci/telemetry_autoscaling.yml
+          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars }}" ci/telemetry_autoscaling.yml
         chdir: "{{ fvt_dir }}"
       register: output
 

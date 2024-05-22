@@ -1,0 +1,7 @@
+openstack_cmd: "oc rsh openstackclient openstack"
+metrics_backend: "prometheus"
+stack_image: "cirros"
+stack_flavor: "m1.small"
+stack_network: "private"
+stack_external_network: "public"
+stack_name: "vnf"
