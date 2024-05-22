@@ -8,19 +8,18 @@
   changed_when: false
   ignore_errors: yes
 
+- name: Test project does *not* exist - "{{ item }}"
+  ansible.builtin.set_fact:
+     exists: FAILED
+
 - name: Test project exists - "{{ item }}"
-  set_fact:
+  ansible.builtin.set_fact:
     exists: PASSED
   when: output.rc == 0
 
-- name: Test project does *not* exist - "{{ item }}"
-  set_fact:
-     exists: FAILED
-  when: output.rc != 0
-
 - name: Push results to "{{ proj_out_file }}"
   ansible.builtin.shell:
-    echo "project,{{ item }},{{ exists }}" >> "{{ proj_out_file }}"
+    'echo "project,{{ item }},{{ exists }}" >> "{{ proj_out_file }}"'
   changed_when: false
 
 

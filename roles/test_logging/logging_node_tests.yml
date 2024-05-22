@@ -8,7 +8,7 @@
   register: nodefound
   changed_when: false
 
-- name: get node status
+- name: Get node status
   become: true
   ansible.builtin.shell:
     cmd: |
@@ -16,19 +16,18 @@
   register: output
   changed_when: false
 
+- name: Test service does not exist - "{{ item }}"
+  ansible.builtin.set_fact:
+     exists: FAILED
+
 - name: Test service exists - "{{ item }}"
-  set_fact:
+  ansible.builtin.set_fact:
     exists: PASSED
   when: output.stdout == "running"
 
-- name: Test service does not exist - "{{ item }}"
-  set_fact:
-     exists: FAILED
-  when: output.stdout != "running"
-
 - name: Push result to "{{ node_out_file }}"
   ansible.builtin.shell:
-    echo "{{ item }},{{ output.stdout}},{{ nodefound.stdout }},{{ exists }}" >> "{{ node_out_file }}"
+    'echo "{{ item }},{{ output.stdout}},{{ nodefound.stdout }},{{ exists }}" >> "{{ node_out_file }}"'
   changed_when: false
 
 

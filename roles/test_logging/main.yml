@@ -2,7 +2,6 @@
   hosts: localhost
   connection: local
   gather_facts: false
-  
   vars:
     ansible_user: "{{ lookup('env', 'USER') }}"      
     APATH: "{{ lookup('env', 'PATH') }}"
@@ -20,7 +19,7 @@
       changed_when: false
 
 
-- name: Verify Needed projects exist
+- name: 'Verify Needed projects exist'
   hosts: localhost
   connection: local
   gather_facts: no
@@ -31,15 +30,15 @@
        - openshift
        - openstack-operators
        - openshift-logging
+
   tasks:
     - name: Remove "{{ proj_out_file }}"
-      ansible.builtin.shell:
-        cmd: rm -f "{{ proj_out_file }}"
-      ignore_errors: yes
-      changed_when: false
+      ansible.builtin.file:
+        path: "{{ proj_out_file }}"
+        state: absent
 
     - name: Verify projects created
-      include_tasks: logging_proj_tests.yml
+      ansible.builtin.include_tasks: logging_proj_tests.yml
       loop: "{{ proj_list }}"
 
 
@@ -57,13 +56,12 @@
 
   tasks:
     - name: Remove "{{ cred_out_file }}"
-      ansible.builtin.shell:
-        cmd: rm -f "{{ cred_out_file }}"
-      ignore_errors: yes
-      changed_when: false
+      ansible.builtin.file:
+        path: "{{ cred_out_file }}"
+        state: absent
 
     - name: Verify credentials created
-      include_tasks: logging_cred_tests.yml
+      ansible.builtin.include_tasks: logging_cred_tests.yml
       loop: "{{ cred_list }}"
 
 
@@ -87,13 +85,12 @@
 
   tasks:
     - name: Remove "{{ node_out_file }}"
-      ansible.builtin.shell:
-        cmd: rm -f "{{ node_out_file }}"
-      ignore_errors: yes
-      changed_when: false
+      ansible.builtin.file:
+        path: "{{ node_out_file }}"
+        state: absent
 
     - name: Verify nodes deployed
-      include_tasks: logging_node_tests.yml
+      ansible.builtin.include_tasks: logging_node_tests.yml
       loop: "{{ node_list }}"
 
 
@@ -111,10 +108,9 @@
 
   tasks:
     - name: Remove "{{ pod_out_file }}"
-      ansible.builtin.shell:
-        cmd: rm -f "{{ pod_out_file }}"
-      ignore_errors: yes
-      changed_when: false
+      ansible.builtin.file:
+        path: "{{ pod_out_file }}"
+        state: absent
 
     - name: Verify Completed Pods
       include_tasks: logging_pod_tests.yml
@@ -135,13 +131,12 @@
 
   tasks:
     - name: Remove "{{ pod_out_file }}"
-      ansible.builtin.shell:
-        cmd: rm -f "{{ pod_out_file }}"
-      ignore_errors: yes
-      changed_when: false
+      ansible.builtin.file:
+        path: "{{ pod_out_file }}"
+        state: absent
 
     - name: Verify Completed Pods
-      include_tasks: logging_pod_tests.yml
+      ansible.builtin.include_tasks: logging_pod_tests.yml
       loop: "{{ pod_list }}"
 
 
@@ -158,13 +153,12 @@
 
   tasks:
     - name: Remove "{{ pod_out_file }}"
-      ansible.builtin.shell:
-        cmd: rm -f "{{ pod_out_file }}"
-      ignore_errors: yes
-      changed_when: false
+      ansible.builtin.file:
+        path: "{{ pod_out_file }}"
+        state: absent
 
     - name: Verify Completed Pods
-      include_tasks: logging_pod_tests.yml
+      ansible.builtin.include_tasks: logging_pod_tests.yml
       loop: "{{ pod_list }}"
 
 
@@ -181,13 +175,12 @@
 
   tasks:
     - name: Remove "{{ pod_out_file }}"
-      ansible.builtin.shell:
-        cmd: rm -f "{{ pod_out_file }}"
-      ignore_errors: yes
-      changed_when: false
+      ansible.builtin.file:
+        path: "{{ pod_out_file }}"
+        state: absent
 
     - name: Verify Completed Pods
-      include_tasks: logging_pod_tests.yml
+      ansible.builtin.include_tasks: logging_pod_tests.yml
       loop: "{{ pod_list }}"
 
 
@@ -220,13 +213,12 @@
 
   tasks:
     - name: Remove "{{ pod_out_file }}"
-      ansible.builtin.shell:
-        cmd: rm -f "{{ pod_out_file }}"
-      ignore_errors: yes
-      changed_when: false
+      ansible.builtin.file:
+        path: "{{ pod_out_file }}"
+        state: absent 
 
     - name: Verify Completed Pods
-      include_tasks: logging_pod_tests.yml
+      ansible.builtin.include_tasks: logging_pod_tests.yml
       loop: "{{ pod_list }}"
 
 
@@ -258,13 +250,12 @@
 
   tasks:
     - name: Remove "{{ services_out_file }}"
-      ansible.builtin.shell:
-        cmd: rm -f "{{ services_out_file }}"
-      ignore_errors: yes
-      changed_when: false
+      ansible.builtin.file:
+        path: "{{ services_out_file }}"
+        state: absent
 
     - name: Run Services Test in "{{ nspace }}"
-      include_tasks: logging_services_tests.yml
+      ansible.builtin.include_tasks: logging_services_tests.yml
       loop: "{{ services_list }}"
 
 
@@ -283,13 +274,12 @@
 
   tasks:
     - name: Remove "{{ services_out_file }}"
-      ansible.builtin.shell:
-        cmd: rm -f "{{ services_out_file }}"
-      ignore_errors: yes
-      changed_when: false
+      ansible.builtin.file:
+        path: "{{ services_out_file }}"
+        state: absent
 
     - name: Run Services test in "{{ nspace }}" 
-      include_tasks: logging_services_tests.yml
+      ansible.builtin.include_tasks: logging_services_tests.yml
       loop: "{{ services_list }}"
 
 
@@ -305,13 +295,12 @@
 
   tasks:
     - name: Remove "{{ manifest_out_file }}"
-      ansible.builtin.shell:
-        cmd: rm -f "{{ manifest_out_file }}"
-      ignore_errors: yes
-      changed_when: false
+      ansible.builtin.file:
+        path: "{{ manifest_out_file }}"
+        state: absent
 
     - name: Run packagemanifest tests
-      include_tasks: logging_manifest_tests.yml
+      ansible.builtin.include_tasks: logging_manifest_tests.yml
       loop: "{{ packagemanifests_list }}"
 
 
@@ -327,36 +316,39 @@
 
   tasks:
     - name: Remove "{{ subscript_out_file }}"
-      ansible.builtin.shell:
-        cmd: rm -f "{{ subscript_out_file }}"
-      ignore_errors: yes
-      changed_when: false
+      ansible.builtin.file:
+        path: "{{ subscript_out_file }}"
+        state: absent
 
     - name: Run packagemanifest tests
-      include_tasks: logging_subscription_tests.yml
+      ansible.builtin.include_tasks: logging_subscription_tests.yml
       loop: "{{ subscription_list }}"
 
 
-- name: --TODO-- Verify running containers on edpm-compute nodes
-  hosts: localhost #ctlplane_nodes
-  connection: local
+- name: Verify running containers on edpm-compute nodes
+  hosts: ctlplane_nodes
+  become: true
   gather_facts: no
   vars:
+    container_out_file: container_status_logging.log
+    ansible_ssh_private_key_file: /home/alexy/.ssh/osp/id_rsa
     container_list:
-      - openstack-ceilometer-compute
-      - openstack-ceilometer-ipmi
-      - node-exporter     
+      - ceilometer_agent_compute
+      - ceilometer_agent_ipmi
+      - node_exporter     
 
   tasks:
+    - name: Remove "{{ container_out_file }}"
+      ansible.builtin.file:
+        path: "{{ container_out_file }}"
+        state: absent
+
     - name: Verify containers on edpm-compute nodes
-      ansible.builtin.shell:
-        cmd: echo "Verify containers on edpm-compute nodes"
-      ignore_errors: yes
-      changed_when: false
+      ansible.builtin.include_tasks: logging_container_tests.yml
       loop: "{{ container_list }}"
 
 
-- name: --TODO-- Verify existance of files
+- name: TODO Verify existance of files
   hosts: localhost #ctlplane_nodes
   connection: local
   gather_facts: no
@@ -373,7 +365,7 @@
       loop: "{{ file_list }}"
 
 
-- name: --TODO-- Verify journalctl identifiers are reporting
+- name: TODO Verify journalctl identifiers are reporting
   hosts: localhost #ctlplane_nodes
   connection: local
   gather_facts: no
@@ -387,14 +379,14 @@
   tasks:
     - name: Verify journalctl identifiers 
       ansible.builtin.shell:
-        cmd: echo "Identifier checked - {{ item }} "
+        cmd: echo "Identifier checked - {{ item }}"
         # journalctl -t "{{ item }}" --no-pager  >> output.log
       ignore_errors: yes
       changed_when: false
       loop: "{{ identifiers_list }}"
 
 
-- name: --TODO-- Verify Openstack endpoints
+- name: TODO Verify Openstack endpoints
   hosts: localhost
   connection: local
   gather_facts: no

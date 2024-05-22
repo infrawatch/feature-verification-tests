@@ -8,19 +8,18 @@
   changed_when: false
   ignore_errors: yes
 
+- name: Test subscrition does not exist - "{{ item }}"
+  ansible.builtin.set_fact:
+     exists: FAILED
+
 - name: Test subscription  exists - "{{ item }}"
-  set_fact:
+  ansible.builtin.set_fact:
     exists: PASSED
   when: output.rc == 0
 
-- name: Test subscrition does not exist - "{{ item }}"
-  set_fact:
-     exists: FAILED
-  when: output.rc == 1
-
-- name: Push result to "{{ subscribt_out_file }}"
+- name: Push result to "{{ subscript_out_file }}"
   ansible.builtin.shell:
-    echo "{{ nspace }},{{ item }},{{ exists }}" >> "{{ subscript_out_file }}"
+    'echo "{{ nspace }},{{ item }},{{ exists }}" >> "{{ subscript_out_file }}"'
   changed_when: false
 
 

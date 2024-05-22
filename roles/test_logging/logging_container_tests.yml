@@ -1,0 +1,28 @@
+---
+
+- name: Get container status - "{{ ansible_ssh_host }}"
+  become: true
+  ansible.builtin.shell:
+    cmd: |
+      'podman ps -a --format "{{.Names }} {{.Status}}"' | grep "{{ item }}" | awk '{print $2;}'
+  register: container_status
+  changed_when: false
+  ignore_errors: yes
+
+- name: Set status to FAILED:
+  ansible.builtin.set_fact:
+    t_status: FAILED      
+
+- name: Test Container is Up - "{{ item }}"
+  ansible.builtin.set_fact:
+    t_status: PASSED
+  when: container_status.stdout == "Up"
+  ignore_errors: yes
+
+- name: Push result to "{{ node_out_file }}"
+  become: true
+  ansible.builtin.shell:
+    'echo "{{ansible_ssh_host}},{{ item }},{{ t_status }}" >> "{{ container_out_file }}"'
+  changed_when: false
+
+

@@ -8,18 +8,17 @@
   changed_when: false
   ignore_errors: yes
 
+- name: Test credential does not exist "{{ item }}"
+  ansible.builtin.set_fact:
+     exists: FAILED
+
 - name: Test credential exists "{{ item }}"
-  set_fact:
+  ansible.builtin.set_fact:
     exists: PASSED
   when: output.rc == 0
 
-- name: Test credential does not exist "{{ item }}"
-  set_fact:
-     exists: FAILED
-  when: output.rc != 0
-
 - name: Push results to "{{ cred_out_file }}"
   ansible.builtin.shell:
-    echo "credentials,{{ item }},{{ exists }}" >> "{{ cred_out_file }}"
+    'echo "credentials,{{ item }},{{ exists }}" >> "{{ cred_out_file }}"' 
   changed_when: false
 

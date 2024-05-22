@@ -1,6 +1,6 @@
 ---
 
-- name: Get Pod Instance "{{ pod_status_str }} - {{ nspace }}" 
+- name: Get Pod Instance "{{ pod_status_str }} {{ nspace }}" 
   ansible.builtin.shell:
     cmd: |
       oc get pods -n  "{{ nspace }}" | grep "{{ item }}" | grep "{{ pod_status_str }}" | awk '{print $1;}'
@@ -8,24 +8,23 @@
   changed_when: false
   ignore_errors: yes
 
-- name: Describe terminated pod "{{ podinstance.stdout }}"
+- name: Describe terminated pod 
   ansible.builtin.shell:
-    cmd: oc get pod -n "{{ nspace }}" "{{ podinstance.stdout }}"
+    cmd: oc get pod -n "{{ nspace }} {{ podinstance.stdout }}"
   register: output
   changed_when: false
   ignore_errors: yes
 
+- name: Test service does not exist - "{{ item }}"
+  ansible.builtin.set_fact:
+     exists: FAILED
+
 - name: Test service exists - "{{ item }}"
-  set_fact:
+  ansible.builtin.set_fact:
     exists: PASSED
   when: output.rc == 0
 
-- name: Test service does not exist - "{{ item }}"
-  set_fact:
-     exists: FAILED
-  when: output.rc != 0
-
-- name: Push resuls to "{{ pod_out_file }}" 
+- name: Push results to "{{ pod_out_file }}" 
   ansible.builtin.shell:
-    echo "{{ item }},{{ podinstance.stdout }},{{ exists }}" >> "{{ pod_out_file }}"
+    'echo "{{ item }},{{ podinstance.stdout }},{{ exists }}" >> "{{ pod_out_file }}"'
   changed_when: false
