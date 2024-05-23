@@ -19,6 +19,36 @@
       changed_when: false
 
 
+- name: Test containers on ctlplane_nodes
+  hosts: ctlplane_nodes
+  gather_facts: no
+  vars:
+    container_out_file: "container_status_logging_{{ inventory_hostname }}.log"
+    ansible_ssh_private_key_file: /home/alexy/.ssh/osp/id_rsa
+    container_list:
+      - ceilometer_agent_compute
+      - ceilometer_agent_ipmi
+      - node_exporter
+
+  tasks:
+    - name: Remove "{{ container_out_file }}"
+      ansible.builtin.file:
+        path: "{{ container_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Verify containers on edpm-compute nodes
+      ansible.builtin.include_tasks: logging_container_tests.yml
+      loop: "{{ container_list }}"
+
+    - name: Copy output file to hypervisor
+      ansible.builtin.fetch:
+        src: "/root/{{ container_out_file }}"
+        dest: ./
+        flat: true
+      changed_when: false 
+
+
 - name: 'Verify Needed projects exist'
   hosts: localhost
   connection: local
@@ -36,6 +66,7 @@
       ansible.builtin.file:
         path: "{{ proj_out_file }}"
         state: absent
+      changed_when: false  
 
     - name: Verify projects created
       ansible.builtin.include_tasks: logging_proj_tests.yml
@@ -59,6 +90,7 @@
       ansible.builtin.file:
         path: "{{ cred_out_file }}"
         state: absent
+      changed_when: false
 
     - name: Verify credentials created
       ansible.builtin.include_tasks: logging_cred_tests.yml
@@ -88,6 +120,7 @@
       ansible.builtin.file:
         path: "{{ node_out_file }}"
         state: absent
+      changed_when: false
 
     - name: Verify nodes deployed
       ansible.builtin.include_tasks: logging_node_tests.yml
@@ -111,6 +144,7 @@
       ansible.builtin.file:
         path: "{{ pod_out_file }}"
         state: absent
+      changed_when: false
 
     - name: Verify Completed Pods
       include_tasks: logging_pod_tests.yml
@@ -134,6 +168,7 @@
       ansible.builtin.file:
         path: "{{ pod_out_file }}"
         state: absent
+      changed_when: false
 
     - name: Verify Completed Pods
       ansible.builtin.include_tasks: logging_pod_tests.yml
@@ -156,6 +191,7 @@
       ansible.builtin.file:
         path: "{{ pod_out_file }}"
         state: absent
+      changed_when: false
 
     - name: Verify Completed Pods
       ansible.builtin.include_tasks: logging_pod_tests.yml
@@ -178,6 +214,7 @@
       ansible.builtin.file:
         path: "{{ pod_out_file }}"
         state: absent
+      changed_when: false
 
     - name: Verify Completed Pods
       ansible.builtin.include_tasks: logging_pod_tests.yml
@@ -215,7 +252,8 @@
     - name: Remove "{{ pod_out_file }}"
       ansible.builtin.file:
         path: "{{ pod_out_file }}"
-        state: absent 
+        state: absent
+      changed_when: false
 
     - name: Verify Completed Pods
       ansible.builtin.include_tasks: logging_pod_tests.yml
@@ -253,6 +291,7 @@
       ansible.builtin.file:
         path: "{{ services_out_file }}"
         state: absent
+      changed_when: false
 
     - name: Run Services Test in "{{ nspace }}"
       ansible.builtin.include_tasks: logging_services_tests.yml
@@ -277,6 +316,7 @@
       ansible.builtin.file:
         path: "{{ services_out_file }}"
         state: absent
+      changed_when: false 
 
     - name: Run Services test in "{{ nspace }}" 
       ansible.builtin.include_tasks: logging_services_tests.yml
@@ -298,6 +338,7 @@
       ansible.builtin.file:
         path: "{{ manifest_out_file }}"
         state: absent
+      changed_when: false
 
     - name: Run packagemanifest tests
       ansible.builtin.include_tasks: logging_manifest_tests.yml
@@ -319,33 +360,11 @@
       ansible.builtin.file:
         path: "{{ subscript_out_file }}"
         state: absent
+      changed_when: false
 
     - name: Run packagemanifest tests
       ansible.builtin.include_tasks: logging_subscription_tests.yml
       loop: "{{ subscription_list }}"
-
-
-- name: Verify running containers on edpm-compute nodes
-  hosts: ctlplane_nodes
-  become: true
-  gather_facts: no
-  vars:
-    container_out_file: container_status_logging.log
-    ansible_ssh_private_key_file: /home/alexy/.ssh/osp/id_rsa
-    container_list:
-      - ceilometer_agent_compute
-      - ceilometer_agent_ipmi
-      - node_exporter     
-
-  tasks:
-    - name: Remove "{{ container_out_file }}"
-      ansible.builtin.file:
-        path: "{{ container_out_file }}"
-        state: absent
-
-    - name: Verify containers on edpm-compute nodes
-      ansible.builtin.include_tasks: logging_container_tests.yml
-      loop: "{{ container_list }}"
 
 
 - name: TODO Verify existance of files

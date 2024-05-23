@@ -16,11 +16,11 @@
   register: output
   changed_when: false
 
-- name: Test service does not exist - "{{ item }}"
+- name: Set node failed - "{{ item }}"
   ansible.builtin.set_fact:
      exists: FAILED
 
-- name: Test service exists - "{{ item }}"
+- name: If node exists - "{{ item }}"
   ansible.builtin.set_fact:
     exists: PASSED
   when: output.stdout == "running"

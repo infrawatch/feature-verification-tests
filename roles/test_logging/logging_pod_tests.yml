@@ -15,11 +15,11 @@
   changed_when: false
   ignore_errors: yes
 
-- name: Test service does not exist - "{{ item }}"
+- name: Test pod does not exist - "{{ item }}"
   ansible.builtin.set_fact:
      exists: FAILED
 
-- name: Test service exists - "{{ item }}"
+- name: Test pod exists - "{{ item }}"
   ansible.builtin.set_fact:
     exists: PASSED
   when: output.rc == 0
