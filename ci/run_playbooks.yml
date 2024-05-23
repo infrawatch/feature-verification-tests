@@ -63,7 +63,7 @@
             - setup
 
     
-    - name: Setup the env before running the autoscaling functional test
+    - name: Run telemetry autoscaling test
       block:
         - name: Create log dir for autoscaling test
           ansible.builtin.file:
@@ -81,7 +81,7 @@
         - name: Save ansible output to a file
           ansible.builtin.copy:
             content: "{{ output.stdout }}"
-            dest: {{ logs_dir }}/autoscaling/ansible_run.log
+            dest: "{{ logs_dir }}/autoscaling/ansible_run.log"
 
         - name: Move callback_plugin result to log dir
           ansible.builtin.shell:
