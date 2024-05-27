@@ -1,3 +1,4 @@
+import re
 from ansible.plugins.callback import CallbackBase
 import os
 
@@ -22,9 +23,14 @@ class CallbackModule(CallbackBase):
 
     def log_task_result(self, host, result, task_name):
          # only interested in the test tasks, not setup or debug.
-        if "RHELOSP" in task_name:
+        if "RHELOSP" in task_name or "RHOSO" in task_name:
+            if "RHELOSP" in task_name:
+                test_id = re.search(r'RHELOSP\S*', task_name).group(0)
+            elif "RHOSO" in self.current_task:
+                test_id = re.search(r'RHOSO\S*', task_name).group(0)
+
             file_path = os.path.join(self.output_dir, f"test_run_result.out")
-            test_result_message = self.MSG_FORMAT.format(task=task_name, status=result)
+            test_result_message = self.MSG_FORMAT.format(task=test_id, status=result)
             with open(file_path, 'a') as f:
                 f.write(test_result_message)
 
