@@ -23,7 +23,7 @@
         dest: "{{ env_vars_file }}"
 
     # Prepare the env
-    - name: Setup the required resoureces before running the autoscaling functional test
+    - name: Setup the required resources before running the autoscaling functional test
       block:
           # TODO: Look at replacing this with something NOT from install_yamls.
         - community.general.make:
@@ -35,7 +35,7 @@
         - name: Patch the openstackversions to use the master containers for aodh and heat
           ansible.builtin.shell:
             cmd: |
-              oc patch openstackversions openstack-galera-network-isolation --type merge --patch-file ci/patch.yaml
+              oc patch openstackversions openstack-galera-network-isolation --type merge --patch-file ci/patch-openstack-versions.yaml
             chdir: "{{ fvt_dir }}"
           when: "{{ patch_openstackversions | bool }}"
           tags:
