@@ -62,15 +62,8 @@
           tags:
             - setup
 
-    
     - name: Run telemetry autoscaling test
       block:
-        - name: Create log dir for autoscaling test
-          ansible.builtin.file:
-            path: "{{ logs_dir }}/autoscaling"
-            state: directory
-            mode: "0755"
-
         - name: "Run telemetry tests playbook locally on the target host"
           ansible.builtin.shell:
             cmd: |
@@ -81,9 +74,8 @@
         - name: Save ansible output to a file
           ansible.builtin.copy:
             content: "{{ output.stdout }}"
-            dest: "{{ logs_dir }}/autoscaling/ansible_run.log"
+            dest: "{{ logs_dir }}/ansible_run.log"
 
-        - name: Move callback_plugin result to log dir
-          ansible.builtin.shell:
-            cmd: |
-              cp  {{ fvt_dir }}/test_run_result.out {{ logs_dir }}/autoscaling/test_run_result.log
+#    - name: Include report result 
+#      ansible.builtin.include_tasks:
+#        file: report_result.yaml
