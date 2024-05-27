@@ -8,5 +8,5 @@ jobs:
       - uses: actions/checkout@v3
       - run: python3 -m pip install ansible
       - name: Run the test_logger playbook.
-        run: cd ci && rm -rf test_run_result.out && ${HOME}/.local/bin/ansible-playbook -v test_logger.yml && diff -s test_run_result.out test_logger_expected
+        run: cd ci && rm -rf test_run_result.out && ${HOME}/.local/bin/ansible-playbook -v github/test_logger.yml && diff -s test_run_result.out github/test_logger_expected
 
