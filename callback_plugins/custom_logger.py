@@ -22,7 +22,7 @@ class CallbackModule(CallbackBase):
             self.log_summary_results(host)
 
     def log_task_result(self, host, result, task_name):
-         # only interested in the test tasks, not setup or debug.
+        # test_run_result.out only interested in the test tasks, not setup or debug.
         if "RHELOSP" in task_name or "RHOSO" in task_name:
             if "RHELOSP" in task_name:
                 test_id = re.search(r'RHELOSP\S*', task_name).group(0)
