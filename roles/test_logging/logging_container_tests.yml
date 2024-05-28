@@ -18,7 +18,7 @@
   when: container_status.stdout == "Up"
   failed_when: false
 
-- name: Push result to "{{ node_out_file }}"
+- name: Push result to "{{ container_out_file }}"
   ansible.builtin.shell:
     'echo "{{ inventory_hostname }},{{ item }},{{ t_status }}" >> "{{ container_out_file }}"'
   changed_when: false

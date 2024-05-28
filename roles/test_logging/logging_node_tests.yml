@@ -26,8 +26,11 @@
   when: output.stdout == "running"
 
 - name: Push result to "{{ node_out_file }}"
-  ansible.builtin.shell:
-    'echo "{{ item }},{{ output.stdout}},{{ nodefound.stdout }},{{ exists }}" >> "{{ node_out_file }}"'
+  ansible.builtin.lineinfile:
+    path: "{{ node_out_file }}" 
+    line: "{{ item }},{{ output.stdout}},{{ exists }}"
+    state: present
+    create: yes
   changed_when: false
 
 
