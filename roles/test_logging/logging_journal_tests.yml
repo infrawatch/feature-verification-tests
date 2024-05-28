@@ -1,11 +1,12 @@
 ---
 
-- name: Get stats for file
-  ansible.builtin.stat:
-    path: "{{ item }}"
-  register: fstats
+- name: Get journals
+  ansible.builtin.shell:
+    cmd:
+      journalctl -t "{{ item }}" --no-pager | wc -l
+  register: journal_wc
   changed_when: false
-  ignore_errors: yes
+  failed_when: false
 
 - name: Set status "{{ item }}"
   ansible.builtin.set_fact:
@@ -15,15 +16,14 @@
   ansible.builtin.set_fact:
     t_status: PASSED
   when: 
-    - fstats.stat.exists
-    - fstats.stat.pw_name == "root"
-    - fstats.stat.isreg
-    - fstats.stat.size | int >= 300
-  ignore_errors: yes
+    - journal_wc.rc == 0
+    - journal_wc.stdout | int >= 0
+  failed_when: false
 
-- name: Push result to "{{ file_exists_outfile }}"
-  ansible.builtin.shell:
-    'echo "{{ inventory_hostname }},{{ item }},{{ t_status }}" >> "{{ file_exists_outfile }}"'
+- name: Push result to "{{ journal_exists_outfile }}"
+  ansible.builtin.lineinfile:
+    path: "{{ journal_exists_outfile }}"
+    line: "{{ item }},{{ journal_wc.stdout }},{{ t_status }}"
+    state: present
+    create: yes
   changed_when: false
-
-

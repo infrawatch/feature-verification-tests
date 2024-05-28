@@ -428,11 +428,11 @@
       changed_when: false
 
 
-- name: TODO Verify journalctl identifiers are reporting
-  hosts: localhost #ctlplane_nodes
-  connection: local
+- name: Verify journalctl identifiers are reporting
+  hosts: ctlplane_nodes
   gather_facts: no
   vars:
+    journal_exists_outfile: "journal_{{ inventory_hostname }}_results.log"
     identifiers_list:
       - ceilometer_agent_compute
       - nova_compute
@@ -440,11 +440,19 @@
       - node_exporter
 
   tasks:
-    - name: Verify journalctl identifiers 
-      ansible.builtin.shell:
-        cmd: echo "Identifier checked - {{ item }}"
-        # journalctl -t "{{ item }}" --no-pager  >> output.log
-      failed_when: false
+    - name: Remove "{{ journal_exists_outfile }}"
+      ansible.builtin.file:
+        path: "{{ journal_exists_outfile }}"
+        state: absent
       changed_when: false
+
+    - name: Verify journalctl identifiers 
+      ansible.builtin.include_tasks: logging_journal_tests.yml
       loop: "{{ identifiers_list }}"
 
+    - name: Copy output file to hypervisor
+      ansible.builtin.fetch:
+        src: "/root/{{ journal_exists_outfile }}"
+        dest: ./
+        flat: true
+      changed_when: false
