@@ -15,38 +15,8 @@
       ansible.builtin.shell:
         cmd: |
           oc login -u kubeadmin -p "12345678" https://api.crc.testing:6443
-      ignore_errors: true
+      failed_when: false
       changed_when: false
-
-
-- name: Test containers on ctlplane_nodes
-  hosts: ctlplane_nodes
-  gather_facts: no
-  vars:
-    container_out_file: "container_status_logging_{{ inventory_hostname }}.log"
-    ansible_ssh_private_key_file: /home/alexy/.ssh/osp/id_rsa
-    container_list:
-      - ceilometer_agent_compute
-      - ceilometer_agent_ipmi
-      - node_exporter
-
-  tasks:
-    - name: Remove "{{ container_out_file }}"
-      ansible.builtin.file:
-        path: "{{ container_out_file }}"
-        state: absent
-      changed_when: false
-
-    - name: Verify containers on edpm-compute nodes
-      ansible.builtin.include_tasks: logging_container_tests.yml
-      loop: "{{ container_list }}"
-
-    - name: Copy output file to hypervisor
-      ansible.builtin.fetch:
-        src: "/root/{{ container_out_file }}"
-        dest: ./
-        flat: true
-      changed_when: false 
 
 
 - name: 'Verify Needed projects exist'
@@ -367,21 +337,60 @@
       loop: "{{ subscription_list }}"
 
 
-- name: TODO Verify existance of files
-  hosts: localhost #ctlplane_nodes
-  connection: local
+- name: Test containers on ctlplane_nodes
+  hosts: ctlplane_nodes
   gather_facts: no
   vars:
+    container_out_file: "container_status_logging_{{ inventory_hostname }}.log"
+    container_list:
+      - ceilometer_agent_compute
+      - ceilometer_agent_ipmi
+      - node_exporter
+
+  tasks:
+    - name: Remove "{{ container_out_file }}"
+      ansible.builtin.file:
+        path: "{{ container_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Verify containers on edpm-compute nodes
+      ansible.builtin.include_tasks: logging_container_tests.yml
+      loop: "{{ container_list }}"
+
+    - name: Copy output file to hypervisor
+      ansible.builtin.fetch:
+        src: "/root/{{ container_out_file }}"
+        dest: ./
+        flat: true
+      changed_when: false
+
+
+- name: Check for files on ctlplane
+  hosts: ctlplane_nodes
+  gather_facts: no
+  vars:
+    file_exists_outfile: "file_stat_logging_{{ inventory_hostname }}.log"
     file_list:
       - /etc/rsyslog.d/10-telemetry.conf
 
   tasks:
-    - name: Verify File
-      ansible.builtin.shell:
-        cmd: echo "File exists - {{ item }} "
-      ignore_errors: yes
+    - name: Remove "{{ file_exists_outfile }}"
+      ansible.builtin.file:
+        path: "{{ file_exists_outfile }}"
+        state: absent
       changed_when: false
+
+    - name: Check for Files
+      ansible.builtin.include_tasks: logging_file_tests.yml
       loop: "{{ file_list }}"
+
+    - name: Copy output file to hypervisor
+      ansible.builtin.fetch:
+        src: "/root/{{ file_exists_outfile }}"
+        dest: ./
+        flat: true
+      changed_when: false
 
 
 - name: TODO Verify journalctl identifiers are reporting
@@ -400,7 +409,7 @@
       ansible.builtin.shell:
         cmd: echo "Identifier checked - {{ item }}"
         # journalctl -t "{{ item }}" --no-pager  >> output.log
-      ignore_errors: yes
+      failed_when: false
       changed_when: false
       loop: "{{ identifiers_list }}"
 
@@ -434,6 +443,6 @@
         cmd: echo "OSP Endpoints checked - {{ item }} "
         # oc get project openstack
         # kubectl exec openstackclient -- openstack endpoint list -f table  >> output.log
-      ignore_errors: yes
+      failed_when: false
       changed_when: false
       loop: "{{ endpoints_list }}"
