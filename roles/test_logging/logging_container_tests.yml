@@ -6,7 +6,7 @@
       podman ps -a --format "{{ '{{.Names}} {{.Status}}' }}" | grep "{{ item }}" | awk '{print $2;}'
   register: container_status
   changed_when: false
-  ignore_errors: yes
+  failed_when: false
 
 - name: Set status to FAILED
   ansible.builtin.set_fact:
@@ -16,7 +16,7 @@
   ansible.builtin.set_fact:
     t_status: PASSED
   when: container_status.stdout == "Up"
-  ignore_errors: yes
+  failed_when: false
 
 - name: Push result to "{{ node_out_file }}"
   ansible.builtin.shell:

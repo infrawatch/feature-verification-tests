@@ -5,7 +5,7 @@
     path: "{{ item }}"
   register: fstats
   changed_when: false
-  ignore_errors: yes
+  failed_when: false
 
 - name: Set status "{{ item }}"
   ansible.builtin.set_fact:
@@ -19,7 +19,7 @@
     - fstats.stat.pw_name == "root"
     - fstats.stat.isreg
     - fstats.stat.size | int >= 300
-  ignore_errors: yes
+  failed_when: false
 
 - name: Push result to "{{ file_exists_outfile }}"
   ansible.builtin.shell:

@@ -1,6 +1,6 @@
 ---
 
-- name: "Get Pod Instance {{ pod_status_str }} {{ nspace }}" 
+- name: Get Pod Instance "{{ pod_status_str }}" 
   ansible.builtin.shell:
     cmd: |
       oc get pods -n  "{{ nspace }}" | grep "{{ item }}" | grep "{{ pod_status_str }}" | awk '{print $1;}'
@@ -8,7 +8,7 @@
   changed_when: false
   failed_when: false
 
-- name: Describe terminated pod 
+- name: Check terminated pod 
   ansible.builtin.shell:
     cmd: oc get pod -n "{{ nspace }} {{ podinstance.stdout }}"
   register: output
