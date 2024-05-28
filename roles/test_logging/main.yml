@@ -24,7 +24,7 @@
   connection: local
   gather_facts: no
   vars:
-     proj_out_file: project_logging_tests.log
+     proj_out_file: project_logging_test_results.log
      proj_list:
        - openshift-openstack-infra
        - openshift
@@ -43,12 +43,48 @@
       loop: "{{ proj_list }}"
 
 
+- name: Verify Openstack endpoints
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    endpoint_outfile: "endpoint_test_results.log"
+    endpoints_list:
+      - [nova,compute,public]
+      - [nova,compute,internal]
+      - [placement,placement,public]
+      - [placement,placement,internal]
+      - [swift,object-store,public]
+      - [swift,object-store,internal]
+      - [cinderv3,volumev3,public]
+      - [cinderv3,volumev3,internal]
+      - [barbican,key-manager,public]
+      - [barbican,key-manager,internal]
+      - [keystone,identity,public]
+      - [keystone,identity,internal]
+      - [glance,image,public]
+      - [glance,image,internal]
+      - [neutron,network,public]
+      - [neutron,network,internal]
+
+  tasks:
+    - name: Remove "{{ endpoint_outfile }}"
+      ansible.builtin.file:
+        path: "{{ endpoint_outfile }}"
+        state: absent
+      changed_when: false
+
+    - name: Verfiy Endpoints
+      ansible.builtin.include_tasks: logging_endpoint_tests.yml
+      loop: "{{ endpoints_list }}"
+
+
 - name: Verify Logging credentials exist
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
-    cred_out_file: credentials_logging_tests.log
+    cred_out_file: credentials_logging_test_results.log
     cred_list:
       - alertingrules.loki.grafana.com
       - lokistacks.loki.grafana.com
@@ -72,7 +108,7 @@
   connection: local
   gather_facts: no
   vars:
-    node_out_file: nodes_osp_tests.log
+    node_out_file: nodes_osp_test_results.log
     node_list:
       - undercloud
       - edpm-compute-0
@@ -104,7 +140,7 @@
   vars:
     pod_status_str: "Running"      
     nspace: openstack-operators
-    pod_out_file: pods_running_openstack-operators.log
+    pod_out_file: pods_running_openstack-operators_results.log
     pod_list:
       - telemetry-operator-controller-manager
       - dataplane-operator-controller-manager
@@ -121,7 +157,6 @@
       loop: "{{ pod_list }}"
 
 
-
 - name: Verify logging pods are running in openstack
   hosts: localhost
   connection: local
@@ -129,7 +164,7 @@
   vars:
     pod_status_str: "Running"
     nspace: openstack
-    pod_out_file: pods_running_openstack.log
+    pod_out_file: pods_running_openstack_results.log
     pod_list:
       - openstackclient
 
@@ -152,7 +187,7 @@
   vars:
     pod_status_str: "Running"
     nspace: openshift-operators-redhat
-    pod_out_file: pods_running_openshift-operators-redhat.log
+    pod_out_file: pods_running_openshift-operators-redhat_results.log
     pod_list:
       - loki-operator-controller-manager
 
@@ -175,7 +210,7 @@
   vars:
     pod_status_str: "Running"
     nspace: minio-dev
-    pod_out_file: pods_running_minio.log
+    pod_out_file: pods_running_minio_results.log
     pod_list:
       - minio
 
@@ -196,7 +231,7 @@
   connection: local
   gather_facts: no
   vars:
-    pod_out_file: pods_completed_openstack.log
+    pod_out_file: pods_completed_openstack_results.log
     nspace: openstack
     pod_status_str: "Completed"
     pod_list:
@@ -235,7 +270,7 @@
   connection: local
   gather_facts: no
   vars:
-    services_out_file: services_logging_openshift-logging.log
+    services_out_file: services_openshift-logging_results.log
     nspace: openshift-logging
     services_list:
       - cluster-logging-operator-metrics
@@ -273,7 +308,7 @@
   connection: local
   gather_facts: no
   vars:
-    services_out_file: services_logging_openstack.log
+    services_out_file: services_openstack_results.log
     nspace: openstack
     services_list:
       - nova-internal
@@ -298,7 +333,7 @@
   connection: local
   gather_facts: no
   vars:
-    manifest_out_file: manifest_logging_tests.log
+    manifest_out_file: manifest_tests_results.log
     packagemanifests_list:
       - "loki-operator 2"
       - "loki-helm-operator 1"
@@ -321,7 +356,7 @@
   gather_facts: no
   vars:
     nspace: openshift-operators-redhat 
-    subscript_out_file: subscript_logging_tests.log 
+    subscript_out_file: subscript_tests_results.log 
     subscription_list:
       - loki-operator
 
@@ -341,7 +376,7 @@
   hosts: ctlplane_nodes
   gather_facts: no
   vars:
-    container_out_file: "container_status_logging_{{ inventory_hostname }}.log"
+    container_out_file: "container_status_{{ inventory_hostname }}_results.log"
     container_list:
       - ceilometer_agent_compute
       - ceilometer_agent_ipmi
@@ -370,7 +405,7 @@
   hosts: ctlplane_nodes
   gather_facts: no
   vars:
-    file_exists_outfile: "file_stat_logging_{{ inventory_hostname }}.log"
+    file_exists_outfile: "file_stat_{{ inventory_hostname }}_results.log"
     file_list:
       - /etc/rsyslog.d/10-telemetry.conf
 
@@ -413,36 +448,3 @@
       changed_when: false
       loop: "{{ identifiers_list }}"
 
-
-- name: TODO Verify Openstack endpoints
-  hosts: localhost
-  connection: local
-  gather_facts: no
-  vars:
-    endpoints_list:
-      - nova:compute:public
-      - nova:compute:internal
-      - placement:placement:public
-      - placement:placement:internal
-      - swift:object-store:public
-      - swift:object-store:internal
-      - cinderv3:volumev3:public
-      - cinderv3:volumev3:internal
-      - barbican:key-manager:public
-      - barbican:key-manager:internal
-      - keystone:identity:public
-      - keystone:identity:internal
-      - glance:image:public
-      - glance:image:internal
-      - neutron:network:public
-      - neutron:network:internal
-
-  tasks:      
-    - name:      
-      ansible.builtin.shell:
-        cmd: echo "OSP Endpoints checked - {{ item }} "
-        # oc get project openstack
-        # kubectl exec openstackclient -- openstack endpoint list -f table  >> output.log
-      failed_when: false
-      changed_when: false
-      loop: "{{ endpoints_list }}"
