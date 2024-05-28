@@ -2,6 +2,7 @@ from __future__ import (absolute_import, division, print_function)
 #__metaclass__ = type
 
 import os
+import re
 
 from ansible.plugins.callback import CallbackBase
 
@@ -46,14 +47,19 @@ class CallbackModule(CallbackBase):
 
     def log(self, host, category):
          # only interested in the test tasks, not setup or debug
-         if self.current_task.startswith("RHELOSP"):
+         if "RHELOSP" in self.current_task or "RHOSO" in self.current_task:
 
              if category == "failed":
                 self.failed +=1
              if category == "passed":
                  self.passed +=1
 
-             test_result_message = self.MSG_FORMAT.format(task=self.current_task, status=category)
+             if "RHELOSP" in self.current_task:
+                 test_id = re.search(r'RHELOSP\S*', self.current_task).group(0)
+             elif "RHOSO" in self.current_task:
+                 test_id = re.search(r'RHOSO\S*', self.current_task).group(0)
+
+             test_result_message = self.MSG_FORMAT.format(task=test_id, status=category)
 
              with open(self.path, 'a') as fd:
                  fd.write(test_result_message)
