@@ -1,9 +1,28 @@
-import re
-from ansible.plugins.callback import CallbackBase
+from __future__ import (absolute_import, division, print_function)
+#__metaclass__ = type
+
 import os
+import re
+
+from ansible.plugins.callback import CallbackBase
+
+DOCUMENTATION = '''
+    callback: log_to_file
+    type: notification
+    short_description: output logs to a file
+    description:
+    - This callback function creates two log files for each host.
+        - The first log file records the result (pass/fail) for each task executed on the host.
+        - The second log file contains a summary of all tasks executed on the host, including their results.
+    - Log file names:
+        - test_run_result.out
+        - summary_results.log
+'''
 
 class CallbackModule(CallbackBase):
-
+    """
+    logs playbook results, per host, in /var/log/ansible/hosts
+    """
     CALLBACK_VERSION = 2.0
     CALLBACK_TYPE = 'notification'
     CALLBACK_NAME = 'log_to_file'
@@ -44,7 +63,7 @@ class CallbackModule(CallbackBase):
         self.results[host][result] += 1
 
     def log_summary_results(self, host):
-        file_path = os.path.join(self.output_dir, f"{host}_results.log")
+        file_path = os.path.join(self.output_dir, f"summary_results.log")
         with open(file_path, 'w') as f:
             f.write(f"Host: {host}\n")
             f.write(f"Tasks Succeeded: {self.results[host]['passed']}\n")
