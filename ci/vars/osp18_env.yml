@@ -1,3 +1,4 @@
+---
 openstack_cmd: "oc rsh openstackclient openstack"
 metrics_backend: "prometheus"
 stack_image: "cirros"
