@@ -79,7 +79,7 @@
   register: result
   failed_when: result.rc >= 1
 
-- name:RHOSO-12652  Verify that the alarms were created for the stack
+- name: RHOSO-12652 Verify that the alarms were created for the stack
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list
