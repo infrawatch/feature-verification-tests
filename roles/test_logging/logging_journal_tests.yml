@@ -3,7 +3,8 @@
 - name: Get journals
   ansible.builtin.shell:
     cmd:
-      journalctl -t "{{ item }}" --no-pager | wc -l
+      tstamp=$(date -d '30 minute ago' "+%Y-%m-%d %H:%M:%S") 
+      journalctl -t "{{ item }}" --no-pager -S "${tstamp}" | wc -l
   register: journal_wc
   changed_when: false
   failed_when: false
@@ -16,8 +17,7 @@
   ansible.builtin.set_fact:
     t_status: PASSED
   when: 
-    - journal_wc.rc == 0
-    - journal_wc.stdout | int >= 0
+    - journal_wc.stdout | int > 1
   failed_when: false
 
 - name: Push result to "{{ journal_exists_outfile }}"

@@ -22,7 +22,9 @@
 - name: Test pod exists - "{{ item }}"
   ansible.builtin.set_fact:
     exists: PASSED
-  when: output.rc == 0
+  when: 
+    - output.rc == 0
+    - podinstance.stdout != ""
 
 - name: Push results to "{{ pod_out_file }}" 
   ansible.builtin.shell:

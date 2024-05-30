@@ -8,7 +8,7 @@
   changed_when: false
   ignore_errors: yes
 
-- name: "Set test to FAILED service - {{ item }}"
+- name: "Set to failed service - {{ item }}"
   ansible.builtin.set_fact:
      exists: FAILED
 

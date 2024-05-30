@@ -19,12 +19,12 @@
       changed_when: false
 
 
-- name: 'Verify Needed projects exist'
+- name: 'Verify projects exist'
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
-     proj_out_file: project_logging_test_results.log
+     proj_out_file: verify_projects_exist_lresults.log
      proj_list:
        - openshift-openstack-infra
        - openshift
@@ -48,7 +48,7 @@
   connection: local
   gather_facts: no
   vars:
-    endpoint_outfile: "endpoint_test_results.log"
+    endpoint_outfile: "verify_openstack_endpoint_lresults.log"
     endpoints_list:
       - [nova,compute,public]
       - [nova,compute,internal]
@@ -79,12 +79,12 @@
       loop: "{{ endpoints_list }}"
 
 
-- name: Verify Logging credentials exist
+- name: Verify credentials exist
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
-    cred_out_file: credentials_logging_test_results.log
+    cred_out_file: verify_credentials_exist_lresults.log
     cred_list:
       - alertingrules.loki.grafana.com
       - lokistacks.loki.grafana.com
@@ -103,12 +103,12 @@
       loop: "{{ cred_list }}"
 
 
-- name: Verify OSP nodes are running
+- name: Verify OSP nodes running
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
-    node_out_file: nodes_osp_test_results.log
+    node_out_file: verify_osp_nodes_running_lresults.log
     node_list:
       - undercloud
       - edpm-compute-0
@@ -133,14 +133,14 @@
       loop: "{{ node_list }}"
 
 
-- name: Verify logging pods are running in openstack-operators
+- name: Verify openstack-operator pods running
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
     pod_status_str: "Running"      
     nspace: openstack-operators
-    pod_out_file: pods_running_openstack-operators_results.log
+    pod_out_file: verify_openstack-operator_pods_running_lresults.log
     pod_list:
       - telemetry-operator-controller-manager
       - dataplane-operator-controller-manager
@@ -157,14 +157,14 @@
       loop: "{{ pod_list }}"
 
 
-- name: Verify logging pods are running in openstack
+- name: Verify openstack pods running
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
     pod_status_str: "Running"
     nspace: openstack
-    pod_out_file: pods_running_openstack_results.log
+    pod_out_file: verify_openstack_pods_running_lresults.log
     pod_list:
       - openstackclient
 
@@ -175,19 +175,19 @@
         state: absent
       changed_when: false
 
-    - name: Verify Completed Pods
+    - name: Verify Running Pods
       ansible.builtin.include_tasks: logging_pod_tests.yml
       loop: "{{ pod_list }}"
 
 
-- name: Verify logging pods are running in openshift-operators-redhat
+- name: Verify openshift-operators-redhat pods running
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
     pod_status_str: "Running"
     nspace: openshift-operators-redhat
-    pod_out_file: pods_running_openshift-operators-redhat_results.log
+    pod_out_file: verify_openshift-operators-redhat_pods_running_lresults.log
     pod_list:
       - loki-operator-controller-manager
 
@@ -198,19 +198,53 @@
         state: absent
       changed_when: false
 
-    - name: Verify Completed Pods
+    - name: Verify Pods running
       ansible.builtin.include_tasks: logging_pod_tests.yml
       loop: "{{ pod_list }}"
 
 
-- name: Verify logging pods are running in minio-dev
+- name: Verify openshift-logging pods running
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    pod_status_str: "Running"
+    nspace: openshift-logging
+    pod_out_file: verify_openshift-logging_pods_running_lresults.log
+    pod_list:
+      - cluster-logging-operator
+      - collector
+      - logging-loki-compactor
+      - logging-loki-distributor
+      - logging-loki-gateway
+      - logging-loki-index-gateway
+      - logging-loki-ingester
+      - logging-loki-querier
+      - logging-loki-query-frontend
+      - logging-view-plugin
+
+  ### see JIRA LOG-5431 if pods not running
+  tasks:
+    - name: Remove "{{ pod_out_file }}"
+      ansible.builtin.file:
+        path: "{{ pod_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Verify Pods running
+      ansible.builtin.include_tasks: logging_pod_tests.yml
+      loop: "{{ pod_list }}"
+
+
+
+- name: Verify minio-dev pods running
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
     pod_status_str: "Running"
     nspace: minio-dev
-    pod_out_file: pods_running_minio_results.log
+    pod_out_file: verify_minio-dev_pods_running_lresults.log
     pod_list:
       - minio
 
@@ -221,17 +255,17 @@
         state: absent
       changed_when: false
 
-    - name: Verify Completed Pods
+    - name: Verify running pods
       ansible.builtin.include_tasks: logging_pod_tests.yml
       loop: "{{ pod_list }}"
 
 
-- name: Verify logging pods for EDPM completed
+- name: Verify openstack pods completed
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
-    pod_out_file: pods_completed_openstack_results.log
+    pod_out_file: verify_openstack_pods_completed_lresults.log
     nspace: openstack
     pod_status_str: "Completed"
     pod_list:
@@ -265,12 +299,12 @@
       loop: "{{ pod_list }}"
 
 
-- name: Verify logging services are running in openshift-logging
+- name: Verify openshift-logging services running
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
-    services_out_file: services_openshift-logging_results.log
+    services_out_file: verify_openshift-logging_services_running_lresults.log
     nspace: openshift-logging
     services_list:
       - cluster-logging-operator-metrics
@@ -303,12 +337,12 @@
       loop: "{{ services_list }}"
 
 
-- name: Verify logging services are running in openshack
+- name: Verify openstack services running
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
-    services_out_file: services_openstack_results.log
+    services_out_file: verify_openstack_services_running_lresults.log
     nspace: openstack
     services_list:
       - nova-internal
@@ -333,7 +367,7 @@
   connection: local
   gather_facts: no
   vars:
-    manifest_out_file: manifest_tests_results.log
+    manifest_out_file: verify_packagemanifests_exist_lresults.log
     packagemanifests_list:
       - "loki-operator 2"
       - "loki-helm-operator 1"
@@ -350,13 +384,13 @@
       loop: "{{ packagemanifests_list }}"
 
 
-- name: Verify subscriptions exist in openshift-operators-redhat
+- name: Verify openshift-operators-redhat subscriptions exist
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
     nspace: openshift-operators-redhat 
-    subscript_out_file: subscript_tests_results.log 
+    subscript_out_file: verify_openshift-operators-redhat_subscriptions_lresults.log 
     subscription_list:
       - loki-operator
 
@@ -372,11 +406,11 @@
       loop: "{{ subscription_list }}"
 
 
-- name: Test containers on ctlplane_nodes
+- name: Verify ctlplane node containers
   hosts: ctlplane_nodes
   gather_facts: no
   vars:
-    container_out_file: "container_status_{{ inventory_hostname }}_results.log"
+    container_out_file: "verify_ctlplane_node_containers_{{ inventory_hostname }}_lresults.log"
     container_list:
       - ceilometer_agent_compute
       - ceilometer_agent_ipmi
@@ -401,11 +435,11 @@
       changed_when: false
 
 
-- name: Check for files on ctlplane
+- name: Verify ctlplane node files
   hosts: ctlplane_nodes
   gather_facts: no
   vars:
-    file_exists_outfile: "file_stat_{{ inventory_hostname }}_results.log"
+    file_exists_outfile: "verify_ctlplane_node_files_{{ inventory_hostname }}_lresults.log"
     file_list:
       - /etc/rsyslog.d/10-telemetry.conf
 
@@ -428,16 +462,14 @@
       changed_when: false
 
 
-- name: Verify journalctl identifiers are reporting
+- name: Verify journalctl identifiers
   hosts: ctlplane_nodes
   gather_facts: no
   vars:
-    journal_exists_outfile: "journal_{{ inventory_hostname }}_results.log"
+    journal_exists_outfile: "verify_journalctl_identifiers_{{ inventory_hostname }}_lresults.log"
     identifiers_list:
       - ceilometer_agent_compute
       - nova_compute
-      - ceilometer_agent_impi
-      - node_exporter
 
   tasks:
     - name: Remove "{{ journal_exists_outfile }}"
