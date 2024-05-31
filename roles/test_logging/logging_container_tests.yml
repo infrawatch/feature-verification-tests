@@ -21,6 +21,6 @@
 - name: Push result to "{{ container_out_file }}"
   ansible.builtin.shell:
     'echo "{{ inventory_hostname }},{{ item }},{{ t_status }}" >> "{{ container_out_file }}"'
-  changed_when: false
+  changed_when: t_status  == "FAILED"
 
 

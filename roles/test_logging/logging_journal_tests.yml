@@ -26,4 +26,4 @@
     line: "{{ item }},{{ journal_wc.stdout }},{{ t_status }}"
     state: present
     create: yes
-  changed_when: false
+  changed_when: t_status == "FAILED"

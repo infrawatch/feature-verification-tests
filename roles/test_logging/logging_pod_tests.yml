@@ -29,4 +29,4 @@
 - name: Push results to "{{ pod_out_file }}" 
   ansible.builtin.shell:
     'echo "{{ item }},{{ podinstance.stdout }},{{ exists }}" >> "{{ pod_out_file }}"'
-  changed_when: false
+  changed_when: exists == "FAILED"

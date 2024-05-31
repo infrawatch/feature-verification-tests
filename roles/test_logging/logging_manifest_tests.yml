@@ -33,6 +33,4 @@
 - name: Push result to "{{ manifest_out_file }}"
   ansible.builtin.shell:
     'echo "{{ pack_name.stdout }},{{ num_found.stdout }},{{ exists }}" >> "{{ manifest_out_file }}"'
-  changed_when: false
-
-
+  changed_when: exists == "FAILED"

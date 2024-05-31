@@ -20,8 +20,4 @@
 - name: Push results to "{{ proj_out_file }}"
   ansible.builtin.shell:
     'echo "project,{{ item }},{{ exists }}" >> "{{ proj_out_file }}"'
-  changed_when: false
-
-
-
-
+  changed_when: exists == "FAILED"

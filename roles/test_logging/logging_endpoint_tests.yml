@@ -21,4 +21,4 @@
 - name: Push result to "{{ endpoint_outfile }}"
   ansible.builtin.shell:
           'echo "{{ inventory_hostname }},{{ item[0] }}:{{ item[1] }}:{{ item[2] }},{{ t_status }}" >> "{{ endpoint_outfile }}"'
-  changed_when: false
+  changed_when: exists == "FAILED"

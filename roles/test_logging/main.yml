@@ -488,3 +488,13 @@
         dest: ./
         flat: true
       changed_when: false
+
+
+- name: Validate test results
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: Review test output results
+      ansible.builtin.include_tasks: logging_review_results.yml

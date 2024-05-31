@@ -20,4 +20,4 @@
 - name: "Push service check results to {{ services_out_file }}"
   ansible.builtin.shell:
     'echo "Service,{{ item }},{{ exists }}" >> "{{ services_out_file }}"'
-  changed_when: false
+  changed_when: exists == "FAILED"
