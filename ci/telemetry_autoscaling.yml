@@ -2,28 +2,15 @@
 - name: Telemetry autoscaling tests
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
-  vars:
-    fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
-    ci_framework_logs: "{{ ansible_env.HOME }}/ci-framework-data/logs"
-    openstack_cmd: "oc rsh openstackclient openstack"
-    metrics_backend: "prometheus"
-    stack_image: "cirros"
-    stack_flavor: "m1.small"
-    stack_network: "private"
-    stack_external_network: "public"
-    stack_name: "vnf"
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+    - vars/osp18_env.yml
   tasks:
     - name: Run the autoscaling test
       block:
-        - name: Create log dir for autoscaling test
-          ansible.builtin.file:
-            path: "{{ ci_framework_logs }}/functional-tests/autoscaling"
-            state: directory
-            mode: "0755"
-
          # NOTE: the tags are for testing/development, eventually, the role will just be imported, and main.yml will run through the tasks
         - import_role:
             name: telemetry_autoscaling
