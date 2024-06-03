@@ -22,7 +22,7 @@
     #stack_keyname:
     stack_network: private
     stack_external_network: public
-- name: Create the stack
+- name: RHOSO-12648 Create the stack
   ansible.builtin.shell: |
     #source ~/overcloudrc;
     {{ openstack_cmd }} stack create \
