@@ -45,7 +45,7 @@ class CallbackModule(CallbackBase):
         if "RHELOSP" in task_name or "RHOSO" in task_name:
             if "RHELOSP" in task_name:
                 test_id = re.search(r'RHELOSP\S*', task_name).group(0)
-            elif "RHOSO" in self.current_task:
+            elif "RHOSO" in task_name:
                 test_id = re.search(r'RHOSO\S*', task_name).group(0)
 
             file_path = os.path.join(self.output_dir, f"test_run_result.out")
