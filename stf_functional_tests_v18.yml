@@ -1,8 +1,0 @@
----
-- name: "Logging Functional tests"
-  hosts: local
-  ignore_errors: true
-  tasks:
-    - name: "Run logging Tests"
-      ansible.builtin.import_role:
-        name: test_logging
