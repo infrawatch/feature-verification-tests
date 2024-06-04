@@ -1,0 +1,5 @@
+---
+# temp: skip os-net-setup
+post_deploy_run_logging_functional_test:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_playbooks_logging.yml"
+  type: playbook
