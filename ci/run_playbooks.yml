@@ -5,15 +5,21 @@
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
-  vars:
-    fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
-    ci_framework_logs: "{{ ansible_env.HOME }}/ci-framework-data/logs"
+  vars_files:
+    - vars/common.yml
   tasks:
     - name: "Create log dir"
       ansible.builtin.file:
-        path: "{{ ci_framework_logs }}/functional-tests"
+        path: "{{ logs_dir }}"
         state: directory
         mode: "0755"
+      
+    - name: "Set dynamic KUBECONFIG and PATH vars"
+      copy:
+        content: |
+          cifmw_openshift_kubeconfig: "{{ cifmw_openshift_kubeconfig }}"
+          cifmw_path: "{{ cifmw_path }}"
+        dest: "{{ env_vars_file }}"
 
     # Prepare the env
     - name: Setup the env before running the autoscaling functional test
@@ -56,18 +62,20 @@
           tags:
             - setup
 
-    - name: "Run a playbook locally on the target host"
-      ansible.builtin.shell:
-        cmd: |
-          ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v -e "cifmw_openshift_kubeconfig={{ cifmw_openshift_kubeconfig }}" -e "cifmw_path={{ cifmw_path }}" ci/telemetry_autoscaling.yml
-        chdir: "{{ fvt_dir }}"
-      register: output
+    - name: Run telemetry autoscaling test
+      block:
+        - name: "Run telemetry tests playbook locally on the target host"
+          ansible.builtin.shell:
+            cmd: |
+              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}" ci/telemetry_autoscaling.yml
+            chdir: "{{ fvt_dir }}"
+          register: output
 
-    - name: Print output result
-      ansible.builtin.debug:
-        var: output
+        - name: Save ansible output to a file
+          ansible.builtin.copy:
+            content: "{{ output.stdout }}"
+            dest: "{{ logs_dir }}/ansible_run.log"
 
-    - name: Move callback_plugin result to log dir
-      ansible.builtin.shell:
-        cmd: |
-          cp  {{ fvt_dir }}/test_run_result.out {{ ci_framework_logs }}/functional-tests/test_run_result.log
+#    - name: Include report result 
+#      ansible.builtin.include_tasks:
+#        file: report_result.yaml
