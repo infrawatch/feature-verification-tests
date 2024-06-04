@@ -49,4 +49,4 @@
     - name: Determine success or failure based on the number of failed tasks
       ansible.builtin.fail:
         msg: "The log file(s) contain failed task."
-      when: tasks_failed.stdout_lines | length > 0
+      when: tasks_failed.stdout_lines | length > 0 or tasks_failed.rc != 0
