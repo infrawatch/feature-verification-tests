@@ -144,6 +144,23 @@
     common_pod_status_str: "Completed"
     common_pod_list:
       - logging-edpm-deployment-openstack-edpm-ipam
+      - bootstrap-edpm-deployment-logging
+      - configure-network-edpm-deployment-logging
+      - configure-os-edpm-deployment-logging
+      - download-cache-edpm-deployment-logging
+      - install-certs-edpm-deployment-logging
+      - install-os-edpm-deployment-logging
+      - libvirt-edpm-deployment-logging
+      - logging-edpm-deployment-logging-openstack-edpm
+      - neutron-metadata-edpm-deployment-logging
+      - nova-custom-edpm-deployment
+      - ovn-edpm-deployment-logging
+      - reboot-os-edpm-deployment-logging
+      - repo-setup-edpm-deployment-logging
+      - run-os-edpm-deployment-logging
+      - ssh-known-hosts-edpm-deployment-logging
+      - telemetry-edpm-deployment-logging
+      - validate-network-edpm-deployment-logging
   tasks:
     - name: "Run pods completed tests"
       ansible.builtin.import_role:
