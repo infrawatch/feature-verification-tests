@@ -76,6 +76,21 @@
     irrelevant-files: *irrelevant_files
 
 - job:
+    name: functional-logging-tests-osp18
+    parent: telemetry-operator-multinode-logging
+    description: |
+      Run the logging functional test on osp18+patched version
+    vars:
+      cifmw_extras:
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-logging.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-logging-test.yml"
+    roles:
+      - zuul: github.com/openstack-k8s-operators/ci-framework
+    required-projects: *required_projects
+    irrelevant-files: *irrelevant_files
+
+- job:
     name: feature-verification-tests-noop
     parent: noop
     description: |
