@@ -53,14 +53,14 @@ class CallbackModule(CallbackBase):
             with open(file_path, 'a') as f:
                 f.write(test_result_message)
 
-        # Gather the result data to be used in the summary log.
-        if host not in self.results:
-            self.results[host] = {'passed': 0, 'failed': 0, 'skipped': 0, 'failed_task_names':[], 'ok_task_names':[] }
-        if result == 'failed':
-            self.results[host]['failed_task_names'].append(task_name)
-        elif result == 'passed':
-            self.results[host]['ok_task_names'].append(task_name)
-        self.results[host][result] += 1
+            # Gather the result data to be used in the summary log.
+            if host not in self.results:
+                self.results[host] = {'passed': 0, 'failed': 0, 'skipped': 0, 'failed_task_names':[], 'ok_task_names':[] }
+            if result == 'failed':
+                self.results[host]['failed_task_names'].append(task_name)
+            elif result == 'passed':
+                self.results[host]['ok_task_names'].append(task_name)
+            self.results[host][result] += 1
 
     def log_summary_results(self, host):
         file_path = os.path.join(self.output_dir, f"summary_results.log")
