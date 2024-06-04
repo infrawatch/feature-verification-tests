@@ -1,8 +1,14 @@
 ---
-- name: "Logging Functional tests"
-  hosts: local
-  ignore_errors: true
+- name: Telemetry Logging tests
+  hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
+  gather_facts: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+    - vars/osp18_env.yml
   tasks:
     - name: "Run logging Tests"
       ansible.builtin.import_role:
-        name: test_logging
+        name: telemetry_logging
