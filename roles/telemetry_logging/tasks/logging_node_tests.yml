@@ -1,0 +1,34 @@
+---
+
+- name: Get running node
+  become: true
+  ansible.builtin.shell:
+    cmd: |
+      virsh list --state-running | grep "{{ item }}" | awk '{print $2;}'
+  register: nodefound
+  changed_when: false
+
+- name: Get node status
+  become: true
+  ansible.builtin.shell:
+    cmd: |
+      virsh list --state-running | grep "{{ item }}" | awk '{print $3;}'
+  register: output
+  changed_when: false
+
+- name: Set node failed - "{{ item }}"
+  ansible.builtin.set_fact:
+     exists: FAILED
+
+- name: If node exists - "{{ item }}"
+  ansible.builtin.set_fact:
+    exists: PASSED
+  when: output.stdout == "running"
+
+- name: Push result to "{{ node_out_file }}"
+  ansible.builtin.lineinfile:
+    path: "{{ node_out_file }}" 
+    line: "{{ item }},{{ output.stdout}},{{ exists }}"
+    state: present
+    create: yes
+  changed_when: exists == "FAILED"

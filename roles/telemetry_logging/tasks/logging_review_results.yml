@@ -1,0 +1,34 @@
+---
+
+- name: Get number of total tests
+  ansible.builtin.shell:
+    cmd: |
+      find . -iname "*_lresults.log" | xargs grep 'FAILED\|PASSED' | wc -l
+  register: numtests
+  changed_when: false
+
+- name: Get number of failed tests
+  ansible.builtin.shell:
+    cmd: |
+      find . -iname "*_lresults.log" | xargs  grep FAILED | wc -l
+  register: numfailures  
+  changed_when: false
+  failed_when: false
+
+- name: Set default status 
+  ansible.builtin.set_fact:
+    t_status: FAILED      
+
+- name: Set status to PASSED
+  ansible.builtin.set_fact:
+    t_status: PASSED
+  when: 
+    - numtests.stdout | int  >= numfailures.stdout | int
+    - numtests.stdout | int  >= 1
+    - numfailures.stdout | int == 0
+  changed_when: false
+
+- name: Fail job when tests failed
+  fail:
+    msg: Logging job has {{ numfailures.stdout }} failures out of {{ numtests.stdout}} tests
+  when: t_status == "FAILED"
