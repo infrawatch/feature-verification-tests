@@ -1,5 +1,5 @@
 ---
 fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
 logs_dir: "{{ ansible_env.HOME }}/ci-framework-data/logs/functional-tests"
-vars_dir: "{{ fvt_dir }}/ci/vars"
+vars_dir: "{{ ansible_env.HOME }}/feature-verification-tests/ci/vars"
 env_vars_file: "/tmp/env_vars.yml"
