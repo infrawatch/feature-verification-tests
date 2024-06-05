@@ -100,7 +100,7 @@
     {{ openstack_cmd }} stack resource list $STACK_ID |grep -i cpu_alarm_high | awk '{print $4}'
   register: physical_resource_id_high
 
-- name: RHOSO-12563 Verify physical_resource_id match the alarm id for cpu_alarm_low
+- name: RHOSO-12653 Verify physical_resource_id match the alarm id for cpu_alarm_low
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list |grep -i cpu_alarm_low | awk '{print $2}'

@@ -17,7 +17,7 @@
   register: result
   failed_when: result.rc >= 1
 
-- name: RHOSO-12656 Verify that the archive policy was created
+- name: Verify that the archive policy was created
   when: metrics_backend == "gnocchi"
   ansible.builtin.shell: |
     # source ~/overcloudrc;
