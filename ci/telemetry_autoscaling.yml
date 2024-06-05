@@ -5,8 +5,6 @@
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
-  vars_files:
-    - vars/common.yml
   tasks:
     - name: "Run Telemetry Autoscaling tests"
       ansible.builtin.import_role:

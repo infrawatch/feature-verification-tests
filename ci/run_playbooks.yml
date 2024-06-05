@@ -19,6 +19,7 @@
         content: |
           cifmw_openshift_kubeconfig: "{{ cifmw_openshift_kubeconfig }}"
           cifmw_path: "{{ cifmw_path }}"
+          vars_dir: "{{ fvt_dir }}/ci/vars"
         dest: "{{ env_vars_file }}"
 
     # Prepare the env
