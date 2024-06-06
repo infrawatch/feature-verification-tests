@@ -7,8 +7,8 @@
     APATH: "{{ lookup('env', 'PATH') }}"
     AHOME: "{{ lookup('env', 'HOME') }}"
 
-  environment:
-    PATH: "{{ APATH }}:{{ AHOME }}/.local/bin/:/usr/local/bin/"
+  #environment:
+  #  PATH: "{{ APATH }}:{{ AHOME }}/.local/bin/:/usr/local/bin/"
 
   tasks:
     - name: "Log into OCP"
