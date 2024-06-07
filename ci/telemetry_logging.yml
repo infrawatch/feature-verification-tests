@@ -21,7 +21,7 @@
 
       rescue:
         - debug:
-            msg: "An error occurred while running the telemetry_autoscaling role"
+            msg: "An error occurred while running the telemetry_logging role"
 
 
     - name: Revert the version update
