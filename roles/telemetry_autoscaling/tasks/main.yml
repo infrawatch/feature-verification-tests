@@ -30,7 +30,7 @@
     file: test_autoscaling.yml
   tags: test
 
-- name: Run the autoscaling tests
+- name: Run the cleanup task
   ansible.builtin.include_tasks: 
     file: post_teardown.yml
   tags: cleanup
