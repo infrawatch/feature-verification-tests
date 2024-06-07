@@ -12,7 +12,7 @@
       oc rsh openstackclient openstack stack delete {{ stack_name }}
   when: output.rc == 0
 
-- name: Check whether a stack already exists with the same name
+- name: Wait until the stack is deleted
   ansible.builtin.shell:
     cmd: oc rsh openstackclient openstack stack list | grep {{ stack_name }}
   register: output
