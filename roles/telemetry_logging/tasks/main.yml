@@ -2,10 +2,10 @@
   hosts: localhost
   connection: local
   gather_facts: false
-  vars:
-    ansible_user: "{{ lookup('env', 'USER') }}"      
-    APATH: "{{ lookup('env', 'PATH') }}"
-    AHOME: "{{ lookup('env', 'HOME') }}"
+# vars:
+#   ansible_user: "{{ lookup('env', 'USER') }}"      
+#   APATH: "{{ lookup('env', 'PATH') }}"
+#   AHOME: "{{ lookup('env', 'HOME') }}"
 
   #environment:
   #  PATH: "{{ APATH }}:{{ AHOME }}/.local/bin/:/usr/local/bin/"
