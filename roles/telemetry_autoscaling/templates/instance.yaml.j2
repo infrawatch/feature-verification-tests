@@ -1,0 +1,67 @@
+heat_template_version: wallaby
+description: Template to control scaling of VNF instance
+
+parameters:
+  metadata:
+    type: json
+  image:
+    type: string
+    description: image used to create instance
+    default: {{ stack_image | default("workload_image_1") }}
+  flavor:
+    type: string
+    description: instance flavor to be used
+    default: {{ stack_flavor | default("workload_flavor_1") }}
+  key_name:
+    type: string
+    description: keypair to be used
+    default: workload_key_1
+  network:
+    type: string
+    description: project network to attach instance to
+    default: {{ stack_network | default("workload_internal_net_1") }}
+  external_network:
+    type: string
+    description: network used for floating IPs
+    default: {{ stack_external_network | default("public") }}
+  server_name_prefix:
+    type: string
+    description: a prefix for each server name.
+    default: ""
+  security_group:
+    type: string
+    description: the security group for the instances
+    default: basic
+
+resources:
+  vnf:
+    type: OS::Nova::Server
+    properties:
+      {% if metrics_backend == "prometheus" -%}
+      name:
+        list_join: ["", [{get_param: server_name_prefix}, {get_param: OS::stack_name}]]
+      {% endif -%}
+      flavor: {get_param: flavor}
+      #key_name: {get_param: key_name}
+      image: { get_param: image }
+      metadata: { get_param: metadata }
+      networks:
+        - port: { get_resource: port }
+
+  port:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_param: network}
+      security_groups:
+        - { get_param: security_group }
+
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: {get_param: external_network }
+
+  floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: floating_ip }
+      port_id: { get_resource: port }
