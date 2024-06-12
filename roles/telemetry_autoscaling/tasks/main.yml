@@ -2,14 +2,35 @@
 # tasks file for telemetry_autoscaling
   # TODO: Update the pre-checks to include the resources that the stack expects to exist
   # i.e. networks, flavor, image, security group
+- name: Gather list of vars files
+  set_fact:
+    vars_files: "{{ lookup('fileglob', vars_path + '/*.yml', wantlist=True) }}"
+
+- name: Include multiple variable files
+  include_vars: "{{ item }}"
+  with_items: "{{ vars_files }}"
+
 - name: Check pre-reqs for autoscaling
-  ansible.builtin.include_tasks: verify_autoscaling.yml
+  ansible.builtin.include_tasks: 
+    file: verify_autoscaling.yml
+  tags: precheck
 
 - name: Create the heat templates
-  ansible.builtin.include_tasks: configure_heat.yml
+  ansible.builtin.include_tasks: 
+    file: configure_heat.yml
+  tags: setup
 
 - name: Launch the stack
-  ansible.builtin.include_tasks: creating_stack.yml
+  ansible.builtin.include_tasks: 
+    file: creating_stack.yml
+  tags: create
 
 - name: Run the autoscaling tests
-  ansible.builtin.include_tasks: test_autoscaling.yml
+  ansible.builtin.include_tasks: 
+    file: test_autoscaling.yml
+  tags: test
+
+- name: Run the cleanup task
+  ansible.builtin.include_tasks: 
+    file: post_teardown.yml
+  tags: cleanup
