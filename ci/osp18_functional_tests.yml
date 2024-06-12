@@ -1,5 +1,5 @@
 ---
-- name: Telemetry autoscaling tests
+- name: Telemetry tests on osp18 with autoscaling enabled
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
   environment:
