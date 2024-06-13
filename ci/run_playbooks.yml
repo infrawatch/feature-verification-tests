@@ -81,6 +81,6 @@
             content: "{{ output.stdout }}"
             dest: "{{ logs_dir }}/ansible_run.log"
 
-#    - name: Include report result
-#      ansible.builtin.include_tasks:
-#        file: report_result.yaml
+    - name: Include report result 
+      ansible.builtin.include_tasks:
+        file: report_result.yml
