@@ -22,6 +22,10 @@
           vars_dir: "{{ fvt_dir }}/ci/vars"
         dest: "{{ env_vars_file }}"
 
+    - name: Include vars from the extra_vars files
+      ansible.builtin.include_vars:
+        dir: "{{ cifmw_basedir }}/artifacts/parameters"
+
     # Prepare the env
     - name: Setup the required resources before running the autoscaling functional test
       block:
