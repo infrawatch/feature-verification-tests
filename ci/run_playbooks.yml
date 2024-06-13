@@ -19,6 +19,7 @@
         content: |
           cifmw_openshift_kubeconfig: "{{ cifmw_openshift_kubeconfig }}"
           cifmw_path: "{{ cifmw_path }}"
+          vars_dir: "{{ fvt_dir }}/ci/vars"
         dest: "{{ env_vars_file }}"
 
     # Prepare the env
@@ -62,12 +63,12 @@
           tags:
             - setup
 
-    - name: Run telemetry autoscaling test
+    - name: Run telemetry tests on OSP18
       block:
         - name: "Run telemetry tests playbook locally on the target host"
           ansible.builtin.shell:
             cmd: |
-              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}" ci/telemetry_autoscaling.yml
+              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}" ci/osp18_functional_tests.yml
             chdir: "{{ fvt_dir }}"
           register: output
 

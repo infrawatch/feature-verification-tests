@@ -1,0 +1,120 @@
+heat_template_version: wallaby
+description:  Example auto scale group, policy and alarm
+parameters:
+  server_name_prefix:
+    description: A prefix for servers created by this stack. Can be used in queries.
+    type: string
+    default: autoscaling_server_
+
+resources:
+  scaleup_group:
+    type: OS::Heat::AutoScalingGroup
+    properties:
+      max_size: 3
+      min_size: 1
+      desired_capacity: 1
+      resource:
+        type: OS::Nova::Server::VNF
+        properties:
+          server_name_prefix: { get_param: server_name_prefix }
+          metadata: {"metering.server_group": {get_param: "OS::stack_id"}}
+
+
+  scaleup_policy:
+    type: OS::Heat::ScalingPolicy
+    properties:
+      adjustment_type: change_in_capacity
+      auto_scaling_group_id: { get_resource: scaleup_group }
+      cooldown: 60
+      scaling_adjustment: 1
+
+  scaledown_policy:
+    type: OS::Heat::ScalingPolicy
+    properties:
+      adjustment_type: change_in_capacity
+      auto_scaling_group_id: { get_resource: scaleup_group }
+      cooldown: 60
+      scaling_adjustment: -1
+
+  cpu_alarm_high:
+    {% if metrics_backend == "gnocchi" -%}
+    type: OS::Aodh::GnocchiAggregationByResourcesAlarm
+    {% endif -%}
+    {% if metrics_backend == "prometheus" -%}
+    type: OS::Aodh::PrometheusAlarm
+    {% endif -%}
+    properties:
+      description: Scale up instance if CPU > 50%
+      {% if metrics_backend == "gnocchi" -%}
+      metric: cpu
+      aggregation_method: rate:mean
+      granularity: 300
+      evaluation_periods: 1
+      resource_type: instance
+      threshold: 30000000000.0
+      {% endif -%}
+      {% if metrics_backend == "prometheus" -%}
+      threshold: 50
+      {% endif -%}
+      comparison_operator: gt
+      alarm_actions:
+        - str_replace:
+            template: trust+url
+            params:
+              url: {get_attr: [scaleup_policy, signal_url]}
+      query:
+        {% if metrics_backend == "gnocchi" -%}
+        list_join:
+          - ''
+          - - {'=': {server_group: {get_param: "OS::stack_id"}}}
+        {% endif -%}
+        {% if metrics_backend == "prometheus" -%}
+        str_replace:
+          template: "(rate(ceilometer_cpu{resource_name=~'server_name_prefix.*'}[150s]))/10000000"
+          params:
+            server_name_prefix: {get_param: server_name_prefix}
+        {%- endif %}
+
+  cpu_alarm_low:
+    {% if metrics_backend == "gnocchi" -%}
+    type: OS::Aodh::GnocchiAggregationByResourcesAlarm
+    {% endif -%}
+    {% if metrics_backend == "prometheus" -%}
+    type: OS::Aodh::PrometheusAlarm
+    {% endif -%}
+    properties:
+      description: Scale down instance if CPU < 20%
+      {% if metrics_backend == "gnocchi" -%}
+      metric: cpu
+      aggregation_method: rate:mean
+      granularity: 300
+      evaluation_periods: 1
+      resource_type: instance
+      threshold: 12000000000.0
+      {% endif -%}
+      threshold: 20
+      comparison_operator: lt
+      alarm_actions:
+        - str_replace:
+            template: trust+url
+            params:
+              url: {get_attr: [scaledown_policy, signal_url]}
+      query:
+        {% if metrics_backend == "gnocchi" -%}
+        list_join:
+          - ''
+          - - {'=': {server_group: {get_param: "OS::stack_id"}}}
+        {% endif -%}
+        {% if metrics_backend == "prometheus" -%}
+        str_replace:
+          template: "(rate(ceilometer_cpu{resource_name=~'server_name_prefix.*'}[150s]))/10000000"
+          params:
+            server_name_prefix: {get_param: server_name_prefix}
+        {% endif %}
+
+outputs:
+  scaleup_policy_signal_url:
+    value: {get_attr: [scaleup_policy, alarm_url]}
+
+  scaledown_policy_signal_url:
+    value: {get_attr: [scaledown_policy, alarm_url]}
