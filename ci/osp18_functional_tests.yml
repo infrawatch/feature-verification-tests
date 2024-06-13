@@ -6,9 +6,20 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   tasks:
+    - name: Gather list of vars files
+      ansible.builtin.set_fact:
+        vars_files: "{{ lookup('fileglob', vars_path + '/*.yml', wantlist=True) }}"
+
+    - name: Include multiple variable files
+      include_vars: "{{ item }}"
+      with_items: "{{ vars_files }}"
+
     - name: "Run Telemetry Autoscaling tests"
       ansible.builtin.import_role:
         name: telemetry_autoscaling
-      vars:
-        vars_path: "{{ vars_dir }}"
       tags: autoscaling
+
+    - name: "Run Telemetry Logging tests"
+      ansible.builtin.import_role:
+        name: telemetry_logging
+      tags: logging
