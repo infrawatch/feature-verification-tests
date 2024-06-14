@@ -69,6 +69,7 @@
           ansible.builtin.shell:
             cmd: |
               ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}" ci/osp18_functional_tests.yml
+              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}" roles/telemetry_logging/tasks/main.yml
             chdir: "{{ fvt_dir }}"
           register: output
 
