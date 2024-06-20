@@ -1,0 +1,15 @@
+- name: Post process test results
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_user: "{{ lookup('env', 'USER') }}"      
+    APATH: "{{ lookup('env', 'PATH') }}"
+    AHOME: "{{ lookup('env', 'HOME') }}"
+
+  environment:
+    PATH: "{{ APATH }}:{{ AHOME }}/.local/bin/:/usr/local/bin/"
+
+  tasks:
+    - name: Review test output results
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/roles/telemetry_logging/tasks/logging_review_results.yml"

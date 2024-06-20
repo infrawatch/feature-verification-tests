@@ -1,0 +1,95 @@
+- name: Prepare Logging Tests
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_user: "{{ lookup('env', 'USER') }}"      
+    APATH: "{{ lookup('env', 'PATH') }}"
+    AHOME: "{{ lookup('env', 'HOME') }}"
+
+  environment:
+    PATH: "{{ APATH }}:{{ AHOME }}/.local/bin/:/usr/local/bin/"
+
+
+- name: Verify ctlplane node containers
+  hosts: ctlplane_nodes
+  gather_facts: no
+  vars:
+    container_out_file: "verify_ctlplane_node_containers_{{ inventory_hostname }}_lresults.log"
+    container_list:
+      - ceilometer_agent_compute
+      - ceilometer_agent_ipmi
+      - node_exporter
+
+  tasks:
+    - name: Remove "{{ container_out_file }}"
+      ansible.builtin.file:
+        path: "{{ container_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Verify containers on edpm-compute nodes
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/container_tests.yml"
+      loop: "{{ container_list }}"
+
+    - name: Copy output file to hypervisor
+      ansible.builtin.fetch:
+        src: "/root/{{ container_out_file }}"
+        dest: ./
+        flat: true
+      changed_when: false
+
+
+- name: Verify ctlplane node files
+  hosts: ctlplane_nodes
+  gather_facts: no
+  vars:
+    file_exists_outfile: "verify_ctlplane_node_files_{{ inventory_hostname }}_lresults.log"
+    file_list:
+      - /etc/rsyslog.d/10-telemetry.conf
+
+  tasks:
+    - name: Remove "{{ file_exists_outfile }}"
+      ansible.builtin.file:
+        path: "{{ file_exists_outfile }}"
+        state: absent
+      changed_when: false
+
+    - name: Check for Files
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/file_tests.yml"
+      loop: "{{ file_list }}"
+
+    - name: Copy output file to hypervisor
+      ansible.builtin.fetch:
+        src: "/root/{{ file_exists_outfile }}"
+        dest: ./
+        flat: true
+      changed_when: false
+
+
+- name: Verify journalctl identifiers
+  hosts: ctlplane_nodes
+  gather_facts: no
+  vars:
+    journal_exists_outfile: "verify_journalctl_identifiers_{{ inventory_hostname }}_lresults.log"
+    identifiers_list:
+      - ceilometer_agent_compute
+      - nova_compute
+
+  tasks:
+    - name: Remove "{{ journal_exists_outfile }}"
+      ansible.builtin.file:
+        path: "{{ journal_exists_outfile }}"
+        state: absent
+      changed_when: false
+
+    - name: Verify journalctl identifiers 
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/telemetry_logging/tasks/journal_tests.yml"
+      loop: "{{ identifiers_list }}"
+
+    - name: Copy output file to hypervisor
+      ansible.builtin.fetch:
+        src: "/root/{{ journal_exists_outfile }}"
+        dest: ./
+        flat: true
+      changed_when: false

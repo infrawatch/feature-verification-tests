@@ -1,0 +1,409 @@
+- name: Prepare Logging Tests
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_user: "{{ lookup('env', 'USER') }}"      
+    APATH: "{{ lookup('env', 'PATH') }}"
+    AHOME: "{{ lookup('env', 'HOME') }}"
+
+  environment:
+    PATH: "{{ APATH }}:{{ AHOME }}/.local/bin/:/usr/local/bin/"
+
+  tasks:
+    - name: "Log into OCP"
+      ansible.builtin.shell:
+        cmd: |
+          oc login -u kubeadmin -p "12345678" https://api.crc.testing:6443
+      failed_when: false
+      changed_when: false
+
+
+- name: 'Verify projects exist'
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+     proj_out_file: verify_projects_exist_lresults.log
+     proj_list:
+       - openshift-openstack-infra
+       - openshift
+       - openstack-operators
+       - openshift-logging
+
+  tasks:
+    - name: Remove "{{ proj_out_file }}"
+      ansible.builtin.file:
+        path: "{{ proj_out_file }}"
+        state: absent
+      changed_when: false  
+
+    - name: Verify projects created
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/roles/qe_common/tasks/proj_tests.yml"
+      loop: "{{ proj_list }}"
+
+
+- name: Verify Openstack endpoints
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    endpoint_outfile: "verify_openstack_endpoint_lresults.log"
+    endpoints_list:
+      - [nova,compute,public]
+      - [nova,compute,internal]
+      - [placement,placement,public]
+      - [placement,placement,internal]
+      - [swift,object-store,public]
+      - [swift,object-store,internal]
+      - [cinderv3,volumev3,public]
+      - [cinderv3,volumev3,internal]
+      - [barbican,key-manager,public]
+      - [barbican,key-manager,internal]
+      - [keystone,identity,public]
+      - [keystone,identity,internal]
+      - [glance,image,public]
+      - [glance,image,internal]
+      - [neutron,network,public]
+      - [neutron,network,internal]
+
+  tasks:
+    - name: Remove "{{ endpoint_outfile }}"
+      ansible.builtin.file:
+        path: "{{ endpoint_outfile }}"
+        state: absent
+      changed_when: false
+
+    - name: Verfiy Endpoints
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/endpoint_tests.yml"
+      loop: "{{ endpoints_list }}"
+
+
+- name: Verify credentials exist
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    cred_out_file: verify_credentials_exist_lresults.log
+    cred_list:
+      - alertingrules.loki.grafana.com
+      - lokistacks.loki.grafana.com
+      - recordingrules.loki.grafana.com
+      - rulerconfigs.loki.grafana.com
+
+  tasks:
+    - name: Remove "{{ cred_out_file }}"
+      ansible.builtin.file:
+        path: "{{ cred_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Verify credentials created
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/cred_tests.yml"
+      loop: "{{ cred_list }}"
+
+
+- name: Verify OSP nodes running
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    node_out_file: verify_osp_nodes_running_lresults.log
+    node_list:
+      - edpm-compute-0
+      - edpm-compute-1
+      - crc
+
+  tasks:
+    - name: Remove "{{ node_out_file }}"
+      ansible.builtin.file:
+        path: "{{ node_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Verify nodes deployed
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/node_tests.yml"
+      loop: "{{ node_list }}"
+
+
+- name: Verify openstack-operator pods running
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    pod_status_str: "Running"      
+    nspace: openstack-operators
+    pod_out_file: verify_openstack-operator_pods_running_lresults.log
+    pod_list:
+      - telemetry-operator-controller-manager
+      - dataplane-operator-controller-manager
+
+  tasks:
+    - name: Remove "{{ pod_out_file }}"
+      ansible.builtin.file:
+        path: "{{ pod_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Verify Completed Pods
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/pod_tests.yml"
+      loop: "{{ pod_list }}"
+
+
+- name: Verify openstack pods running
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    pod_status_str: "Running"
+    nspace: openstack
+    pod_out_file: verify_openstack_pods_running_lresults.log
+    pod_list:
+      - openstackclient
+
+  tasks:
+    - name: Remove "{{ pod_out_file }}"
+      ansible.builtin.file:
+        path: "{{ pod_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Verify Running Pods
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/pod_tests.yml"
+      loop: "{{ pod_list }}"
+
+
+- name: Verify openshift-operators-redhat pods running
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    pod_status_str: "Running"
+    nspace: openshift-operators-redhat
+    pod_out_file: verify_openshift-operators-redhat_pods_running_lresults.log
+    pod_list:
+      - loki-operator-controller-manager
+
+  tasks:
+    - name: Remove "{{ pod_out_file }}"
+      ansible.builtin.file:
+        path: "{{ pod_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Verify Pods running
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/pod_tests.yml"
+      loop: "{{ pod_list }}"
+
+
+- name: Verify openshift-logging pods running
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    pod_status_str: "Running"
+    nspace: openshift-logging
+    pod_out_file: verify_openshift-logging_pods_running_lresults.log
+    pod_list:
+      - cluster-logging-operator
+      - collector
+      - logging-loki-compactor
+      - logging-loki-distributor
+      - logging-loki-gateway
+      - logging-loki-index-gateway
+      - logging-loki-ingester
+      - logging-loki-querier
+      - logging-loki-query-frontend
+      - logging-view-plugin
+
+  ### see JIRA LOG-5431 if pods not running
+  tasks:
+    - name: Remove "{{ pod_out_file }}"
+      ansible.builtin.file:
+        path: "{{ pod_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Verify Pods running
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/pod_tests.yml"
+      loop: "{{ pod_list }}"
+
+
+
+- name: Verify minio-dev pods running
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    pod_status_str: "Running"
+    nspace: minio-dev
+    pod_out_file: verify_minio-dev_pods_running_lresults.log
+    pod_list:
+      - minio
+
+  tasks:
+    - name: Remove "{{ pod_out_file }}"
+      ansible.builtin.file:
+        path: "{{ pod_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Verify running pods
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/pod_tests.yml"
+      loop: "{{ pod_list }}"
+
+
+- name: Verify openstack pods completed
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    pod_out_file: verify_openstack_pods_completed_lresults.log
+    nspace: openstack
+    pod_status_str: "Completed"
+    pod_list:
+      - bootstrap-edpm-deployment
+      - configure-network-edpm-deployment
+      - configure-os-edpm-deployment
+      - download-cache-edpm-deployment
+      - install-certs-edpm-deployment
+      - install-os-edpm-deployment
+      - libvirt-edpm-deployment
+      - logging-edpm-deployment-logging-openstack-edpm
+      - neutron-metadata-edpm-deployment
+      - nova-custom-edpm-deployment
+      - ovn-edpm-deployment
+      - reboot-os-edpm-deployment
+      - repo-setup-edpm-deployment
+      - run-os-edpm-deployment
+      - ssh-known-hosts-edpm-deployment
+      - telemetry-edpm-deployment
+      - validate-network-edpm-deployment
+
+  tasks:
+    - name: Remove "{{ pod_out_file }}"
+      ansible.builtin.file:
+        path: "{{ pod_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Verify Completed Pods
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/pod_tests.yml"
+      loop: "{{ pod_list }}"
+
+
+- name: Verify openshift-logging services running
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    services_out_file: verify_openshift-logging_services_running_lresults.log
+    nspace: openshift-logging
+    services_list:
+      - cluster-logging-operator-metrics
+      - logging-loki-compactor-grpc
+      - logging-loki-compactor-http
+      - logging-loki-distributor-grpc
+      - logging-loki-distributor-http
+      - logging-loki-gateway-http
+      - logging-loki-gossip-ring
+      - logging-loki-index-gateway-grpc
+      - logging-loki-index-gateway-http
+      - logging-loki-ingester-grpc
+      - logging-loki-ingester-http
+      - logging-loki-querier-grpc
+      - logging-loki-querier-http
+      - logging-loki-query-frontend-grpc
+      - logging-loki-query-frontend-http
+      - logging-view-plugin
+      - openstack-logging
+
+  tasks:
+    - name: Remove "{{ services_out_file }}"
+      ansible.builtin.file:
+        path: "{{ services_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Run Services Test in "{{ nspace }}"
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/services_tests.yml"
+      loop: "{{ services_list }}"
+
+
+- name: Verify openstack services running
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    services_out_file: verify_openstack_services_running_lresults.log
+    nspace: openstack
+    services_list:
+      - nova-internal
+      - nova-metadata-internal
+      - nova-novncproxy-cell1-public
+      - nova-public
+
+  tasks:
+    - name: Remove "{{ services_out_file }}"
+      ansible.builtin.file:
+        path: "{{ services_out_file }}"
+        state: absent
+      changed_when: false 
+
+    - name: Run Services test in "{{ nspace }}" 
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/services_tests.yml"
+      loop: "{{ services_list }}"
+
+
+- name: Verify packagemanifests exist
+  hosts: localhost 
+  connection: local
+  gather_facts: no
+  vars:
+    manifest_out_file: verify_packagemanifests_exist_lresults.log
+    packagemanifests_list:
+      - "loki-operator 2"
+      - "loki-helm-operator 1"
+
+  tasks:
+    - name: Remove "{{ manifest_out_file }}"
+      ansible.builtin.file:
+        path: "{{ manifest_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Run packagemanifest tests
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/manifest_tests.yml"
+      loop: "{{ packagemanifests_list }}"
+
+
+- name: Verify openshift-operators-redhat subscriptions exist
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    nspace: openshift-operators-redhat 
+    subscript_out_file: verify_openshift-operators-redhat_subscriptions_lresults.log 
+    subscription_list:
+      - loki-operator
+
+  tasks:
+    - name: Remove "{{ subscript_out_file }}"
+      ansible.builtin.file:
+        path: "{{ subscript_out_file }}"
+        state: absent
+      changed_when: false
+
+    - name: Run packagemanifest tests
+      ansible.builtin.include_tasks:  "{{ playbook_dir }}/roles/qe_common/tasks/subscription_tests.yml"
+      loop: "{{ subscription_list }}"
+
+
+- name: Validate test results
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: Review test output results
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/roles/telemetry_logging/tasks/logging_review_results.yml"

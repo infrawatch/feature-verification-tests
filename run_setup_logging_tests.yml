@@ -1,0 +1,32 @@
+---
+- name: Setup Logging Tests
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  ignore_errors: true
+  become: true
+  vars:
+    feat_test_path: "~/feature-verification-tests/roles/telemetry_logging/tasks"
+    ansible_user: "{{ lookup('env', 'USER') }}"      
+    APATH: "{{ lookup('env', 'PATH') }}"
+    AHOME: "{{ lookup('env', 'HOME') }}"
+
+  environment:
+    PATH: "{{ APATH }}:{{ AHOME }}/.local/bin/:/usr/local/bin/"
+
+  tasks:
+    - name: "Log into OCP"
+      ansible.builtin.shell:
+        cmd: |
+          oc login -u kubeadmin -p "12345678" https://api.crc.testing:6443
+      failed_when: false
+      changed_when: false
+
+    - name: "Create id rsa file for ctlplane access"
+      ansible.builtin.shell:
+        cmd: | 
+          oc extract -n openstack --kubeconfig /home/alexy/.kube/config secrets/dataplane-ansible-ssh-private-key-secret --to=- | grep -v "ssh\-rsa" > id_rsa.ctlplane
+      register: rsa_results 
+      failed_when: rsa_results.rc != 0
+      changed_when: false
+
