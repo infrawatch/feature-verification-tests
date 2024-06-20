@@ -6,13 +6,11 @@
   ignore_errors: true
   become: true
   vars:
-    feat_test_path: "~/feature-verification-tests/roles/telemetry_logging/tasks"
-    ansible_user: "{{ lookup('env', 'USER') }}"      
-    APATH: "{{ lookup('env', 'PATH') }}"
-    AHOME: "{{ lookup('env', 'HOME') }}"
+    feat_test_path: "{{ playbook_dir }}/roles/telemetry_logging/tasks"
 
   environment:
-    PATH: "{{ APATH }}:{{ AHOME }}/.local/bin/:/usr/local/bin/"
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
 
   tasks:
     - name: "Log into OCP"
@@ -25,7 +23,7 @@
     - name: "Create id rsa file for ctlplane access"
       ansible.builtin.shell:
         cmd: | 
-          oc extract -n openstack --kubeconfig /home/alexy/.kube/config secrets/dataplane-ansible-ssh-private-key-secret --to=- | grep -v "ssh\-rsa" > id_rsa.ctlplane
+          oc extract -n openstack secrets/dataplane-ansible-ssh-private-key-secret --to=- | grep -v "ssh\-rsa" > id_rsa.ctlplane
       register: rsa_results 
       failed_when: rsa_results.rc != 0
       changed_when: false
