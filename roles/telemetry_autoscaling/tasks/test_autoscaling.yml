@@ -20,7 +20,7 @@
   fail:
     msg: "bad vnf_instance_ip"
 
-- name: Verfiy the number of instances before scaling
+- name: RHOSO-12665 Verfiy the number of instances before scaling
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} server list --long | grep -i 'metering.server_group' | wc -l
@@ -57,7 +57,7 @@
   register: busy_process
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
-- name: Verify that the alarm has been triggered
+- name: RHOSO-12660 Verify that the `cpu_alarm_high` alarm has been triggered
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list -c state -c name -f value| \
@@ -68,7 +68,7 @@
   register: result
   until: result.stdout == "alarm"
 
-- name: Verify that the Orchestration service has scaled up the instances
+- name: RHOSO-12661 Verify that the Orchestration service has scaled up the instances
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} server list --long|grep -i metering.server_group | wc -l
@@ -87,7 +87,7 @@
   ansible.builtin.pause:
     minutes: 5
 
-- name: Verify that the alarm has been triggered
+- name: RHOSO-12664 Verify that the `cpu_alarm_low` alarm has been triggered
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list -c state -c name -f value| \
@@ -102,7 +102,7 @@
   # selection.
   # prom uses the instance name, so the metadata MIGHT be removed, and a new
   # check for whether the scaling group has scaled down may be needed.
-- name: Verify that the Orchestration service has scaled down the instances
+- name: RHOSO-12663 Verify that the Orchestration service has scaled down the instances
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} server list --long|grep -i metering.server_group |wc -l

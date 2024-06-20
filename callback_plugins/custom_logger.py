@@ -11,7 +11,12 @@ DOCUMENTATION = '''
     type: notification
     short_description: output logs to a file
     description:
-        - This summarises tasks per host and outputs it to a log file
+    - This callback function creates two log files for each host.
+        - The first log file records the result (pass/fail) for each task executed on the host.
+        - The second log file contains a summary of all tasks executed on the host, including their results.
+    - Log file names:
+        - test_run_result.out
+        - summary_results.log
 '''
 
 class CallbackModule(CallbackBase):
@@ -22,57 +27,66 @@ class CallbackModule(CallbackBase):
     CALLBACK_TYPE = 'notification'
     CALLBACK_NAME = 'log_to_file'
     CALLBACK_NEEDS_WHITELIST = True
-
     MSG_FORMAT = "{task}={status}\n"
 
     def __init__(self):
-
         super(CallbackModule, self).__init__()
-        self.current_task = ''
-        self.passed = 0
-        self.failed = 0
         self.output_dir = os.getcwd()
-        self.path = os.path.join(self.output_dir, "test_run_result.out")
-        # either create the file or truncate the existing file
-        with open(self.path, 'w') as fp:
-            pass
+        self.results = {}
+        
+    def playbook_on_stats(self, stats):
+        # Log results for each host
+        hosts= stats.processed
+        for host in hosts:
+            self.log_summary_results(host)
 
-    def playbook_on_task_start(self, task, is_conditional):
-        self.current_task = str(task)
+    def log_task_result(self, host, result, task_name):
+        # test_run_result.out only interested in the test tasks, not setup or debug.
+        if "RHELOSP" in task_name or "RHOSO" in task_name:
+            if "RHELOSP" in task_name:
+                test_id = re.search(r'RHELOSP\S*', task_name).group(0)
+            elif "RHOSO" in task_name:
+                test_id = re.search(r'RHOSO\S*', task_name).group(0)
 
-#    def playbook_on_stats(self, stats):
-#        with open(self.path, 'a') as fd:
-#            fd.write("passed: {}\n".format(self.passed))
-#            fd.write("failed: {}\n".format(self.failed))
+            file_path = os.path.join(self.output_dir, f"test_run_result.out")
+            test_result_message = self.MSG_FORMAT.format(task=test_id, status=result)
+            with open(file_path, 'a') as f:
+                f.write(test_result_message)
 
-    def log(self, host, category):
-         # only interested in the test tasks, not setup or debug
-         if "RHELOSP" in self.current_task or "RHOSO" in self.current_task:
+            # Gather the result data to be used in the summary log.
+            if host not in self.results:
+                self.results[host] = {'passed': 0, 'failed': 0, 'skipped': 0, 'failed_task_names':[], 'ok_task_names':[] }
+            if result == 'failed':
+                self.results[host]['failed_task_names'].append(task_name)
+            elif result == 'passed':
+                self.results[host]['ok_task_names'].append(task_name)
+            self.results[host][result] += 1
 
-             if category == "failed":
-                self.failed +=1
-             if category == "passed":
-                 self.passed +=1
+    def log_summary_results(self, host):
+        file_path = os.path.join(self.output_dir, f"summary_results.log")
+        with open(file_path, 'w') as f:
+            f.write(f"Host: {host}\n")
+            f.write(f"Tasks Succeeded: {self.results[host]['passed']}\n")
+            f.write(f"Tasks Failed: {self.results[host]['failed']}\n")
+            f.write(f"Tasks Skipped: {self.results[host]['skipped']}\n")
+            f.write("Failed Tasks:\n")
+            for task_name in self.results[host]['failed_task_names']:
+                f.write(f"  - {task_name}\n")
+            f.write("Succeeded Tasks:\n")
+            for task_name in self.results[host]['ok_task_names']:
+                f.write(f"  - {task_name}\n")
 
-             if "RHELOSP" in self.current_task:
-                 test_id = re.search(r'RHELOSP\S*', self.current_task).group(0)
-             elif "RHOSO" in self.current_task:
-                 test_id = re.search(r'RHOSO\S*', self.current_task).group(0)
+    def v2_runner_on_ok(self, result):
+        host = result._host.get_name()
+        task_name = result._task.get_name()
+        self.log_task_result(host, 'passed', task_name)
 
-             test_result_message = self.MSG_FORMAT.format(task=test_id, status=category)
+    def v2_runner_on_failed(self, result, ignore_errors=False):
+        host = result._host.get_name()
+        task_name = result._task.get_name()
+        self.log_task_result(host, 'failed', task_name)
 
-             with open(self.path, 'a') as fd:
-                 fd.write(test_result_message)
-
-             file_name = "_".join(["test_run_result", host])
-             with open(os.path.join(self.output_dir, file_name ) , 'a') as fd:
-                 fd.write(test_result_message)
-
-    def runner_on_failed(self, host, res, ignore_errors=False):
-         self.log(host,'failed')
-
-    def runner_on_ok(self, host, res):
-         self.log(host,'passed')
-
-    def runner_on_skipped(self, host, res, item=None):
-         self.log(host, 'skipped')
+    def v2_runner_on_skipped(self, result):
+        host = result._host.get_name()
+        task_name = result._task.get_name()
+        self.log_task_result(host, 'skipped', task_name)

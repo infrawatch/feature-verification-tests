@@ -1,0 +1,30 @@
+---    
+- name: Check that the stack exists
+  ansible.builtin.command:
+    cmd: |
+      oc rsh openstackclient openstack stack show {{ stack_name }}
+  ignore_errors: true
+  register: output
+
+- name: Remove the stack if it exists
+  ansible.builtin.command:
+    cmd: |
+      oc rsh openstackclient openstack stack delete {{ stack_name }}
+  when: output.rc == 0
+
+- name: Wait until the stack is deleted
+  ansible.builtin.shell:
+    cmd: oc rsh openstackclient openstack stack list | grep {{ stack_name }}
+  register: output
+  until: output.stdout_lines == 0
+  ignore_errors: true
+  retries: 50
+  timeout: 5
+
+  # TODO: Get the name of the openstackversions object.
+  # TODO: Work on getting the patches into kustomize format, so that we can use them by passing into the job vars, and can skip setup.
+  # This is so we can test it locally.
+- name: Revert the version update
+  ansible.builtin.shell:
+    cmd: |
+      oc patch openstackversions openstack-galera-network-isolation --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
