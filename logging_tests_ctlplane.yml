@@ -100,9 +100,6 @@
   hosts: localhost
   connection: local
   gather_facts: false
-  environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
 
   tasks:
     - name: Review test output results
