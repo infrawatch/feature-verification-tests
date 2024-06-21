@@ -65,12 +65,19 @@
 
     - name: Run telemetry tests on OSP18
       block:
-        - name: "Run telemetry tests playbook locally on the target host"
-          ansible.builtin.shell:
-            cmd: |
-              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}" ci/osp18_functional_tests.yml
-            chdir: "{{ fvt_dir }}"
-          register: output
+        #        - name: "Run telemetry tests playbook locally on the target host"
+        #          ansible.builtin.shell:
+        #            cmd: |
+        #              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}" ci/osp18_functional_tests.yml
+        #            chdir: "{{ fvt_dir }}"
+        #          register: output
+
+        - name: "Run Telemetry Autoscaling tests"
+          ansible.builtin.import_role:
+            name: telemetry_autoscaling
+          vars:
+            vars_path: "{{ vars_dir }}"
+          tags: autoscaling
 
         - name: Save ansible output to a file
           ansible.builtin.copy:

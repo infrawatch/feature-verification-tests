@@ -5,3 +5,5 @@ post_deploy:
   - name: run functional test
     source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_playbooks.yml"
     type: playbook
+    config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
+    # extra_vars <- try this after; could provide some more efficiencies
