@@ -1,10 +1,23 @@
 ---
 - name: "Run functional test playbooks"
-  hosts:  controller
+  hosts:  "{{ cifmw_target_hook_host | default('localhost') }}"
   tasks:
+    - name: Search for stackrc file
+      find:
+        paths: "/"
+        patterns: "stackrc"
+      register: stackrc_files
+
+    - debug:
+        msg: "Found stackrc file at {{ item.path }}"
+      loop: "{{ stackrc_files.files }}"
+
     - name: Test service API endpoint(metric) for autoscaling
       ansible.builtin.shell: |
         source ~/stackrc;
         openstack endpoint list --service metric;
       register: result
-      failed_when: result.rc >= 1
+
+    - name: Print the result
+      ansible.builtin.debug:
+        var: result

@@ -37,8 +37,9 @@
     parent: cifmw-data-plane-adoption-osp-17-to-extracted-crc
     description: |
       Run the autoscaling functional test on osp17.
-    run:
-      - ci/osp17_functional_tests.yml
+    vars:
+      cifmw_extras:
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/osp17-hook.yml"
     irrelevant-files:
       - .github/.*
       - ci/github/.*
