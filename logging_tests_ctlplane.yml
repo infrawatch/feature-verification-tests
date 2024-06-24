@@ -7,11 +7,11 @@
     PATH: "{{ cifmw_path }}"
 
 - name: "RHOSO-12753"
-# description: Verify ctlplane node containers
+# description: Verify ctlplane node logging containers
   hosts: ctlplane_nodes
   gather_facts: no
   vars:
-    container_out_file: "verify_ctlplane_node_containers_{{ inventory_hostname }}_lresults.log"
+    container_out_file: "verify_ctlplane_node_logging_containers_{{ inventory_hostname }}_lresults.log"
     container_list:
       - ceilometer_agent_compute
       - ceilometer_agent_ipmi
@@ -39,11 +39,11 @@
 
 
 - name: "RHOSO-12754"
-# description: Verify ctlplane node files
+# description: Verify ctlplane node logging config files
   hosts: ctlplane_nodes
   gather_facts: no
   vars:
-    file_exists_outfile: "verify_ctlplane_node_files_{{ inventory_hostname }}_lresults.log"
+    file_exists_outfile: "verify_ctlplane_node_logging_config_files_{{ inventory_hostname }}_lresults.log"
     file_list:
       - /etc/rsyslog.d/10-telemetry.conf
 
@@ -69,11 +69,11 @@
 
 
 - name: "RHOSO-12681"
-# description: Verify journalctl identifiers
+# description: Verify logging journalctl identifiers 
   hosts: ctlplane_nodes
   gather_facts: no
   vars:
-    journal_exists_outfile: "verify_journalctl_identifiers_{{ inventory_hostname }}_lresults.log"
+    journal_exists_outfile: "verify_logging_journalctl_identifiers_{{ inventory_hostname }}_lresults.log"
     identifiers_list:
       - ceilometer_agent_compute
       - nova_compute
