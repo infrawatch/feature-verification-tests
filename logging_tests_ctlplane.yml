@@ -6,7 +6,8 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
 
-- name: Verify ctlplane node containers
+- name: "RHOSO-12753"
+# description: Verify ctlplane node containers
   hosts: ctlplane_nodes
   gather_facts: no
   vars:
@@ -37,7 +38,8 @@
       changed_when: false
 
 
-- name: Verify ctlplane node files
+- name: "RHOSO-12754"
+# description: Verify ctlplane node files
   hosts: ctlplane_nodes
   gather_facts: no
   vars:
@@ -66,7 +68,8 @@
       changed_when: false
 
 
-- name: Verify journalctl identifiers
+- name: "RHOSO-12681"
+# description: Verify journalctl identifiers
   hosts: ctlplane_nodes
   gather_facts: no
   vars:
