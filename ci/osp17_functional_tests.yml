@@ -1,0 +1,10 @@
+---
+- name: "Run functional test playbooks"
+  hosts:  controller
+  tasks:
+    - name: Test service API endpoint(metric) for autoscaling
+      ansible.builtin.shell: |
+        source ~/stackrc;
+        openstack endpoint list --service metric;
+      register: result
+      failed_when: result.rc >= 1
