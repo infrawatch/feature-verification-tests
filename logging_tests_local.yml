@@ -31,12 +31,12 @@
       changed_when: false  
 
 - name: "RHOSO-12668"
-# description: 'Verify projects exist'
+# description: 'Verify logging projects exist'
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
-     proj_out_file: verify_projects_exist_lresults.log
+     proj_out_file: verify_logging_projects_exist_lresults.log
      proj_list:
        - openshift-openstack-infra
        - openshift
@@ -58,12 +58,12 @@
 
 
 - name: "RHOSO-12682"
-# description: Verify Openstack endpoints
+# description: Verify logging endpoints in OSP
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
-    endpoint_outfile: "verify_openstack_endpoint_lresults.log"
+    endpoint_outfile: "verify_logging_endpoints_openstack_lresults.log"
     endpoints_list:
       - [nova,compute,public]
       - [nova,compute,internal]
@@ -97,12 +97,12 @@
 
 
 - name: "RHOSO-12670"
-# description: Verify credentials exist
+# description: Verify logging credentials exist
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
-    cred_out_file: verify_credentials_exist_lresults.log
+    cred_out_file: verify_logging_credentials_exist_lresults.log
     cred_list:
       - alertingrules.loki.grafana.com
       - lokistacks.loki.grafana.com
@@ -124,12 +124,12 @@
 
 
 - name: "RHOSO-12671"
-# description: Verify OSP nodes running
+# description: Verify logging OSP nodes are running
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
-    node_out_file: verify_osp_nodes_running_lresults.log
+    node_out_file: verify_logging_osp_nodes_running_lresults.log
     node_list:
       - edpm-compute-0
       - edpm-compute-1
@@ -150,14 +150,14 @@
 
 
 - name: "RHOS0-12672"
-# description: Verify openstack-operator pods running
+# description: Verify logging pods are running in openstack-operator
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
     pod_status_str: "Running"      
     nspace: openstack-operators
-    pod_out_file: verify_openstack-operator_pods_running_lresults.log
+    pod_out_file: verify_logging_pods_running_openstack-operator_lresults.log
     pod_list:
       - telemetry-operator-controller-manager
       - dataplane-operator-controller-manager
@@ -177,14 +177,14 @@
 
 
 - name: "RHOSO-12752"
-# description: Verify openstack pods running
+# description: Verify logging pods are running in openstack
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
     pod_status_str: "Running"
     nspace: openstack
-    pod_out_file: verify_openstack_pods_running_lresults.log
+    pod_out_file: verify_logging_pods_running_openstack_lresults.log
     pod_list:
       - openstackclient
 
@@ -203,14 +203,14 @@
 
 
 - name: "RHOSO-12673"
-# description: Verify openshift-operators-redhat pods running
+# description: Verify logging pods are running in openshift-operators-redhat
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
     pod_status_str: "Running"
     nspace: openshift-operators-redhat
-    pod_out_file: verify_openshift-operators-redhat_pods_running_lresults.log
+    pod_out_file: verify_logging_pods_running_openshift-operators-redhat_lresults.log
     pod_list:
       - loki-operator-controller-manager
 
@@ -229,14 +229,14 @@
 
 
 - name: "RHOSO-"
-# description: Verify openshift-logging pods running
+# description: Verify logging pods are running in openshift-logging
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
     pod_status_str: "Running"
     nspace: openshift-logging
-    pod_out_file: verify_openshift-logging_pods_running_lresults.log
+    pod_out_file: verify_logging_pods_running_openshift-logging_lresults.log
     pod_list:
       - cluster-logging-operator
       - collector
@@ -265,7 +265,7 @@
 
 
 - name: "RHOSO-12674"
-# description: Verify minio-dev pods running
+# description: Verify logging pods are running in minio-dev
   hosts: localhost
   connection: local
   gather_facts: no
@@ -291,12 +291,12 @@
 
 
 - name: "RHOSO-"
-# description: Verify openstack pods completed
+# description: Verify logging pods have complete status in openstack 
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
-    pod_out_file: verify_openstack_pods_completed_lresults.log
+    pod_out_file: verify_logging_pods_completed_in_openstack_lresults.log
     nspace: openstack
     pod_status_str: "Completed"
     pod_list:
@@ -325,7 +325,7 @@
         state: absent
       changed_when: false
 
-    - name: Verify Completed Pods
+    - name: Verify pods completed
       ansible.builtin.include_role:
         name: qe_common        
         tasks_from: pod_tests.yml
@@ -333,12 +333,12 @@
 
 
 - name: "RHOSO-12675"
-# description: Verify openshift-logging services running
+# description: Verify logging services are running in openshift-logging
   hosts: localhost
   connection: local
   gather_facts: no
   vars:
-    services_out_file: verify_openshift-logging_services_running_lresults.log
+    services_out_file: verify_logging_services_running_in_openshift-logging_lresults.log
     nspace: openshift-logging
     services_list:
       - cluster-logging-operator-metrics
@@ -374,7 +374,7 @@
 
 
 - name: "RHOSO-12749"
-# description: Verify openstack services running
+# description: Verify logging services are running in openstack
   hosts: localhost
   connection: local
   gather_facts: no
@@ -402,7 +402,7 @@
 
 
 - name: "RHOSO-12677"
-# description: Verify packagemanifests exist
+# description: Verify logging packagemanifest exist
   hosts: localhost 
   connection: local
   gather_facts: no
@@ -427,7 +427,7 @@
 
 
 - name: "RHOSO-12678"
-# description: Verify openshift-operators-redhat subscriptions exist
+# description: Verify logging subscriptions exist in openshift-operators-redhat
   hosts: localhost
   connection: local
   gather_facts: no
@@ -444,7 +444,7 @@
         state: absent
       changed_when: false
 
-    - name: Run packagemanifest tests
+    - name: Run subscription tests
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: subscription_tests.yml
