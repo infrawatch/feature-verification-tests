@@ -332,7 +332,7 @@
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-12676"
+- name: "RHOSO-12675"
 # description: Verify openshift-logging services running
   hosts: localhost
   connection: local
