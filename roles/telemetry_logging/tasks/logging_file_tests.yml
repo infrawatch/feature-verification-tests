@@ -1,0 +1,27 @@
+---
+
+- name: Get stats for file
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  register: fstats
+  changed_when: false
+  failed_when: false
+
+- name: Set status "{{ item }}"
+  ansible.builtin.set_fact:
+    t_status: FAILED      
+
+- name: Set file status to PASSED - "{{ item }}"
+  ansible.builtin.set_fact:
+    t_status: PASSED
+  when: 
+    - fstats.stat.exists
+    - fstats.stat.pw_name == "root"
+    - fstats.stat.isreg
+    - fstats.stat.size | int >= 300
+  failed_when: false
+
+- name: Push result to "{{ file_exists_outfile }}"
+  ansible.builtin.shell:
+    'echo "{{ inventory_hostname }},{{ item }},{{ t_status }}" >> "{{ file_exists_outfile }}"'
+  changed_when: t_status == "FAILED"
