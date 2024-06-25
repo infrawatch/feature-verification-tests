@@ -22,6 +22,9 @@
   failed_when: false
 
 - name: Push result to "{{ file_exists_outfile }}"
-  ansible.builtin.shell:
-    'echo "{{ inventory_hostname }},{{ item }},{{ t_status }}" >> "{{ file_exists_outfile }}"'
+  ansible.builtin.lineinfile:
+    path: "{{ file_exists_outfile }}"
+    line: "{{ inventory_hostname }},{{ item }},{{ t_status }}"
+    create: yes
+    mode: '0644'
   changed_when: t_status == "FAILED"
