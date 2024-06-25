@@ -8,7 +8,7 @@
   changed_when: false
   ignore_errors: yes
 
-- name: Test project does *not* exist - "{{ item }}"
+- name: Set exist state to failed - "{{ item }}"
   ansible.builtin.set_fact:
      exists: FAILED
 
@@ -18,6 +18,9 @@
   when: output.rc == 0
 
 - name: Push results to "{{ proj_out_file }}"
-  ansible.builtin.shell:
-    'echo "project,{{ item }},{{ exists }}" >> "{{ proj_out_file }}"'
+  ansible.builtin.lineinfile:
+    path: "{{ proj_out_file }}"
+    line: "project,{{ item }},{{ exists }}"
+    create: yes
+    mode: '0644'
   changed_when: exists == "FAILED"
