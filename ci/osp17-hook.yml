@@ -1,5 +1,0 @@
----
-pre_tests:
-  - name: run functional test
-    source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/osp17_functional_tests.yml"
-    type: playbook
