@@ -18,6 +18,9 @@
   when: output.rc == 0
 
 - name: Push result to "{{ subscript_out_file }}"
-  ansible.builtin.shell:
-    'echo "{{ nspace }},{{ item }},{{ exists }}" >> "{{ subscript_out_file }}"'
+  ansible.builtin.lineinfile:
+    path: "{{ subscript_out_file }}"
+    line: "{{ nspace }},{{ item }},{{ exists }}"
+    create: yes
+    mode: '0644'
   changed_when: exists == "FAILED"
