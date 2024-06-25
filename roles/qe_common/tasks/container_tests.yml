@@ -19,8 +19,11 @@
   failed_when: false
 
 - name: Push result to "{{ container_out_file }}"
-  ansible.builtin.shell:
-    'echo "{{ inventory_hostname }},{{ item }},{{ t_status }}" >> "{{ container_out_file }}"'
+  ansible.builtin.lineinfile:
+    path: "{{ container_out_file }}"
+    line: "{{ inventory_hostname }},{{ item }},{{ t_status }}"
+    create: yes
+    mode: '0664'
   changed_when: t_status  == "FAILED"
 
 
