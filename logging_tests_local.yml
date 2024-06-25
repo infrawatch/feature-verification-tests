@@ -290,7 +290,7 @@
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-"
+- name: "RHOSO-12679"
 # description: Verify logging pods have complete status in openstack 
   hosts: localhost
   connection: local
