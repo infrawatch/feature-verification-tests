@@ -18,6 +18,9 @@
   when: output.rc == 0
 
 - name: "Push service check results to {{ services_out_file }}"
-  ansible.builtin.shell:
-    'echo "Service,{{ item }},{{ exists }}" >> "{{ services_out_file }}"'
+  ansible.builtin.lineinfile:
+     path: "{{ services_out_file }}"
+     line: "Service,{{ item }},{{ exists }}"
+     create: yes
+     mode: '0644'
   changed_when: exists == "FAILED"
