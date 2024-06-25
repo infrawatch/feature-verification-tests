@@ -31,6 +31,9 @@
   when: num_expected.stdout == num_found.stdout
 
 - name: Push result to "{{ manifest_out_file }}"
-  ansible.builtin.shell:
-    'echo "{{ pack_name.stdout }},{{ num_found.stdout }},{{ exists }}" >> "{{ manifest_out_file }}"'
+  ansible.builtin.lineinfile:
+    path: "{{ manifest_out_file }}"
+    line: "{{ pack_name.stdout }},{{ num_found.stdout }},{{ exists }}"
+    create: yes
+    mode: '0644'
   changed_when: exists == "FAILED"
