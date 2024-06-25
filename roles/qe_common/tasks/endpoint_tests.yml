@@ -19,6 +19,9 @@
   when: "result.rc == 0"
 
 - name: Push result to "{{ endpoint_outfile }}"
-  ansible.builtin.shell:
-          'echo "{{ inventory_hostname }},{{ item[0] }}:{{ item[1] }}:{{ item[2] }},{{ t_status }}" >> "{{ endpoint_outfile }}"'
+  ansible.builtin.lineinfile:
+    path: "{{ endpoint_outfile }}"
+    line: "{{ inventory_hostname }},{{ item[0] }}:{{ item[1] }}:{{ item[2] }},{{ t_status }}"
+    create: yes
+    mode: '0644'
   changed_when: exists == "FAILED"
