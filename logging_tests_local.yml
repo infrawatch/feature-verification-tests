@@ -169,7 +169,7 @@
         state: absent
       changed_when: false
 
-    - name: Verify Completed Pods
+    - name: Verify Running Pods
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: pod_tests.yml
@@ -228,7 +228,7 @@
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-"
+- name: "RHOSO-12676"
 # description: Verify logging pods are running in openshift-logging
   hosts: localhost
   connection: local
