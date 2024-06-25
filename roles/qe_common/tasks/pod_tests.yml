@@ -26,7 +26,10 @@
     - output.rc == 0
     - podinstance.stdout != ""
 
-- name: Push results to "{{ pod_out_file }}" 
-  ansible.builtin.shell:
-    'echo "{{ item }},{{ podinstance.stdout }},{{ exists }}" >> "{{ pod_out_file }}"'
+- name: Push results to "{{ pod_out_file }}"
+  ansible.builtin.lineinfile:
+    path: "{{ pod_out_file }}"
+    line: "pod:{{ item }},{{ podinstance.stdout }},{{ exists }}"
+    create: yes
+    mode: '0644'
   changed_when: exists == "FAILED"
