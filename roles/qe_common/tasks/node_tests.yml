@@ -31,4 +31,5 @@
     line: "{{ item }},{{ output.stdout}},{{ exists }}"
     state: present
     create: yes
+    mode: '0644'
   changed_when: exists == "FAILED"
