@@ -10,7 +10,8 @@
 
 - name: Check terminated pod 
   ansible.builtin.shell:
-    cmd: oc get pod -n "{{ nspace }} {{ podinstance.stdout }}"
+    cmd: | 
+      oc get pod -n "{{ nspace }} {{ podinstance.stdout }}"
   register: output
   changed_when: false
   failed_when: false
