@@ -28,7 +28,7 @@
 - name: Push result to "{{ node_out_file }}"
   ansible.builtin.lineinfile:
     path: "{{ node_out_file }}" 
-    line: "{{ item }},{{ output.stdout}},{{ exists }}"
+    line: "{{ item }},{{ output.stdout }},{{ exists }}"
     state: present
     create: yes
     mode: '0644'
