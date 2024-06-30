@@ -37,6 +37,41 @@
         - stf-connectors-osp13-ffu
         - gnocchi-connectors-swift
 
+- name: "Run e2e tests"
+  hosts: stf
+  ignore_errors: true
+  tasks:
+    - name: "Run collectd Prometheus queries"
+      ansible.builtin.import_role:
+        name: client_side_tests
+   
+    - name: "Test Collectd Sensubility"
+      ansible.builtin.import_role:
+        name: test_sensubility
+
+    - name: "Test Alerts"
+      ansible.builtin.import_role:
+        name: test_alerts
+
+    - name: "Test metrics retention"
+      ansible.builtin.import_role:
+        name: test_metrics_retention
+
+    - name: "Test snmp traps"
+      ansible.builtin.import_role:
+        name: test_snmp_traps
+
+    - name: " Test Attempt to send email alert"
+      ansible.builtin.import_role:
+        name: test_verify_email
+
+    - name: "Test HA"
+      ansible.builtin.import_role:
+        name: test_ha
+
+    - name: "Test observabilityStrategy"
+      ansible.builtin.import_role:
+        name: test_observability_strategy
   tags:
     - custom-stf-ceph
     - stf-connectors-osp13-ffu
