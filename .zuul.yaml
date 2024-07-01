@@ -38,7 +38,7 @@
 
 - job:
     name: functional-logging-tests-osp18
-    parent: telemetry-operator-multinode-logging
+    parent: telemetry-operator-multinode-autoscaling
     description: |
       Run the logging functional test on osp18+patched version
     vars:
