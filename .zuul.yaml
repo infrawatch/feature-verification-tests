@@ -35,7 +35,6 @@
       - README*
       - .*/*.md
 
-
 - job:
     name: functional-logging-tests-osp18
     parent: telemetry-operator-multinode-autoscaling
@@ -71,7 +70,6 @@
       - callback_plugins/.*
       - README*
       - .*/*.md
-
 
 - project:
     name: infrawatch/feature-verification-tests
