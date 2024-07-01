@@ -69,6 +69,8 @@
       - .github/.*
       - ci/github/.*
       - callback_plugins/.*
+      - README*
+      - .*/*.md
 
 
 - project:
