@@ -1,6 +1,5 @@
 - name: Prepare Logging Tests
-  hosts: localhost
-  connection: local
+  hosts: controller
   gather_facts: false
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
@@ -8,7 +7,7 @@
 
 - name: "RHOSO-12753"
 # description: Verify ctlplane node logging containers
-  hosts: ctlplane_nodes
+  hosts: computes
   gather_facts: no
   vars:
     container_out_file: "verify_ctlplane_node_logging_containers_{{ inventory_hostname }}_lresults.log"
@@ -40,7 +39,7 @@
 
 - name: "RHOSO-12754"
 # description: Verify ctlplane node logging config files
-  hosts: ctlplane_nodes
+  hosts: computes
   gather_facts: no
   vars:
     file_exists_outfile: "verify_ctlplane_node_logging_config_files_{{ inventory_hostname }}_lresults.log"
@@ -70,7 +69,7 @@
 
 - name: "RHOSO-12681"
 # description: Verify logging journalctl identifiers 
-  hosts: ctlplane_nodes
+  hosts: computes
   gather_facts: no
   vars:
     journal_exists_outfile: "verify_logging_journalctl_identifiers_{{ inventory_hostname }}_lresults.log"
@@ -100,8 +99,7 @@
 
 
 - name: Post process test results
-  hosts: localhost
-  connection: local
+  hosts: controller
   gather_facts: false
 
   tasks:
