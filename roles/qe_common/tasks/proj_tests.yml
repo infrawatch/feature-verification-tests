@@ -1,0 +1,26 @@
+---
+
+- name: Verify Project exists - "{{ item }}"
+  ansible.builtin.shell: 
+    cmd: |
+      oc project "{{ item }}"
+  register: output
+  changed_when: false
+  ignore_errors: yes
+
+- name: Set exist state to failed - "{{ item }}"
+  ansible.builtin.set_fact:
+     exists: FAILED
+
+- name: Test project exists - "{{ item }}"
+  ansible.builtin.set_fact:
+    exists: PASSED
+  when: output.rc == 0
+
+- name: Push results to "{{ proj_out_file }}"
+  ansible.builtin.lineinfile:
+    path: "{{ proj_out_file }}"
+    line: "project,{{ item }},{{ exists }}"
+    create: yes
+    mode: '0644'
+  changed_when: exists == "FAILED"
