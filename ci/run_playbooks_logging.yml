@@ -72,7 +72,7 @@
         - name: "Run local logging tests"
           ansible.builtin.shell:
             cmd: |
-              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}" ci/loggin_tests_ctlplane.yml
+              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}" ci/logging_tests_ctlplane.yml
             chdir: "{{ fvt_dir }}"
           register: output
 
