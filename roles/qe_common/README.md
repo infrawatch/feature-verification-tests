@@ -1,35 +1,51 @@
-telemetry_logging
+qe_common
 =========
 
-Test logging in Openstack
+The tests in this role are not specific to any one functional area.
 
 Requirements
 ------------
-The following resources are required in the OpenStack cloud
-* network called public
-* network called provate
-* security group called basic with ssh and tcp enabled to the VMs
-* a flavor called m1.small
-* an image called cirros
+
+None
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+This role should not have any default variables as this is a common role for tests that can be used for multiple test roles.
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+None
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+Typically, for this role the tests should *not* use a "main.yml" and import or include all the tests in the role. On the contrary, a tests should explicitly include specific tests needed for a given job.  
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+  hosts: controller
+  gather_facts: no
+  vars:
+     proj_out_file: verify_logging_projects_exist_lresults.log
+     proj_list:
+       - openshift-openstack-infra
+       - openshift
+       - openstack-operators
+       - openshift-logging
+
+  tasks:
+    - name: Remove "{{ proj_out_file }}"
+      ansible.builtin.file:
+        path: "{{ proj_out_file }}"
+        state: absent
+      changed_when: false  
+
+    - name: Verify projects created
+      ansible.builtin.include_role:
+        name: qe_common
+        tasks_from: proj_tests.yml
+      loop: "{{ proj_list }}"
+      
 
 License
 -------
@@ -39,4 +55,5 @@ Apache 2
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+alexy@redhat.com
+
