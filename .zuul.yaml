@@ -37,7 +37,7 @@
     parent: cifmw-data-plane-adoption-osp-17-to-extracted-crc
     description: |
       Run the autoscaling functional test on osp17.
-    run:
+    post-run:
       - ci/osp17_functional_tests.yml
     irrelevant-files:
       - .github/.*
