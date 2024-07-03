@@ -96,14 +96,3 @@
         dest: ./
         flat: true
       changed_when: false
-
-
-- name: Post process test results
-  hosts: controller
-  gather_facts: false
-
-  tasks:
-    - name: Review test output results
-      ansible.builtin.include_role:
-        name: telemetry_logging
-        tasks_from: logging_review_results.yml
