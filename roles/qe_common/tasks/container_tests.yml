@@ -10,7 +10,7 @@
 
 - name: Set status to FAILED
   ansible.builtin.set_fact:
-    t_status: FAILED    
+    t_status: FAILED      
 
 - name: Test Container is Up - "{{ item }}"
   ansible.builtin.set_fact:
@@ -22,6 +22,8 @@
   ansible.builtin.lineinfile:
     path: "{{ container_out_file }}"
     line: "{{ inventory_hostname }},{{ item }},{{ t_status }}"
-    create: yes 
+    create: yes
     mode: '0664'
   changed_when: t_status  == "FAILED"
+
+
