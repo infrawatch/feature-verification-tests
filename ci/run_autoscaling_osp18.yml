@@ -10,7 +10,7 @@
   tasks:
     - name: Include setup tasks 
       ansible.builtin.include_tasks:
-        file: setup.env.yml
+        file: setup_env.yml
 
     - name: "Run Telemetry Autoscaling tests"
       ansible.builtin.import_role:
