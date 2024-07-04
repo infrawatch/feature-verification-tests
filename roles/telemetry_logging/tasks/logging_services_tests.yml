@@ -1,0 +1,23 @@
+---
+
+- name: Verify Service Running - "{{ item }}"
+  ansible.builtin.shell:
+    cmd: |
+      oc get service -n "{{ nspace }}" "{{ item }}"
+  register: output 
+  changed_when: false
+  ignore_errors: yes
+
+- name: "Set to failed service - {{ item }}"
+  ansible.builtin.set_fact:
+     exists: FAILED
+
+- name: "If service exists - {{ item }}"
+  ansible.builtin.set_fact:
+    exists: PASSED 
+  when: output.rc == 0
+
+- name: "Push service check results to {{ services_out_file }}"
+  ansible.builtin.shell:
+    'echo "Service,{{ item }},{{ exists }}" >> "{{ services_out_file }}"'
+  changed_when: exists == "FAILED"

@@ -1,0 +1,24 @@
+---
+
+- name: Get Endpoint
+  ansible.builtin.shell:
+    cmd: |
+      oc project openstack     
+      kubectl exec openstackclient -- openstack endpoint list --service="{{ item[0] }}" --service="{{ item[1] }}"  --interface="{{ item[2] }}"
+  register: result 
+  changed_when: false
+  ignore_errors: yes
+
+- name: Set status "{{ item }}"
+  ansible.builtin.set_fact:
+    t_status: FAILED      
+
+- name: Set file status to PASSED - "{{ item }}"
+  ansible.builtin.set_fact:
+    t_status: PASSED
+  when: "result.rc == 0"
+
+- name: Push result to "{{ endpoint_outfile }}"
+  ansible.builtin.shell:
+          'echo "{{ inventory_hostname }},{{ item[0] }}:{{ item[1] }}:{{ item[2] }},{{ t_status }}" >> "{{ endpoint_outfile }}"'
+  changed_when: exists == "FAILED"

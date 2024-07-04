@@ -2,6 +2,7 @@
 exclude_paths:
     - ci/
     - roles/telemetry_autoscaling
+    - roles/telemetry_logging
 skip_list:
   - command-instead-of-module  # Using command rather than module
   - galaxy
