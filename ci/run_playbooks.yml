@@ -39,7 +39,7 @@
         - name: Patch the openstackversions to use the master containers for aodh and heat
           ansible.builtin.shell:
             cmd: |
-              oc patch openstackversions openstack-galera-network-isolation --type merge --patch-file ci/patch-openstack-versions.yaml
+              oc patch  oscp/controlplane  --type merge --patch-file ci/patch-openstack-versions.yaml
             chdir: "{{ fvt_dir }}"
           when: "{{ patch_openstackversions | bool }}"
           tags:
