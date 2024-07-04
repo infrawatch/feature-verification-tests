@@ -22,4 +22,3 @@
     - name: Include report result 
       ansible.builtin.include_tasks:
         file: report_result.yml
-
