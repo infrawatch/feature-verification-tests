@@ -27,4 +27,4 @@
 - name: Revert the version update
   ansible.builtin.shell:
     cmd: |
-      oc patch openstackversions openstack-galera-network-isolation --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
+      oc patch oscp/controlplane  --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
