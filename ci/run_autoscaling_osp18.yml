@@ -1,14 +1,24 @@
 ---
-- name: Telemetry tests on osp18 with autoscaling enabled
+- name: Run telemetry autoscaling tests on osp18
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
   tasks:
+    - name: Include setup tasks 
+      ansible.builtin.include_tasks:
+        file: setup.env.yml
+
     - name: "Run Telemetry Autoscaling tests"
       ansible.builtin.import_role:
         name: telemetry_autoscaling
       vars:
-        vars_path: "{{ vars_dir }}"
+        vars_path:  "{{ fvt_dir }}/ci/vars"
       tags: autoscaling
+
+    - name: Include report result 
+      ansible.builtin.include_tasks:
+        file: report_result.yml

@@ -20,4 +20,11 @@
   ignore_errors: true
   retries: 50
   timeout: 5
-  
+
+  # TODO: Get the name of the openstackversions object.
+  # TODO: Work on getting the patches into kustomize format, so that we can use them by passing into the job vars, and can skip setup.
+  # This is so we can test it locally.
+- name: Revert the version update
+  ansible.builtin.shell:
+    cmd: |
+      oc patch  oscp/controlplane  --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
