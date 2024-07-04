@@ -2,18 +2,18 @@
 - name: Move callback_plugin result to log dir
   ansible.builtin.shell:
     cmd: |
-      cp  {{ fvt_dir }}/test_run_result.out {{ logs_dir }}/test_run_result.log
-      cp  {{ fvt_dir }}/summary_results.log {{ logs_dir }}/summary_results.log
+      cp  ~/test_run_result.out {{ autoscaling_logs_dir }}/test_run_result.log
+      cp  ~/summary_results.log {{ autoscaling_logs_dir }}/summary_results.log
 
 - name: Grep the number of failed tasks
   ansible.builtin.shell:
     cmd: |
-        grep "Tasks Failed:" {{ fvt_dir }}/summary_results.log | awk '{print $3}'
+        grep "Tasks Failed:" ~/summary_results.log | awk '{print $3}'
   register: tasks_failed
 
 - name: Determine success or failure based on the number of failed tasks
   ansible.builtin.assert:
     that:
       - tasks_failed.stdout == "0"
-    fail_msg: "Tasks Failed: {{ tasks_failed.stdout }}. Check the logs in {{ logs_dir }}/summary_results.log."
+    fail_msg: "Tasks Failed: {{ tasks_failed.stdout }}. Check the logs in {{ autoscaling_logs_dir }}/summary_results.log."
     success_msg: "Tasks Failed: {{ tasks_failed.stdout }}. All tasks succeeded."
