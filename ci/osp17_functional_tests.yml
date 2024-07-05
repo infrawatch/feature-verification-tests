@@ -1,6 +1,9 @@
 ---
 - name: "Run functional test playbooks"
   hosts:  "{{ cifmw_target_hook_host | default('localhost') }}"
+  vars:
+    shell_header: set -euxo pipefail
+    oc_header: eval $(crc oc-env)
   tasks:
     - name: Test service API endpoint(metric) for autoscaling
       ansible.builtin.shell: |
