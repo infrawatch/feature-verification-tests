@@ -5,12 +5,6 @@ Test logging in Openstack
 
 Requirements
 ------------
-The following resources are required in the OpenStack cloud
-* network called public
-* network called provate
-* security group called basic with ssh and tcp enabled to the VMs 
-* a flavor called m1.small
-* an image called cirros
 
 Role Variables
 --------------
