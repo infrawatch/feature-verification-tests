@@ -1,0 +1,49 @@
+---
+- name: "{{ container_pol_id }} Verify logging containers exist"
+  include_tasks: "container_tests.yml"
+  when: container_pol_id is defined
+
+
+- name: "{{ cred_pol_id }} Verify logging credentials exist"
+  include_tasks: "cred_tests.yml"
+  when: cred_pol_id is defined
+
+
+- name: "{{ endpoints_pol_id }} Verify logging endpoints in OSP"
+  include_tasks: "endpoint_tests.yml"
+  when: endpoints_pol_id is defined
+
+
+- name: "{{ file_pol_id }} Verify logging credentials exist"
+  include_tasks: "file_tests.yml"
+  when: file_pol_id is defined
+
+
+- name: "{{ manifest_pol_id }} Verify logging manifests"
+  include_tasks: "manifest_tests.yml"
+  when: manifest_pol_id is defined
+
+
+- name: "{{ node_pol_id }} Verify logging OSP nodes"
+  include_tasks: node_tests.yml
+  when: node_pol_id is defined
+
+
+- name: "{{ pod_pol_id }} Verify logging pods"
+  include_tasks: "pod_tests.yml"
+  when: pod_pol_id is defined
+
+
+- name: "{{ proj_pol_id }}  Verify logging projects exist"
+  include_tasks: "proj_tests.yml"
+  when: proj_pol_id is defined
+
+
+- name: "{{ service_pol_id }} Verify logging services"
+  include_tasks: "service_tests.yml"
+  when: service_pod_id is defined
+
+
+- name: "{{ subscription_pol_id }} Verify logging subscriptions"
+  include_tasks: "subscription_tests.yml"
+  when: subscription_pol_id is defined
