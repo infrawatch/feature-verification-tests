@@ -27,4 +27,4 @@
 - name: Revert the version update
   ansible.builtin.shell:
     cmd: |
-      oc patch  oscp/controlplane  --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
+      oc patch  openstackversions controlplane  --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
