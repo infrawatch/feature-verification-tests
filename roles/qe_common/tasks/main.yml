@@ -9,9 +9,9 @@
   when: cred_pol_id is defined
 
 
-- name: "{{ endpoints_pol_id }} Verify logging endpoints in OSP"
+- name: "{{ endpoint_pol_id }} Verify logging endpoints in OSP"
   include_tasks: "endpoint_tests.yml"
-  when: endpoints_pol_id is defined
+  when: endpoint_pol_id is defined
 
 
 - name: "{{ file_pol_id }} Verify logging credentials exist"
