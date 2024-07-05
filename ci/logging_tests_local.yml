@@ -61,7 +61,7 @@
   gather_facts: no
   vars:
     endpoint_outfile: "verify_logging_endpoints_openstack_lresults.log"
-    endpoints_list:
+    endpoint_list:
       - [nova,compute,public]
       - [nova,compute,internal]
       - [placement,placement,public]
@@ -90,7 +90,7 @@
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: endpoint_tests.yml
-      loop: "{{ endpoints_list }}"
+      loop: "{{ endpoint_list }}"
 
 
 - name: "RHOSO-12670"
@@ -326,9 +326,9 @@
   hosts: controller
   gather_facts: no
   vars:
-    services_out_file: verify_logging_services_running_in_openshift-logging_lresults.log
+    service_out_file: verify_logging_services_running_in_openshift-logging_lresults.log
     nspace: openshift-logging
-    services_list:
+    service_list:
       - cluster-logging-operator-metrics
       - logging-loki-compactor-grpc
       - logging-loki-compactor-http
@@ -348,17 +348,17 @@
       - openstack-logging
 
   tasks:
-    - name: Remove "{{ services_out_file }}"
+    - name: Remove "{{ service_out_file }}"
       ansible.builtin.file:
-        path: "{{ services_out_file }}"
+        path: "{{ service_out_file }}"
         state: absent
       changed_when: false
 
-    - name: Run Services Test in "{{ nspace }}"
+    - name: Run Service Tests in "{{ nspace }}"
       ansible.builtin.include_role:
         name: qe_common
-        tasks_from: services_tests.yml
-      loop: "{{ services_list }}"
+        tasks_from: service_tests.yml
+      loop: "{{ service_list }}"
 
 
 - name: "RHOSO-12749"
@@ -366,26 +366,26 @@
   hosts: controller
   gather_facts: no
   vars:
-    services_out_file: verify_openstack_services_running_lresults.log
+    service_out_file: verify_openstack_services_running_lresults.log
     nspace: openstack
-    services_list:
+    service_list:
       - nova-internal
       - nova-metadata-internal
       - nova-novncproxy-cell1-public
       - nova-public
 
   tasks:
-    - name: Remove "{{ services_out_file }}"
+    - name: Remove "{{ service_out_file }}"
       ansible.builtin.file:
-        path: "{{ services_out_file }}"
+        path: "{{ service_out_file }}"
         state: absent
       changed_when: false 
 
     - name: Run Services test in "{{ nspace }}" 
       ansible.builtin.include_role:
         name: qe_common
-        tasks_from: services_tests.yml
-      loop: "{{ services_list }}"
+        tasks_from: service_tests.yml
+      loop: "{{ service_list }}"
 
 
 - name: "RHOSO-12677"
@@ -394,7 +394,7 @@
   gather_facts: no
   vars:
     manifest_out_file: verify_packagemanifests_exist_lresults.log
-    packagemanifests_list:
+    manifest_list:
       - "loki-operator 2"
       - "loki-helm-operator 1"
 
@@ -409,7 +409,7 @@
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: manifest_tests.yml
-      loop: "{{ packagemanifests_list }}"
+      loop: "{{ manifest_list }}"
 
 
 - name: "RHOSO-12678"
