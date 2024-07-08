@@ -1,5 +1,4 @@
 ---
-
-- name: "{{ journal_pol_id }} Verify journals exist"
+- name: "Verify journal entries"
   include_tasks: "journal_tests.yml"
-  when: journal_pol_id is defined
+  when: journal_list is defined
