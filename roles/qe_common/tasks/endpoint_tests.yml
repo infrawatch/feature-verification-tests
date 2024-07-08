@@ -6,5 +6,4 @@
       oc project openstack     
       kubectl exec openstackclient -- openstack endpoint list --service="{{ item[0] }}" --service="{{ item[1] }}"  --interface="{{ item[2] }}"
   register: result 
-  changed_when: false
-  ignore_errors: yes
+  failed_when: result.rc != 0
