@@ -8,20 +8,3 @@
   register: result 
   changed_when: false
   ignore_errors: yes
-
-- name: Set status "{{ item }}"
-  ansible.builtin.set_fact:
-    t_status: FAILED      
-
-- name: Set file status to PASSED - "{{ item }}"
-  ansible.builtin.set_fact:
-    t_status: PASSED
-  when: "result.rc == 0"
-
-- name: Push result to "{{ endpoint_outfile }}"
-  ansible.builtin.lineinfile:
-    path: "{{ endpoint_outfile }}"
-    line: "{{ inventory_hostname }},{{ item[0] }}:{{ item[1] }}:{{ item[2] }},{{ t_status }}"
-    create: yes
-    mode: '0644'
-  changed_when: exists == "FAILED"
