@@ -1,9 +1,17 @@
 ---
+- name: Print Ansible configuration file
+  command: ansible-config dump
+  register: ansible_config_output
+
+- name: Display Ansible configuration
+  debug:
+    var: ansible_config_output.stdout
+    
 - name: Move callback_plugin result to log dir
   ansible.builtin.shell:
     cmd: |
-      cp  {{ fvt_dir }}/test_run_result.out {{ autoscaling_logs_dir  }}/test_run_result.log
-      cp  {{ fvt_dir }}/summary_results.log {{ autoscaling_logs_dir  }}/summary_results.log
+      cp  ./test_run_result.out {{ autoscaling_logs_dir  }}/test_run_result.log
+      cp  ./summary_results.log {{ autoscaling_logs_dir  }}/summary_results.log
 
 - name: Grep the number of failed tasks
   ansible.builtin.shell:
