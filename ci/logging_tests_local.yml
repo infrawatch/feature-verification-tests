@@ -23,18 +23,16 @@
       failed_when: rsa_results.rc != 0
       changed_when: false
 
-    - name: Change files permissions
+    - name: "Change files permissions"
       ansible.builtin.shell:
         cmd: |
           chmod 600 "{{ id_rsa_path }}"
       changed_when: false  
 
-- name: "RHOSO-12668"
-# description: 'Verify logging projects exist'
+- name: "RHOSO-12668 Verify logging projects exist"
   hosts: controller
   gather_facts: no
   vars:
-     proj_out_file: verify_logging_projects_exist_lresults.log
      proj_list:
        - openshift-openstack-infra
        - openshift
@@ -42,12 +40,6 @@
        - openshift-logging
 
   tasks:
-    - name: Remove "{{ proj_out_file }}"
-      ansible.builtin.file:
-        path: "{{ proj_out_file }}"
-        state: absent
-      changed_when: false  
-
     - name: Verify projects created
       ansible.builtin.include_role:
         name: qe_common
@@ -55,12 +47,10 @@
       loop: "{{ proj_list }}"
 
 
-- name: "RHOSO-12682"
-# description: Verify logging endpoints in OSP
+- name: "RHOSO-12682 Verify logging endpoints in OSP"
   hosts: controller
   gather_facts: no
   vars:
-    endpoint_outfile: "verify_logging_endpoints_openstack_lresults.log"
     endpoint_list:
       - [nova,compute,public]
       - [nova,compute,internal]
@@ -80,25 +70,17 @@
       - [neutron,network,internal]
 
   tasks:
-    - name: Remove "{{ endpoint_outfile }}"
-      ansible.builtin.file:
-        path: "{{ endpoint_outfile }}"
-        state: absent
-      changed_when: false
-
-    - name: Verfiy Endpoints
+    - name: Verify Endpoints
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: endpoint_tests.yml
       loop: "{{ endpoint_list }}"
 
 
-- name: "RHOSO-12670"
-# description: Verify logging credentials exist
+- name: "RHOSO-12670 Verify logging credentials exist"
   hosts: controller
   gather_facts: no
   vars:
-    cred_out_file: verify_logging_credentials_exist_lresults.log
     cred_list:
       - alertingrules.loki.grafana.com
       - lokistacks.loki.grafana.com
@@ -106,12 +88,6 @@
       - rulerconfigs.loki.grafana.com
 
   tasks:
-    - name: Remove "{{ cred_out_file }}"
-      ansible.builtin.file:
-        path: "{{ cred_out_file }}"
-        state: absent
-      changed_when: false
-
     - name: Verify credentials created
       ansible.builtin.include_role:
         name: qe_common
@@ -119,24 +95,16 @@
       loop: "{{ cred_list }}"
 
 
-- name: "RHOSO-12671"
-# description: Verify logging OSP nodes are running
+- name: "RHOSO-12671 Verify logging OSP nodes are running"
   hosts: controller
   gather_facts: no
   vars:
-    node_out_file: verify_logging_osp_nodes_running_lresults.log
     node_list:
       - edpm-compute-0
       - edpm-compute-1
       - crc
 
   tasks:
-    - name: Remove "{{ node_out_file }}"
-      ansible.builtin.file:
-        path: "{{ node_out_file }}"
-        state: absent
-      changed_when: false
-
     - name: Verify nodes deployed
       ansible.builtin.include_role:
         name: qe_common
@@ -144,25 +112,17 @@
       loop: "{{ node_list }}"
 
 
-- name: "RHOS0-12672"
-# description: Verify logging pods are running in openstack-operator
+- name: "RHOS0-12672 Verify logging pods are running in openstack-operator"
   hosts: controller
   gather_facts: no
   vars:
     pod_status_str: "Running"      
     nspace: openstack-operators
-    pod_out_file: verify_logging_pods_running_openstack-operator_lresults.log
     pod_list:
       - telemetry-operator-controller-manager
       - dataplane-operator-controller-manager
 
   tasks:
-    - name: Remove "{{ pod_out_file }}"
-      ansible.builtin.file:
-        path: "{{ pod_out_file }}"
-        state: absent
-      changed_when: false
-
     - name: Verify Running Pods
       ansible.builtin.include_role:
         name: qe_common
@@ -170,24 +130,16 @@
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-12752"
-# description: Verify logging pods are running in openstack
+- name: "RHOSO-12752 Verify logging pods are running in openstack"
   hosts: controller
   gather_facts: no
   vars:
     pod_status_str: "Running"
     nspace: openstack
-    pod_out_file: verify_logging_pods_running_openstack_lresults.log
     pod_list:
       - openstackclient
 
   tasks:
-    - name: Remove "{{ pod_out_file }}"
-      ansible.builtin.file:
-        path: "{{ pod_out_file }}"
-        state: absent
-      changed_when: false
-
     - name: Verify Running Pods
       ansible.builtin.include_role:
         name: qe_common
@@ -195,24 +147,16 @@
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-12673"
-# description: Verify logging pods are running in openshift-operators-redhat
+- name: "RHOSO-12673 Verify logging pods are running in openshift-operators-redhat"
   hosts: controller
   gather_facts: no
   vars:
     pod_status_str: "Running"
     nspace: openshift-operators-redhat
-    pod_out_file: verify_logging_pods_running_openshift-operators-redhat_lresults.log
     pod_list:
       - loki-operator-controller-manager
 
   tasks:
-    - name: Remove "{{ pod_out_file }}"
-      ansible.builtin.file:
-        path: "{{ pod_out_file }}"
-        state: absent
-      changed_when: false
-
     - name: Verify Pods running
       ansible.builtin.include_role:
         name: qe_common
@@ -220,14 +164,12 @@
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-12676"
-# description: Verify logging pods are running in openshift-logging
+- name: "RHOSO-12676 Verify logging pods are running in openshift-logging"
   hosts: controller
   gather_facts: no
   vars:
     pod_status_str: "Running"
     nspace: openshift-logging
-    pod_out_file: verify_logging_pods_running_openshift-logging_lresults.log
     pod_list:
       - cluster-logging-operator
       - collector
@@ -242,12 +184,6 @@
 
   ### see JIRA LOG-5431 if pods not running
   tasks:
-    - name: Remove "{{ pod_out_file }}"
-      ansible.builtin.file:
-        path: "{{ pod_out_file }}"
-        state: absent
-      changed_when: false
-
     - name: Verify Pods running
       ansible.builtin.include_role:
         name: qe_common
@@ -255,24 +191,16 @@
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-12674"
-# description: Verify logging pods are running in minio-dev
+- name: "RHOSO-12674 Verify logging pods are running in minio-dev"
   hosts: controller
   gather_facts: no
   vars:
     pod_status_str: "Running"
     nspace: minio-dev
-    pod_out_file: verify_minio-dev_pods_running_lresults.log
     pod_list:
       - minio
 
   tasks:
-    - name: Remove "{{ pod_out_file }}"
-      ansible.builtin.file:
-        path: "{{ pod_out_file }}"
-        state: absent
-      changed_when: false
-
     - name: Verify running pods
       ansible.builtin.include_role:
         name: qe_common
@@ -280,12 +208,10 @@
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-12679"
-# description: Verify logging pods have complete status in openstack 
+- name: "RHOSO-12679 Verify logging pods have complete status in openstack"
   hosts: controller
   gather_facts: no
   vars:
-    pod_out_file: verify_logging_pods_completed_in_openstack_lresults.log
     nspace: openstack
     pod_status_str: "Completed"
     pod_list:
@@ -308,12 +234,6 @@
       - validate-network-edpm-deployment-logging
 
   tasks:
-    - name: Remove "{{ pod_out_file }}"
-      ansible.builtin.file:
-        path: "{{ pod_out_file }}"
-        state: absent
-      changed_when: false
-
     - name: Verify pods completed
       ansible.builtin.include_role:
         name: qe_common        
@@ -321,12 +241,10 @@
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-12675"
-# description: Verify logging services are running in openshift-logging
+- name: "RHOSO-12675 Verify logging services are running in openshift-logging"
   hosts: controller
   gather_facts: no
   vars:
-    service_out_file: verify_logging_services_running_in_openshift-logging_lresults.log
     nspace: openshift-logging
     service_list:
       - cluster-logging-operator-metrics
@@ -348,12 +266,6 @@
       - openstack-logging
 
   tasks:
-    - name: Remove "{{ service_out_file }}"
-      ansible.builtin.file:
-        path: "{{ service_out_file }}"
-        state: absent
-      changed_when: false
-
     - name: Run Service Tests in "{{ nspace }}"
       ansible.builtin.include_role:
         name: qe_common
@@ -361,12 +273,10 @@
       loop: "{{ service_list }}"
 
 
-- name: "RHOSO-12749"
-# description: Verify logging services are running in openstack
+- name: "RHOSO-12749 Verify logging services are running in openstack"
   hosts: controller
   gather_facts: no
   vars:
-    service_out_file: verify_openstack_services_running_lresults.log
     nspace: openstack
     service_list:
       - nova-internal
@@ -375,12 +285,6 @@
       - nova-public
 
   tasks:
-    - name: Remove "{{ service_out_file }}"
-      ansible.builtin.file:
-        path: "{{ service_out_file }}"
-        state: absent
-      changed_when: false 
-
     - name: Run Services test in "{{ nspace }}" 
       ansible.builtin.include_role:
         name: qe_common
@@ -388,23 +292,15 @@
       loop: "{{ service_list }}"
 
 
-- name: "RHOSO-12677"
-# description: Verify logging packagemanifest exist
+- name: "RHOSO-12677 Verify logging packagemanifest exist"
   hosts: controller
   gather_facts: no
   vars:
-    manifest_out_file: verify_packagemanifests_exist_lresults.log
     manifest_list:
       - "loki-operator 2"
       - "loki-helm-operator 1"
 
   tasks:
-    - name: Remove "{{ manifest_out_file }}"
-      ansible.builtin.file:
-        path: "{{ manifest_out_file }}"
-        state: absent
-      changed_when: false
-
     - name: Run packagemanifest tests
       ansible.builtin.include_role:
         name: qe_common
@@ -412,23 +308,15 @@
       loop: "{{ manifest_list }}"
 
 
-- name: "RHOSO-12678"
-# description: Verify logging subscriptions exist in openshift-operators-redhat
+- name: "RHOSO-12678 Verify logging subscriptions exist in openshift-operators-redhat"
   hosts: controller
   gather_facts: no
   vars:
-    nspace: openshift-operators-redhat 
-    subscript_out_file: verify_openshift-operators-redhat_subscriptions_lresults.log 
+    nspace: openshift-operators-redhat
     subscription_list:
       - loki-operator
 
   tasks:
-    - name: Remove "{{ subscript_out_file }}"
-      ansible.builtin.file:
-        path: "{{ subscript_out_file }}"
-        state: absent
-      changed_when: false
-
     - name: Run subscription tests
       ansible.builtin.include_role:
         name: qe_common
