@@ -1,49 +1,54 @@
 ---
-- name: "{{ container_data.pol_id }} Verify logging containers exist"
+- name: "Verify container"
   include_tasks: "container_tests.yml"
-  when: container_data is defined
+  when: container_list is defined
 
 
-- name: "{{ cred_data.pol_id }} Verify logging credentials exist"
+- name: "Verify credential"
   include_tasks: "cred_tests.yml"
-  when: cred_data is defined
+  when: cred_list is defined
 
 
-- name: "{{ endpoint_data.pol_id }} Verify logging endpoints in OSP"
+- name: "Verify endpoint in OSP"
   include_tasks: "endpoint_tests.yml"
-  when: endpoint_data is defined
+  when: endpoint_list is defined
 
 
-- name: "{{ file_tests_data.pol_id }} Verify logging credentials exist"
+- name: "Verify file"
   include_tasks: "file_tests.yml"
-  when: file_tests_data is defined
+  when: file_list is defined
 
 
-- name: "{{ manifest_tests_data.pol_id }} Verify logging manifests"
+- name: "Verify manifest"
   include_tasks: "manifest_tests.yml"
-  when: manifest_tests_data is defined
+  when: manifest_list is defined
 
 
-- name: "{{ node_tests_data.pol_id }} Verify logging OSP nodes"
+- name: "Verify OSP node"
   include_tasks: node_tests.yml
-  when: node_tests_data is defined
+  when: node_list is defined
 
 
-- name: "{{ pod_tests_data.pol_id }} Verify logging pods"
+- name: "Verify pod"
   include_tasks: "pod_tests.yml"
-  when: pod_tests_data is defined
+  when: 
+    - pod_list is defined
+    - nspace is defined
+    - pod_status_str is defined
 
 
-- name: "{{ proj_tests_data.pol_id }}  Verify logging projects exist"
+- name: "Verify project"
   include_tasks: "proj_tests.yml"
-  when: proj_tests_data is defined
+  when: proj_list is defined
 
 
-- name: "{{ service_tests_data.pol_id }} Verify logging services"
+- name: "Verify service"
   include_tasks: "service_tests.yml"
-  when: service_tests_data is defined
+  when: 
+    - service_list is defined
+    - nspace is defined
 
 
-- name: "{{ subscription_tests_data.pol_id }} Verify logging subscriptions"
+- name: "Verify subscription"
   include_tasks: "subscription_tests.yml"
-  when: subscription_tests_data is defined
+  when: subscription_list is defined
