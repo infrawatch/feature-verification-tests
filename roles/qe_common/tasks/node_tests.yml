@@ -15,4 +15,4 @@
       virsh list --state-running | grep "{{ item }}" | awk '{print $3;}'
   register: output
   changed_when: false
-  ignore_errors: true
+  failed_when: output.stdout != "running"
