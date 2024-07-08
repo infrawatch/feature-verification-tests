@@ -1,49 +1,49 @@
 ---
-- name: "{{ container_pol_id }} Verify logging containers exist"
+- name: "{{ container_data.pol_id }} Verify logging containers exist"
   include_tasks: "container_tests.yml"
-  when: container_pol_id is defined
+  when: container_data is defined
 
 
-- name: "{{ cred_pol_id }} Verify logging credentials exist"
+- name: "{{ cred_data.pol_id }} Verify logging credentials exist"
   include_tasks: "cred_tests.yml"
-  when: cred_pol_id is defined
+  when: cred_data is defined
 
 
-- name: "{{ endpoint_pol_id }} Verify logging endpoints in OSP"
+- name: "{{ endpoint_data.pol_id }} Verify logging endpoints in OSP"
   include_tasks: "endpoint_tests.yml"
-  when: endpoint_pol_id is defined
+  when: endpoint_data is defined
 
 
-- name: "{{ file_pol_id }} Verify logging credentials exist"
+- name: "{{ file_tests_data.pol_id }} Verify logging credentials exist"
   include_tasks: "file_tests.yml"
-  when: file_pol_id is defined
+  when: file_tests_data is defined
 
 
-- name: "{{ manifest_pol_id }} Verify logging manifests"
+- name: "{{ manifest_tests_data.pol_id }} Verify logging manifests"
   include_tasks: "manifest_tests.yml"
-  when: manifest_pol_id is defined
+  when: manifest_tests_data is defined
 
 
-- name: "{{ node_pol_id }} Verify logging OSP nodes"
+- name: "{{ node_tests_data.pol_id }} Verify logging OSP nodes"
   include_tasks: node_tests.yml
-  when: node_pol_id is defined
+  when: node_tests_data is defined
 
 
-- name: "{{ pod_pol_id }} Verify logging pods"
+- name: "{{ pod_tests_data.pol_id }} Verify logging pods"
   include_tasks: "pod_tests.yml"
-  when: pod_pol_id is defined
+  when: pod_tests_data is defined
 
 
-- name: "{{ proj_pol_id }}  Verify logging projects exist"
+- name: "{{ proj_tests_data.pol_id }}  Verify logging projects exist"
   include_tasks: "proj_tests.yml"
-  when: proj_pol_id is defined
+  when: proj_tests_data is defined
 
 
-- name: "{{ service_pol_id }} Verify logging services"
+- name: "{{ service_tests_data.pol_id }} Verify logging services"
   include_tasks: "service_tests.yml"
-  when: service_pod_id is defined
+  when: service_tests_data is defined
 
 
-- name: "{{ subscription_pol_id }} Verify logging subscriptions"
+- name: "{{ subscription_tests_data.pol_id }} Verify logging subscriptions"
   include_tasks: "subscription_tests.yml"
-  when: subscription_pol_id is defined
+  when: subscription_tests_data is defined
