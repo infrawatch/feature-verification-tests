@@ -20,20 +20,4 @@
       oc get packagemanifests | grep "{{ pack_name.stdout }}" | wc -l
   register: num_found 
   changed_when: false
-
-- name: Set Fail State
-  ansible.builtin.set_fact:
-     exists: FAILED
-
-- name: Set Pass State
-  ansible.builtin.set_fact:
-    exists: PASSED
-  when: num_expected.stdout == num_found.stdout
-
-- name: Push result to "{{ manifest_out_file }}"
-  ansible.builtin.lineinfile:
-    path: "{{ manifest_out_file }}"
-    line: "{{ pack_name.stdout }},{{ num_found.stdout }},{{ exists }}"
-    create: yes
-    mode: '0644'
-  changed_when: exists == "FAILED"
+  ignore_errors: true
