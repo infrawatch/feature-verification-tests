@@ -4,7 +4,15 @@
   vars:
     shell_header: set -euxo pipefail
     oc_header: eval $(crc oc-env)
-  tasks:
+  tasks: 
+    - name: Setup the env before running the autoscaling functional test
+    block:
+      - community.general.make:
+          chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
+          target: standalone_deploy 
+        tags:
+          - setup
+
     - name: Test service API endpoint(metric) for autoscaling
       ansible.builtin.shell: |
         {{ shell_header }}
