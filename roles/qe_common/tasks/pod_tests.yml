@@ -15,22 +15,3 @@
   register: output
   changed_when: false
   failed_when: false
-
-- name: Test pod does not exist - "{{ item }}"
-  ansible.builtin.set_fact:
-     exists: FAILED
-
-- name: Test pod exists - "{{ item }}"
-  ansible.builtin.set_fact:
-    exists: PASSED
-  when: 
-    - output.rc == 0
-    - podinstance.stdout != ""
-
-- name: Push results to "{{ pod_out_file }}"
-  ansible.builtin.lineinfile:
-    path: "{{ pod_out_file }}"
-    line: "pod:{{ item }},{{ podinstance.stdout }},{{ exists }}"
-    create: yes
-    mode: '0644'
-  changed_when: exists == "FAILED"
