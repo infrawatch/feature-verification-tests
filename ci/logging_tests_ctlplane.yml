@@ -1,5 +1,5 @@
 - name: Prepare Logging Tests
-  hosts: controller
+  hosts: computes
   gather_facts: false
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
