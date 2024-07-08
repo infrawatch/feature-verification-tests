@@ -20,4 +20,4 @@
       oc get packagemanifests | grep "{{ pack_name.stdout }}" | wc -l
   register: num_found 
   changed_when: false
-  ignore_errors: true
+  failed_when: num_expected.stdout != num_found.stdout
