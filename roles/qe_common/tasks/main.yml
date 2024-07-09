@@ -1,32 +1,38 @@
 ---
 - name: "Verify container"
   ansible.builtin.include_tasks: "container_tests.yml"
-  when: container_list is defined
+  when: 
+    - container_list is defined
 
 
 - name: "Verify credential"
   ansible.builtin.include_tasks: "cred_tests.yml"
-  when: cred_list is defined
+  when: 
+    - cred_list is defined
 
 
 - name: "Verify endpoint in OSP"
   ansible.builtin.include_tasks: "endpoint_tests.yml"
-  when: endpoint_list is defined
+  when: 
+    - endpoint_list is defined
 
 
 - name: "Verify file"
   ansible.builtin.include_tasks: "file_tests.yml"
-  when: file_list is defined
+  when: 
+    - file_list is defined
 
 
 - name: "Verify manifest"
   ansible.builtin.include_tasks: "manifest_tests.yml"
-  when: manifest_list is defined
+  when: 
+    - manifest_list is defined
 
 
 - name: "Verify OSP node"
   ansible.builtin.include_tasks: node_tests.yml
-  when: node_list is defined
+  when: 
+    - node_list is defined
 
 
 - name: "Verify pod"
@@ -39,7 +45,8 @@
 
 - name: "Verify project"
   ansible.builtin.include_tasks: "proj_tests.yml"
-  when: proj_list is defined
+  when: 
+    - proj_list is defined
 
 
 - name: "Verify service"
@@ -51,4 +58,5 @@
 
 - name: "Verify subscription"
   ansible.builtin.include_tasks: "subscription_tests.yml"
-  when: subscription_list is defined
+  when: 
+    - subscription_list is defined
