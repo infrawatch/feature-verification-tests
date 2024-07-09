@@ -12,6 +12,11 @@ Role Variables
 --------------
 Variable required for all tasks to run:
 
+  For container_tests.yml tasks:
+
+    container_list
+      - list of containers to validate
+
   For cred_tests.yml tasks:
     
     cred_list   
@@ -21,6 +26,11 @@ Variable required for all tasks to run:
     
     endpoint_list   
       - list of endpoints to validate
+
+  For file_tests.yml tasks:
+    
+    file_list
+      - list of files to verify
 
   For node_tests.yml tasks:
     
