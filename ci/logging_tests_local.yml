@@ -29,10 +29,11 @@
           chmod 600 "{{ id_rsa_path }}"
       changed_when: false  
 
-- name: "RHOSO-12668 Verify logging projects exist"
+- name: "Verify logging projects exist"
   hosts: controller
   gather_facts: no
   vars:
+     proj_polar_id: "RHOSO-12668"
      proj_list:
        - openshift-openstack-infra
        - openshift
@@ -40,17 +41,18 @@
        - openshift-logging
 
   tasks:
-    - name: Verify projects created
+    - name: "Verify projects created - {{ proj_polar_id }}"
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: proj_tests.yml
       loop: "{{ proj_list }}"
 
 
-- name: "RHOSO-12682 Verify logging endpoints in OSP"
+- name: "Verify logging endpoints in OSP"
   hosts: controller
   gather_facts: no
   vars:
+    endpoint_polar_id: "RHOSO-12682"
     endpoint_list:
       - [nova,compute,public]
       - [nova,compute,internal]
@@ -70,17 +72,18 @@
       - [neutron,network,internal]
 
   tasks:
-    - name: Verify Endpoints
+    - name: "Verify Endpoints - {{ endpoint_polar_id }}"
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: endpoint_tests.yml
       loop: "{{ endpoint_list }}"
 
 
-- name: "RHOSO-12670 Verify logging credentials exist"
+- name: "Verify logging credentials exist"
   hosts: controller
   gather_facts: no
   vars:
+    cred_polar_id: "RHOSO-12670"
     cred_list:
       - alertingrules.loki.grafana.com
       - lokistacks.loki.grafana.com
@@ -88,34 +91,36 @@
       - rulerconfigs.loki.grafana.com
 
   tasks:
-    - name: Verify credentials created
+    - name: "Verify credentials created - {{ cred_polar_id }}"
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: cred_tests.yml
       loop: "{{ cred_list }}"
 
 
-- name: "RHOSO-12671 Verify logging OSP nodes are running"
+- name: "Verify logging OSP nodes are running"
   hosts: controller
   gather_facts: no
   vars:
+    node_polar_id: "RHOSO-12671"
     node_list:
       - edpm-compute-0
       - edpm-compute-1
       - crc
 
   tasks:
-    - name: Verify nodes deployed
+    - name: "Verify nodes deployed - {{ node_polar_id }}"
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: node_tests.yml
       loop: "{{ node_list }}"
 
 
-- name: "RHOS0-12672 Verify logging pods are running in openstack-operator"
+- name: "Verify logging pods are running in openstack-operator"
   hosts: controller
   gather_facts: no
   vars:
+    pod_polar_id: "RHOS0-12672"
     pod_status_str: "Running"      
     pod_nspace: openstack-operators
     pod_list:
@@ -123,51 +128,54 @@
       - dataplane-operator-controller-manager
 
   tasks:
-    - name: Verify Running Pods
+    - name: "Verify Running Pods - {{ pod_polar_id }}"
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: pod_tests.yml
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-12752 Verify logging pods are running in openstack"
+- name: "Verify logging pods are running in openstack"
   hosts: controller
   gather_facts: no
   vars:
+    pod_polar_id: "RHOSO-12752"
     pod_status_str: "Running"
     pod_nspace: openstack
     pod_list:
       - openstackclient
 
   tasks:
-    - name: Verify Running Pods
+    - name: "Verify Running Pods - {{ pod_polar_id }}"
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: pod_tests.yml
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-12673 Verify logging pods are running in openshift-operators-redhat"
+- name: "Verify logging pods are running in openshift-operators-redhat"
   hosts: controller
   gather_facts: no
   vars:
+    pod_polar_id: "RHOSO-12673"
     pod_status_str: "Running"
     pod_nspace: openshift-operators-redhat
     pod_list:
       - loki-operator-controller-manager
 
   tasks:
-    - name: Verify Pods running
+    - name: "Verify Pods running - {{ pod_polar_id }}"
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: pod_tests.yml
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-12676 Verify logging pods are running in openshift-logging"
+- name: "Verify logging pods are running in openshift-logging"
   hosts: controller
   gather_facts: no
   vars:
+    pod_polar_id: "RHOSO-12676"
     pod_status_str: "Running"
     pod_nspace: openshift-logging
     pod_list:
@@ -184,34 +192,36 @@
 
   ### see JIRA LOG-5431 if pods not running
   tasks:
-    - name: Verify Pods running
+    - name: "Verify Pods running - {{ pod_polar_id }}" 
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: pod_tests.yml
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-12674 Verify logging pods are running in minio-dev"
+- name: "Verify logging pods are running in minio-dev"
   hosts: controller
   gather_facts: no
   vars:
+    pod_polar_id: "RHOSO-12674"
     pod_status_str: "Running"
     pod_nspace: minio-dev
     pod_list:
       - minio
 
   tasks:
-    - name: Verify running pods
+    - name: "Verify running pods - {{ pod_polar_id }}"
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: pod_tests.yml
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-12679 Verify logging pods have complete status in openstack"
+- name: "Verify logging pods have complete status in openstack"
   hosts: controller
   gather_facts: no
   vars:
+    pod_polar_id: "RHOSO-12679"
     pod_nspace: openstack
     pod_status_str: "Completed"
     pod_list:
@@ -234,17 +244,18 @@
       - validate-network-edpm-deployment-logging
 
   tasks:
-    - name: Verify pods completed
+    - name: "Verify pods completed - {{ pod_polar_id }}"
       ansible.builtin.include_role:
         name: qe_common        
         tasks_from: pod_tests.yml
       loop: "{{ pod_list }}"
 
 
-- name: "RHOSO-12675 Verify logging services are running in openshift-logging"
+- name: "Verify logging services are running in openshift-logging"
   hosts: controller
   gather_facts: no
   vars:
+    service_polar_id: "RHOSO-12675"
     service_nspace: openshift-logging
     service_list:
       - cluster-logging-operator-metrics
@@ -266,17 +277,18 @@
       - openstack-logging
 
   tasks:
-    - name: Run Service Tests in "{{ service_nspace }}"
+    - name: "Run Service Tests in {{ service_nspace }} - {{ service_polar_id }}"
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: service_tests.yml
       loop: "{{ service_list }}"
 
 
-- name: "RHOSO-12749 Verify logging services are running in openstack"
+- name: "Verify logging services are running in openstack"
   hosts: controller
   gather_facts: no
   vars:
+    service_polar_id: "RHOSO-12749"
     service_nspace: openstack
     service_list:
       - nova-internal
@@ -285,39 +297,41 @@
       - nova-public
 
   tasks:
-    - name: Run Services test in "{{ service_nspace }}" 
+    - name: "Run Services test in {{ service_nspace }} - {{ service_polar_id }}" 
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: service_tests.yml
       loop: "{{ service_list }}"
 
 
-- name: "RHOSO-12677 Verify logging packagemanifest exist"
+- name: "Verify logging packagemanifest exist"
   hosts: controller
   gather_facts: no
   vars:
+    manifest_polar_id: "RHOSO-12677"
     manifest_list:
       - "loki-operator 2"
       - "loki-helm-operator 1"
 
   tasks:
-    - name: Run packagemanifest tests
+    - name: "Run packagemanifest tests - {{ manifest_polar_id }}"
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: manifest_tests.yml
       loop: "{{ manifest_list }}"
 
 
-- name: "RHOSO-12678 Verify logging subscriptions exist in openshift-operators-redhat"
+- name: "Verify logging subscriptions exist in openshift-operators-redhat"
   hosts: controller
   gather_facts: no
   vars:
+    subscription_polar_id: "RHOSO-12678"
     subscription_nspace: openshift-operators-redhat
     subscription_list:
       - loki-operator
 
   tasks:
-    - name: Run subscription tests
+    - name: "Run subscription tests - {{ subscription_polar_id }}"
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: subscription_tests.yml
