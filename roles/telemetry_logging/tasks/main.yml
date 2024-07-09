@@ -1,4 +1,5 @@
 ---
-- name: "Verify journal entries"
+- when: journal_list is defined
+  name: "Verify journal entries"
   include_tasks: "journal_tests.yml"
-  when: journal_list is defined
+  loop: "{{ journal_list }}"
