@@ -1,62 +1,64 @@
 ---
-- name: "Verify container"
+- when: container_list is defined
+  name: "Verify container"
   ansible.builtin.include_tasks: "container_tests.yml"
-  when: 
-    - container_list is defined
+  loop: "{{ container_list }}"
 
 
-- name: "Verify credential"
+- when: cred_list is defined
+  name: "Verify credential"
   ansible.builtin.include_tasks: "cred_tests.yml"
-  when: 
-    - cred_list is defined
+  loop: "{{ cred_list }}"
 
 
-- name: "Verify endpoint in OSP"
+- when: endpoint_list is defined
+  name: "Verify endpoint in OSP"
   ansible.builtin.include_tasks: "endpoint_tests.yml"
-  when: 
-    - endpoint_list is defined
+  loop: "{{ endpoint_list }}"
 
 
-- name: "Verify file"
+- when: file_list is defined
+  name: "Verify file"
   ansible.builtin.include_tasks: "file_tests.yml"
-  when: 
-    - file_list is defined
+  loop: "{{ file_list }}"
 
 
-- name: "Verify manifest"
+- when: manifest_list is defined
+  name: "Verify manifest"
   ansible.builtin.include_tasks: "manifest_tests.yml"
-  when: 
-    - manifest_list is defined
+  loop: "{{ manifest_list }}"
 
 
-- name: "Verify OSP node"
+- when: node_list is defined
+  name: "Verify OSP node"
   ansible.builtin.include_tasks: node_tests.yml
-  when: 
-    - node_list is defined
+  loop: "{{ node_list }}"
 
 
-- name: "Verify pod"
-  ansible.builtin.include_tasks: "pod_tests.yml"
-  when: 
+- when:
     - pod_list is defined
     - nspace is defined
     - pod_status_str is defined
+  name: "Verify pod"
+  ansible.builtin.include_tasks: "pod_tests.yml"
+  loop: "{{ pod_list }}"
 
 
-- name: "Verify project"
+- when: proj_list is defined
+  name: "Verify project"
   ansible.builtin.include_tasks: "proj_tests.yml"
-  when: 
-    - proj_list is defined
+  loop: "{{ proj_list }}"
 
 
-- name: "Verify service"
-  ansible.builtin.include_tasks: "service_tests.yml"
-  when: 
+-   when: 
     - service_list is defined
     - nspace is defined
+  name: "Verify service"
+  ansible.builtin.include_tasks: "service_tests.yml"
+  loop: {{ service_list }}"
 
 
-- name: "Verify subscription"
+- when: subscription_list is defined
+  name: "Verify subscription"
   ansible.builtin.include_tasks: "subscription_tests.yml"
-  when: 
-    - subscription_list is defined
+  loop: "{{ subscription_list }}"
