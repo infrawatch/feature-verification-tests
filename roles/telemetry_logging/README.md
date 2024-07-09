@@ -9,7 +9,10 @@ Requirements
 Role Variables
 --------------
 
-identifiers_list:  "Lists identifier strings to look for in the journalctl of the compute nodes
+  For journal_tests.yml
+    
+    identifiers_list  
+      - Lists identifier strings to look for in the journalctl of the compute nodes
    
 
 Dependencies
