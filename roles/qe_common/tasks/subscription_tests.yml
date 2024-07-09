@@ -3,7 +3,7 @@
 - name: Verify subscription
   ansible.builtin.shell:
     cmd: |
-      oc get subscriptions -n "{{ nspace }}" "{{ item }}" 
+      oc get subscriptions -n "{{ subscription_nspace }}" "{{ item }}" 
   register: output
   changed_when: false
   failed_when: output.rc != 0
