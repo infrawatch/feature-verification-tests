@@ -42,10 +42,8 @@
 
   tasks:
     - name: "Verify projects created - {{ proj_polar_id }}"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: proj_tests.yml
-      loop: "{{ proj_list }}"
 
 
 - name: "Verify logging endpoints in OSP"
@@ -73,10 +71,8 @@
 
   tasks:
     - name: "Verify Endpoints - {{ endpoint_polar_id }}"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: endpoint_tests.yml
-      loop: "{{ endpoint_list }}"
 
 
 - name: "Verify logging credentials exist"
@@ -92,10 +88,8 @@
 
   tasks:
     - name: "Verify credentials created - {{ cred_polar_id }}"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: cred_tests.yml
-      loop: "{{ cred_list }}"
 
 
 - name: "Verify logging OSP nodes are running"
@@ -110,10 +104,8 @@
 
   tasks:
     - name: "Verify nodes deployed - {{ node_polar_id }}"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: node_tests.yml
-      loop: "{{ node_list }}"
 
 
 - name: "Verify logging pods are running in openstack-operator"
@@ -129,10 +121,8 @@
 
   tasks:
     - name: "Verify Running Pods - {{ pod_polar_id }}"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: pod_tests.yml
-      loop: "{{ pod_list }}"
 
 
 - name: "Verify logging pods are running in openstack"
@@ -147,10 +137,8 @@
 
   tasks:
     - name: "Verify Running Pods - {{ pod_polar_id }}"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: pod_tests.yml
-      loop: "{{ pod_list }}"
 
 
 - name: "Verify logging pods are running in openshift-operators-redhat"
@@ -165,10 +153,8 @@
 
   tasks:
     - name: "Verify Pods running - {{ pod_polar_id }}"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: pod_tests.yml
-      loop: "{{ pod_list }}"
 
 
 - name: "Verify logging pods are running in openshift-logging"
@@ -193,10 +179,8 @@
   ### see JIRA LOG-5431 if pods not running
   tasks:
     - name: "Verify Pods running - {{ pod_polar_id }}" 
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: pod_tests.yml
-      loop: "{{ pod_list }}"
 
 
 - name: "Verify logging pods are running in minio-dev"
@@ -211,10 +195,8 @@
 
   tasks:
     - name: "Verify running pods - {{ pod_polar_id }}"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: pod_tests.yml
-      loop: "{{ pod_list }}"
 
 
 - name: "Verify logging pods have complete status in openstack"
@@ -245,10 +227,8 @@
 
   tasks:
     - name: "Verify pods completed - {{ pod_polar_id }}"
-      ansible.builtin.include_role:
-        name: qe_common        
-        tasks_from: pod_tests.yml
-      loop: "{{ pod_list }}"
+      ansible.builtin.import_role:
+        name: qe_common
 
 
 - name: "Verify logging services are running in openshift-logging"
@@ -278,10 +258,8 @@
 
   tasks:
     - name: "Run Service Tests in {{ service_nspace }} - {{ service_polar_id }}"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: service_tests.yml
-      loop: "{{ service_list }}"
 
 
 - name: "Verify logging services are running in openstack"
@@ -298,10 +276,8 @@
 
   tasks:
     - name: "Run Services test in {{ service_nspace }} - {{ service_polar_id }}" 
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: service_tests.yml
-      loop: "{{ service_list }}"
 
 
 - name: "Verify logging packagemanifest exist"
@@ -315,10 +291,8 @@
 
   tasks:
     - name: "Run packagemanifest tests - {{ manifest_polar_id }}"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: manifest_tests.yml
-      loop: "{{ manifest_list }}"
 
 
 - name: "Verify logging subscriptions exist in openshift-operators-redhat"
@@ -332,7 +306,7 @@
 
   tasks:
     - name: "Run subscription tests - {{ subscription_polar_id }}"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: subscription_tests.yml
-      loop: "{{ subscription_list }}"
+
+  
