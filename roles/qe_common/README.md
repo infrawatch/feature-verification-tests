@@ -1,7 +1,7 @@
 qe_common
 =========
 
-The tests in this role are not specific to any one functional area.
+The tests in this role are not specific to any one functional area but are an aggregate of common tests that can be used in all OSP 18.0/OCP jobs.
 
 Requirements
 ------------
@@ -10,8 +10,49 @@ None
 
 Role Variables
 --------------
+Variable required for all tasks to run:
 
-This role should not have any default variables as this is a common role for tests that can be used for multiple test roles.
+  For cred_tests.yml tasks:
+    cred_list: 
+      - list of credentials to validate
+
+  For endpoint_tests.yml tasks:
+    endpoint_list: 
+      - list of endpoints to validate
+
+  For node_tests.yml tasks:
+    node_list: 
+      - list of nodes to validate
+
+  For proj_test.yml tasks:
+    proj_list: 
+      - list of projects to validate
+
+  For pod_tests.yml tasks:
+    pod_list: 
+      - list of pods to validate
+    pod_status_str: 
+      - status of pods to check
+    pod_nspace:
+      - list of projects where pods exist
+
+   For service_tests.yml tasks:
+     service_list:
+       - list of services to validate
+     service_nspace:
+       - project where services are running
+    
+  For manifest_tests.yml tasks:
+     manifest_list:
+       - list of package manifests to validate
+
+  For subscription_tests.yml tasks: 
+     subscription_list:
+       - list of subscriptions to validate
+     subscription_nspace:
+       - project where the subscription lives
+
+
 
 Dependencies
 ------------
