@@ -5,49 +5,47 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
 
-- name: "RHOSO-12753 Verify ctlplane node logging containers"
+- name: "Verify ctlplane node logging containers"
   hosts: computes
   gather_facts: no
   vars:
+    container_polar_id: "RHOSO-12753"
     container_list:
       - ceilometer_agent_compute
       - ceilometer_agent_ipmi
       - node_exporter
 
   tasks:
-    - name: Verify containers on edpm-compute nodes
-      ansible.builtin.include_role: 
+    - name: "Verify containers on compute nodes - {{ container_polar_id }}"
+      ansible.builtin.import_role: 
         name: qe_common
-        tasks_from: container_tests.yml
-      loop: "{{ container_list }}"
 
 
-- name: "RHOSO-12754 Verify ctlplane node logging config files"
+- name: "Verify ctlplane node logging config files"
   hosts: computes
   gather_facts: no
   vars:
+    file_polar_id: "RHOSO-12754"
     file_list:
       - /etc/rsyslog.d/10-telemetry.conf
 
   tasks:
-    - name: Check for Files
-      ansible.builtin.include_role:
+    - name: "Check for Files - {{ file_polar_id }}"
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: file_tests.yml
-      loop: "{{ file_list }}"
 
 
-- name: "RHOSO-12681 Verify logging journalctl identifiers" 
+- name: "Verify logging journalctl identifiers" 
   hosts: computes
   gather_facts: no
   vars:
+    identifiers_polar_id: "RHOSO-12681"
     identifiers_list:
       - ceilometer_agent_compute
       - nova_compute
 
   tasks:
-    - name: Verify journalctl identifiers 
-      ansible.builtin.include_role:
+    - name: "Verify journalctl identifiers - {{ indentifiers_list }}" 
+      ansible.builtin.import_role:
         name: telemetry_logging
-        tasks_from: journal_tests.yml
-      loop: "{{ identifiers_list }}"
+
