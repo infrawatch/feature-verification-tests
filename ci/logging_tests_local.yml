@@ -117,7 +117,7 @@
   gather_facts: no
   vars:
     pod_status_str: "Running"      
-    nspace: openstack-operators
+    pod_nspace: openstack-operators
     pod_list:
       - telemetry-operator-controller-manager
       - dataplane-operator-controller-manager
@@ -135,7 +135,7 @@
   gather_facts: no
   vars:
     pod_status_str: "Running"
-    nspace: openstack
+    pod_nspace: openstack
     pod_list:
       - openstackclient
 
@@ -152,7 +152,7 @@
   gather_facts: no
   vars:
     pod_status_str: "Running"
-    nspace: openshift-operators-redhat
+    pod_nspace: openshift-operators-redhat
     pod_list:
       - loki-operator-controller-manager
 
@@ -169,7 +169,7 @@
   gather_facts: no
   vars:
     pod_status_str: "Running"
-    nspace: openshift-logging
+    pod_nspace: openshift-logging
     pod_list:
       - cluster-logging-operator
       - collector
@@ -196,7 +196,7 @@
   gather_facts: no
   vars:
     pod_status_str: "Running"
-    nspace: minio-dev
+    pod_nspace: minio-dev
     pod_list:
       - minio
 
@@ -212,7 +212,7 @@
   hosts: controller
   gather_facts: no
   vars:
-    nspace: openstack
+    pod_nspace: openstack
     pod_status_str: "Completed"
     pod_list:
       - bootstrap-edpm-deployment-logging
@@ -245,7 +245,7 @@
   hosts: controller
   gather_facts: no
   vars:
-    nspace: openshift-logging
+    service_nspace: openshift-logging
     service_list:
       - cluster-logging-operator-metrics
       - logging-loki-compactor-grpc
@@ -277,7 +277,7 @@
   hosts: controller
   gather_facts: no
   vars:
-    nspace: openstack
+    service_nspace: openstack
     service_list:
       - nova-internal
       - nova-metadata-internal
@@ -312,7 +312,7 @@
   hosts: controller
   gather_facts: no
   vars:
-    nspace: openshift-operators-redhat
+    subscription_nspace: openshift-operators-redhat
     subscription_list:
       - loki-operator
 
