@@ -266,7 +266,7 @@
       - openstack-logging
 
   tasks:
-    - name: Run Service Tests in "{{ nspace }}"
+    - name: Run Service Tests in "{{ service_nspace }}"
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: service_tests.yml
@@ -285,7 +285,7 @@
       - nova-public
 
   tasks:
-    - name: Run Services test in "{{ nspace }}" 
+    - name: Run Services test in "{{ service_nspace }}" 
       ansible.builtin.include_role:
         name: qe_common
         tasks_from: service_tests.yml
