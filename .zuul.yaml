@@ -37,11 +37,11 @@
     parent: base-minimal
     description: |
       Run the autoscaling functional test on osp17.
-    run:
-      - ci/osp17_functional_tests.yml
     required-projects:
       - name: openstack-k8s-operators/install_yamls
         override-checkout: main
+    run:
+      - ci/osp17_functional_tests.yml
 
 
 - project:

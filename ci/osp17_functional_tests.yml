@@ -1,9 +1,6 @@
 ---
 - name: "Run functional test playbooks"
   hosts:  controller
-  vars:
-    shell_header: set -euxo pipefail
-    oc_header: eval $(crc oc-env)
   tasks: 
     - name: Setup the env before running the autoscaling functional test
     block:
