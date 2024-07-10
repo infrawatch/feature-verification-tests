@@ -33,89 +33,89 @@
   hosts: controller
   gather_facts: no
   vars:
-     proj_polar_id: "RHOSO-12668"
-     proj_list:
-       - openshift-openstack-infra
-       - openshift
-       - openstack-operators
-       - openshift-logging
+    proj_polar_id: "RHOSO-12668"
+    proj_list:
+      - openshift-openstack-infra
+      - openshift       
+      - openstack-operators
+      - openshift-logging
 
 
-     endpoint_polar_id: "RHOSO-12682"
-     endpoint_list:
-       - [nova,compute,public]
-       - [nova,compute,internal]
-       - [placement,placement,public]
-       - [placement,placement,internal]
-       - [swift,object-store,public]
-       - [swift,object-store,internal]
-       - [cinderv3,volumev3,public]
-       - [cinderv3,volumev3,internal]
-       - [barbican,key-manager,public]
-       - [barbican,key-manager,internal]
-       - [keystone,identity,public]
-       - [keystone,identity,internal]
-       - [glance,image,public]
-       - [glance,image,internal]
-       - [neutron,network,public]
-       - [neutron,network,internal]
+    endpoint_polar_id: "RHOSO-12682"
+    endpoint_list:
+      - [nova,compute,public]
+      - [nova,compute,internal]
+      - [placement,placement,public]
+      - [placement,placement,internal]
+      - [swift,object-store,public]
+      - [swift,object-store,internal]
+      - [cinderv3,volumev3,public]
+      - [cinderv3,volumev3,internal]
+      - [barbican,key-manager,public]
+      - [barbican,key-manager,internal]
+      - [keystone,identity,public]
+      - [keystone,identity,internal]
+      - [glance,image,public]
+      - [glance,image,internal]
+      - [neutron,network,public]
+      - [neutron,network,internal]
 
 
-     cred_polar_id: "RHOSO-12670"
-     cred_list:
-       - alertingrules.loki.grafana.com
-       - lokistacks.loki.grafana.com
-       - recordingrules.loki.grafana.com
-       - rulerconfigs.loki.grafana.com
+    cred_polar_id: "RHOSO-12670"
+    cred_list:
+      - alertingrules.loki.grafana.com
+      - lokistacks.loki.grafana.com
+      - recordingrules.loki.grafana.com
+      - rulerconfigs.loki.grafana.com
 
 
-     node_polar_id: "RHOSO-12671"
-     node_list:
-       - edpm-compute-0
-       - edpm-compute-1
-       - crc
+    node_polar_id: "RHOSO-12671"
+    node_list:
+      - edpm-compute-0
+      - edpm-compute-1
+      - crc
 
 
-     pod_polar_id: "RHOS0-12672"
-     pod_status_str: "Running"      
-     pod_nspace: openstack-operators
-     pod_list:
-       - telemetry-operator-controller-manager
-       - dataplane-operator-controller-manager
+    pod_polar_id: "RHOS0-12672"
+    pod_status_str: "Running"      
+    pod_nspace: openstack-operators
+    pod_list:
+      - telemetry-operator-controller-manager
+      - dataplane-operator-controller-manager
 
 
-     service_polar_id: "RHOSO-12675"
-     service_nspace: openshift-logging
-     service_list:
-       - cluster-logging-operator-metrics
-       - logging-loki-compactor-grpc
-       - logging-loki-compactor-http
-       - logging-loki-distributor-grpc
-       - logging-loki-distributor-http
-       - logging-loki-gateway-http
-       - logging-loki-gossip-ring
-       - logging-loki-index-gateway-grpc
-       - logging-loki-index-gateway-http
-       - logging-loki-ingester-grpc
-       - logging-loki-ingester-http
-       - logging-loki-querier-grpc
-       - logging-loki-querier-http
-       - logging-loki-query-frontend-grpc
-       - logging-loki-query-frontend-http
-       - logging-view-plugin
-       - openstack-logging
+    service_polar_id: "RHOSO-12675"
+    service_nspace: openshift-logging
+    service_list:
+      - cluster-logging-operator-metrics
+      - logging-loki-compactor-grpc
+      - logging-loki-compactor-http
+      - logging-loki-distributor-grpc
+      - logging-loki-distributor-http
+      - logging-loki-gateway-http
+      - logging-loki-gossip-ring
+      - logging-loki-index-gateway-grpc
+      - logging-loki-index-gateway-http
+      - logging-loki-ingester-grpc
+      - logging-loki-ingester-http
+      - logging-loki-querier-grpc
+      - logging-loki-querier-http
+      - logging-loki-query-frontend-grpc
+      - logging-loki-query-frontend-http
+      - logging-view-plugin
+      - openstack-logging
 
 
-     manifest_polar_id: "RHOSO-12677"
-     manifest_list:
-       - "loki-operator 2"
-       - "loki-helm-operator 1"
+    manifest_polar_id: "RHOSO-12677"
+    manifest_list:
+      - "loki-operator 2"
+      - "loki-helm-operator 1"
 
 
-     subscription_polar_id: "RHOSO-12678"
-     subscription_nspace: openshift-operators-redhat
-     subscription_list:
-       - loki-operator
+    subscription_polar_id: "RHOSO-12678"
+    subscription_nspace: openshift-operators-redhat
+    subscription_list:
+      - loki-operator
 
   tasks:
     - name: "Run logging project, endpoint, credential, node, pod, service, manifest and subscription tests"
@@ -193,7 +193,7 @@
       - minio
 
   tasks:
-    - name: "Verify running pods"
+    - name: "Run pod running tests"
       ansible.builtin.import_role:
         name: qe_common
 
@@ -225,7 +225,7 @@
       - validate-network-edpm-deployment-logging
 
   tasks:
-    - name: "Verify pods completed"
+    - name: "Run pods completed tests"
       ansible.builtin.import_role:
         name: qe_common
 
@@ -243,7 +243,7 @@
       - nova-public
 
   tasks:
-    - name: "Run Services test in {{ service_nspace }}" 
+    - name: "Run Services tests" 
       ansible.builtin.import_role:
         name: qe_common
 
