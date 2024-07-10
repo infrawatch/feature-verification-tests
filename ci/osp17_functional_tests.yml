@@ -1,6 +1,6 @@
 ---
 - name: "Run functional test playbooks"
-  hosts:  controller
+  hosts:  cloud-centos-9-stream
   tasks: 
     - name: Setup the env before running the autoscaling functional test
     block:
