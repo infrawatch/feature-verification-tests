@@ -14,37 +14,44 @@ Variable required for all tasks to run:
 
   For container_tests.yml tasks:
 
+    container_polar_id
     container_list
       - list of containers to validate
 
   For cred_tests.yml tasks:
-    
+
+    cred_polar_id
     cred_list   
       - list of credentials to validate
 
   For endpoint_tests.yml tasks:
     
+    endpoint_polar_id
     endpoint_list   
       - list of endpoints to validate
 
   For file_tests.yml tasks:
     
+    file_polar_id
     file_list
       - list of files to verify
 
   For node_tests.yml tasks:
-    
+
+    node_polar_id
     node_list  
       - list of nodes to validate
 
   For proj_test.yml tasks:
-    
+
+    proj_polar_id
     proj_list   
       - list of projects to validate
 
   For pod_tests.yml tasks:
-    
-    pod_list   
+
+    pod_polar_id
+    pod_list
       - list of pods to validate
     pod_status_str 
       - status of pods to check
@@ -52,19 +59,22 @@ Variable required for all tasks to run:
       - list of projects where pods exist
 
    For service_tests.yml tasks:
-     
+
+     service_polar_id
      service_list  
        - list of services to validate
      service_nspace
        - project where services are running
     
   For manifest_tests.yml tasks:
-     
+
+     manifest_polar_id
      manifest_list  
        - list of package manifests to validate
 
   For subscription_tests.yml tasks: 
-     
+
+     subscription_polar_id
      subscription_list  
        - list of subscriptions to validate
      subscription_nspace
@@ -81,6 +91,7 @@ Example Playbook
 
 Typically, for this role the tests should *not* use a "main.yml" and import or include all the tests in the role. On the contrary, a tests should explicitly include specific tests needed for a given job.
 
+
   hosts: controller
   gather_facts: no
   vars:
@@ -92,17 +103,9 @@ Typically, for this role the tests should *not* use a "main.yml" and import or i
        - openshift-logging
 
   tasks:
-    - name: Remove "{{ proj_out_file }}"
-      ansible.builtin.file:
-        path: "{{ proj_out_file }}"
-        state: absent
-      changed_when: false
-
-    - name: Verify projects created
-      ansible.builtin.include_role:
+    - name: Run projects tests
+      ansible.builtin.import_role:
         name: qe_common
-        tasks_from: proj_tests.yml
-      loop: "{{ proj_list }}"
 
 
 License
