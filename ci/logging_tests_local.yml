@@ -29,7 +29,7 @@
           chmod 600 "{{ id_rsa_path }}"
       changed_when: false  
 
-- name: "Verify logging projects exist"
+- name: "Verify logging projects, endpoints, credentials, nodes, pods, services, manifests and subscriptions"
   hosts: controller
   gather_facts: no
   vars:
@@ -40,89 +40,88 @@
        - openstack-operators
        - openshift-logging
 
+
+     endpoint_polar_id: "RHOSO-12682"
+     endpoint_list:
+       - [nova,compute,public]
+       - [nova,compute,internal]
+       - [placement,placement,public]
+       - [placement,placement,internal]
+       - [swift,object-store,public]
+       - [swift,object-store,internal]
+       - [cinderv3,volumev3,public]
+       - [cinderv3,volumev3,internal]
+       - [barbican,key-manager,public]
+       - [barbican,key-manager,internal]
+       - [keystone,identity,public]
+       - [keystone,identity,internal]
+       - [glance,image,public]
+       - [glance,image,internal]
+       - [neutron,network,public]
+       - [neutron,network,internal]
+
+
+     cred_polar_id: "RHOSO-12670"
+     cred_list:
+       - alertingrules.loki.grafana.com
+       - lokistacks.loki.grafana.com
+       - recordingrules.loki.grafana.com
+       - rulerconfigs.loki.grafana.com
+
+
+     node_polar_id: "RHOSO-12671"
+     node_list:
+       - edpm-compute-0
+       - edpm-compute-1
+       - crc
+
+
+     pod_polar_id: "RHOS0-12672"
+     pod_status_str: "Running"      
+     pod_nspace: openstack-operators
+     pod_list:
+       - telemetry-operator-controller-manager
+       - dataplane-operator-controller-manager
+
+
+     service_polar_id: "RHOSO-12675"
+     service_nspace: openshift-logging
+     service_list:
+       - cluster-logging-operator-metrics
+       - logging-loki-compactor-grpc
+       - logging-loki-compactor-http
+       - logging-loki-distributor-grpc
+       - logging-loki-distributor-http
+       - logging-loki-gateway-http
+       - logging-loki-gossip-ring
+       - logging-loki-index-gateway-grpc
+       - logging-loki-index-gateway-http
+       - logging-loki-ingester-grpc
+       - logging-loki-ingester-http
+       - logging-loki-querier-grpc
+       - logging-loki-querier-http
+       - logging-loki-query-frontend-grpc
+       - logging-loki-query-frontend-http
+       - logging-view-plugin
+       - openstack-logging
+
+
+     manifest_polar_id: "RHOSO-12677"
+     manifest_list:
+       - "loki-operator 2"
+       - "loki-helm-operator 1"
+
+
+     subscription_polar_id: "RHOSO-12678"
+     subscription_nspace: openshift-operators-redhat
+     subscription_list:
+       - loki-operator
+
   tasks:
-    - name: "Verify projects created - {{ proj_polar_id }}"
+    - name: "Run logging project, endpoint, credential, node, pod, service, manifest and subscription tests"
       ansible.builtin.import_role:
         name: qe_common
 
-
-- name: "Verify logging endpoints in OSP"
-  hosts: controller
-  gather_facts: no
-  vars:
-    endpoint_polar_id: "RHOSO-12682"
-    endpoint_list:
-      - [nova,compute,public]
-      - [nova,compute,internal]
-      - [placement,placement,public]
-      - [placement,placement,internal]
-      - [swift,object-store,public]
-      - [swift,object-store,internal]
-      - [cinderv3,volumev3,public]
-      - [cinderv3,volumev3,internal]
-      - [barbican,key-manager,public]
-      - [barbican,key-manager,internal]
-      - [keystone,identity,public]
-      - [keystone,identity,internal]
-      - [glance,image,public]
-      - [glance,image,internal]
-      - [neutron,network,public]
-      - [neutron,network,internal]
-
-  tasks:
-    - name: "Verify Endpoints - {{ endpoint_polar_id }}"
-      ansible.builtin.import_role:
-        name: qe_common
-
-
-- name: "Verify logging credentials exist"
-  hosts: controller
-  gather_facts: no
-  vars:
-    cred_polar_id: "RHOSO-12670"
-    cred_list:
-      - alertingrules.loki.grafana.com
-      - lokistacks.loki.grafana.com
-      - recordingrules.loki.grafana.com
-      - rulerconfigs.loki.grafana.com
-
-  tasks:
-    - name: "Verify credentials created - {{ cred_polar_id }}"
-      ansible.builtin.import_role:
-        name: qe_common
-
-
-- name: "Verify logging OSP nodes are running"
-  hosts: controller
-  gather_facts: no
-  vars:
-    node_polar_id: "RHOSO-12671"
-    node_list:
-      - edpm-compute-0
-      - edpm-compute-1
-      - crc
-
-  tasks:
-    - name: "Verify nodes deployed - {{ node_polar_id }}"
-      ansible.builtin.import_role:
-        name: qe_common
-
-
-- name: "Verify logging pods are running in openstack-operator"
-  hosts: controller
-  gather_facts: no
-  vars:
-    pod_polar_id: "RHOS0-12672"
-    pod_status_str: "Running"      
-    pod_nspace: openstack-operators
-    pod_list:
-      - telemetry-operator-controller-manager
-      - dataplane-operator-controller-manager
-
-  tasks:
-    - name: "Verify Running Pods - {{ pod_polar_id }}"
-      ansible.builtin.import_role:
-        name: qe_common
 
 
 - name: "Verify logging pods are running in openstack"
@@ -136,7 +135,7 @@
       - openstackclient
 
   tasks:
-    - name: "Verify Running Pods - {{ pod_polar_id }}"
+    - name: "Verify Running Pods"
       ansible.builtin.import_role:
         name: qe_common
 
@@ -152,7 +151,7 @@
       - loki-operator-controller-manager
 
   tasks:
-    - name: "Verify Pods running - {{ pod_polar_id }}"
+    - name: "Verify Pods running"
       ansible.builtin.import_role:
         name: qe_common
 
@@ -178,7 +177,7 @@
 
   ### see JIRA LOG-5431 if pods not running
   tasks:
-    - name: "Verify Pods running - {{ pod_polar_id }}" 
+    - name: "Verify Pods running" 
       ansible.builtin.import_role:
         name: qe_common
 
@@ -194,7 +193,7 @@
       - minio
 
   tasks:
-    - name: "Verify running pods - {{ pod_polar_id }}"
+    - name: "Verify running pods"
       ansible.builtin.import_role:
         name: qe_common
 
@@ -226,38 +225,7 @@
       - validate-network-edpm-deployment-logging
 
   tasks:
-    - name: "Verify pods completed - {{ pod_polar_id }}"
-      ansible.builtin.import_role:
-        name: qe_common
-
-
-- name: "Verify logging services are running in openshift-logging"
-  hosts: controller
-  gather_facts: no
-  vars:
-    service_polar_id: "RHOSO-12675"
-    service_nspace: openshift-logging
-    service_list:
-      - cluster-logging-operator-metrics
-      - logging-loki-compactor-grpc
-      - logging-loki-compactor-http
-      - logging-loki-distributor-grpc
-      - logging-loki-distributor-http
-      - logging-loki-gateway-http
-      - logging-loki-gossip-ring
-      - logging-loki-index-gateway-grpc
-      - logging-loki-index-gateway-http
-      - logging-loki-ingester-grpc
-      - logging-loki-ingester-http
-      - logging-loki-querier-grpc
-      - logging-loki-querier-http
-      - logging-loki-query-frontend-grpc
-      - logging-loki-query-frontend-http
-      - logging-view-plugin
-      - openstack-logging
-
-  tasks:
-    - name: "Run Service Tests in {{ service_nspace }} - {{ service_polar_id }}"
+    - name: "Verify pods completed"
       ansible.builtin.import_role:
         name: qe_common
 
@@ -275,37 +243,7 @@
       - nova-public
 
   tasks:
-    - name: "Run Services test in {{ service_nspace }} - {{ service_polar_id }}" 
-      ansible.builtin.import_role:
-        name: qe_common
-
-
-- name: "Verify logging packagemanifest exist"
-  hosts: controller
-  gather_facts: no
-  vars:
-    manifest_polar_id: "RHOSO-12677"
-    manifest_list:
-      - "loki-operator 2"
-      - "loki-helm-operator 1"
-
-  tasks:
-    - name: "Run packagemanifest tests - {{ manifest_polar_id }}"
-      ansible.builtin.import_role:
-        name: qe_common
-
-
-- name: "Verify logging subscriptions exist in openshift-operators-redhat"
-  hosts: controller
-  gather_facts: no
-  vars:
-    subscription_polar_id: "RHOSO-12678"
-    subscription_nspace: openshift-operators-redhat
-    subscription_list:
-      - loki-operator
-
-  tasks:
-    - name: "Run subscription tests - {{ subscription_polar_id }}"
+    - name: "Run Services test in {{ service_nspace }}" 
       ansible.builtin.import_role:
         name: qe_common
 
