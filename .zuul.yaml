@@ -34,15 +34,14 @@
 
 - job:
     name: functional-tests-on-osp17
-    parent: cifmw-data-plane-adoption-osp-17-to-extracted-crc
+    parent: base-minimal
     description: |
       Run the autoscaling functional test on osp17.
-    post-run:
+    run:
       - ci/osp17_functional_tests.yml
-    irrelevant-files:
-      - .github/.*
-      - ci/github/.*
-      - callback_plugins/.*
+    required-projects:
+      - name: openstack-k8s-operators/install_yamls
+        override-checkout: main
 
 
 - project:

@@ -15,10 +15,8 @@
 
     - name: Test service API endpoint(metric) for autoscaling
       ansible.builtin.shell: |
-        {{ shell_header }}
-        {{ oc_header }}
-        alias openstack="oc exec -t openstackclient -- openstack"
-        ${BASH_ALIASES[openstack]} endpoint list --service metric
+         source ~/overcloudrc;
+         openstack endpoint list --service metric
       register: result
 
     - name: Print the result
