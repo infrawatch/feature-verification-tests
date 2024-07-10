@@ -11,6 +11,8 @@ Role Variables
 
   For journal_tests.yml
     
+    identifiers_polar_id
+      - polarion id for test
     identifiers_list  
       - Lists identifier strings to look for in the journalctl of the compute nodes
    
@@ -23,14 +25,22 @@ Openstack on Openshift deployed and logging enabled for Openstack
 Example Playbook
 ----------------
 
-Each tasks/playbook.yml should be called independently via "ansible.builtin.include_role" with appropriate vars passed:
+Each tasks/playbook.yml should be called independently via "ansible.builtin.import_role" with appropriate vars passed:
 
-    tasks:
-    - name: Verify journalctl identifiers 
-      ansible.builtin.include_role:
+- name: "Verify logging journalctl identifiers" 
+  hosts: computes
+  gather_facts: no
+  vars:
+    identifiers_polar_id: "RHOSO-12681"
+    identifiers_list:
+      - ceilometer_agent_compute
+      - nova_compute
+
+  tasks:
+    - name: "Verify journalctl logging identifiers" 
+      ansible.builtin.import_role:
         name: telemetry_logging
-        tasks_from: journal_tests.yml
-      loop: "{{ identifiers_list }}"
+  
 
 License
 -------
