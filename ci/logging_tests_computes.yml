@@ -5,6 +5,7 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
 
+
 - name: "Verify ctlplane logging containers and files"
   hosts: computes
   gather_facts: no
@@ -23,7 +24,6 @@
     - name: "Run file and container tests"
       ansible.builtin.import_role: 
         name: qe_common
-
 
 
 - name: "Verify logging journalctl identifiers" 
