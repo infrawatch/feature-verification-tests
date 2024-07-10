@@ -1,36 +1,36 @@
 ---
 - when: container_list is defined
-  name: "Verify container"
+  name: "Verify container - {{ container_polar_id}}"
   ansible.builtin.include_tasks: "container_tests.yml"
   loop: "{{ container_list }}"
 
 
 - when: cred_list is defined
-  name: "Verify credential"
+  name: "Verify credential - {{ cred_polar_id }}"
   ansible.builtin.include_tasks: "cred_tests.yml"
   loop: "{{ cred_list }}"
 
 
 - when: endpoint_list is defined
-  name: "Verify endpoint in OSP"
+  name: "Verify endpoint in OSP - {{ endpoint_polar_id }}"
   ansible.builtin.include_tasks: "endpoint_tests.yml"
   loop: "{{ endpoint_list }}"
 
 
 - when: file_list is defined
-  name: "Verify file"
+  name: "Verify file - {{ file_polar_id }}"
   ansible.builtin.include_tasks: "file_tests.yml"
   loop: "{{ file_list }}"
 
 
 - when: manifest_list is defined
-  name: "Verify manifest"
+  name: "Verify manifest - {{ manifest_polar_id }}"
   ansible.builtin.include_tasks: "manifest_tests.yml"
   loop: "{{ manifest_list }}"
 
 
 - when: node_list is defined
-  name: "Verify OSP node"
+  name: "Verify OSP node - {{ node_polar_id }}"
   ansible.builtin.include_tasks: node_tests.yml
   loop: "{{ node_list }}"
 
@@ -39,13 +39,13 @@
     - pod_list is defined
     - nspace is defined
     - pod_status_str is defined
-  name: "Verify pod"
+  name: "Verify pod - {{ pod_polar_id }}"
   ansible.builtin.include_tasks: "pod_tests.yml"
   loop: "{{ pod_list }}"
 
 
 - when: proj_list is defined
-  name: "Verify project"
+  name: "Verify project - {{ proj_polar_id}}"
   ansible.builtin.include_tasks: "proj_tests.yml"
   loop: "{{ proj_list }}"
 
@@ -53,12 +53,12 @@
 -   when: 
     - service_list is defined
     - nspace is defined
-  name: "Verify service"
+  name: "Verify service - {{ service_polar_id }}"
   ansible.builtin.include_tasks: "service_tests.yml"
   loop: {{ service_list }}"
 
 
 - when: subscription_list is defined
-  name: "Verify subscription"
+  name: "Verify subscription - {{ subscription_polar_id }}"
   ansible.builtin.include_tasks: "subscription_tests.yml"
   loop: "{{ subscription_list }}"
