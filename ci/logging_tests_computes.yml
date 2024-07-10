@@ -5,7 +5,7 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
 
-- name: "Verify ctlplane node logging containers"
+- name: "Verify ctlplane logging containers and files"
   hosts: computes
   gather_facts: no
   vars:
@@ -15,24 +15,15 @@
       - ceilometer_agent_ipmi
       - node_exporter
 
-  tasks:
-    - name: "Verify containers on compute nodes - {{ container_polar_id }}"
-      ansible.builtin.import_role: 
-        name: qe_common
-
-
-- name: "Verify ctlplane node logging config files"
-  hosts: computes
-  gather_facts: no
-  vars:
     file_polar_id: "RHOSO-12754"
     file_list:
       - /etc/rsyslog.d/10-telemetry.conf
 
   tasks:
-    - name: "Check for Files - {{ file_polar_id }}"
-      ansible.builtin.import_role:
+    - name: "Run file and container tests"
+      ansible.builtin.import_role: 
         name: qe_common
+
 
 
 - name: "Verify logging journalctl identifiers" 
@@ -45,7 +36,7 @@
       - nova_compute
 
   tasks:
-    - name: "Verify journalctl identifiers - {{ indentifiers_list }}" 
+    - name: "Verify journalctl logging identifiers" 
       ansible.builtin.import_role:
         name: telemetry_logging
 
