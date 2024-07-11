@@ -38,7 +38,7 @@
     description: |
       Run the autoscaling functional test on osp17.
     required-projects:
-      - name: github.com/rdo-infra/rdo-jobs
+      - name: review.rdoproject.org/rdo-jobs
       - name: openstack-k8s-operators/ci-framework
         override-checkout: main
       - name: openstack-k8s-operators/install_yamls

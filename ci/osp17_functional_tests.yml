@@ -3,7 +3,7 @@
   hosts:  controller
   gather_facts: false
   vars:
-    rdo_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/rdo-infra/rdo-jobs'].src_dir }}/playbooks/data_plane_adoption"
+    rdo_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['review.rdoproject.org/rdo-jobs'].src_dir }}/playbooks/data_plane_adoption"
     framework_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}"
     install_yaml_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/openstack-k8s-operators/install_yamls'].src_dir }}"
     fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
