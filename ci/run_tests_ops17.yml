@@ -1,0 +1,12 @@
+- hosts: standalone
+  gather_facts: false
+  tasks:
+    - name: Test service API endpoint(metric) for autoscaling
+      ansible.builtin.shell: |
+        source ~/stackrc
+        openstack endpoint list --service metric
+      register: result
+
+    - name: Print the result
+      ansible.builtin.debug:
+        var: result

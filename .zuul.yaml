@@ -37,8 +37,20 @@
     parent: cifmw-data-plane-adoption-osp-17-to-extracted-crc
     description: |
       Run the autoscaling functional test on osp17.
-    post-run:
+    required-projects:
+      - name: github.com/rdo-infra/rdo-jobs
+      - name: openstack-k8s-operators/ci-framework
+        override-checkout: main
+      - name: openstack-k8s-operators/install_yamls
+        override-checkout: main
+    run:
       - ci/osp17_functional_tests.yml
+    vars:
+      standalone_vm_inventory: "standalone_vm_inventory"
+      standalone_ip: 192.168.122.100
+      standalone_gateway: 192.168.122.10
+      standalone_private_key: /home/zuul/.ssh/id_rsa
+      upstream_control_plane_dns: 192.168.122.10
     irrelevant-files:
       - .github/.*
       - ci/github/.*
