@@ -1,41 +1,41 @@
 ---
-- name: "Verify container - {{ container_polar_id }}"
+- name: "Verify container - {{ container_test_id }}"
   when: container_list is defined
   ansible.builtin.include_tasks: "container_tests.yml"
   loop: "{{ container_list }}"
 
 
-- name: "Verify credential - {{ cred_polar_id }}"
+- name: "Verify credential - {{ cred_test_id }}"
   when: cred_list is defined
   ansible.builtin.include_tasks: "cred_tests.yml"
   loop: "{{ cred_list }}"
 
 
-- name: "Verify endpoint in OSP - {{ endpoint_polar_id }}"
+- name: "Verify endpoint in OSP - {{ endpoint_test_id }}"
   when: endpoint_list is defined
   ansible.builtin.include_tasks: "endpoint_tests.yml"
   loop: "{{ endpoint_list }}"
 
 
-- name: "Verify file - {{ file_polar_id }}"
+- name: "Verify file - {{ file_test_id }}"
   when: file_list is defined
   ansible.builtin.include_tasks: "file_tests.yml"
   loop: "{{ file_list }}"
 
 
-- name: "Verify manifest - {{ manifest_polar_id }}"
+- name: "Verify manifest - {{ manifest_test_id }}"
   when: manifest_list is defined
   ansible.builtin.include_tasks: "manifest_tests.yml"
   loop: "{{ manifest_list }}"
 
 
-- name: "Verify OSP node - {{ node_polar_id }}"
+- name: "Verify OSP node - {{ node_test_id }}"
   when: node_list is defined
   ansible.builtin.include_tasks: node_tests.yml
   loop: "{{ node_list }}"
 
 
-- name: "Verify pod - {{ pod_polar_id }}"
+- name: "Verify pod - {{ pod_test_id }}"
   when:
     - pod_list is defined
     - nspace is defined
@@ -45,13 +45,13 @@
 
 
 
-- name: "Verify project - {{ proj_polar_id }}"
+- name: "Verify project - {{ proj_test_id }}"
   when: proj_list is defined
   ansible.builtin.include_tasks: "proj_tests.yml"
   loop: "{{ proj_list }}"
 
 
-- name: "Verify service - {{ service_polar_id }}"
+- name: "Verify service - {{ service_test_id }}"
   when:
     - service_list is defined
     - nspace is defined
@@ -59,7 +59,7 @@
   loop: "{{ service_list }}"
 
 
-- name: "Verify subscription - {{ subscription_polar_id }}"
+- name: "Verify subscription - {{ subscription_test_id }}"
   when: subscription_list is defined
   ansible.builtin.include_tasks: "subscription_tests.yml"
   loop: "{{ subscription_list }}"
