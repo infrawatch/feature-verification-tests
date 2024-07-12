@@ -10,13 +10,13 @@
   hosts: computes
   gather_facts: no
   vars:
-    container_polar_id: "RHOSO-12753"
+    container_test_id: "RHOSO-12753"
     container_list:
       - ceilometer_agent_compute
       - ceilometer_agent_ipmi
       - node_exporter
 
-    file_polar_id: "RHOSO-12754"
+    file_test_id: "RHOSO-12754"
     file_list:
       - /etc/rsyslog.d/10-telemetry.conf
 
@@ -30,7 +30,7 @@
   hosts: computes
   gather_facts: no
   vars:
-    identifiers_polar_id: "RHOSO-12681"
+    identifiers_test_id: "RHOSO-12681"
     identifiers_list:
       - ceilometer_agent_compute
       - nova_compute
@@ -39,4 +39,3 @@
     - name: "Verify journalctl logging identifiers" 
       ansible.builtin.import_role:
         name: telemetry_logging
-
