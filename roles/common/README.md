@@ -106,7 +106,6 @@ For cr\_tests.yml tasks:
        - polarion ID number for each test of readiness of the CR
 
 
-
 Dependencies
 ------------
 
@@ -215,7 +214,6 @@ can be set at the play level.
           common_crd_test_id : "crd_test_id"
           common_crd_list:
             - list of crd to validate
-
 
 License
 -------
