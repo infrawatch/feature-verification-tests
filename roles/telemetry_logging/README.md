@@ -11,7 +11,7 @@ Role Variables
 
   For journal_tests.yml
     
-    identifiers_polar_id
+    identifiers_test_id
       - polarion id for test
     identifiers_list  
       - Lists identifier strings to look for in the journalctl of the compute nodes
@@ -31,7 +31,7 @@ Each tasks/playbook.yml should be called independently via "ansible.builtin.impo
   hosts: computes
   gather_facts: no
   vars:
-    identifiers_polar_id: "RHOSO-12681"
+    identifiers_test_id: "RHOSO-12681"
     identifiers_list:
       - ceilometer_agent_compute
       - nova_compute
