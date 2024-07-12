@@ -14,43 +14,43 @@ Variable required for all tasks to run:
 
   For container_tests.yml tasks:
 
-    container_polar_id
+    container_test_id
     container_list
       - list of containers to validate
 
   For cred_tests.yml tasks:
 
-    cred_polar_id
+    cred_test_id
     cred_list   
       - list of credentials to validate
 
   For endpoint_tests.yml tasks:
     
-    endpoint_polar_id
+    endpoint_test_id
     endpoint_list   
       - list of endpoints to validate
 
   For file_tests.yml tasks:
     
-    file_polar_id
+    file_test_id
     file_list
       - list of files to verify
 
   For node_tests.yml tasks:
 
-    node_polar_id
+    node_test_id
     node_list  
       - list of nodes to validate
 
   For proj_test.yml tasks:
 
-    proj_polar_id
+    proj_test_id
     proj_list   
       - list of projects to validate
 
   For pod_tests.yml tasks:
 
-    pod_polar_id
+    pod_test_id
     pod_list
       - list of pods to validate
     pod_status_str 
@@ -60,7 +60,7 @@ Variable required for all tasks to run:
 
    For service_tests.yml tasks:
 
-     service_polar_id
+     service_test_id
      service_list  
        - list of services to validate
      service_nspace
@@ -68,7 +68,7 @@ Variable required for all tasks to run:
     
   For manifest_tests.yml tasks:
 
-     manifest_polar_id
+     manifest_test_id
      manifest_list  
        - list of package manifests to validate
 
