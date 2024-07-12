@@ -4,4 +4,3 @@
       oc get service -n "{{ service_nspace }}" "{{ item }}"
   register: output
   changed_when: false
-  failed_when: output.rc != 0
