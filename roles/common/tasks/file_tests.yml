@@ -8,3 +8,4 @@
     - fstats.stat.size | int < 300
     - not fstats.stat.exists
     - not fstats.stat.isreg
+

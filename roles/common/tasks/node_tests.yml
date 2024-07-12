@@ -1,0 +1,18 @@
+---
+
+- name: Get running node
+  become: true
+  ansible.builtin.shell:
+    cmd: |
+      virsh list --state-running | grep "{{ item }}" | awk '{print $2;}'
+  register: nodefound
+  changed_when: false
+
+- name: Get node status
+  become: true
+  ansible.builtin.shell:
+    cmd: |
+      virsh list --state-running | grep "{{ item }}" | awk '{print $3;}'
+  register: output
+  changed_when: false
+  failed_when: output.stdout != "running"
