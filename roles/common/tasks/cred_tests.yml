@@ -6,4 +6,3 @@
       oc get crd "{{ item }}"
   changed_when: false
   register: output
-  failed_when: output.rc != 0
