@@ -26,15 +26,12 @@ Variable required for all tasks to run
 
 For pod_tests.yml tasks:
 
-    common_pod_test_id
-      - polarion ID number for each test.
     common_pod_list
       - list of pods to validate
     common_pod_status_str
       - status of pods to check
     common_pod_nspace
       - list of projects where pods exist
-
 
 For subscription_tests.yml tasks:
 
