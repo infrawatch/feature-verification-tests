@@ -105,7 +105,7 @@ Typically, for this role the tests should *not* use a "main.yml" and import or i
   tasks:
     - name: Run projects tests
       ansible.builtin.import_role:
-        name: qe_common
+        name: common
 
 
 License
