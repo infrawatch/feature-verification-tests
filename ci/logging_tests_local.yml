@@ -120,7 +120,7 @@
   tasks:
     - name: "Run logging project, endpoint, credential, node, pod, service, manifest and subscription tests"
       ansible.builtin.import_role:
-        name: qe_common
+        name: common
 
 
 
@@ -137,7 +137,7 @@
   tasks:
     - name: "Verify Running Pods"
       ansible.builtin.import_role:
-        name: qe_common
+        name: common
 
 
 - name: "Verify logging pods are running in openshift-operators-redhat"
@@ -153,7 +153,7 @@
   tasks:
     - name: "Verify Pods running"
       ansible.builtin.import_role:
-        name: qe_common
+        name: common
 
 
 - name: "Verify logging pods are running in openshift-logging"
@@ -179,7 +179,7 @@
   tasks:
     - name: "Verify Pods running" 
       ansible.builtin.import_role:
-        name: qe_common
+        name: common
 
 
 - name: "Verify logging pods are running in minio-dev"
@@ -195,7 +195,7 @@
   tasks:
     - name: "Run pod running tests"
       ansible.builtin.import_role:
-        name: qe_common
+        name: common
 
 
 - name: "Verify logging pods have complete status in openstack"
@@ -227,7 +227,7 @@
   tasks:
     - name: "Run pods completed tests"
       ansible.builtin.import_role:
-        name: qe_common
+        name: common
 
 
 - name: "Verify logging services are running in openstack"
@@ -245,4 +245,4 @@
   tasks:
     - name: "Run Services tests" 
       ansible.builtin.import_role:
-        name: qe_common
+        name: common
