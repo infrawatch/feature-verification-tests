@@ -33,7 +33,7 @@
   hosts: controller
   gather_facts: no
   vars:
-    proj_polar_id: "RHOSO-12668"
+    proj_test_id: "RHOSO-12668"
     proj_list:
       - openshift-openstack-infra
       - openshift       
@@ -41,7 +41,7 @@
       - openshift-logging
 
 
-    endpoint_polar_id: "RHOSO-12682"
+    endpoint_test_id: "RHOSO-12682"
     endpoint_list:
       - [nova,compute,public]
       - [nova,compute,internal]
@@ -61,7 +61,7 @@
       - [neutron,network,internal]
 
 
-    cred_polar_id: "RHOSO-12670"
+    cred_test_id: "RHOSO-12670"
     cred_list:
       - alertingrules.loki.grafana.com
       - lokistacks.loki.grafana.com
@@ -69,14 +69,14 @@
       - rulerconfigs.loki.grafana.com
 
 
-    node_polar_id: "RHOSO-12671"
+    node_test_id: "RHOSO-12671"
     node_list:
       - edpm-compute-0
       - edpm-compute-1
       - crc
 
 
-    pod_polar_id: "RHOS0-12672"
+    pod_test_id: "RHOS0-12672"
     pod_status_str: "Running"      
     pod_nspace: openstack-operators
     pod_list:
@@ -84,7 +84,7 @@
       - dataplane-operator-controller-manager
 
 
-    service_polar_id: "RHOSO-12675"
+    service_test_id: "RHOSO-12675"
     service_nspace: openshift-logging
     service_list:
       - cluster-logging-operator-metrics
@@ -106,13 +106,13 @@
       - openstack-logging
 
 
-    manifest_polar_id: "RHOSO-12677"
+    manifest_test_id: "RHOSO-12677"
     manifest_list:
       - "loki-operator 2"
       - "loki-helm-operator 1"
 
 
-    subscription_polar_id: "RHOSO-12678"
+    subscription_test_id: "RHOSO-12678"
     subscription_nspace: openshift-operators-redhat
     subscription_list:
       - loki-operator
@@ -128,7 +128,7 @@
   hosts: controller
   gather_facts: no
   vars:
-    pod_polar_id: "RHOSO-12752"
+    pod_test_id: "RHOSO-12752"
     pod_status_str: "Running"
     pod_nspace: openstack
     pod_list:
@@ -144,7 +144,7 @@
   hosts: controller
   gather_facts: no
   vars:
-    pod_polar_id: "RHOSO-12673"
+    pod_test_id: "RHOSO-12673"
     pod_status_str: "Running"
     pod_nspace: openshift-operators-redhat
     pod_list:
@@ -160,7 +160,7 @@
   hosts: controller
   gather_facts: no
   vars:
-    pod_polar_id: "RHOSO-12676"
+    pod_test_id: "RHOSO-12676"
     pod_status_str: "Running"
     pod_nspace: openshift-logging
     pod_list:
@@ -186,7 +186,7 @@
   hosts: controller
   gather_facts: no
   vars:
-    pod_polar_id: "RHOSO-12674"
+    pod_test_id: "RHOSO-12674"
     pod_status_str: "Running"
     pod_nspace: minio-dev
     pod_list:
@@ -202,7 +202,7 @@
   hosts: controller
   gather_facts: no
   vars:
-    pod_polar_id: "RHOSO-12679"
+    pod_test_id: "RHOSO-12679"
     pod_nspace: openstack
     pod_status_str: "Completed"
     pod_list:
@@ -234,7 +234,7 @@
   hosts: controller
   gather_facts: no
   vars:
-    service_polar_id: "RHOSO-12749"
+    service_test_id: "RHOSO-12749"
     service_nspace: openstack
     service_list:
       - nova-internal
@@ -246,5 +246,3 @@
     - name: "Run Services tests" 
       ansible.builtin.import_role:
         name: qe_common
-
-  
