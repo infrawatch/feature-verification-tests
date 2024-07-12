@@ -6,4 +6,3 @@
       oc project "{{ item }}"
   register: output
   changed_when: false
-  failed_when: output.rc != 0
