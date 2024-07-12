@@ -1,0 +1,9 @@
+---
+
+- name: Get container status
+  ansible.builtin.shell:
+    cmd: |
+      podman ps -a --format "{{ '{{.Names}} {{.Status}}' }}" | grep "{{ item }}" | awk '{print $2;}'
+  change_when: false
+  register: container_status
+  failed_when: container_status.stdout != "Up"

@@ -1,0 +1,10 @@
+---
+
+- name: Get Endpoint
+  ansible.builtin.shell:
+    cmd: |
+      oc project openstack     
+      kubectl exec openstackclient -- openstack endpoint list --service="{{ item[0] }}" --service="{{ item[1] }}"  --interface="{{ item[2] }}"
+  changed_when: false
+  register: result 
+  failed_when: result.rc != 0
