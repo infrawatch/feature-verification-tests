@@ -25,13 +25,13 @@ Variable required for all tasks to run:
       - list of credentials to validate
 
   For endpoint_tests.yml tasks:
-    
+
     endpoint_test_id
     endpoint_list   
       - list of endpoints to validate
 
   For file_tests.yml tasks:
-    
+
     file_test_id
     file_list
       - list of files to verify
