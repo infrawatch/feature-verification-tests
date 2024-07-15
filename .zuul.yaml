@@ -51,10 +51,6 @@
       standalone_gateway: 192.168.122.10
       standalone_private_key: /home/zuul/.ssh/id_rsa
       upstream_control_plane_dns: 192.168.122.10
-    irrelevant-files:
-      - .github/.*
-      - ci/github/.*
-      - callback_plugins/.*
 
 
 - project:
