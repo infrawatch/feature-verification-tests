@@ -32,6 +32,16 @@
       - ci/github/.*
       - callback_plugins/.*
 
+
+
+- job:
+    name: test_functional-tests-on-osp17
+    parent: cifmw-data-plane-adoption-osp-17-to-extracted-crc
+    description: |
+      Run the autoscaling functional test on osp17.
+    run:
+      - ci/osp17_functional_tests.yml
+
 - job:
     name: functional-tests-on-osp17
     parent: cifmw-data-plane-adoption-osp-17-to-extracted-crc
@@ -60,4 +70,4 @@
         #- openstack-k8s-operators-content-provider:
         #    override-checkout: main
         #- functional-tests-on-osp18
-        - functional-tests-on-osp17
+        - test_functional-tests-on-osp17
