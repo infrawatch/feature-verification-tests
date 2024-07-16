@@ -28,17 +28,29 @@
         override-checkout: main
       - name: github.com/openstack-k8s-operators/telemetry-operator
         override-checkout: main
-    irrelevant-files:
+    irrelevant-files: &irrelevant_files
       - .github/.*
       - ci/github/.*
       - callback_plugins/.*
       - README*
       - .*/*.md
 
+- job:
+    name: feature-verification-tests-noop
+    parent: noop
+    description: |
+      A job that always passes. Runs when there's a change to jobs that don't
+      need full zuul to run but still need to report a pass.
+    run:
+      - ci/noop.yml
+    files: *irrelevant_files
+
+
 - project:
     name: infrawatch/feature-verification-tests
     github-check:
       jobs:
+        - feature-verification-tests-noop
         - openstack-k8s-operators-content-provider:
             override-checkout: main
         - functional-tests-on-osp18
