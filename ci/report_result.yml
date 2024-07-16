@@ -1,14 +1,34 @@
----    
+---
+- name: Search for summary_results.log
+  find:
+    paths: /
+    patterns: summary_results.log
+    recurse: yes
+  register: found_files
+
+# Task to check if the file was found
+- name: Check if summary_results.log was found
+  debug:
+    msg: "The file summary_results.log exists at {{ item.path }}."
+  with_items: "{{ found_files.files }}"
+  when: found_files.matched > 0
+
+# Task to print message if the file was not found
+- name: Print message if summary_results.log does not exist
+  debug:
+    msg: "The file summary_results.log does not exist."
+  when: found_files.matched == 0
+
 - name: Move callback_plugin result to log dir
   ansible.builtin.shell:
     cmd: |
-      cp  test_run_result.out {{ autoscaling_logs_dir  }}/test_run_result.log
-      cp  summary_results.log {{ autoscaling_logs_dir  }}/summary_results.log
+      cp  {{ fvt_dir }}/ci/test_run_result.out {{ autoscaling_logs_dir  }}/test_run_result.log
+      cp  {{ fvt_dir }}/ci/summary_results.log {{ autoscaling_logs_dir  }}/summary_results.log
 
 - name: Grep the number of failed tasks
   ansible.builtin.shell:
     cmd: |
-        grep "Tasks Failed:" {{ fvt_dir }}/summary_results.log | awk '{print $3}'
+        grep "Tasks Failed:" {{ fvt_dir }}/ci/summary_results.log | awk '{print $3}'
   register: tasks_failed
 
 - name: Determine success or failure based on the number of failed tasks
