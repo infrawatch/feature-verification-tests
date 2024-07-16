@@ -3,12 +3,11 @@ exclude_paths:
     - ci/
     - roles/telemetry_autoscaling
     - roles/telemetry_logging
-    - roles/qe_common
+    - roles/commmon
 skip_list:
   - command-instead-of-module  # Using command rather than module
   - galaxy
   - meta-no-info  # meta/main.yml should contain relevant info
   - risky-shell-pipe  # Shells that use pipes should set the pipefail option
   - unnamed-task  # All tasks should be named
-  - var-naming[no-role-prefix]  # Variables names from within roles should use role_name_ as a prefix
   - yaml  # Violations reported by yamllint
