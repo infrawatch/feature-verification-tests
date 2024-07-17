@@ -1,56 +1,14 @@
 ---
-- name: Determine Ansible configuration file path
-  set_fact:
-    config_file: "{{ lookup('env', 'ANSIBLE_CONFIG') | default(ansible_env.HOME ~ '/.ansible.cfg', true) | default('/etc/ansible/ansible.cfg', true) }}"
-
-- name: Print Ansible configuration file path
-  debug:
-    msg: "Ansible configuration file path is {{ config_file }}"
-
-- name: Read and print Ansible configuration file content
-  command: cat {{ config_file }}
-  register: config_content
-  ignore_errors: yes
-
-- name: Display Ansible configuration file content
-  debug:
-    msg: "{{ config_content.stdout if config_content.stdout else 'Configuration file not found or not readable' }}"
-
-- name: Search for summary_results.log
-  find:
-    paths: /
-    patterns: summary_results.log
-    recurse: yes
-  register: found_files
-
-# Task to check if the file was found
-- name: Check if summary_results.log was found
-  debug:
-    msg: "The file summary_results.log exists at {{ item.path }}."
-  with_items: "{{ found_files.files }}"
-  when: found_files.matched > 0
-
-# Task to print message if the file was not found
-- name: Print message if summary_results.log does not exist
-  debug:
-    msg: "The file summary_results.log does not exist."
-  when: found_files.matched == 0
-
-
-
-
-
-
 - name: Move callback_plugin result to log dir
   ansible.builtin.shell:
     cmd: |
-      cp  {{ fvt_dir }}/ci/test_run_result.out {{ autoscaling_logs_dir  }}/test_run_result.log
-      cp  {{ fvt_dir }}/ci/summary_results.log {{ autoscaling_logs_dir  }}/summary_results.log
+      cp  /tmp/test_run_result.out {{ autoscaling_logs_dir }}/test_run_result.log
+      cp  /tmp/summary_results.log {{ autoscaling_logs_dir }}/summary_results.log
 
 - name: Grep the number of failed tasks
   ansible.builtin.shell:
     cmd: |
-        grep "Tasks Failed:" {{ fvt_dir }}/ci/summary_results.log | awk '{print $3}'
+        grep "Tasks Failed:" /tmp/summary_results.log | awk '{print $3}'
   register: tasks_failed
 
 - name: Determine success or failure based on the number of failed tasks
