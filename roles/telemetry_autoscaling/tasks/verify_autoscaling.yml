@@ -41,6 +41,7 @@
   register: result
   failed_when: result.rc >= 1
 
+# This works when using prometheus as the metrics backend
 - name: Verify that PROMETHEUS is enabled in RHOSO18
   when: metrics_backend == "prometheus"
   ansible.builtin.shell: |
