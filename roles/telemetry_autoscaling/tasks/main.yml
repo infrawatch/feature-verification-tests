@@ -13,7 +13,7 @@
 - name: Test services are enabled for autoscaling
   when: metrics_backend == "prometheus"
   ansible.builtin.include_tasks: 
-    file: test_autoscaling.yml
+    file: test_services.yml
   tags: precheck
 
 - name: Check pre-reqs for autoscaling
