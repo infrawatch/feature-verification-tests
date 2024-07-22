@@ -10,6 +10,20 @@
   include_vars: "{{ item }}"
   with_items: "{{ vars_files }}"
 
+- name: initialize empty results file
+  delegate_to: localhost
+  copy:
+    content: |
+      <?xml version="1.0" ?>
+      <testsuite errors="0" failures="#failures#" name="autoscaling" skipped="0" tests="#tests#">
+      </testsuite>
+    dest: "{{ logs_dir }}/autoscaling_result.xml"
+
+- name: inititalize number of tests and failures
+  set_fact:
+    number_of_tests: 0
+    number_of_failures: 0
+
 - name: Check pre-reqs for autoscaling
   ansible.builtin.include_tasks: 
     file: verify_autoscaling.yml
@@ -29,6 +43,20 @@
   ansible.builtin.include_tasks: 
     file: test_autoscaling.yml
   tags: test
+
+- name: modify test result with number of failures
+  delegate_to: localhost
+  replace:
+    path: "{{ logs_dir }}/autoscaling_result.xml"
+    regexp: "#failures#"
+    replace: "{{ number_of_failures }}"
+
+- name: modify test result with number of tests
+  delegate_to: localhost
+  replace:
+    path: "{{ logs_dir }}/autoscaling_result.xml"
+    regexp: "#tests#"
+    replace: "{{ number_of_tests }}"
 
 - name: Run the cleanup task
   ansible.builtin.include_tasks: 

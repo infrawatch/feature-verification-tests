@@ -27,19 +27,48 @@
 
   # TODO: Pass the parameters correctly. When I tried to pass the parameters
   # into the template.yaml file, they weren't passed to the instance initially.
-- name: RHOSO-12657 Configure heat template for automatically scaling instances
-  ansible.builtin.template:
-    src: instance.yaml.j2
-    dest: ~/templates/autoscaling/vnf/instance.yaml
 
-- name: RHOSO-12658 Create the resource to reference in the heat template
-  ansible.builtin.copy:
-    dest: ~/templates/autoscaling/vnf/resources.yaml
-    content: |
-      resource_registry:
-        "OS::Nova::Server::VNF": ./instance.yaml
+- name: Congigure deployment template
+  block:
+    - name: RHOSO-12657 Configure heat template for automatically scaling instances
+      ansible.builtin.template:
+        src: instance.yaml.j2
+        dest: ~/templates/autoscaling/vnf/instance.yaml
 
-- name: RHOSO-12659 Create the deployment template for heat to control instance scaling
-  ansible.builtin.template:
-    dest: ~/templates/autoscaling/vnf/template.yaml
-    src: template.yaml.j2
+    - name: RHOSO-12658 Create the resource to reference in the heat template
+      ansible.builtin.copy:
+        dest: ~/templates/autoscaling/vnf/resources.yaml
+        content: |
+          resource_registry:
+            "OS::Nova::Server::VNF": ./instance.yaml
+
+    - name: RHOSO-12659 Create the deployment template for heat to control instance scaling
+      ansible.builtin.template:
+        dest: ~/templates/autoscaling/vnf/template.yaml
+        src: template.yaml.j2
+
+    - name: Add pass to test results
+      delegate_to: localhost
+      lineinfile:
+        path: "{{ logs_dir }}/test_run_result.xml"
+        line: '<testcase classname="autoscaling" name="RHOSO-12657 config heat template" />'
+        insertbefore: "</testsuite>"
+
+  rescue:
+    - name: Add failure to test result
+      delegate_to: localhost
+      lineinfile:
+        path: "{{ logs_dir }}/test_run_result.xml"
+        line: |
+          '<testcase classname="autoscaling" name="RHOSO-12657 config heat template" />'
+          '<failure message="RHOSO-12657 config heat template failed" /></testcase>'
+        insertbefore: "</testsuite>"
+
+    - name: increment number of failures
+      set_fact:
+        number_of_failures: "{{ number_of_failures | int + 1 }}"
+
+- name: increment number of tests
+  set_fact:
+    number_of_tests: "{{ number_of_tests | int + 1 }}"
+
