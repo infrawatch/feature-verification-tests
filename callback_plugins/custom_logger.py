@@ -31,7 +31,7 @@ class CallbackModule(CallbackBase):
 
     def __init__(self):
         super(CallbackModule, self).__init__()
-        self.output_dir = "/tmp"
+        self.output_dir = os.getcwd()
         self.results = {}
         
     def playbook_on_stats(self, stats):

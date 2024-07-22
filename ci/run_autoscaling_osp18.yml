@@ -1,6 +1,6 @@
 ---
 - name: Run telemetry autoscaling tests on osp18
-  hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
+  hosts:  "controller"
   gather_facts: true
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
