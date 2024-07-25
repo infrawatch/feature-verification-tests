@@ -1,6 +1,6 @@
 ---
 - name: Run telemetry autoscaling tests on osp18
-  hosts:  "controller"
+  hosts:  "{{ cifmw_target_hook_host | default('controller')  }}"
   gather_facts: true
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
@@ -8,9 +8,52 @@
   vars_files:
     - vars/common.yml
   tasks:
-    - name: Include setup tasks 
-      ansible.builtin.include_tasks:
-        file: setup_env.yml
+    - name: "Create log dir"
+      ansible.builtin.file:
+        path: "{{ autoscaling_logs_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Include vars from the extra_vars files
+      ansible.builtin.include_vars:
+        dir: "{{ cifmw_basedir }}/artifacts/parameters"
+
+    - community.general.make:
+        chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
+        target: edpm_deploy_instance
+      tags:
+        - setup
+
+    - name: Patch the openstackversions to use the master containers for aodh and heat
+      ansible.builtin.shell:
+        cmd: |
+          oc patch openstackversions controlplane --type merge --patch-file ci/patch-openstack-versions.yaml
+        chdir: "{{ fvt_dir }}"
+      when: "{{ patch_openstackversions | bool }}"
+      tags:
+        - setup
+
+    - name: Patch observabilityclient into openstackclient
+      ansible.builtin.shell:
+        cmd: |
+          oc exec openstackclient -- python3 -m ensurepip --upgrade
+          oc exec openstackclient -- python3 -m pip install --upgrade aodhclient
+          oc exec openstackclient -- python3 -m pip install --upgrade python-observabilityclient
+      when: "{{ patch_openstackversions | bool }}"
+      tags:
+        - setup
+
+    - name: Wait until the oscp is resolved the changes to continue
+      ansible.builtin.shell:
+        cmd: |
+          oc get oscp | grep "Setup complete"
+      retries: 24
+      timeout: 5
+      until: output.stdout_lines | length == 1
+      register: output
+      when: "{{ patch_openstackversions | bool }}"
+      tags:
+        - setup
 
     - name: "Run Telemetry Autoscaling tests"
       ansible.builtin.import_role:
@@ -18,6 +61,12 @@
       vars:
         vars_path:  "{{ fvt_dir }}/ci/vars"
       tags: autoscaling
+
+    - name: Revert the version update
+      ansible.builtin.shell:
+        cmd: |
+          oc patch  openstackversions controlplane  --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
+      when: "{{ patch_openstackversions | bool }}"
 
     - name: Include report result 
       ansible.builtin.include_tasks:
