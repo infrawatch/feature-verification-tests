@@ -1,0 +1,7 @@
+---
+# temp: skip os-net-setup
+cifmw_os_net_setup_config: []
+post_deploy_run_functional_test:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_graph_osp18.yml"
+  type: playbook
+  config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"

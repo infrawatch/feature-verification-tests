@@ -10,7 +10,7 @@
   tasks:
     - name: "Create log dir"
       ansible.builtin.file:
-        path: "{{ autoscaling_logs_dir }}"
+        path: "{{ logs_dir }}/autoscaling"
         state: directory
         mode: "0755"
 
@@ -71,3 +71,5 @@
     - name: Include report result 
       ansible.builtin.include_tasks:
         file: report_result.yml
+      vars:
+        test_dir: "{{ logs_dir }}/autoscaling"

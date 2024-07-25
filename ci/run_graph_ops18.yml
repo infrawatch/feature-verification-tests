@@ -1,0 +1,27 @@
+---
+- name: Run telemetry autoscaling tests on osp18
+  hosts:  "{{ cifmw_target_hook_host | default('controller')  }}"
+  gather_facts: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+  tasks:
+    - name: "Create log dir"
+      ansible.builtin.file:
+        path: "{{logs_dir }}/graphing"
+        state: directory
+        mode: "0755"
+
+    - name: "Run Graphing Console UI tests"
+      ansible.builtin.import_role:
+        name: graphing_ui
+      vars:
+        vars_path:  "{{ fvt_dir }}/ci/vars"
+
+    - name: Include report result 
+      ansible.builtin.include_tasks:
+        file: report_result.yml
+      vars:
+        test_dir: "{{ logs_dir }}/graphing"
