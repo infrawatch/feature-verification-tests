@@ -50,18 +50,18 @@
     - name: Add pass to test results
       delegate_to: localhost
       lineinfile:
-        path: "{{ logs_dir }}/test_run_result.xml"
-        line: '<testcase classname="autoscaling" name="RHOSO-12657 config heat template" />'
+        path: "{{ cifmw_polarion_jump_result_dir }}/test_run_result.xml"
+        line: '<testcase classname=""openstack-observability" " name="configure_hest_template_automatically_scaling_instances"  time="1"/>'
         insertbefore: "</testsuite>"
 
   rescue:
     - name: Add failure to test result
       delegate_to: localhost
       lineinfile:
-        path: "{{ logs_dir }}/test_run_result.xml"
+        path: "{{ cifmw_polarion_jump_result_dir }}/test_run_result.xml"
         line: |
-          '<testcase classname="autoscaling" name="RHOSO-12657 config heat template" />'
-          '<failure message="RHOSO-12657 config heat template failed" /></testcase>'
+          '<testcase classname=""openstack-observability" " name="configure_hest_template_automatically_scaling_instances"  time="1"/>'
+          '<failure> configure Heat template failed <failure/>'</testcase>'
         insertbefore: "</testsuite>"
 
     - name: increment number of failures
