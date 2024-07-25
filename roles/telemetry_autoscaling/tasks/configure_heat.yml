@@ -50,7 +50,7 @@
     - name: Add pass to test results
       delegate_to: localhost
       lineinfile:
-        path: "{{ cifmw_polarion_jump_result_dir }}/test_run_result.xml"
+        path: "{{ polarian_dir }}/test_run_result.xml"
         line: '<testcase classname=""openstack-observability" " name="configure_hest_template_automatically_scaling_instances"  time="1"/>'
         insertbefore: "</testsuite>"
 
@@ -58,7 +58,7 @@
     - name: Add failure to test result
       delegate_to: localhost
       lineinfile:
-        path: "{{ cifmw_polarion_jump_result_dir }}/test_run_result.xml"
+        path: "{{ polarian_dir }}/test_run_result.xml"
         line: |
           '<testcase classname=""openstack-observability" " name="configure_hest_template_automatically_scaling_instances"  time="1"/>'
           '<failure> configure Heat template failed <failure/>'</testcase>'
