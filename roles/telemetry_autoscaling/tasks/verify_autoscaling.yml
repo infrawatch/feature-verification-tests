@@ -48,4 +48,4 @@
     {{ openstack_cmd }} metric query up  --disable-rbac -c container -c value |grep -i "prometheus" |awk '{print $4}'
   register: result
   failed_when:
-    - result.stdout != 0
+    - result.stdout != "0"
