@@ -1,0 +1,18 @@
+---
+# to include all the variables in CI/vars dir
+- name: Gather list of vars files
+  ansible.builtin.set_fact:
+    common_files: "{{ lookup('fileglob', vars_path + '/*.yml', wantlist=True) }}"
+
+- name: RHOSO Include multiple variable files
+  ansible.builtin.include_vars: "{{ item }}"
+  with_items: "{{ common_files }}"
+
+# TO DO : adding the test scenario
+
+#- name: "RHOSO Enable Graphing"
+#  ansible.builtin.shell:
+#    cmd: |
+#      oc patch oscp/controlplane --type='json' -p '[{"op": "replace", "path": "/spec/telemetry/template/metricStorage/monitoringStack/dashboardsEnabled", "value":true}]'
+#  register: oscp_change
+#  changed_when: false

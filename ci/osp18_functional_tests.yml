@@ -12,3 +12,10 @@
       vars:
         vars_path: "{{ vars_dir }}"
       tags: autoscaling
+
+    - name: "Run Graphing Console UI tests"
+      ansible.builtin.import_role:
+        name: telemetry_graphing
+      vars:
+        vars_path:  "{{ vars_dir }}"
+      tags: graphing
