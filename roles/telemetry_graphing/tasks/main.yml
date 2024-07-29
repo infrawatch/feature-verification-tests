@@ -1,0 +1,21 @@
+---
+- name: Gather list of vars files
+  set_fact:
+    vars_files: "{{ lookup('fileglob', vars_path + '/*.yml', wantlist=True) }}"
+
+- name: Include multiple variable files
+  include_vars: "{{ item }}"
+  with_items: "{{ vars_files }}"
+
+- name: "Enable MetricStorage"
+  ansible.builtin.command:
+    cmd: |
+      oc patch oscp/controlplane --type='json' -p '[{"op": "replace", "path": "/spec/telemetry/template/metricStorage/enabled", "value":true}]'
+
+- name: "Enable Graphing"
+  ansible.builtin.command:
+    cmd: |
+      oc patch oscp/controlplane --type='json' -p '[{"op": "replace", "path": "/spec/telemetry/template/metricStorage/monitoringStack/dashboardsEnabled", "value":true}]'
+
+
+

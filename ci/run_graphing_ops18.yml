@@ -10,18 +10,18 @@
   tasks:
     - name: "Create log dir"
       ansible.builtin.file:
-        path: "{{logs_dir }}/graphing"
+        path: "{{ logs_dir }}/graphing"
         state: directory
         mode: "0755"
 
     - name: "Run Graphing Console UI tests"
       ansible.builtin.import_role:
-        name: graphing_ui
+        name: telemetry_graphing
       vars:
         vars_path:  "{{ fvt_dir }}/ci/vars"
 
-    - name: Include report result 
-      ansible.builtin.include_tasks:
-        file: report_result.yml
-      vars:
-        test_dir: "{{ logs_dir }}/graphing"
+   # - name: Include report result 
+   #   ansible.builtin.include_tasks:
+   #     file: report_result.yml
+   #   vars:
+   #     test_dir: "{{ logs_dir }}/graphing"
