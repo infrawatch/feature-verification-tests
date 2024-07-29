@@ -1,0 +1,28 @@
+---
+- name: "[Test] Enable Graphing"
+  ansible.builtin.shell:
+    cmd: |
+      oc patch oscp/controlplane --type='json' -p '[{"op": "replace", "path": "/spec/telemetry/template/metricStorage/dashboardsEnabled", "value":true}]'
+  register: oscp_change
+  changed_when: false
+
+- name: "Deploy load so ceilometer has metrics to report"
+  ansible.builtin.shell:
+    cmd: | 
+      oc rsh openstackclient openstack server create --flavor m1.small --image cirros --network private vm{{ item }}
+  loop: "{{ range(1, 6) | list }}"
+  register: vm_creation_result
+  changed_when: false
+  
+- name: "Display VM creation results"
+  ansible.builtin.debug:
+    msg: "VM creation result: {{ item.stdout }}"
+  loop: "{{ vm_creation_result.results }}"
+
+- name: "Verify url for graphing test"
+  ansible.builtin.include_tasks: 
+    file: verify_url.yml
+
+- name: "Verify promotheus query"
+  ansible.builtin.include_tasks: 
+    file: prom_query.yml

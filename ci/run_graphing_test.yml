@@ -1,0 +1,17 @@
+---
+- name: "Run functional test playbooks"
+  hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
+  gather_facts: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+  tasks:
+    - name: "Run Graphing Console UI tests"
+      ansible.builtin.import_role:
+        name: telemetry_graphing
+      ignore_errors: true
+
+
+
