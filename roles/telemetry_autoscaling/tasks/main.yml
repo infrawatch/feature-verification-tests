@@ -17,7 +17,7 @@
       <?xml version="1.0" ?>
       <testsuite errors="0" failures="#failures#" name="autoscaling" skipped="0" tests="#tests#">
       </testsuite>
-    dest: "{{ polarian_dir }}/test_run_result.xml"
+    dest: "{{ logs_dir }}/test_run_result.xml"
 
 - name: inititalize number of tests and failures
   set_fact:
@@ -47,14 +47,14 @@
 - name: modify test result with number of failures
   delegate_to: localhost
   replace:
-    path: "{{ polarian_dir }}/test_run_result.xml"
+    path: "{{ logs_dir }}/test_run_result.xml"
     regexp: "#failures#"
     replace: "{{ number_of_failures }}"
 
 - name: modify test result with number of tests
   delegate_to: localhost
   replace:
-    path: "{{ polarian_dir }}/test_run_result.xml"
+    path: "{{ logs_dir }}/test_run_result.xml"
     regexp: "#tests#"
     replace: "{{ number_of_tests }}"
 
