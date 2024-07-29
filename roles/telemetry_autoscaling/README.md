@@ -7,10 +7,28 @@ Requirements
 ------------
 The following resources are required in the OpenStack cloud
 * network called public
-* network called provate
+* network called private
 * security group called basic with ssh and tcp enabled to the VMs
 * a flavor called m1.small
 * an image called cirros
+
+Tests:
+------
+Verify overcloud deployment for autoscaling
+    Test service API endpoints
+    Verify all the services are running on overcloud
+    Verify time-series database service is available
+Using the heat service for autoscaling
+    Create an archive policy
+    Configure heat template for automatically scaling instances
+    Create the deployment template for heat to control instance scaling
+Create stack deployment for autoscaling
+    Verify that the stack and resources are created
+    Verify that the alarms were created for the stack
+    Verify the deployment and metric resources exist for the stack
+Testing and troubleshooting autoscaling
+    Verify that alarms are triggered with traffic
+    Verify that Orchestration service has scaled the instances
 
 Role Variables
 --------------
