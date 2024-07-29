@@ -15,7 +15,7 @@
   copy:
     content: |
       <?xml version="1.0" ?>
-      <testsuite errors="0" failures="#failures#" name="autoscaling" skipped="0" tests="#tests#">
+      <testsuite errors="0" failures="#failures#" name="openstack-observability" skipped="0" tests="#tests#">
       </testsuite>
     dest: "{{ logs_dir }}/test_run_result.xml"
 
