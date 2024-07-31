@@ -10,7 +10,7 @@
   include_vars: "{{ item }}"
   with_items: "{{ vars_files }}"
 
-- name: Test services are enabled for autoscaling
+- name: RHOSO-12666 Test services are enabled for autoscaling
   when: metrics_backend == "prometheus"
   ansible.builtin.include_tasks: 
     file: test_services.yml
