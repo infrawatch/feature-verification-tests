@@ -2,7 +2,7 @@
 - name: Move callback_plugin result to log dir
   ansible.builtin.shell:
     cmd: |
-      cp  {{ fvt_dir }}/plugin_run_result.xml {{ logs_dir }}/test_run_result.log
+      cp  {{ fvt_dir }}/plugin_run_result.xml {{ logs_dir }}/plugin_run_result.xml
 
 #- name: Grep the number of failed tasks
 #  ansible.builtin.shell:
