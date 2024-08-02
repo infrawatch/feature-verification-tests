@@ -4,6 +4,7 @@
     cmd: |
       cp  {{ fvt_dir }}/test_run_result.out {{ logs_dir }}/test_run_result.log
       cp  {{ fvt_dir }}/summary_results.log {{ logs_dir }}/summary_results.log
+      cp  ~/.ansible.log/*.xml {{ logs_dir }}/junittest_run_result.xml
 
 - name: Grep the number of failed tasks
   ansible.builtin.shell:
