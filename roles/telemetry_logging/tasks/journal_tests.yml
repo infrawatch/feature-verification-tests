@@ -1,0 +1,10 @@
+---
+- name: Get journals
+  ansible.builtin.shell:
+    cmd:
+      tstamp=$(date -d '30 minute ago' "+%Y-%m-%d %H:%M:%S")
+      journalctl -t "{{ item }}" --no-pager -S "${tstamp}" | wc -l
+  register: journal_wc
+  changed_when: false
+  failed_when:  
+    - journal_wc.stdout | int <= 1
