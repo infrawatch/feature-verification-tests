@@ -5,6 +5,7 @@
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
+    JUNIT_TEST_CASE_PREFIX: "testsuites"
   tasks:
     - name: "Run Telemetry Autoscaling tests"
       ansible.builtin.import_role:
