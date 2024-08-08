@@ -17,14 +17,38 @@
   failed_when:
     - result.stdout != "True"
 
-# - name: Verify that custom resource AUTOSCALING is ready
-# It is returning an unexpected response and needs further debugging. will raise another PR to inspect this
-#   ansible.builtin.command:
-#     cmd: |
-#       oc get autoscaling autoscaling -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}{"\n"}'
-#   register: result
-#   failed_when:
-#     - result.stdout != "True"
+#It is returning an unexpected response and needs further debugging
+- name: Enclose this task in a block/rescue to inspect further
+  block:
+    - name: Verify that custom resource AUTOSCALING is ready
+      ansible.builtin.command:
+        cmd: |
+          oc get autoscaling autoscaling -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}{"\n"}'
+      register: result
+      failed_when:
+        - result.stdout != "True"
+  rescue:
+    - name: view autoscaling objects
+      ansible.builtin.command:
+        cmd: |
+          oc get autoscaling -oyaml
+      register: result1
+      failed_when: result1.rc >= 1
+
+    - name: view telemetry objects
+      ansible.builtin.command:
+        cmd: |
+          oc get telemetry telemetry -oyaml
+      register: result2
+      failed_when: result2.rc >= 1
+
+    - name: Print all autoscaling objects
+      ansible.builtin.debug:
+        var: result1
+  
+    - name: Print all telemetry objects
+      ansible.builtin.debug:
+        var: result2
 
 - name: Verify that custom resource METRICSTORAGE is ready
   ansible.builtin.command:
