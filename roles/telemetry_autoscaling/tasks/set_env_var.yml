@@ -1,0 +1,16 @@
+---
+# Set environment variables for JUNIT callback plugin.
+# It writes playbook output to a JUnit formatted XML file.
+- name: envt vars
+  set_fact:
+    os_environment:
+      - key: JUNIT_TEST_CASE_PREFIX
+        value: testsuites
+
+- name: customize /etc/environment
+  ansible.builtin.lineinfile:
+    dest: "/etc/environment"
+    state: present
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value }}"
+  with_items: "{{ os_environment }}"

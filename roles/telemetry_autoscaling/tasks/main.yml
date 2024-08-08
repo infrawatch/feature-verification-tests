@@ -10,6 +10,11 @@
   include_vars: "{{ item }}"
   with_items: "{{ vars_files }}"
 
+- name: Set environment variable for JUNIT callback plugin
+  ansible.builtin.include_tasks:
+    file: set_env_var.yml
+  tags: setup
+
 - name: RHOSO-12666 Test services are enabled for autoscaling
   when: metrics_backend == "prometheus"
   ansible.builtin.include_tasks: 
