@@ -4,7 +4,11 @@
     cmd: |
       cp  {{ fvt_dir }}/test_run_result.out {{ logs_dir }}/test_run_result.log
       cp  {{ fvt_dir }}/summary_results.log {{ logs_dir }}/summary_results.log
-      cp  ~/.ansible.log/*.xml {{ logs_dir }}/junittest_run_result.xml
+      cp  ~/.ansible.log/*.xml {{ logs_dir }}/junit_result.xml
+
+- name: Parse junit result file for xml reporting
+  ansible.builtin.include_tasks:
+    file: parse_xml.yml
 
 - name: Grep the number of failed tasks
   ansible.builtin.shell:

@@ -1,0 +1,21 @@
+---
+- name: Input and Output files
+  set_fact:
+    junit_result_file:
+      - "{{ logs_dir }}/junit_result.xml"
+    output_xml_file: "{{ logs_dir }}/xml_output.xml"
+
+- name: Add content to xml file
+  ansible.builtin.copy:
+    dest: "{{ output_xml_file }}"
+    content: "<?xml version=\"1.0\" ?>\n<testsuites>\n</testsuites>"
+
+- name: Remove system-out content from input junit file add it to a temp file
+  ansible.builtin.shell: |
+    xmllint --xpath '/testsuites/testsuite' {{ item }} >> /tmp/parsexml1.xml
+    awk 'BEGIN{RS="<system-out>";ORS=""}/<\/system-out>/{sub(/.*<\/system-out>/,"")}{print}' /tmp/parsexml1.xml > /tmp/parsexml2.xml
+  with_items: "{{ junit_result_file }}"
+
+- name: Add the filtered content into output xml file
+  ansible.builtin.shell: |
+    sed -i '/<\/testsuites>/e cat /tmp/parsexml2.xml' {{ output_xml_file }}
