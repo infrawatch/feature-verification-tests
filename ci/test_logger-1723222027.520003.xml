@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<testsuites disabled="0" errors="0" failures="1" tests="6" time="0.071679592132568359375">
+	<testsuite disabled="0" errors="0" failures="1" name="test_logger" skipped="0" tests="6" time="0.071679592132568359375">
+		<testcase classname="test_logger.yml:6" name="RHOSO-01 show some message" time="0.013910055160522461"/>
+		<testcase classname="test_logger.yml:9" name="Show a var, this is the RHOSO-02 test" time="0.01083064079284668"/>
+		<testcase classname="test_logger.yml:12" name="Check how a multiline string task name is
+handles for RHOSO-03" time="0.012151956558227539"/>
+		<testcase classname="test_logger.yml:17" name="try a test where there is no ID, just the RHOSO prefix" time="0.011257171630859375"/>
+		<testcase classname="test_logger.yml:29" name="Check what happens with multiple matches RHELOSP-054 RHOSO-056" time="0.011482477188110352"/>
+		<testcase classname="test_logger.yml:35" name="Check that failed tests are also represented RHOSO-078" time="0.012047290802001953">
+			<failure message="If the task fails, the status will be reported since there's a test ID." type="failure">{
+&quot;changed&quot;: false,
+&quot;msg&quot;: &quot;If the task fails, the status will be reported since there's a test ID.&quot;
+}</failure>
+		</testcase>
+	</testsuite>
+</testsuites>
