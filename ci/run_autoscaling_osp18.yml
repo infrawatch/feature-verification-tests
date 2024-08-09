@@ -12,7 +12,7 @@
     - block:
         - name: "Create log dir"
           ansible.builtin.file:
-            path: "{{ autoscaling_logs_dir }}"
+            path: "{{ logs_dir }}/autoscaling"
             state: directory
             mode: "0755"
 
@@ -60,9 +60,7 @@
         - name: "Run Telemetry Autoscaling tests"
           ansible.builtin.import_role:
             name: telemetry_autoscaling
-          vars:
-            vars_path:  "{{ fvt_dir }}/ci/vars"
-          tags: autoscaling
+          
       always:   
         - name: Revert the version update
           ansible.builtin.shell:
@@ -73,3 +71,5 @@
         - name: Include report result 
           ansible.builtin.include_tasks:
             file: report_result.yml
+          vars:
+            test_dir: "{{ logs_dir }}/autoscaling"
