@@ -52,6 +52,6 @@
             line: "{{ output2.stdout }}"
             path: "{{ logs_dir }}/ansible_run.log"
 
-    - name: Include report result 
+    - name: Include report result
       ansible.builtin.include_tasks:
         file: report_result.yml
