@@ -36,6 +36,20 @@
     file: test_autoscaling.yml
   tags: test
 
+- name: modify test result with number of failures
+  delegate_to: localhost
+  replace:
+    path: "{{ logs_dir }}/test_run_result.xml"
+    regexp: "#failures#"
+    replace: "{{ number_of_failures }}"
+
+- name: modify test result with number of tests
+  delegate_to: localhost
+  replace:
+    path: "{{ logs_dir }}/test_run_result.xml"
+    regexp: "#tests#"
+    replace: "{{ number_of_tests }}"
+
 - name: Run the cleanup task
   ansible.builtin.include_tasks: 
     file: post_teardown.yml
