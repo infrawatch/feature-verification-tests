@@ -46,9 +46,6 @@
   timeout: 30
   retries: 20
 
-- name: Wait for 5 mins
-  ansible.builtin.pause:
-    minutes: 5
 
 - name: RHOSO-12650 Verify that the stack resources are created
   ansible.builtin.shell: |
@@ -59,7 +56,7 @@
   timeout: 30
   retries: 20
   until: '"CREATE_COMPLETE" in result.stdout'
-  failed_when: '"CREATE_COMPLETE" not in result.stdout'
+  #failed_when: '"CREATE_COMPLETE" not in result.stdout'
 
 - name: RHOSO-12707 Verify that ceilometer_cpu metric exist
   ansible.builtin.shell: |

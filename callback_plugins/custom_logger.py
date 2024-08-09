@@ -34,11 +34,11 @@ class CallbackModule(CallbackBase):
         self.output_dir =  os.path.expanduser("~/")
         self.results = {}
         
-    #def playbook_on_stats(self, stats):
-        # Log results for each host
-    #    hosts= stats.processed
-    #    for host in hosts:
-    #        self.log_summary_results(host)
+    def playbook_on_stats(self, stats):
+        #Log results for each host
+        hosts= stats.processed
+        for host in hosts:
+            self.log_summary_results(host)
 
     def log_task_result(self, host, result, task_name):
         # test_run_result.out only interested in the test tasks, not setup or debug.
