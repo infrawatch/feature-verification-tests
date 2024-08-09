@@ -12,3 +12,4 @@
       vars:
         vars_path: "{{ vars_dir }}"
       tags: autoscaling
+      

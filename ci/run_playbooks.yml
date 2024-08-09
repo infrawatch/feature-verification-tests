@@ -20,6 +20,7 @@
           cifmw_openshift_kubeconfig: "{{ cifmw_openshift_kubeconfig }}"
           cifmw_path: "{{ cifmw_path }}"
           vars_dir: "{{ fvt_dir }}/ci/vars"
+          test: "{{ required_test }}"
         dest: "{{ env_vars_file }}"
 
     - name: Include vars from the extra_vars files
@@ -67,10 +68,11 @@
           tags:
             - setup
 
+
         - name: "Run telemetry tests playbook locally on the target host"
           ansible.builtin.shell:
             cmd: |
-              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}" ci/osp18_functional_tests.yml
+              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}"  ci/osp18_functional_tests.yml
             chdir: "{{ fvt_dir }}"
           register: output
 
@@ -88,3 +90,5 @@
     - name: Include report result 
       ansible.builtin.include_tasks:
         file: report_result.yml
+      vars:
+        test_dir: "{{ logs_dir }}"
