@@ -22,11 +22,11 @@
 
   tasks:
     - name: "Run file and container tests"
-      ansible.builtin.import_role: 
+      ansible.builtin.import_role:
         name: common
 
 
-- name: "Verify logging journalctl identifiers" 
+- name: "Verify logging journalctl identifiers"
   hosts: computes
   gather_facts: no
   vars:
@@ -36,6 +36,6 @@
       - nova_compute
 
   tasks:
-    - name: "Verify journalctl logging identifiers" 
+    - name: "Verify journalctl logging identifiers"
       ansible.builtin.import_role:
         name: telemetry_logging
