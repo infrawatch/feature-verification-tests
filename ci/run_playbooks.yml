@@ -10,7 +10,7 @@
   tasks:
     - name: "Create log dir"
       ansible.builtin.file:
-        path: "{{ logs_dir }}/{{ required_test }}"
+        path: "{{ logs_dir }}"
         state: directory
         mode: "0755"
 
@@ -23,13 +23,13 @@
           test: "{{ required_test }}"
         dest: "{{ env_vars_file }}"
 
+    - name: Include vars from the extra_vars files
+      ansible.builtin.include_vars:
+        dir: "{{ cifmw_basedir }}/artifacts/parameters"
+
     # Prepare the env
     - name: Setup the required resources before running the autoscaling functional test
       block:
-        - name: Include vars from the extra_vars files
-          ansible.builtin.include_vars:
-            dir: "{{ cifmw_basedir }}/artifacts/parameters"
-
           # TODO: Look at replacing this with something NOT from install_yamls.
         - community.general.make:
             chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
@@ -72,7 +72,7 @@
         - name: "Run telemetry tests playbook locally on the target host"
           ansible.builtin.shell:
             cmd: |
-              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}"  --tags {{ required_test }} ci/osp18_functional_tests.yml
+              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}"  ci/osp18_functional_tests.yml
             chdir: "{{ fvt_dir }}"
           register: output
 
@@ -91,4 +91,4 @@
       ansible.builtin.include_tasks:
         file: report_result.yml
       vars:
-        test_dir: "{{ logs_dir }}/{{ required_test }}"
+        test_dir: "{{ logs_dir }}"
