@@ -36,3 +36,9 @@
       when: true
       fail:
         msg: "If the task fails, the status will be reported since there's a test ID."
+
+    - name: "Set the name based on a var input"
+      set_fact:
+        testid: "RHOSO-1234"
+    - name: "run test with variable name - {{ testid }}"
+      debug: msg="test"

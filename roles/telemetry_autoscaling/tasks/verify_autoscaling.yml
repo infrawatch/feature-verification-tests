@@ -40,3 +40,12 @@
     {{ openstack_cmd }} metric status --fit-width;
   register: result
   failed_when: result.rc >= 1
+
+# This works when using prometheus as the metrics backend
+- name: Verify that PROMETHEUS is enabled
+  when: metrics_backend == "prometheus"
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric query up  --disable-rbac -c container -c value |grep -i "prometheus" |awk '{print $4}'
+  register: result
+  failed_when:
+    - result.stdout != "0"

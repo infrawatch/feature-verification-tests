@@ -1,0 +1,5 @@
+---
+- hosts: localhost
+  tasks:
+    - ansible.builtin.debug:
+        msg: "Do nothing"

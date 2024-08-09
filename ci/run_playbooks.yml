@@ -67,8 +67,6 @@
           tags:
             - setup
 
-    - name: Run telemetry tests on OSP18
-      block:
         - name: "Run telemetry tests playbook locally on the target host"
           ansible.builtin.shell:
             cmd: |
@@ -80,13 +78,12 @@
           ansible.builtin.copy:
             content: "{{ output.stdout }}"
             dest: "{{ logs_dir }}/ansible_run.log"
-
-
-    - name: Revert the version update
-      ansible.builtin.shell:
-        cmd: |
-          oc patch  openstackversions controlplane  --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
-      when: "{{ patch_openstackversions | bool }}"
+      always:
+        - name: Revert the version update
+          ansible.builtin.shell:
+            cmd: |
+              oc patch  openstackversions controlplane  --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
+          when: "{{ patch_openstackversions | bool }}"
 
     - name: Include report result 
       ansible.builtin.include_tasks:

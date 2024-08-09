@@ -10,19 +10,11 @@
   include_vars: "{{ item }}"
   with_items: "{{ vars_files }}"
 
-- name: initialize empty results file
-  delegate_to: localhost
-  copy:
-    content: |
-      <?xml version="1.0" ?>
-      <testsuite errors="0" failures="#failures#" name="openstack-observability" skipped="0" tests="#tests#">
-      </testsuite>
-    dest: "{{ logs_dir }}/test_run_result.xml"
-
-- name: inititalize number of tests and failures
-  set_fact:
-    number_of_tests: 0
-    number_of_failures: 0
+- name: RHOSO-12666 Test services are enabled for autoscaling
+  when: metrics_backend == "prometheus"
+  ansible.builtin.include_tasks: 
+    file: test_services.yml
+  tags: precheck
 
 - name: Check pre-reqs for autoscaling
   ansible.builtin.include_tasks: 
