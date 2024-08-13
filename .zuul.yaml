@@ -121,7 +121,7 @@
     name: infrawatch/feature-verification-tests
     github-check:
       jobs:
-        - feature-verification-tests-noop
+        #- feature-verification-tests-noop
         - openstack-k8s-operators-content-provider:
             override-checkout: main
             irrelevant-files: *irrelevant_files
