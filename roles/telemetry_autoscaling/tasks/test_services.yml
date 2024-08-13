@@ -30,25 +30,15 @@
   rescue:
     - name: view autoscaling objects
       ansible.builtin.command:
-        cmd: |
-          oc get autoscaling -oyaml
-      register: result1
-      failed_when: result1.rc >= 1
+        cmd: "{{ item }}"
+      register: result
+      with_items: [oc get autoscaling -oyaml, oc get telemetry telemetry -oyaml]
+      failed_when: result.rc >= 1
+      ignore_errors: true
 
-    - name: view telemetry objects
-      ansible.builtin.command:
-        cmd: |
-          oc get telemetry telemetry -oyaml
-      register: result2
-      failed_when: result2.rc >= 1
-
-    - name: Print all autoscaling objects
+    - name: Print the result
       ansible.builtin.debug:
-        var: result1
-  
-    - name: Print all telemetry objects
-      ansible.builtin.debug:
-        var: result2
+        var: result
 
 - name: Verify that custom resource METRICSTORAGE is ready
   ansible.builtin.command:
