@@ -62,16 +62,23 @@ class CallbackModule(JunitCallbackModule):
         """
         ## I want to test updating the name after the super class has done its thing
         tc = super()._build_test_case(task_data, host_data)
-        # this returns a testcase, with the name set "appropiately"
-        # I can edit this
-        tc.name = "%s-%s" % ("update", tc.name)
-        tc.name = task_data.name
+
+        new_name = task_data.name.lower()
+        new_name = new_name.split("\n")[0]  # only use the first line, so we can include IDs and additional description
+
+        new_name = re.sub(r'\S*%s\S*' % (self._test_case_prefix.lower()), '', new_name)  # remove the task_id i.e. the test prefix and the numeric ID that follows
+        new_name = re.sub(r'(^\W*|\W*$)', '', new_name)  # trim any trailing or leading non-alphanumeric characters
+
+        new_name = re.sub(r' +', '_', new_name)  # replace any number of spaces with _
+
+        new_name = re.sub(r'\W', '', new_name)  # remove all non-alphanumeric characters (except _)
+
+        tc.name = new_name
 
         # I don't want these properties for now; I may be able to omit them with a config option
         tc.system_out = None
         tc.system_err = None
-        tc.classname = tc.classname.split("/")[-1]  # to show how to edit this... The values might change
-        # Maybe the classes should be the rolename... Or feature-verification-tests_<role_name>, if role name is accessible.
+        tc.classname = "openstack-observability"
         return tc
 
     def _generate_report(self):
