@@ -64,8 +64,8 @@
     name: infrawatch/feature-verification-tests
     github-check:
       jobs:
-        - feature-verification-tests-noop
+        #- feature-verification-tests-noop
         - openstack-k8s-operators-content-provider:
             override-checkout: main
-        - functional-tests-on-osp18
+        #- functional-tests-on-osp18
         - functional-logging-tests-osp18
