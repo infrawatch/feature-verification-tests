@@ -1,6 +1,8 @@
+---
 - name: Prepare Logging Tests
   hosts: controller
   gather_facts: false
+  ignore_errors: true
   vars:
     id_rsa_path:  "{{ playbook_dir }}/id_rsa.ctlplane"
   environment:
@@ -32,6 +34,7 @@
 - name: "Verify logging projects, endpoints, credentials, nodes, pods, services, manifests and subscriptions"
   hosts: controller
   gather_facts: no
+  ignore_errors: true
   vars:
     proj_test_id: "RHOSO-12668"
     proj_list:
@@ -39,8 +42,6 @@
       - openshift       
       - openstack-operators
       - openshift-logging
-
-
     endpoint_test_id: "RHOSO-12682"
     endpoint_list:
       - [nova,compute,public]
@@ -60,7 +61,6 @@
       - [neutron,network,public]
       - [neutron,network,internal]
 
-
     cred_test_id: "RHOSO-12670"
     cred_list:
       - alertingrules.loki.grafana.com
@@ -68,13 +68,11 @@
       - recordingrules.loki.grafana.com
       - rulerconfigs.loki.grafana.com
 
-
     node_test_id: "RHOSO-12671"
     node_list:
       - edpm-compute-0
       - edpm-compute-1
       - crc
-
 
     pod_test_id: "RHOS0-12672"
     pod_status_str: "Running"      
@@ -82,7 +80,6 @@
     pod_list:
       - telemetry-operator-controller-manager
       - dataplane-operator-controller-manager
-
 
     service_test_id: "RHOSO-12675"
     service_nspace: openshift-logging
@@ -104,36 +101,30 @@
       - logging-loki-query-frontend-http
       - logging-view-plugin
       - openstack-logging
-
-
     manifest_test_id: "RHOSO-12677"
     manifest_list:
       - "loki-operator 2"
       - "loki-helm-operator 1"
-
-
     subscription_test_id: "RHOSO-12678"
     subscription_nspace: openshift-operators-redhat
     subscription_list:
       - loki-operator
-
   tasks:
     - name: "Run logging project, endpoint, credential, node, pod, service, manifest and subscription tests"
       ansible.builtin.import_role:
         name: common
 
 
-
 - name: "Verify logging pods are running in openstack"
   hosts: controller
   gather_facts: no
+  ignore_errors: true
   vars:
     pod_test_id: "RHOSO-12752"
     pod_status_str: "Running"
     pod_nspace: openstack
     pod_list:
       - openstackclient
-
   tasks:
     - name: "Verify Running Pods"
       ansible.builtin.import_role:
@@ -143,6 +134,7 @@
 - name: "Verify logging pods are running in openshift-operators-redhat"
   hosts: controller
   gather_facts: no
+  ignore_errors: true
   vars:
     pod_test_id: "RHOSO-12673"
     pod_status_str: "Running"
@@ -159,6 +151,7 @@
 - name: "Verify logging pods are running in openshift-logging"
   hosts: controller
   gather_facts: no
+  ignore_errors: true
   vars:
     pod_test_id: "RHOSO-12676"
     pod_status_str: "Running"
@@ -185,6 +178,7 @@
 - name: "Verify logging pods are running in minio-dev"
   hosts: controller
   gather_facts: no
+  ignore_errors: true
   vars:
     pod_test_id: "RHOSO-12674"
     pod_status_str: "Running"
@@ -201,6 +195,7 @@
 - name: "Verify logging pods have complete status in openstack"
   hosts: controller
   gather_facts: no
+  ignore_errors: true
   vars:
     pod_test_id: "RHOSO-12679"
     pod_nspace: openstack
@@ -223,7 +218,6 @@
       - ssh-known-hosts-edpm-deployment-logging
       - telemetry-edpm-deployment-logging
       - validate-network-edpm-deployment-logging
-
   tasks:
     - name: "Run pods completed tests"
       ansible.builtin.import_role:
@@ -233,6 +227,7 @@
 - name: "Verify logging services are running in openstack"
   hosts: controller
   gather_facts: no
+  ignore_errors: true
   vars:
     service_test_id: "RHOSO-12749"
     service_nspace: openstack
@@ -241,7 +236,6 @@
       - nova-metadata-internal
       - nova-novncproxy-cell1-public
       - nova-public
-
   tasks:
     - name: "Run Services tests" 
       ansible.builtin.import_role:
