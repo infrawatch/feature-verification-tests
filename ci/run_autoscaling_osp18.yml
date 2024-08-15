@@ -1,5 +1,5 @@
 ---
-- name: "Run functional test playbooks"
+- name: Run telemetry autoscaling tests on osp18
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
   environment:
@@ -7,29 +7,19 @@
     PATH: "{{ cifmw_path }}"
   vars_files:
     - vars/common.yml
+    - vars/osp18_env.yml
   tasks:
-    - name: "Create log dir"
-      ansible.builtin.file:
-        path: "{{ logs_dir }}"
-        state: directory
-        mode: "0755"
+    - block:
+        - name: "Create log dir"
+          ansible.builtin.file:
+            path: "{{ logs_dir }}/autoscaling"
+            state: directory
+            mode: "0755"
 
-    - name: "Set dynamic KUBECONFIG and PATH vars"
-      copy:
-        content: |
-          cifmw_openshift_kubeconfig: "{{ cifmw_openshift_kubeconfig }}"
-          cifmw_path: "{{ cifmw_path }}"
-          vars_dir: "{{ fvt_dir }}/ci/vars"
-        dest: "{{ env_vars_file }}"
+        - name: Include vars from the extra_vars files
+          ansible.builtin.include_vars:
+            dir: "{{ cifmw_basedir }}/artifacts/parameters"
 
-    - name: Include vars from the extra_vars files
-      ansible.builtin.include_vars:
-        dir: "{{ cifmw_basedir }}/artifacts/parameters"
-
-    # Prepare the env
-    - name: Setup the required resources before running the autoscaling functional test
-      block:
-          # TODO: Look at replacing this with something NOT from install_yamls.
         - community.general.make:
             chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
             target: edpm_deploy_instance
@@ -39,7 +29,7 @@
         - name: Patch the openstackversions to use the master containers for aodh and heat
           ansible.builtin.shell:
             cmd: |
-              oc patch openstackversions controlplane  --type merge --patch-file ci/patch-openstack-versions.yaml
+              oc patch openstackversions controlplane --type merge --patch-file ci/patch-openstack-versions.yaml
             chdir: "{{ fvt_dir }}"
           when: "{{ patch_openstackversions | bool }}"
           tags:
@@ -67,24 +57,19 @@
           tags:
             - setup
 
-        - name: "Run telemetry tests playbook locally on the target host"
-          ansible.builtin.shell:
-            cmd: |
-              ANSIBLE_CONFIG=ci/ansible.cfg ansible-playbook -v  -e @"{{ env_vars_file }}" ci/osp18_functional_tests.yml
-            chdir: "{{ fvt_dir }}"
-          register: output
-
-        - name: Save ansible output to a file
-          ansible.builtin.copy:
-            content: "{{ output.stdout }}"
-            dest: "{{ logs_dir }}/ansible_run.log"
-      always:
+        - name: "Run Telemetry Autoscaling tests"
+          ansible.builtin.import_role:
+            name: telemetry_autoscaling
+          
+      always:   
         - name: Revert the version update
           ansible.builtin.shell:
             cmd: |
               oc patch  openstackversions controlplane  --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
           when: "{{ patch_openstackversions | bool }}"
 
-    - name: Include report result 
-      ansible.builtin.include_tasks:
-        file: report_result.yml
+        - name: Include report result 
+          ansible.builtin.include_tasks:
+            file: report_result.yml
+          vars:
+            test_dir: "{{ logs_dir }}/autoscaling"
