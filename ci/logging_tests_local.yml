@@ -40,6 +40,9 @@
   hosts: controller
   gather_facts: no
   ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
   vars:
     proj_test_id: "RHOSO-12668"
     proj_list:
@@ -124,6 +127,9 @@
   hosts: controller
   gather_facts: no
   ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
   vars:
     pod_test_id: "RHOSO-12752"
     pod_status_str: "Running"
@@ -140,6 +146,9 @@
   hosts: controller
   gather_facts: no
   ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
   vars:
     pod_test_id: "RHOSO-12673"
     pod_status_str: "Running"
@@ -159,6 +168,9 @@
   hosts: controller
   gather_facts: no
   ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
   vars:
     pod_test_id: "RHOSO-12676"
     pod_status_str: "Running"
@@ -186,6 +198,11 @@
   hosts: controller
   gather_facts: no
   ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+
+
   vars:
     pod_test_id: "RHOSO-12674"
     pod_status_str: "Running"
@@ -203,6 +220,9 @@
   hosts: controller
   gather_facts: no
   ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
   vars:
     pod_test_id: "RHOSO-12679"
     pod_nspace: openstack
@@ -235,6 +255,9 @@
   hosts: controller
   gather_facts: no
   ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
   vars:
     service_test_id: "RHOSO-12749"
     service_nspace: openstack
