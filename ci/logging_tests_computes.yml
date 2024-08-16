@@ -20,6 +20,9 @@
   hosts: computes
   gather_facts: no
   ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
   vars:
     container_test_id: "RHOSO-12753"
     container_list:
