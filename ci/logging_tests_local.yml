@@ -1,35 +1,40 @@
 ---
-- name: Prepare Logging Tests
-  hosts: controller
-  gather_facts: false
-  ignore_errors: true
-  vars:
-    id_rsa_path:  "{{ playbook_dir }}/id_rsa.ctlplane"
-  environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
-
-  tasks:
-    - name: "Log into OCP"
-      ansible.builtin.shell:
-        cmd: |
-          oc login -u kubeadmin -p "12345678" https://api.crc.testing:6443
-      failed_when: false
-      changed_when: false
-
-    - name: "Create id rsa file for ctlplane access"
-      ansible.builtin.shell:
-        cmd: |
-          oc extract -n openstack secrets/dataplane-ansible-ssh-private-key-secret --to=- | grep -v "ssh\-rsa" > "{{ id_rsa_path }}"
-      register: rsa_results
-      failed_when: rsa_results.rc != 0
-      changed_when: false
-
-    - name: "Change files permissions"
-      ansible.builtin.shell:
-        cmd: |
-          chmod 600 "{{ id_rsa_path }}"
-      changed_when: false  
+#- name: Prepare Logging Tests
+#  hosts: controller
+#  gather_facts: true
+#  ignore_errors: false
+#  vars:
+#    id_rsa_path:  "{{ playbook_dir }}/id_rsa.ctlplane"
+#  environment:
+#    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+#    PATH: "{{ cifmw_path }}"
+#
+#  tasks:
+#    # This needs to be updated; what do we use elsewhere?
+#    # Elsewhere, we assume that we're already logged in
+#    - name: "Log into OCP"
+#      ansible.builtin.shell:
+#        cmd: |
+#          oc login -u kubeadmin -p "12345678" https://api.crc.testing:6443
+#      failed_when: false
+#      changed_when: false
+#
+#    # I don't think we need this, Zuul __should__ have taken care of this already
+#    - name: "Create id rsa file for ctlplane access"
+#      ansible.builtin.shell:
+#        cmd: |
+#          oc extract -n openstack secrets/dataplane-ansible-ssh-private-key-secret --to=- | grep -v "ssh\-rsa" > "{{ id_rsa_path }}"
+#      register: rsa_results
+#      failed_when: rsa_results.rc != 0
+#      changed_when: false
+#
+#    # (efoley): Once again, I don't think this is necessary; if it's not needed for zuul, because it's already done, but is needed before running this on other systems, then the README should be updated to reflect this;
+#    # A troubleshooting section can be added too so users can identify when they are missing these configuration steps
+#     - name: "Change files permissions"
+#       ansible.builtin.shell:
+#         cmd: |
+#           chmod 600 "{{ id_rsa_path }}"
+#       changed_when: false  
 
 - name: "Verify logging projects, endpoints, credentials, nodes, pods, services, manifests and subscriptions"
   hosts: controller
@@ -146,7 +151,9 @@
     - name: "Verify Pods running"
       ansible.builtin.import_role:
         name: common
-
+        # vars can be passed here, so we can use the same play for this and the next play.
+      # vars:
+      #   - <vars from above>
 
 - name: "Verify logging pods are running in openshift-logging"
   hosts: controller
