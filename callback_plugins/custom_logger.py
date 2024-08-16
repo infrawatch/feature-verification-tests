@@ -4,6 +4,9 @@ from __future__ import (absolute_import, division, print_function)
 import os
 import re
 
+
+from ansible.errors import AnsibleCallbackError
+from ansible.errors import AnsibleError
 from ansible.plugins.callback import CallbackBase
 
 DOCUMENTATION = '''
@@ -63,18 +66,35 @@ class CallbackModule(CallbackBase):
             self.results[host][result] += 1
 
     def log_summary_results(self, host):
+        # The issue is presenting itself in this method
         file_path = os.path.join(self.output_dir, f"summary_results.log")
+        # temperorily add more detail to the output
+        print(self.results)
+
         with open(file_path, 'w') as f:
             f.write(f"Host: {host}\n")
-            f.write(f"Tasks Succeeded: {self.results[host]['passed']}\n")
-            f.write(f"Tasks Failed: {self.results[host]['failed']}\n")
-            f.write(f"Tasks Skipped: {self.results[host]['skipped']}\n")
-            f.write("Failed Tasks:\n")
-            for task_name in self.results[host]['failed_task_names']:
-                f.write(f"  - {task_name}\n")
-            f.write("Succeeded Tasks:\n")
-            for task_name in self.results[host]['ok_task_names']:
-                f.write(f"  - {task_name}\n")
+            # This is the failed issue.
+            # Why is it happening?
+            # Unknown. But does it happen for the other values.
+            # It is happening for compute-0
+            # I need to see the partial log file, so this should NOT cause a failure.
+            # try/catch ANY exception
+            # It could be a nice upgrade to use jinja2 template to render this file.
+            # IS the issue that there were 'f's preceeding the strings?
+            try:
+                f.write("Tasks Succeeded: {self.results[host]['passed']}\n")
+                f.write("Tasks Failed: {self.results[host]['failed']}\n")
+                f.write("Tasks Skipped: {self.results[host]['skipped']}\n")
+                f.write("Failed Tasks:\n")
+                for task_name in self.results[host]['failed_task_names']:
+                    f.write(f"  - {task_name}\n")
+                f.write("Succeeded Tasks:\n")
+                for task_name in self.results[host]['ok_task_names']:
+                    f.write(f"  - {task_name}\n")
+            except AnsibleError as e:
+                # this is probably an AnsibleCallbackError
+                print("Ooops, there was an error")
+                print(e)
 
     def v2_runner_on_ok(self, result):
         host = result._host.get_name()
