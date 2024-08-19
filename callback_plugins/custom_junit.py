@@ -15,7 +15,8 @@ class CallbackModule(JunitCallbackModule):
     def __init__(self):
         super(CallbackModule, self).__init__()
         # Custom environment variable handling
-        self._output_dir = os.getcwd()
+        #self._output_dir = os.getcwd()
+        self._output_dir = os.path.expanduser("~/")
         self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', 'RHOSO')
         #self._fail_on_ignore = os.getenv('JUNIT_FAIL_ON_IGNORE', 'False').lower()
         self._fail_on_ignore = 'true'
