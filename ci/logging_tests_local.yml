@@ -41,7 +41,7 @@
 #       ansible.builtin.shell:
 #         cmd: |
 #           chmod 600 "{{ id_rsa_path }}"
-#       changed_when: false  
+#       changed_when: false
 
 - name: "Verify logging projects, endpoints, credentials, nodes, pods, services, manifests and subscriptions"
   hosts: controller
@@ -54,7 +54,7 @@
     proj_test_id: "RHOSO-12668"
     proj_list:
       - openshift-openstack-infra
-      - openshift       
+      - openshift
       - openstack-operators
       - openshift-logging
     endpoint_test_id: "RHOSO-12682"
@@ -90,7 +90,7 @@
       - crc
 
     pod_test_id: "RHOS0-12672"
-    pod_status_str: "Running"      
+    pod_status_str: "Running"
     pod_nspace: openstack-operators
     pod_list:
       - telemetry-operator-controller-manager
