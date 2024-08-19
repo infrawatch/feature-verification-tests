@@ -38,7 +38,7 @@
 - name: "Verify pod - {{ pod_test_id }}"
   when:
     - pod_list is defined
-    - nspace is defined
+    - pod_nspace is defined
     - pod_status_str is defined
   ansible.builtin.include_tasks: "pod_tests.yml"
   loop: "{{ pod_list }}"
@@ -54,7 +54,7 @@
 - name: "Verify service - {{ service_test_id }}"
   when:
     - service_list is defined
-    - nspace is defined
+    - service_nspace is defined
   ansible.builtin.include_tasks: "service_tests.yml"
   loop: "{{ service_list }}"
 
