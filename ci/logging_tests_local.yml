@@ -1,15 +1,22 @@
 ---
-#- name: Prepare Logging Tests
-#  hosts: controller
-#  gather_facts: true
-#  ignore_errors: false
+- name: Prepare Logging Tests
+  hosts: controller
+  gather_facts: true
+  ignore_errors: false
 #  vars:
 #    id_rsa_path:  "{{ playbook_dir }}/id_rsa.ctlplane"
 #  environment:
 #    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
 #    PATH: "{{ cifmw_path }}"
-#
-#  tasks:
+  vars_files:
+    - vars/common.yml
+  tasks:
+    - name: Create log dir
+      ansible.builtin.file:
+        path: "{{ logs_dir }}/logging_local"
+        state: directory
+        mode: "0755"
+
 #    # This needs to be updated; what do we use elsewhere?
 #    # Elsewhere, we assume that we're already logged in
 #    - name: "Log into OCP"
@@ -270,3 +277,11 @@
     - name: "Run Services tests" 
       ansible.builtin.import_role:
         name: common
+
+- name: Include report result
+  hosts: controller
+  tasks:
+    - ansible.builtin.include_tasks:
+        file: report_result.yml
+      vars:
+        test_dir: "{{ logs_dir }}/logging_local"

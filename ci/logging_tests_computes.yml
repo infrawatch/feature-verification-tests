@@ -5,7 +5,14 @@
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
-
+  vars_files:
+    - vars/common.yml
+  tasks:
+    - name: Create log dir
+      ansible.builtin.file:
+        path: "{{ logs_dir }}/logging_compute"
+        state: directory
+        mode: "0755"
 
 - name: "Verify ctlplane logging containers and files"
   hosts: computes
@@ -46,3 +53,11 @@
     - name: "Verify journalctl logging identifiers"
       ansible.builtin.import_role:
         name: telemetry_logging
+
+- name: Include report result
+  hosts: computes
+  tasks:
+    - ansible.builtin.include_tasks:
+        file: report_result.yml
+      vars:
+        test_dir: "{{ logs_dir }}/logging_local"
