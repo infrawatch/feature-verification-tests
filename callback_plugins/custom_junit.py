@@ -15,8 +15,8 @@ class CallbackModule(JunitCallbackModule):
     def __init__(self):
         super(CallbackModule, self).__init__()
         # Custom environment variable handling
-        #self._output_dir = os.getcwd()
-        self._output_dir = os.path.expanduser("~/")
+        # self._output_dir = os.getcwd()
+        self._output_dir =  os.path.expanduser("~/")
         self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', 'RHOSO')
         #self._fail_on_ignore = os.getenv('JUNIT_FAIL_ON_IGNORE', 'False').lower()
         self._fail_on_ignore = 'true'
@@ -28,63 +28,66 @@ class CallbackModule(JunitCallbackModule):
         if not os.path.exists(self._output_dir):
             os.makedirs(self._output_dir)
 
-    def _start_task(self, task):
-        """
-        Custom start task method
-        """
-        super(CallbackModule, self)._start_task(task)
-        print(f"Starting task {task.get_name()} with custom behavior")
+    # This isn't needed
+    # def _start_task(self, task):
+    #     """
+    #     Custom start task method
+    #     """
+    #     super(CallbackModule, self)._start_task(task)
+    #     print(f"Starting task {task.get_name()} with custom behavior")
 
-    def _finish_task(self, status, result):
-        """
-        Custom finish task method
-        """
-        super(CallbackModule, self)._finish_task(status, result)
-        # At this point, we want to update the task.... to add if there's another matching behaviour
-        # Need to add a name? task_id?
-        # also update task if it CONTAINS the prefix
-        task_uuid = result._task._uuid
-        task_data = self._task_data[task_uuid]
-        if hasattr(result, '_host'):
-            host_uuid = result._host._uuid
-            host_name = result._host.name
-        else:
-            host_uuid = 'include'
-            host_name = 'include'
+    # Don't need this. since we're going to be filtering on the [TEST] prefix (or similar), which will be at the start of the taskname
+    # If the prefix is at the start of the name, we can filter on that, and remove anything that comes before it (e.g. if a tasks comes from an included role, then "role_name :" is prefixed
+    # def _finish_task(self, status, result):
+    #     """
+    #     Custom finish task method
+    #     """
+    #     super(CallbackModule, self)._finish_task(status, result)
+    #     # At this point, we want to update the task.... to add if there's another matching behaviour
+    #     # Need to add a name? task_id?
+    #     # also update task if it CONTAINS the prefix
+    #     task_uuid = result._task._uuid
+    #     task_data = self._task_data[task_uuid]
+    #     if hasattr(result, '_host'):
+    #         host_uuid = result._host._uuid
+    #         host_name = result._host.name
+    #     else:
+    #         host_uuid = 'include'
+    #         host_name = 'include'
 
-        if self._test_case_prefix in task_data.name or status == 'failed':
-            task_data.add_host(HostData(host_uuid, host_name, status, result))
+    #     if self._test_case_prefix in task_data.name or status == 'failed':
+    #         task_data.add_host(HostData(host_uuid, host_name, status, result))
 
-        print(f"Finishing task {result._task.get_name()} with custom behavior")
+    def mutate_task_name(self, task_name):
+        new_name = task_name
+        new_name = new_name.split("\n")[0]  # only use the first line, so we can include IDs and additional description
+        new_name = new_name.split(":")[-1]  # only provide the last part of the name when the role name is included
+
+        new_name = re.sub(r'^.*?\S*%s\S*' % (self._test_case_prefix), '', new_name)  # remove the test prefix and everything before it
+
+        new_name = new_name.lower()
+
+        new_name = re.sub(r'\W', ' ', new_name)  # replace all non-alphanumeric characters (except _) with a space
+        new_name = re.sub(r'(^\W*|\W*$)', '', new_name)  # trim any trailing or leading non-alphanumeric characters
+        new_name = re.sub(r' +', '_', new_name)  # replace any number of spaces with _
+
+        return new_name
 
     def _build_test_case(self, task_data, host_data):
         """
            This is used in generate_report. The task_data and host data will get passed.
         """
         ## I want to test updating the name after the super class has done its thing
+
+        # Use the original task name to define the final name
+        new_name = self.mutate_task_name(task_data.name)
+
         tc = super()._build_test_case(task_data, host_data)
 
-        new_name = task_data.name.lower()
-        new_name = new_name.split("\n")[0]  # only use the first line, so we can include IDs and additional description
-
-        new_name = re.sub(r'\S*%s\S*' % (self._test_case_prefix.lower()), '', new_name)  # remove the task_id i.e. the test prefix and the numeric ID that follows
-        new_name = re.sub(r'(^\W*|\W*$)', '', new_name)  # trim any trailing or leading non-alphanumeric characters
-
-        new_name = re.sub(r' +', '_', new_name)  # replace any number of spaces with _
-
-        new_name = re.sub(r'\W', '', new_name)  # remove all non-alphanumeric characters (except _)
-
-        tc.name = new_name
+        tc.name = self.mutate_task_name(task_data.name)
 
         # I don't want these properties for now; I may be able to omit them with a config option
         tc.system_out = None
         tc.system_err = None
         tc.classname = "openstack-observability"
         return tc
-
-    def _generate_report(self):
-        """
-        Custom generate report method
-        """
-        super(CallbackModule, self)._generate_report()
-        print("Generating report with custom behavior")
