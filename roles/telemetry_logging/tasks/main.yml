@@ -2,4 +2,4 @@
 - name: "Verify journal entries - {{ journal_test_id }}"
   when: journal_list is defined
   ansible.builtin.include_tasks: "journal_tests.yml"
-  loop: "{{ identifiers_list }}"
+  loop: "{{ journal_list }}"
