@@ -37,7 +37,7 @@ class CallbackModule(CallbackBase):
         self.output_dir =  os.path.expanduser("~/")
         self.results = {}
         
-    def playbook_on_stats(self, stats):
+    def v2_playbook_on_stats(self, stats):
         #Log results for each host
         hosts= stats.processed
         for host in hosts:
@@ -59,6 +59,7 @@ class CallbackModule(CallbackBase):
 
             # Gather the result data to be used in the summary log.
             if host not in self.results:
+                print("host was not in results, adding a new value to self.results")
                 self.results[host] = {'passed': 0, 'failed': 0, 'skipped': 0, 'failed_task_names':[], 'ok_task_names':[] }
             if result == 'failed':
                 self.results[host]['failed_task_names'].append(task_name)
@@ -69,6 +70,7 @@ class CallbackModule(CallbackBase):
     def log_summary_results(self, host):
         # The issue is presenting itself in this method
         file_path = os.path.join(self.output_dir, f"summary_results.log")
+        print("Writing results to %s" % file_path)
         # temperorily add more detail to the output
         print(self.results)
 
