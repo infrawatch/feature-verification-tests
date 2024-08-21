@@ -19,13 +19,14 @@ class CallbackModule(JunitCallbackModule):
         self._output_dir =  os.path.expanduser("~/")
         self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', 'RHOSO')
         #self._fail_on_ignore = os.getenv('JUNIT_FAIL_ON_IGNORE', 'False').lower()
-        self._fail_on_ignore = 'true'
+        self._fail_on_ignore = 'true'  # this is needed because we use "ignore_errors" on the playbooks so that all the tests are run
         self._include_setup_tasks_in_report = os.getenv('JUNIT_INCLUDE_SETUP_TASKS_IN_REPORT', 'False').lower()
         self._hide_task_arguments = os.getenv('JUNIT_HIDE_TASK_ARGUMENTS', 'True').lower()
         self._task_class = False
 
         # Ensure the output directory exists
         if not os.path.exists(self._output_dir):
+            print("Creating output dir: %s" % (self._output_dir))
             os.makedirs(self._output_dir)
 
     # This isn't needed
@@ -38,29 +39,31 @@ class CallbackModule(JunitCallbackModule):
 
     # Don't need this. since we're going to be filtering on the [TEST] prefix (or similar), which will be at the start of the taskname
     # If the prefix is at the start of the name, we can filter on that, and remove anything that comes before it (e.g. if a tasks comes from an included role, then "role_name :" is prefixed
-    # def _finish_task(self, status, result):
-    #     """
-    #     Custom finish task method
-    #     """
-    #     super(CallbackModule, self)._finish_task(status, result)
-    #     # At this point, we want to update the task.... to add if there's another matching behaviour
-    #     # Need to add a name? task_id?
-    #     # also update task if it CONTAINS the prefix
-    #     task_uuid = result._task._uuid
-    #     task_data = self._task_data[task_uuid]
-    #     if hasattr(result, '_host'):
-    #         host_uuid = result._host._uuid
-    #         host_name = result._host.name
-    #     else:
-    #         host_uuid = 'include'
-    #         host_name = 'include'
+    def _finish_task(self, status, result):
+        """
+        Custom finish task method
+        """
+        super(CallbackModule, self)._finish_task(status, result)
+        # At this point, we want to update the task.... to add if there's another matching behaviour
+        # Need to add a name? task_id?
+        # also update task if it CONTAINS the prefix
+        task_uuid = result._task._uuid
+        task_data = self._task_data[task_uuid]
+        if hasattr(result, '_host'):
+            host_uuid = result._host._uuid
+            host_name = result._host.name
+        else:
+            host_uuid = 'include'
+            host_name = 'include'
 
-    #     if self._test_case_prefix in task_data.name or status == 'failed':
-    #         task_data.add_host(HostData(host_uuid, host_name, status, result))
+        if self._test_case_prefix in task_data.name or status == 'failed':
+            task_data.add_host(HostData(host_uuid, host_name, status, result))
 
     def mutate_task_name(self, task_name):
 
         print("enter mutate_task_name")
+        if not self._test_case_prefix in task_name:
+            return None
 
         new_name = task_name
         print(new_name)
@@ -99,7 +102,9 @@ class CallbackModule(JunitCallbackModule):
 
         tc = super()._build_test_case(task_data, host_data)
 
-        tc.name = self.mutate_task_name(task_data.name)
+        if new_name is not None:
+            tc.name = new_name
+
         print("%s\t(tc.name)" % tc.name)
 
         # I don't want these properties for now; I may be able to omit them with a config option
