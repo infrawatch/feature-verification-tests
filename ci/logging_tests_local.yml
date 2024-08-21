@@ -280,6 +280,7 @@
 
 - name: Include report result
   hosts: controller
+  gather_facts: true
   tasks:
     - ansible.builtin.include_tasks:
         file: report_result.yml
