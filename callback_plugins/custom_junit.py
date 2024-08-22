@@ -24,6 +24,7 @@ class CallbackModule(JunitCallbackModule):
         self._hide_task_arguments = os.getenv('JUNIT_HIDE_TASK_ARGUMENTS', 'True').lower()
         self._task_class = False
 
+        print("The output_dir is: %s" % self._output_dir)
         # Ensure the output directory exists
         if not os.path.exists(self._output_dir):
             print("Creating output dir: %s" % (self._output_dir))
@@ -56,7 +57,7 @@ class CallbackModule(JunitCallbackModule):
             host_uuid = 'include'
             host_name = 'include'
 
-        if self._test_case_prefix in task_data.name or status == 'failed':
+        if self._test_case_prefix in task_data.name:
             task_data.add_host(HostData(host_uuid, host_name, status, result))
 
     def mutate_task_name(self, task_name):
