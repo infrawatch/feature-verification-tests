@@ -19,6 +19,18 @@
   vars_files:
     - vars/common.yml
   tasks:
+    - name: "Where is that XML file!?"
+      ansible.builtin.shell:
+        cmd: |
+          find ~ -name *.xml
+      register: xml_file_list
+      ignore_errors: true
+
+    - name: "Show the XML files"
+      ansible.builtin.debug:
+        var: xml_file_list.stdout_lines
+      ignore_errors: true
+
     - name: Collect the custom_logger results
       delegate_to: controller
       ansible.builtin.copy:
