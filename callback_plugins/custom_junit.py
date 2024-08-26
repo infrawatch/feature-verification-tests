@@ -14,9 +14,11 @@ class CallbackModule(JunitCallbackModule):
 
     def __init__(self):
         super(CallbackModule, self).__init__()
+
         # Custom environment variable handling
         # self._output_dir = os.getcwd()
-        self._output_dir =  os.path.expanduser("~/")
+        # Update this to parse these values from the config file, as well as the env.
+        self._output_dir = os.path.expanduser("~/.ansible.log")
         self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', 'RHOSO')
         #self._fail_on_ignore = os.getenv('JUNIT_FAIL_ON_IGNORE', 'False').lower()
         self._fail_on_ignore = 'true'  # this is needed because we use "ignore_errors" on the playbooks so that all the tests are run
@@ -29,14 +31,6 @@ class CallbackModule(JunitCallbackModule):
         if not os.path.exists(self._output_dir):
             print("Creating output dir: %s" % (self._output_dir))
             os.makedirs(self._output_dir)
-
-    # This isn't needed
-    # def _start_task(self, task):
-    #     """
-    #     Custom start task method
-    #     """
-    #     super(CallbackModule, self)._start_task(task)
-    #     print(f"Starting task {task.get_name()} with custom behavior")
 
     # Don't need this. since we're going to be filtering on the [TEST] prefix (or similar), which will be at the start of the taskname
     # If the prefix is at the start of the name, we can filter on that, and remove anything that comes before it (e.g. if a tasks comes from an included role, then "role_name :" is prefixed
@@ -63,8 +57,6 @@ class CallbackModule(JunitCallbackModule):
     def mutate_task_name(self, task_name):
 
         print("enter mutate_task_name")
-        if not self._test_case_prefix in task_name:
-            return None
 
         new_name = task_name
         print(new_name)
@@ -72,7 +64,9 @@ class CallbackModule(JunitCallbackModule):
         print(new_name)
         print("taskname (original): %s" % task_name)
 
+        # this cover when a task is included, but the including task is the one that is the test
         new_name = new_name.split(":")[-1]  # only provide the last part of the name when the role name is included
+        print("%s\t(split at :, take last element)" % new_name)
 
         new_name = re.sub(r'^.*?\S*%s\S*' % (self._test_case_prefix), '', new_name)  # remove the test prefix and everything before it
         print("%s\t(remove test prefix)" % new_name)
@@ -103,8 +97,7 @@ class CallbackModule(JunitCallbackModule):
 
         tc = super()._build_test_case(task_data, host_data)
 
-        if new_name is not None:
-            tc.name = new_name
+        tc.name = new_name
 
         print("%s\t(tc.name)" % tc.name)
 
@@ -113,3 +106,4 @@ class CallbackModule(JunitCallbackModule):
         tc.system_err = None
         tc.classname = "openstack-observability"
         return tc
+
