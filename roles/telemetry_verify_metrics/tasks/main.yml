@@ -1,0 +1,21 @@
+---
+# tasks file for telemetry_verify_metrics
+- name: Verify OpenStack is deployed correctly
+  ansible.builtin.include_tasks:
+    file: openstack_deployed.yml
+  tags: precheck
+
+- name: Verify RabbitMQ metrics are being exposed and stored
+  ansible.builtin.include_tasks:
+    file: verify_rabbitmq_metrics.yml
+  tags: test
+
+- name: Verify Ceilometer metrics are being exposed and stored
+  ansible.builtin.include_tasks:
+    file: verify_ceilometer_metrics.yml
+  tags: test
+
+- name: Verify NodeExporter metrics are being exposed and stored
+  ansible.builtin.include_tasks:
+    file: verify_node_exporter_metrics.yml
+  tags: test

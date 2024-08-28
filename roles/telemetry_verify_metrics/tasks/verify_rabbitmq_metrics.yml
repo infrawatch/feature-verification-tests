@@ -1,0 +1,23 @@
+- name: Check rabbitmq metric endpoint
+  ansible.builtin.shell: |
+    oc rsh openstackclient curl https://rabbitmq.openstack.svc:15691/metrics
+  register: result
+  failed_when: result.rc >= 1
+
+- name: Check rabbitmq-cell1 metric endpoint
+  ansible.builtin.shell: |
+    oc rsh openstackclient curl https://rabbitmq-cell1.openstack.svc:15691/metrics
+  register: result
+  failed_when: result.rc >= 1
+
+- name: Use openstack observabilityclient to verify rabbitmq metrics are stored in prometheus
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric query rabbitmq_identity_info{instance=\'rabbitmq.openstack.svc:15691\'}
+  register: result
+  failed_when: not "rabbitmq_identity_info" in result.stdout or result.rc >= 1
+
+- name: Use openstack observabilityclient to verify rabbitmq-cell1 metrics are stored in prometheus
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric query rabbitmq_identity_info{instance=\'rabbitmq-cell1.openstack.svc:15691\'}
+  register: result
+  failed_when: not "rabbitmq_identity_info" in result.stdout or result.rc >= 1
