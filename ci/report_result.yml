@@ -45,6 +45,14 @@
         src: "{{ ansible_env.HOME }}/summary_results.log"
         dest: "{{ logs_dir }}/summary_result.log"
 
+    - name: Collect the XML files
+      delegate_to: localhost
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ ansible_env.HOME }}/.ansible.log/"
+        dest: "{{ logs_dir }}/"
+
+
 - name: "Check the results files for failed tasks"
   hosts: controller
   gather_facts: true
