@@ -1,0 +1,39 @@
+- name: Verify that custom resource TELEMETRY is ready
+  ansible.builtin.command:
+    cmd: |
+      oc get telemetry telemetry -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}{"\n"}'
+  register: result
+  failed_when:
+    - result.stdout != "True"
+
+- name: Verify that custom resource METRICSTORAGE is ready
+  ansible.builtin.command:
+    cmd: |
+      oc get metricstorage metric-storage -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}{"\n"}'
+  register: result
+  failed_when:
+    - result.stdout != "True"
+
+- name: Verify that custom resource CEILOMETER is ready
+  ansible.builtin.command:
+    cmd: |
+      oc get ceilometer ceilometer -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}{"\n"}'
+  register: result
+  failed_when:
+    - result.stdout != "True"
+
+- name: Verify that custom resource RABBITMQ is ready
+  ansible.builtin.command:
+    cmd: |
+      oc get rabbitmq rabbitmq -o jsonpath='{.status.conditions[?(@.type=="ReconcileSuccess")].status}{"\n"}'
+  register: result
+  failed_when:
+    - result.stdout != "True"
+
+- name: Verify that custom resource RABBITMQ-CELL1 is ready
+  ansible.builtin.command:
+    cmd: |
+      oc get rabbitmq rabbitmq-cell1 -o jsonpath='{.status.conditions[?(@.type=="ReconcileSuccess")].status}{"\n"}'
+  register: result
+  failed_when:
+    - result.stdout != "True"

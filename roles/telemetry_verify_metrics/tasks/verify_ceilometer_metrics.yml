@@ -1,0 +1,50 @@
+- name: Create an image
+  ansible.builtin.shell: |
+    curl -L -# http://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.img > /tmp/fvt_testing_image.img
+    {{ openstack_cmd }} image create --container-format bare --disk-format qcow2 fvt_testing_image < /tmp/fvt_testing_image.img
+  register: result
+  failed_when: result.rc >= 1
+
+- name: Create a flavor
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} flavor create --ram 512 --vcpus 1 --disk 1 --ephemeral 1 fvt_testing_flavor
+  register: result
+  failed_when: result.rc >=1
+
+- name: Create a server
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} server create --flavor fvt_testing_flavor --image fvt_testing_image --nic none --wait --os-compute-api-version 2.37 fvt_testing_server
+  failed_when: result.rc >= 1
+
+- name: Use openstack observabilityclient to verify ceilometer central metrics are stored in prometheus
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show ceilometer_image_size
+  register: result
+  timeout: 30
+  retries: 5
+  until: result.rc == 0 and "ceilometer_image_size" in result.stdout
+
+- name: Use openstack observabilityclient to verify ceilometer compute metrics are stored in prometheus
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show ceilometer_cpu
+  register: result
+  timeout: 30
+  retries: 5
+  until: result.rc == 0 and "ceilometer_cpu" in result.stdout
+
+- name: Delete the server
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} server delete fvt_testing_server
+  failed_when: result.rc >= 1
+
+- name: Delete the image
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} image delete fvt_testing_image
+  register: result
+  failed_when: result.rc >= 1
+
+- name: Delete the flavor
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} flavor delete fvt_testing_flavor
+  register: result
+  failed_when: result.rc >=1
