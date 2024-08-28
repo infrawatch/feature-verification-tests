@@ -76,6 +76,8 @@ class CallbackModule(CallbackBase):
 
     def log_summary_results(self, host):
         file_path = os.path.join(self.output_dir, f"summary_results.log")
+        # temperorily add more detail to the output
+        print(self.results)
 
         # Make sure that the there is a result for the host, or else we get
         # errors referencing the results dict later
