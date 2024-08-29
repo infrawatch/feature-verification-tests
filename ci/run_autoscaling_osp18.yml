@@ -62,4 +62,3 @@
             cmd: |
               oc patch  openstackversions controlplane  --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
           when: "{{ patch_openstackversions | bool }}"
-
