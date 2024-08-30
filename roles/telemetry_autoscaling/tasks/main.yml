@@ -2,14 +2,6 @@
 # tasks file for telemetry_autoscaling
   # TODO: Update the pre-checks to include the resources that the stack expects to exist
   # i.e. networks, flavor, image, security group
-- name: Gather list of vars files
-  set_fact:
-    vars_files: "{{ lookup('fileglob', vars_path + '/*.yml', wantlist=True) }}"
-
-- name: Include multiple variable files
-  include_vars: "{{ item }}"
-  with_items: "{{ vars_files }}"
-
 - name: RHOSO-12666 Test services are enabled for autoscaling
   when: metrics_backend == "prometheus"
   ansible.builtin.include_tasks: 

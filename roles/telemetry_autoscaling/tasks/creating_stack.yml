@@ -36,9 +36,6 @@
   ansible.builtin.debug:
     var: result
 
-    #- name: Wait for 60 sec
-    #  ansible.builtin.pause:
-    #    minutes: 1
 
 - name: RHOSO-12704 Verify that the stack was created successfully
   ansible.builtin.shell: |
@@ -49,6 +46,7 @@
   timeout: 30
   retries: 20
 
+
 - name: RHOSO-12650 Verify that the stack resources are created
   ansible.builtin.shell: |
     # source ~/overcloudrc;
@@ -58,7 +56,7 @@
   timeout: 30
   retries: 20
   until: '"CREATE_COMPLETE" in result.stdout'
-    #  failed_when: '"CREATE_COMPLETE" not in result.stdout'
+  #failed_when: '"CREATE_COMPLETE" not in result.stdout'
 
 - name: RHOSO-12707 Verify that ceilometer_cpu metric exist
   ansible.builtin.shell: |

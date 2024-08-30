@@ -31,11 +31,11 @@ class CallbackModule(CallbackBase):
 
     def __init__(self):
         super(CallbackModule, self).__init__()
-        self.output_dir = os.getcwd()
+        self.output_dir =  os.path.expanduser("~/")
         self.results = {}
         
     def playbook_on_stats(self, stats):
-        # Log results for each host
+        #Log results for each host
         hosts= stats.processed
         for host in hosts:
             self.log_summary_results(host)
