@@ -22,7 +22,7 @@
     - name: "Where is that XML file!?"
       ansible.builtin.shell:
         cmd: |
-          find ~ -name *.xml
+          find ~/.ansible.log/ -name *.xml
       register: xml_file_list
       ignore_errors: true
 
@@ -46,12 +46,11 @@
         dest: "{{ logs_dir }}/summary_result.log"
 
     - name: Collect the XML files
-      delegate_to: localhost
+      delegate_to: controller
       ansible.builtin.copy:
         remote_src: true
         src: "{{ ansible_env.HOME }}/.ansible.log/"
-        dest: "{{ logs_dir }}/"
-
+        dest: "{{ logs_dir }}/ansible-tests/"
 
 - name: "Check the results files for failed tasks"
   hosts: controller
