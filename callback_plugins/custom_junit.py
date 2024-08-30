@@ -38,10 +38,8 @@ class CallbackModule(JunitCallbackModule):
         """
         Custom finish task method
         """
+        print(f"Finishing task, status: {status}, result: {result}"
         super(CallbackModule, self)._finish_task(status, result)
-        # At this point, we want to update the task.... to add if there's another matching behaviour
-        # Need to add a name? task_id?
-        # also update task if it CONTAINS the prefix
         task_uuid = result._task._uuid
         task_data = self._task_data[task_uuid]
         if hasattr(result, '_host'):
