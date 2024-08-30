@@ -17,8 +17,7 @@
   failed_when:
     - result.stdout != "True"
 
-#It is returning an unexpected response and needs further debugging
-- name: Enclose this task in a block/rescue to inspect further
+- name: Check that the autoscaling CR  is ready
   block:
     - name: Verify that custom resource AUTOSCALING is ready
       ansible.builtin.command:
@@ -32,7 +31,7 @@
       ansible.builtin.command:
         cmd: "{{ item }}"
       register: result
-      with_items: [oc get autoscaling -oyaml, oc get telemetry telemetry -oyaml]
+      with_items: [oc get autoscaling autoscaling -oyaml, oc get telemetry telemetry -oyaml]
       failed_when: result.rc >= 1
       ignore_errors: true
 
