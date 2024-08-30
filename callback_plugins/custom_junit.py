@@ -56,18 +56,17 @@ class CallbackModule(JunitCallbackModule):
 
     def mutate_task_name(self, task_name):
 
-        print("enter mutate_task_name")
+        print("enter mutate_task_name(task_name=%s" % task_name)
 
         new_name = task_name
-        print(new_name)
         new_name = new_name.split("\n")[0]  # only use the first line, so we can include IDs and additional description
         print(new_name)
-        print("taskname (original): %s" % task_name)
 
         # this cover when a task is included, but the including task is the one that is the test
         new_name = new_name.split(":")[-1]  # only provide the last part of the name when the role name is included
         print("%s\t(split at :, take last element)" % new_name)
 
+        # this one may not be needed...
         new_name = re.sub(r'^.*?\S*%s\S*' % (self._test_case_prefix), '', new_name)  # remove the test prefix and everything before it
         print("%s\t(remove test prefix)" % new_name)
 
@@ -76,12 +75,14 @@ class CallbackModule(JunitCallbackModule):
 
         new_name = re.sub(r'\W', ' ', new_name)  # replace all non-alphanumeric characters (except _) with a space
         print("%s (Replace non-alphanumerics with a space)" % new_name)
+
         new_name = re.sub(r'(^\W*|\W*$)', '', new_name)  # trim any trailing or leading non-alphanumeric characters
-        print(new_name)
+        print("%s\t(trim leading or trailing characters" % new_name)
+
         new_name = re.sub(r' +', '_', new_name)  # replace any number of spaces with _
         print("%s\t(spaces -> _)" % new_name)
 
-        print(new_name == task_name)
+        #print(new_name == task_name)
         print("exit mutate_task_name")
         return new_name
 

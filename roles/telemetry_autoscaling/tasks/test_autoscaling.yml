@@ -28,8 +28,10 @@
     {{ openstack_cmd }} server list --long | grep -i 'metering.server_group' | wc -l
   register: instance_count1
 
-- shell: |
-    cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
+- name: Show the known_hosts entry for the VNF
+  ansible.builtin.shell:
+    cmd: |
+      cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
   ignore_errors: true
 
@@ -37,10 +39,11 @@
   ansible.builtin.lineinfile:
     dest: '{{ ansible_env.HOME }}/.ssh/known_hosts'
     state: absent
-    regexp: "{{ item |trim }}"
+    regexp: "{{ item | trim }}"
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
-- shell: |
+- name: Show the known_hosts entry for the VNF
+  ansible.builtin.shell: |
     cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
   ignore_errors: true
