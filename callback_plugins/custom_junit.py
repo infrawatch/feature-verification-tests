@@ -6,6 +6,7 @@ import time
 import re
 from ansible.utils._junit_xml import TestCase, TestError, TestFailure, TestSuite, TestSuites
 
+
 class CallbackModule(JunitCallbackModule):
     """
     Custom callback that overrides the default JUnit callback
@@ -38,7 +39,6 @@ class CallbackModule(JunitCallbackModule):
         """
         Custom finish task method
         """
-        print(f"Finishing task, status: {status}, result: {result}"
         super(CallbackModule, self)._finish_task(status, result)
         task_uuid = result._task._uuid
         task_data = self._task_data[task_uuid]
@@ -53,8 +53,7 @@ class CallbackModule(JunitCallbackModule):
             task_data.add_host(HostData(host_uuid, host_name, status, result))
 
     def mutate_task_name(self, task_name):
-
-        print("enter mutate_task_name(task_name=%s" % task_name)
+        print("enter mutate_task_name(task_name=%s)" % task_name)
 
         new_name = task_name
         new_name = new_name.split("\n")[0]  # only use the first line, so we can include IDs and additional description
@@ -88,7 +87,7 @@ class CallbackModule(JunitCallbackModule):
         """
            This is used in generate_report. The task_data and host data will get passed.
         """
-        ## I want to test updating the name after the super class has done its thing
+        # I want to test updating the name after the super class has done its thing
         print("What is the task name prior to running super?\n\t%s" % task_data.name)
 
         # Use the original task name to define the final name
@@ -105,4 +104,3 @@ class CallbackModule(JunitCallbackModule):
         tc.system_err = None
         tc.classname = "openstack-observability"
         return tc
-
