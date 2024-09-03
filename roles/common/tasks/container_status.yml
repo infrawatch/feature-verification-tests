@@ -1,0 +1,13 @@
+---
+- name: "[TEST] verify container status"
+  ansible.builtin.shell:
+    cmd: |
+      podman ps -a --format "{{ '{{.Names}} {{.Status}}' }}" | grep "{{ container_name }}" | awk '{print $2}'
+  changed_when: false
+  register: container_status
+
+- name: Fail if container is not 'Up'
+  ansible.builtin.fail:
+    msg: "Container '{{ container_name }}' is not in 'Up' status. Current status: {{ container_status.stdout }}"
+  when:
+    - "'Up' not in container_status.stdout"

@@ -1,0 +1,10 @@
+---
+# All containers need to be up in order for this task to pass
+- name: "[TEST] verify status of multiple containers"
+  ansible.builtin.include_tasks:
+    file: container_status.yml
+  loop: "{{ containers }}"
+  loop_control:
+    label: "{{ item }}"
+  vars:
+    container_name: "{{ item }}"
