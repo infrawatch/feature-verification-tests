@@ -50,7 +50,7 @@
       ansible.builtin.copy:
         remote_src: true
         src: "{{ ansible_env.HOME }}/.ansible.log/"
-        dest: "{{ logs_dir }}/ansible-tests/"
+        dest: "{{ logs_dir }}/"
 
 - name: "Check the results files for failed tasks"
   hosts: controller
