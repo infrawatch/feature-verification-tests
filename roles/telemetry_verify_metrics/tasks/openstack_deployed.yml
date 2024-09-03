@@ -3,6 +3,7 @@
     cmd: |
       oc get telemetry telemetry -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}{"\n"}'
   register: result
+  changed_when: false
   failed_when:
     - result.stdout != "True"
 
@@ -11,6 +12,7 @@
     cmd: |
       oc get metricstorage metric-storage -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}{"\n"}'
   register: result
+  changed_when: false
   failed_when:
     - result.stdout != "True"
 
@@ -19,6 +21,7 @@
     cmd: |
       oc get ceilometer ceilometer -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}{"\n"}'
   register: result
+  changed_when: false
   failed_when:
     - result.stdout != "True"
 
@@ -27,6 +30,7 @@
     cmd: |
       oc get rabbitmq rabbitmq -o jsonpath='{.status.conditions[?(@.type=="ReconcileSuccess")].status}{"\n"}'
   register: result
+  changed_when: false
   failed_when:
     - result.stdout != "True"
 
@@ -35,5 +39,6 @@
     cmd: |
       oc get rabbitmq rabbitmq-cell1 -o jsonpath='{.status.conditions[?(@.type=="ReconcileSuccess")].status}{"\n"}'
   register: result
+  changed_when: false
   failed_when:
     - result.stdout != "True"
