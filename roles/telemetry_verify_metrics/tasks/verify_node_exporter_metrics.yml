@@ -2,4 +2,5 @@
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac node_exporter_build_info
   register: result
+  changed_when: false
   failed_when: not "node_exporter_build_info" in result.stdout or result.rc >= 1
