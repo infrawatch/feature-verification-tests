@@ -55,16 +55,20 @@ class CallbackModule(JunitCallbackModule):
     def mutate_task_name(self, task_name):
         print("enter mutate_task_name(task_name=%s)" % task_name)
 
+        if not self._test_case_prefix in task_name:
+            print("task_name (%s) does not contain prefix (%s)" % (task_name, self._test_case_prefix))
+
         new_name = task_name
         new_name = new_name.split("\n")[0]  # only use the first line, so we can include IDs and additional description
-        print(new_name)
+        print("%s\t(take the first line of the task name)" % new_name)
 
         # this cover when a task is included, but the including task is the one that is the test
         new_name = new_name.split(":")[-1]  # only provide the last part of the name when the role name is included
         print("%s\t(split at :, take last element)" % new_name)
 
         # this one may not be needed...
-        new_name = re.sub(r'^.*?\S*%s\S*' % (self._test_case_prefix), '', new_name)  # remove the test prefix and everything before it
+        #new_name = re.sub(r'^.*?\S*%s\S*' % (self._test_case_prefix), '', new_name)  # remove the test prefix and everything before it
+        new_name = new_name.split(self._test_case_prefix)[-1]  # remove the test prefix and everything before it
         print("%s\t(remove test prefix)" % new_name)
 
         new_name = new_name.lower()
@@ -79,7 +83,6 @@ class CallbackModule(JunitCallbackModule):
         new_name = re.sub(r' +', '_', new_name)  # replace any number of spaces with _
         print("%s\t(spaces -> _)" % new_name)
 
-        #print(new_name == task_name)
         print("exit mutate_task_name")
         return new_name
 
@@ -87,9 +90,6 @@ class CallbackModule(JunitCallbackModule):
         """
            This is used in generate_report. The task_data and host data will get passed.
         """
-        # I want to test updating the name after the super class has done its thing
-        print("What is the task name prior to running super?\n\t%s" % task_data.name)
-
         # Use the original task name to define the final name
         new_name = self.mutate_task_name(task_data.name)
 
