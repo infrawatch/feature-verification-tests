@@ -17,7 +17,7 @@
   failed_when:
     - result.stdout != "True"
 
-- name: Check that the autoscaling CR  is ready
+- name: Check that the autoscaling CR is ready
   block:
     - name: Verify that custom resource AUTOSCALING is ready
       ansible.builtin.command:
@@ -30,14 +30,16 @@
     - name: view autoscaling objects
       ansible.builtin.command:
         cmd: "{{ item }}"
-      register: result
-      with_items: [oc get autoscaling autoscaling -oyaml, oc get telemetry telemetry -oyaml]
-      failed_when: result.rc >= 1
+      register: autoscaling_result
+      with_items:
+        - oc get autoscaling autoscaling -oyaml
+        - oc get telemetry telemetry -oyaml
+      failed_when: autoscaling_result.rc >= 1
       ignore_errors: true
 
     - name: Print the result
       ansible.builtin.debug:
-        var: result
+        var: autoscaling_result
 
 - name: Verify that custom resource METRICSTORAGE is ready
   ansible.builtin.command:
