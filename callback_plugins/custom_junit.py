@@ -57,6 +57,7 @@ class CallbackModule(JunitCallbackModule):
 
         if not self._test_case_prefix in task_name:
             print("task_name (%s) does not contain prefix (%s)" % (task_name, self._test_case_prefix))
+            #return task_name
 
         new_name = task_name
         new_name = new_name.split("\n")[0]  # only use the first line, so we can include IDs and additional description
@@ -94,8 +95,10 @@ class CallbackModule(JunitCallbackModule):
         new_name = self.mutate_task_name(task_data.name)
 
         tc = super()._build_test_case(task_data, host_data)
-
-        tc.name = new_name
+        print("%s\t(tc.name, post-_build_test_case)" % tc.name)
+        # tc.name = new_name
+        tc.name = self.mutate_task_name(tc.name)
+        #tc.name = task_data.name
 
         print("%s\t(tc.name)" % tc.name)
 
