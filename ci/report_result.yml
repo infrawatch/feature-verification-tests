@@ -7,7 +7,7 @@
   tasks:
     - name: Create log dir
       ansible.builtin.file:
-        path: "{{ logs_dir }}/feature-verification-tests/"
+        path: "{{ logs_dir }}"
         state: directory
         mode: "0755"
 
