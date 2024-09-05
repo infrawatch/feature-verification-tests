@@ -10,12 +10,6 @@
     - vars/osp18_env.yml
   tasks:
     - block:
-        - name: "Create log dir"
-          ansible.builtin.file:
-            path: "{{ logs_dir }}/autoscaling"
-            state: directory
-            mode: "0755"
-
         - name: Include vars from the extra_vars files
           ansible.builtin.include_vars:
             dir: "{{ cifmw_basedir }}/artifacts/parameters"
