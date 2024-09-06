@@ -36,7 +36,7 @@
       ansible.builtin.copy:
         remote_src: true
         src: "{{ item }}"
-        dest: "{{ logs_dir }}/ansible-tests/{{ inventory_hostname }}-{{ item | basename }} "
+        dest: "{{ logs_dir }}/{{ inventory_hostname }}-{{ item | basename }} "
       with_items: "{{ xml_file_list.stdout_lines }}"
       when: xml_file_list.stdout_lines | length != 0
 
