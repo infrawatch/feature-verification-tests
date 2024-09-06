@@ -1,9 +1,18 @@
 ---
+- name: find the test run results
+  ansible.builtin.shell:
+    cmd: |
+      find ~ -name *.out
+  register: file
+
+- ansible.builtin.debug:
+    var: file.stdout
+
 - name: Move callback_plugin result to log dir
   ansible.builtin.shell:
     cmd: |
       cp  ~/test_run_result.out  {{ test_dir }}/test_run_result.log
-     # cp  ~/summary_results.log {{ autoscaling_logs_dir }}/summary_results.log
+      cp  ~/summary_results.log {{ autoscaling_logs_dir }}/summary_results.log
 
 - name: Grep the number of failed tasks
   ansible.builtin.shell:

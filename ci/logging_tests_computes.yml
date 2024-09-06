@@ -1,0 +1,63 @@
+---
+- name: Prepare Logging Tests
+  hosts: computes
+  gather_facts: false
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+  tasks:
+    - name: Create log dir
+      ansible.builtin.file:
+        path: "{{ logs_dir }}/logging_compute"
+        state: directory
+        mode: "0755"
+
+- name: "Verify ctlplane logging containers and files"
+  hosts: computes
+  gather_facts: no
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars:
+    container_test_id: "RHOSO-12753"
+    container_list:
+      - ceilometer_agent_compute
+      - ceilometer_agent_ipmi
+      - node_exporter
+
+    file_test_id: "RHOSO-12754"
+    file_list:
+      - /etc/rsyslog.d/10-telemetry.conf
+  tasks:
+    - name: "Run file and container tests"
+      ansible.builtin.import_role:
+        name: common
+
+
+- name: "Verify logging journalctl identifiers"
+  hosts: computes
+  gather_facts: no
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars:
+    journal_test_id: "RHOSO-12681"
+    journal_list:
+      - ceilometer_agent_compute
+      - nova_compute
+  tasks:
+    - name: "Verify journalctl logging identifiers"
+      ansible.builtin.import_role:
+        name: telemetry_logging
+
+- name: Include report result
+  hosts: computes
+  tasks:
+    - ansible.builtin.include_tasks:
+        file: report_result.yml
+      vars:
+        test_dir: "{{ logs_dir }}/logging_local"
