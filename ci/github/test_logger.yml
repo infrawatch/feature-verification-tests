@@ -23,7 +23,7 @@
     - name: What happens when the ID is at the end RHELOSP-043
       debug: msg="You can put the test ID at the end of the task name."
 
-    - name: [TEST] This is a negative test
+    - name: "[TEST] This is a negative test"
       debug: msg="This task will not be reported by the custom_logger"
 
     - name: |
