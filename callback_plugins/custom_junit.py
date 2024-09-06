@@ -20,7 +20,8 @@ class CallbackModule(JunitCallbackModule):
         # self._output_dir = os.getcwd()
         # Update this to parse these values from the config file, as well as the env.
         self._output_dir = os.path.expanduser("~/.ansible.log")
-        self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', '[TEST]')
+        #self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', '[TEST]')
+        self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', '')
         #self._fail_on_ignore = os.getenv('JUNIT_FAIL_ON_IGNORE', 'False').lower()
         self._fail_on_ignore = 'true'  # this is needed because we use "ignore_errors" on the playbooks so that all the tests are run
         self._include_setup_tasks_in_report = os.getenv('JUNIT_INCLUDE_SETUP_TASKS_IN_REPORT', 'False').lower()
@@ -67,10 +68,10 @@ class CallbackModule(JunitCallbackModule):
         new_name = new_name.split(":")[-1]  # only provide the last part of the name when the role name is included
         print("%s\t(split at :, take last element)" % new_name)
 
-        # this one may not be needed...
-        #new_name = re.sub(r'^.*?\S*%s\S*' % (self._test_case_prefix), '', new_name)  # remove the test prefix and everything before it
-        new_name = new_name.split(self._test_case_prefix)[-1]  # remove the test prefix and everything before it
-        print("%s\t(remove test prefix)" % new_name)
+        if len(self._test_case_prefix) > 0:
+            # this one may not be needed...
+            new_name = new_name.split(self._test_case_prefix)[-1]  # remove the test prefix and everything before it
+            print("%s\t(remove test prefix)" % new_name)
 
         new_name = new_name.lower()
         print("%s\t(lowercase)" % new_name)
@@ -92,7 +93,7 @@ class CallbackModule(JunitCallbackModule):
            This is used in generate_report. The task_data and host data will get passed.
         """
         # Use the original task name to define the final name
-        new_name = self.mutate_task_name(task_data.name)
+        # new_name = self.mutate_task_name(task_data.name)
 
         tc = super()._build_test_case(task_data, host_data)
         print("%s\t(tc.name, post-_build_test_case)" % tc.name)
