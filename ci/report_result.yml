@@ -1,18 +1,52 @@
 ---
-- name: Move callback_plugin result to log dir
-  ansible.builtin.shell:
-    cmd: |
-      cp  ~/test_run_result.out  {{ test_dir }}/test_run_result.log
-     # cp  ~/summary_results.log {{ autoscaling_logs_dir }}/summary_results.log
+- name: Create the output files
+  hosts:
+     - controller
+  vars_files:
+    - vars/common.yml
+  tasks:
+    - name: Create log dir
+      ansible.builtin.file:
+        path: "{{ logs_dir }}"
+        state: directory
+        mode: "0755"
 
-- name: Grep the number of failed tasks
-  ansible.builtin.shell:
-    cmd: |
-      grep -c "failed" ~/test_run_result.out
-  register: tasks_failed
-  ignore_errors: yes
+- name: Run the log file collection
+  hosts:
+    - controller
+    - compute
+  gather_facts: true
+  vars_files:
+    - vars/common.yml
+  tasks:
+    - name: Collect the custom_logger results
+      delegate_to: controller
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ ansible_env.HOME }}/test_run_result.out"
+        dest: "{{ logs_dir }}/test_run_result.out"
 
-- name: Determine success or failure based on the number of failed tasks
-  ansible.builtin.fail:
-    msg: "The log file contains failed task."
-  when: tasks_failed.rc == 0
+    - name: Collect the results summary
+      delegate_to: controller
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ ansible_env.HOME }}/summary_results.log"
+        dest: "{{ logs_dir }}/summary_result.log"
+
+- name: "Check the results files for failed tasks"
+  hosts: controller
+  gather_facts: true
+  vars_files:
+    - vars/common.yml
+  tasks:
+    - name: Grep the number of failed tasks
+      ansible.builtin.shell:
+        cmd: |
+          grep "failed" {{ logs_dir }}/test_run_result.out
+      register: tasks_failed
+      ignore_errors: yes
+
+    - name: Determine success or failure based on the number of failed tasks
+      ansible.builtin.fail:
+        msg: "The log file(s) contain failed task."
+      when: tasks_failed.stdout_lines | length > 0

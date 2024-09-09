@@ -10,12 +10,6 @@
     - vars/osp18_env.yml
   tasks:
     - block:
-        - name: "Create log dir"
-          ansible.builtin.file:
-            path: "{{ logs_dir }}/autoscaling"
-            state: directory
-            mode: "0755"
-
         - name: Include vars from the extra_vars files
           ansible.builtin.include_vars:
             dir: "{{ cifmw_basedir }}/artifacts/parameters"
@@ -60,16 +54,11 @@
         - name: "Run Telemetry Autoscaling tests"
           ansible.builtin.import_role:
             name: telemetry_autoscaling
-          
-      always:   
+
+      always:
         - name: Revert the version update
           ansible.builtin.shell:
             cmd: |
               oc patch  openstackversions controlplane  --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
           when: "{{ patch_openstackversions | bool }}"
 
-        - name: Include report result 
-          ansible.builtin.include_tasks:
-            file: report_result.yml
-          vars:
-            test_dir: "{{ logs_dir }}/autoscaling"
