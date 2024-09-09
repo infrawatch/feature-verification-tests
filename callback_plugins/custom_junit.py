@@ -114,7 +114,7 @@ class CallbackModule(JunitCallbackModule):
         # Use the original task name to define the final name
         #new_name = self.mutate_task_name(task_data.name)
 
-        print("%s\t(tc.name, pre-_build_test_case)" % tc.name)
+        print("%s\t(task_name, pre-_build_test_case)" % task_name)
         tc = super()._build_test_case(task_data, host_data)
         print("%s\t(tc.name, post-_build_test_case)" % tc.name)
         tc.name = self.mutate_task_name(tc.name)
