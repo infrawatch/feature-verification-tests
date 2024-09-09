@@ -36,7 +36,7 @@
       ansible.builtin.copy:
         remote_src: true
         src: "{{ item }}"
-        dest: "{{ logs_dir }}/{{ inventory_hostname }}-{{ item | basename }} "
+        dest: "{{ logs_dir }}/{{ item | basename }} "
       with_items: "{{ xml_file_list.stdout_lines }}"
       when: xml_file_list.stdout_lines | length != 0
 
@@ -45,14 +45,14 @@
       ansible.builtin.copy:
         remote_src: true
         src: "{{ ansible_env.HOME }}/test_run_result.out"
-        dest: "{{ logs_dir }}/{{ inventory_hostname }}-test_run_result.out"
+        dest: "{{ logs_dir }}/test_run_result.out"
 
     - name: Collect the results summary
       delegate_to: controller
       ansible.builtin.copy:
         remote_src: true
         src: "{{ ansible_env.HOME }}/summary_results.log"
-        dest: "{{ logs_dir }}/{{ inventory_hostname }}-summary_result.log"
+        dest: "{{ logs_dir }}/summary_result.log"
 
 - name: "Check the results files for failed tasks"
   hosts: controller
