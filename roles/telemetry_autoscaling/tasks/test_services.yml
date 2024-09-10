@@ -35,7 +35,6 @@
         - oc get autoscaling autoscaling -oyaml
         - oc get telemetry telemetry -oyaml
       failed_when: autoscaling_result.rc >= 1
-      ignore_errors: true
 
     - name: Print the result
       ansible.builtin.debug:
