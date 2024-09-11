@@ -68,43 +68,42 @@ class CallbackModule(JunitCallbackModule):
 
         # This bit is new
         if task_data.name.startswith(self._test_case_prefix):
-            print(f"This task ({task_data.name}) should be reported becasue it contains test_prefix({self._test_case_prefix}")
+            print(f"This task ({task_data.name}) should be reported because it contains test_prefix({self._test_case_prefix})")
         if status == 'failed':
             print(f"This task ({task_data.name}) should be reported because it failed")
 
     def mutate_task_name(self, task_name):
-        print("enter mutate_task_name(task_name=%s)" % task_name)
+        #print("enter mutate_task_name(task_name=%s)" % task_name)
 
         if not self._test_case_prefix in task_name:
             print("task_name (%s) does not contain prefix (%s)" % (task_name, self._test_case_prefix))
-            #return task_name
 
         new_name = task_name
         new_name = new_name.split("\n")[0]  # only use the first line, so we can include IDs and additional description
-        print("%s\t(take the first line of the task name)" % new_name)
+        #print("%s\t(take the first line of the task name)" % new_name)
 
         # this covers when a task is included, but the including task is the one that is the test
         new_name = new_name.split(":")[-1]  # only provide the last part of the name when the role name is included
-        print("%s\t(split at :, take last element)" % new_name)
+        #print("%s\t(split at :, take last element)" % new_name)
 
         if len(self._test_case_prefix) > 0:
             # this one may not be needed...
             new_name = new_name.split(self._test_case_prefix)[-1]  # remove the test prefix and everything before it
-            print("%s\t(remove test prefix)" % new_name)
+            #print("%s\t(remove test prefix)" % new_name)
 
         new_name = new_name.lower()
-        print("%s\t(lowercase)" % new_name)
+        #print("%s\t(lowercase)" % new_name)
 
         new_name = re.sub(r'\W', ' ', new_name)  # replace all non-alphanumeric characters (except _) with a space
-        print("%s (Replace non-alphanumerics with a space)" % new_name)
+        #print("%s (Replace non-alphanumerics with a space)" % new_name)
 
         new_name = re.sub(r'(^\W*|\W*$)', '', new_name)  # trim any trailing or leading non-alphanumeric characters
-        print("%s\t(trim leading or trailing characters" % new_name)
+        #print("%s\t(trim leading or trailing characters" % new_name)
 
         new_name = re.sub(r' +', '_', new_name)  # replace any number of spaces with _
-        print("%s\t(spaces -> _)" % new_name)
+        #print("%s\t(spaces -> _)" % new_name)
 
-        print("exit mutate_task_name")
+        #print("exit mutate_task_name")
         return new_name
 
     def _build_test_case(self, task_data, host_data):
