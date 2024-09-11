@@ -3,7 +3,7 @@
   # TODO: Update the pre-checks to include the resources that the stack expects to exist
   # i.e. networks, flavor, image, security group
 - name: |
-    [TEST] Test services are enabled for autoscaling
+    Test services are enabled for autoscaling
     RHOSO-12666
   when: metrics_backend == "prometheus"
   ansible.builtin.include_tasks: 
