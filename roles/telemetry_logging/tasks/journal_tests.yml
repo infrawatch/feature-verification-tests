@@ -1,10 +1,15 @@
 ---
-- name: Get journals
+- name: |
+    Get journals {{ item }}
+    {{ journal_test_id }}
+  become: true
   ansible.builtin.shell:
-    cmd:
+    cmd: |
       tstamp=$(date -d '30 minute ago' "+%Y-%m-%d %H:%M:%S")
-      journalctl -t "{{ item }}" --no-pager -S "${tstamp}" | wc -l
+      journalctl -t "{{ item }}" --no-pager -S "${tstamp}"
   register: journal_wc
   changed_when: false
   failed_when:  
-    - journal_wc.stdout | int <= 1
+    - journal_wc.stdout_lines | length <= 1
+    - '"-- No entries --" in journal_wc.stdout'
+    - journal_wc.stderr_lines | length > 0
