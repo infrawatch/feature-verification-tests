@@ -21,7 +21,7 @@
     msg: "bad vnf_instance_ip"
 
 - name: |
-     [TEST] Verfiy the number of instances before scaling
+     Verfiy the number of instances before scaling
      RHOSO-12665
   ansible.builtin.shell: |
     # source ~/overcloudrc;
@@ -63,7 +63,7 @@
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
 - name: |
-      [TEST] Verify that the `cpu_alarm_high` alarm has been triggered
+      Verify that the `cpu_alarm_high` alarm has been triggered
       RHOSO-12660
   ansible.builtin.shell: |
     # source ~/overcloudrc;
@@ -76,7 +76,7 @@
   until: result.stdout == "alarm"
 
 - name: |
-      [TEST] Verify that the Orchestration service has scaled up the instances
+      Verify that the Orchestration service has scaled up the instances
       RHOSO-12661
   ansible.builtin.shell: |
     # source ~/overcloudrc;
@@ -97,7 +97,7 @@
     minutes: 5
 
 - name: |
-      [TEST] Verify that the `cpu_alarm_low` alarm has been triggered
+      Verify that the `cpu_alarm_low` alarm has been triggered
       RHOSO-12664
   ansible.builtin.shell: |
     # source ~/overcloudrc;
@@ -114,7 +114,7 @@
   # prom uses the instance name, so the metadata MIGHT be removed, and a new
   # check for whether the scaling group has scaled down may be needed.
 - name: |
-      [TEST] Verify that the Orchestration service has scaled down the instances
+      Verify that the Orchestration service has scaled down the instances
       RHOSO-12663
   ansible.builtin.shell: |
     # source ~/overcloudrc;

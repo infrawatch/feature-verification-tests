@@ -24,7 +24,7 @@
     stack_external_network: public
 
 - name: |
-     [TEST] Create the stack
+     Create the stack
      RHOSO-12648
   ansible.builtin.shell: |
     #source ~/overcloudrc;
@@ -41,7 +41,7 @@
 
 
 - name: |
-      [TEST] Verify that the stack was created successfully
+      Verify that the stack was created successfully
       RHOSO-12704
   ansible.builtin.shell: |
     # source ~/overcloudrc;
@@ -53,7 +53,7 @@
 
 
 - name: |
-      [TEST] Verify that the stack resources are created
+      Verify that the stack resources are created
       RHOSO-12650
   ansible.builtin.shell: |
     # source ~/overcloudrc;
@@ -66,7 +66,7 @@
   #failed_when: '"CREATE_COMPLETE" not in result.stdout'
 
 - name: |
-      [TEST] Verify that ceilometer_cpu metric exist
+      Verify that ceilometer_cpu metric exist
       RHOSO-12707
   ansible.builtin.shell: |
     # source ~/overcloudrc;
@@ -79,7 +79,7 @@
     var: result
 
 - name: |
-      [TEST] Verify that an instance was launched by the stack creation
+      Verify that an instance was launched by the stack creation
       RHOSO-12651
   ansible.builtin.shell: |
     # source ~/overcloudrc;
@@ -89,7 +89,7 @@
   failed_when: result.rc >= 1
 
 - name: |
-      [TEST] Verify that the alarms were created for the stack
+      Verify that the alarms were created for the stack
       RHOSO-12652
   ansible.builtin.shell: |
     # source ~/overcloudrc;
@@ -112,7 +112,7 @@
   register: physical_resource_id_high
 
 - name: |
-      [TEST] Verify physical_resource_id match the alarm id for cpu_alarm_low
+      Verify physical_resource_id match the alarm id for cpu_alarm_low
       RHOSO-12653
   ansible.builtin.shell: |
     # source ~/overcloudrc;
@@ -122,7 +122,7 @@
     - physical_resource_id_low.stdout != alarm_id_low.stdout
 
 - name: |
-      [TEST] Verify physical_resource_id match the alarm id for cpu_alarm_high
+      Verify physical_resource_id match the alarm id for cpu_alarm_high
       RHOSO-12654
   ansible.builtin.shell: |
     # source ~/overcloudrc;
