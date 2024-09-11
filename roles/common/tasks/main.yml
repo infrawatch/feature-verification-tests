@@ -1,0 +1,8 @@
+---
+- name: "Verify pod - {{ pod_test_id }}"
+  when:
+    - pod_list is defined
+    - pod_nspace is defined
+    - pod_status_str is defined
+  ansible.builtin.include_tasks: "pod_tests.yml"
+  loop: "{{ pod_list }}"
