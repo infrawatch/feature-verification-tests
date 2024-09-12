@@ -17,6 +17,16 @@ DOCUMENTATION = '''
     - Log file names:
         - test_run_result.out
         - summary_results.log
+    options:
+        output_dir:
+            description: todo
+            ini:
+              - section: custom_logger
+                key: output_dir
+            env:
+              - name: CUSTOM_LOGGER_OUTPUT_DIR
+            default: "."
+            type: path
 '''
 
 class CallbackModule(CallbackBase):
@@ -31,9 +41,11 @@ class CallbackModule(CallbackBase):
 
     def __init__(self):
         super(CallbackModule, self).__init__()
-        self.output_dir =  os.path.expanduser("~/")
-        self.results = {}
+        self.set_options()
         
+        self.output_dir = self.get_option('output_dir')
+        self.results = {}
+
     def playbook_on_stats(self, stats):
         #Log results for each host
         hosts= stats.processed
