@@ -1,11 +1,11 @@
 ---
 # pre_tests or post_tests are also options for when the FVT roles are run
-post_deploy_fvt_logging_01_computes:
+post_deploy_00_fvt_logging_computes:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/logging_tests_computes.yml"
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
   type: playbook
 
-post_deploy_fvt_00_logging_controller:
+post_deploy_00_logging_controller:
    source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/logging_tests_local.yml"
    config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
    type: playbook
