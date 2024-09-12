@@ -51,10 +51,10 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    pod_test_id: "RHOS0-12672"
-    pod_status_str: "Running"
-    pod_nspace: openstack-operators
-    pod_list:
+    common_pod_test_id: "RHOS0-12672"
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack-operators
+    common_pod_list:
       - telemetry-operator-controller-manager
       - dataplane-operator-controller-manager
 
@@ -66,10 +66,10 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    pod_test_id: "RHOSO-12752"
-    pod_status_str: "Running"
-    pod_nspace: openstack
-    pod_list:
+    common_pod_test_id: "RHOSO-12752"
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack
+    common_pod_list:
       - openstackclient
   tasks:
     - name: "Verify Running Pods"
@@ -85,10 +85,10 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    pod_test_id: "RHOSO-12673"
-    pod_status_str: "Running"
-    pod_nspace: openshift-operators-redhat
-    pod_list:
+    common_pod_test_id: "RHOSO-12673"
+    common_pod_status_str: "Running"
+    common_pod_nspace: openshift-operators-redhat
+    common_pod_list:
       - loki-operator-controller-manager
 
   tasks:
@@ -107,10 +107,10 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    pod_test_id: "RHOSO-12676"
-    pod_status_str: "Running"
-    pod_nspace: openshift-logging
-    pod_list:
+    common_pod_test_id: "RHOSO-12676"
+    common_pod_status_str: "Running"
+    common_pod_nspace: openshift-logging
+    common_pod_list:
       - cluster-logging-operator
       - collector
       - logging-loki-compactor
@@ -124,7 +124,7 @@
 
   ### see JIRA LOG-5431 if pods not running
   tasks:
-    - name: "Verify Pods running" 
+    - name: "Verify Pods running"
       ansible.builtin.import_role:
         name: common
 
@@ -136,10 +136,10 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    pod_test_id: "RHOSO-12674"
-    pod_status_str: "Running"
-    pod_nspace: minio-dev
-    pod_list:
+    common_pod_test_id: "RHOSO-12674"
+    common_pod_status_str: "Running"
+    common_pod_nspace: minio-dev
+    common_pod_list:
       - minio
 
   tasks:
@@ -156,10 +156,10 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    pod_test_id: "RHOSO-12679"
-    pod_nspace: openstack
-    pod_status_str: "Completed"
-    pod_list:
+    common_pod_test_id: "RHOSO-12679"
+    common_pod_nspace: openstack
+    common_pod_status_str: "Completed"
+    common_pod_list:
       - bootstrap-edpm-deployment-logging
       - configure-network-edpm-deployment-logging
       - configure-os-edpm-deployment-logging

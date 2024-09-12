@@ -1,25 +1,33 @@
 common
-=========
+======
 
-The tests in this role are not specific to any one functional area but are an aggregate of common tests that can be used in all OSP 18.0/OCP jobs.
+The tests in this role are not specific to any one functional area but are an
+aggregate of common tests that can be used in all OSP 18.0/OCP jobs.
+
+The available tasks tests are:
+
+* pod tests
 
 Requirements
 ------------
 
-None
+The requirements vary according to the tests run.
+
+For the pod tests, access to a kubernetes cluster and the oc command is needed,
+this is done by passing the KUBECONFIG env var and PATH into the play.
 
 Role Variables
 --------------
-Variable required for all tasks to run:
+Variable required for all tasks to run
 
-  For pod_tests.yml tasks:
+For pod_tests.yml tasks:
 
-    pod_test_id
-    pod_list
+    common_pod_test_id
+    common_pod_list
       - list of pods to validate
-    pod_status_str 
+    common_pod_status_str
       - status of pods to check
-    pod_nspace
+    common_pod_nspace
       - list of projects where pods exist
 
 
@@ -31,23 +39,27 @@ None
 Example Playbook
 ----------------
 
-Typically, for this role the tests should *not* use a "main.yml" and import or include all the tests in the role. On the contrary, a tests should explicitly include specific tests needed for a given job.
+The tasks run in this role are dependant on the vars that are configured
+As such, the role can be called multiple times within the same play, with the
+tests being configured at the task level (e.g. with import_role) or the vars
+can be set at the play level.
 
-
-  hosts: controller
-  gather_facts: no
-  vars:
-     proj_out_file: verify_logging_projects_exist_lresults.log
-     proj_list:
-       - openshift-openstack-infra
-       - openshift
-       - openstack-operators
-       - openshift-logging
-
-  tasks:
-    - name: Run projects tests
-      ansible.builtin.import_role:
-        name: common
+  - hosts: controller
+    gather_facts: no
+    ignore_errors: true
+    environment:
+      KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+      PATH: "{{ cifmw_path }}"
+    vars:
+      common_pod_test_id: "RHOSO-12752"
+      common_pod_status_str: "Running"
+      common_pod_nspace: openstack
+      common_pod_list:
+        - openstackclient
+    tasks:
+      - name: "Verify Running Pods"
+        ansible.builtin.import_role:
+          name: common
 
 
 License
