@@ -76,6 +76,13 @@ class CallbackModule(CallbackBase):
 
     def log_summary_results(self, host):
         file_path = os.path.join(self.output_dir, f"summary_results.log")
+
+        # Make sure that the there is a result for the host, or else we get
+        # errors referencing the results dict later
+        if not self.results.get(host):
+            print("The host %s does not have any results" % host)
+            return
+
         with open(file_path, 'w') as f:
             f.write(f"Host: {host}\n")
             f.write(f"Tasks Succeeded: {self.results[host]['passed']}\n")
