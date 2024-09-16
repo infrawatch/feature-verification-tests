@@ -1,8 +1,8 @@
 ---
-- name: "Verify pod - {{ common_pod_test_id }}"
+- name: "Run pod tests"
   when:
     - common_pod_list is defined
     - common_pod_nspace is defined
     - common_pod_status_str is defined
   ansible.builtin.include_tasks: "pod_tests.yml"
-  loop: "{{ pod_list }}"
+  loop: "{{ common_pod_list }}"
