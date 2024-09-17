@@ -9,7 +9,7 @@
         - podinstance.stdout_lines | length == 0
       changed_when: false
 
-    - name: Check terminated pod
+    - name: Check terminated pod {{ common_pod_test_id }}
       ansible.builtin.shell:
         cmd: |
           oc get pod -n "{{ common_pod_nspace }}" "{{ podinstance.stdout }}"
