@@ -3,3 +3,11 @@
   when: journal_list is defined
   ansible.builtin.include_tasks: "journal_tests.yml"
   loop: "{{ journal_list }}"
+
+- name: "Verify logging CRDs"
+  ansible.builtin.include_role:
+    name: common
+    tasks_from: crd_test.yml
+    vars:
+      crd_list: "{{ logging_crds_list }}"
+      crd_test_id: "{{ crd_test_id }}"

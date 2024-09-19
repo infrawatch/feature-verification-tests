@@ -1,0 +1,14 @@
+---
+- name: "[TEST] Verify CRDs _ {{ crd_test_id }}"
+  ansible.builtin.shell:
+    cmd: |
+      oc get crd "{{ item }}"
+  changed_when: false
+  register: crd_output
+  loop: "{{ crd_list }}"
+  loop_control:
+    loop_var: item
+
+- name: Display the command output
+  ansible.builtin.debug:
+    var: crd_output.results

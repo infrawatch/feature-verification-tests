@@ -1,0 +1,7 @@
+---
+crd_test_id: "RHOSO-12670"
+logging_crds_list:
+  - alertingrules.loki.grafana.com
+  - lokistacks.loki.grafana.com
+  - recordingrules.loki.grafana.com
+  - rulerconfigs.loki.grafana.com
