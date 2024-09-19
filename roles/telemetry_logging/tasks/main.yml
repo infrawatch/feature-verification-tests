@@ -6,7 +6,7 @@
 
 - name: "Verify logging CRDs"
   ansible.builtin.include_tasks:
-    file: "{{ playbook_dir }}/roles/common/tasks/crd_test.yml"
+    file: "{ role_path }}/../../common/tasks/crd_test.yml"
   vars:
     crd_list: "{{ logging_crds_list }}"
     crd_test_id: "{{ crd_test_id }}"
