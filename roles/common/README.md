@@ -16,6 +16,10 @@ The requirements vary according to the tests run.
 For the pod tests, access to a kubernetes cluster and the oc command is needed,
 this is done by passing the KUBECONFIG env var and PATH into the play.
 
+The following tools are also needed:
+* grep
+* awk
+
 Role Variables
 --------------
 Variable required for all tasks to run
