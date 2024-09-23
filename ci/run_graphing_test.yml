@@ -8,10 +8,33 @@
   vars_files:
     - vars/common.yml
   tasks:
-    - name: "Run Graphing Console UI tests"
-      ansible.builtin.import_role:
-        name: telemetry_graphing
-      ignore_errors: true
+    - block:
+        - name: "Enable Graphing"
+          ansible.builtin.shell:
+            cmd: |
+              oc patch oscp/controlplane --type='json' -p '[{"op": "replace", "path": "/spec/telemetry/template/metricStorage/dashboardsEnabled", "value":true}]'
+          register: oscp_change
+          changed_when: false
+
+        - name: Wait until the oscp is resolved the changes to continue
+          ansible.builtin.shell:
+            cmd: |
+              oc get oscp | grep "Setup complete"
+          retries: 24
+          timeout: 5
+          until: output.stdout_lines | length == 1
+          register: output
+
+        - name: "Run Graphing Console UI tests"
+          ansible.builtin.import_role:
+            name: telemetry_graphing
+          ignore_errors: true
+
+      always:
+        - name: "Revert the oscp/controlplane change"
+          ansible.builtin.shell:
+            cmd: |
+              oc patch oscp/controlplane --type='json' -p '[{"op": "replace", "path": "/spec/telemetry/template/metricStorage/dashboardsEnabled", "value":false}]'
 
 
 

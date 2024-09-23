@@ -1,0 +1,86 @@
+- name: Install cypress and the dependencies
+  block:
+    - name: Install Node.js
+      ansible.builtin.dnf:
+        name: nodejs
+        state: present
+      become: true
+
+    - name: Install dependencies
+      ansible.builtin.dnf:
+        name:
+          - xorg-x11-server-Xvfb
+          - gtk3-devel
+          - nss
+          - alsa-lib
+        state: present
+      become: true
+
+- name: Create required dirs and files
+  block:
+    - name: Create cypress-tests directory
+      ansible.builtin.file:
+        path: "{{ cypress_tests_dir }}"
+        state: directory
+        mode: '0755'  
+
+    - name: Create cypress/integration directory
+      ansible.builtin.file:
+        path: "{{ cypress_integration_dir }}"
+        state: directory
+        mode: '0755'  
+    
+    - name: Add cypress.config.js
+      ansible.builtin.copy:
+        src: "{{ role_path }}/files/cypress.config.js"  
+        dest: "{{ cypress_tests_dir }}/cypress.config.js"
+        mode: '0644' 
+
+    - name: Add dashboard-openstack-cloud test
+      ansible.builtin.copy:
+        src: "{{ role_path }}/files/dashboard-openstack-cloud.js"  
+        dest: "{{ cypress_integration_dir }}/dashboard-openstack-cloud.js"
+        mode: '0644' 
+      
+    - name: Create screenshot logs dir
+      ansible.builtin.file:
+        path: "{{ screenshots_dir }}"
+        state: directory
+        mode: '0755'
+
+- name: Initialize npm project
+  ansible.builtin.command: npm init -y
+  args:
+    chdir: "{{ cypress_tests_dir }}"
+  changed_when: false
+
+- name: Install Cypress as a dev dependency
+  ansible.builtin.command: npm install cypress --save-dev
+  args:
+    chdir: "{{ cypress_tests_dir }}"
+  changed_when: false
+
+- name: "UI-2 Run Cypress tests to validate dashboards exist"
+  ansible.builtin.shell: |
+      Xvfb :99 -ac &
+      export DISPLAY=:99
+      npx cypress run
+  args:
+    chdir: "{{ cypress_tests_dir }}"
+  register: cypress_run
+  changed_when: false
+
+- name: Collect the screenshots
+  ansible.builtin.copy:
+    src: "{{ cypress_tests_dir }}/cypress/screenshots/dashboard-openstack-cloud.js/"
+    dest: "{{ screenshots_dir }}"
+    mode: '0644'
+
+- name: Show Cypress test output
+  ansible.builtin.debug:
+    var: cypress_run.stdout_lines
+
+- name: "UI-3 Check if all Cypress tests passed"
+  ansible.builtin.fail:
+    msg: "Some Cypress tests failed."
+  when: cypress_run.rc != 0
