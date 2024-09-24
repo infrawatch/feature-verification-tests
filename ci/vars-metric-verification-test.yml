@@ -1,7 +1,8 @@
 ---
-# temp: skip os-net-setup
-cifmw_os_net_setup_config: []
-post_deploy_run_feature_verification_functional_test:
+post_deploy_00_fvt_verify_metrics:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_verify_metrics_osp18.yml"
   type: playbook
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
+post_deploy_99_collect_results:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
+  type: playbook
