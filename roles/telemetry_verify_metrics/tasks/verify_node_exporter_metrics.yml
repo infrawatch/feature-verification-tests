@@ -1,4 +1,4 @@
-- name: Use openstack observabilityclient to verify Node Exporter metrics are stored in prometheus
+- name: "[TEST] Use openstack observabilityclient to verify Node Exporter metrics are stored in prometheus"
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac node_exporter_build_info
   register: result

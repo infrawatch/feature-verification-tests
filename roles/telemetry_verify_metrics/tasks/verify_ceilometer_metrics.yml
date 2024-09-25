@@ -21,7 +21,7 @@
       changed_when: result.rc == 0
       failed_when: result.rc >= 1
     
-    - name: Use openstack observabilityclient to verify ceilometer central metrics are stored in prometheus
+    - name: "[TEST] Use openstack observabilityclient to verify ceilometer central metrics are stored in prometheus"
       ansible.builtin.shell: |
         {{ openstack_cmd }} metric show ceilometer_image_size
       register: result
@@ -30,7 +30,7 @@
       until: result.rc == 0 and "ceilometer_image_size" in result.stdout
       changed_when: false
     
-    - name: Use openstack observabilityclient to verify ceilometer compute metrics are stored in prometheus
+    - name: "[TEST] Use openstack observabilityclient to verify ceilometer compute metrics are stored in prometheus"
       ansible.builtin.shell: |
         {{ openstack_cmd }} metric show ceilometer_cpu
       register: result
