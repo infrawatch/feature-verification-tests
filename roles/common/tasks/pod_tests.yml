@@ -1,12 +1,40 @@
 ---
 - block:
-    - name: Get Pod Instance "{{ common_pod_status_str }}"
+    - name: temp Get Pod List for {{ common_pod_nspace }} namespace
       ansible.builtin.shell:
         cmd: |
-          oc get pods -n "{{ common_pod_nspace }}" | grep "{{ item }}" | grep "{{ common_pod_status_str }}" | awk '{print $1;}'
+          oc get pods -n "{{ common_pod_nspace }}"
       register: podinstance
       failed_when:
         - podinstance.stdout_lines | length == 0
+      changed_when: false
+
+    - name: temp Get Pod List for {{ common_pod_nspace }} namespace and grep {{ item }}
+      ansible.builtin.shell:
+        cmd: |
+          oc get pods -n "{{ common_pod_nspace }}" | grep "{{ item }}"
+      register: podinstance
+      failed_when:
+        - podinstance.stdout_lines | length == 0
+      changed_when: false
+
+    - name: temp Get pod list, grep {{ item }} and grep expected status ){{ common_pod_status_str }}
+      ansible.builtin.shell:
+        cmd: |
+          oc get pods -n "{{ common_pod_nspace }}" | grep "{{ item }}" | grep "{{ common_pod_status_str }}"
+      register: podinstance
+      failed_when:
+        - podinstance.stdout_lines | length == 0
+      changed_when: false
+
+      # expects that one line will be returned
+    - name: Get Pod Instance name "{{ common_pod_status_str }}"
+      ansible.builtin.shell:
+        cmd: |
+          oc get pods -n "{{ common_pod_nspace }}" | grep "{{ item }}" | awk '{print $1;}'
+      register: podinstance
+      failed_when:
+        - podinstance.stdout_lines | length != 1
       changed_when: false
 
     - name: Check terminated pod {{ common_pod_test_id }}
