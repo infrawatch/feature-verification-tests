@@ -1,9 +1,4 @@
 ---
-- name: tmp Get the list of pods in the namespace
-  ansible.builtin.shell:
-    cmd: |
-      oc get pods -n {{ common_pod_nspace }}
-
 - name: "Verify pod - {{ common_pod_test_id }}"
   when:
     - common_pod_list is defined
