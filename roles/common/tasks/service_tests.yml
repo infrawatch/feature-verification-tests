@@ -1,0 +1,7 @@
+---
+- name: Verify service is running
+  ansible.builtin.shell:
+    cmd: |
+      oc get service -n "{{ service_nspace }}" "{{ service_name }}"
+  changed_when: false
+  register: output
