@@ -8,3 +8,9 @@
     label: "{{ item }}"
   vars:
     container_name: "{{ item }}"
+
+---
+- name: "[TEST] Verify service for logging"
+  ansible.builtin.include_tasks:
+    file: service_tests.yml
+  tags: test
