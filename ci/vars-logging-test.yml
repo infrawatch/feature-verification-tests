@@ -1,4 +1,6 @@
 ---
+# Skip running test_operator tests
+cifmw_test_operator_dry_run: true
 # pre_tests or post_tests are also options for when the FVT roles are run
 post_deploy_00_fvt_logging:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/logging_tests_all.yml"
