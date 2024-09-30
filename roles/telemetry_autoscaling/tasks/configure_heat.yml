@@ -27,19 +27,25 @@
 
   # TODO: Pass the parameters correctly. When I tried to pass the parameters
   # into the template.yaml file, they weren't passed to the instance initially.
-- name: RHOSO-12657 Configure heat template for automatically scaling instances
+- name: |
+      TEST Configure heat template for automatically scaling instances
+      RHOSO-12657
   ansible.builtin.template:
     src: instance.yaml.j2
     dest: ~/templates/autoscaling/vnf/instance.yaml
 
-- name: RHOSO-12658 Create the resource to reference in the heat template
+- name: |
+      TEST Create the resource to reference in the heat template
+      RHOSO-12658
   ansible.builtin.copy:
     dest: ~/templates/autoscaling/vnf/resources.yaml
     content: |
       resource_registry:
         "OS::Nova::Server::VNF": ./instance.yaml
 
-- name: RHOSO-12659 Create the deployment template for heat to control instance scaling
+- name: |
+      TEST Create the deployment template for heat to control instance scaling
+      RHOSO-12659
   ansible.builtin.template:
     dest: ~/templates/autoscaling/vnf/template.yaml
     src: template.yaml.j2
