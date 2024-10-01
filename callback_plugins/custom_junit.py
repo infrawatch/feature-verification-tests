@@ -36,8 +36,6 @@ class CallbackModule(JunitCallbackModule):
 
     def _finish_task(self, status, result):
         """ record the results of a task for a single host """
-        # TODO: try enclosing all this in "if _prefix in name", since we only want to record the results with a prefix
-        # this could then bevome "if prefix in task name: super()"
         task_uuid = result._task._uuid
 
         if hasattr(result, '_host'):
@@ -61,16 +59,16 @@ class CallbackModule(JunitCallbackModule):
             elif status == 'ok':
                 status = 'failed'
 
-        if task_data.name.startswith(self._test_case_prefix) or status == 'failed':
-            # This works, but adding the update here means re-implementing the whole _finish_task method.
-            # task_data.name = self.mutate_task_name(task_data.name)
+        if self._test_case_prefix in task_data.name:
             task_data.add_host(HostData(host_uuid, host_name, status, result))
 
         # This bit is new
         if task_data.name.startswith(self._test_case_prefix):
+            print(f"This task ({task_data.name}) starts with the test_prefix({self._test_case_prefix})")
+        if self._test_case_prefix in task_data.name:
             print(f"This task ({task_data.name}) should be reported because it contains test_prefix({self._test_case_prefix})")
         if status == 'failed':
-            print(f"This task ({task_data.name}) should be reported because it failed")
+            print(f"This task ({task_data.name}) failed, but may not be reported")
 
     def mutate_task_name(self, task_name):
         #print("enter mutate_task_name(task_name=%s)" % task_name)
