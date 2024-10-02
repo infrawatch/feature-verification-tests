@@ -75,7 +75,23 @@
     {{ openstack_cmd }} stack event list {{ stack_name }}
   retries: 100
   delay: 5
-  register: result
+  register: result_quota
+
+- name: Show the quota
+  ansible.builtin.debug:
+    var: result_quota
+
+- name: Verify the stack event
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    {{ openstack_cmd }} stack event list {{ stack_name }}
+  retries: 100
+  delay: 5
+  register: result_st_event
+
+- name: Show the stack event
+  ansible.builtin.debug:
+    var: result_st_event
 
 
 - name: RHOSO-12661 Verify that the Orchestration service has scaled up the instances
