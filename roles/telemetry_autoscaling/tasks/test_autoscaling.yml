@@ -68,6 +68,16 @@
   register: result
   until: result.stdout == "alarm"
 
+- name: Verify the quota
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    {{ openstack_cmd }} quota show
+    {{ openstack_cmd }} stack event list {{ stack_name }}
+  retries: 100
+  delay: 5
+  register: result
+
+
 - name: RHOSO-12661 Verify that the Orchestration service has scaled up the instances
   ansible.builtin.shell: |
     # source ~/overcloudrc;
