@@ -84,9 +84,7 @@
 - name: Verify the stack event
   ansible.builtin.shell: |
     # source ~/overcloudrc;
-    {{ openstack_cmd }} stack event list {{ stack_name }}
-  retries: 100
-  delay: 5
+    {{ openstack_cmd }} openstack stack resource list  {{ stack_name }}
   register: result_st_event
 
 - name: Show the stack event
