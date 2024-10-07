@@ -11,6 +11,11 @@
     journal_list:
       - ceilometer_agent_compute
       - nova_compute
+    container_test_id: "RHOSO-12753"
+    container_list:
+      - ceilometer_agent_compute
+      - ceilometer_agent_ipmi
+      - node_exporter
   tasks:
     - name: "Verify journalctl logging identifiers"
       ansible.builtin.import_role:
