@@ -7,13 +7,8 @@
   ansible.builtin.include_tasks: "pod_tests.yml"
   loop: "{{ common_pod_list }}"
 
-
-# All containers need to be up in order for this task to pass
-#- name: "[TEST] verify status of multiple containers"
-#  ansible.builtin.include_tasks:
-#    file: container_status.yml
-#  loop: "{{ containers }}"
-#  loop_control:
-#    label: "{{ item }}"
-#  vars:
-#    container_name: "{{ item }}"
+- name: "Verify container - {{ common_container_test_id }}"
+  when:
+    - common_container_list is defined
+  ansible.builtin.include_tasks: "container_test.yml"
+  loop: "{{ common_container_list }}"

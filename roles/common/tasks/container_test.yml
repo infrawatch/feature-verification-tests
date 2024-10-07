@@ -1,0 +1,15 @@
+---
+- name: Verify container exist
+  ansible.builtin.shell:
+    cmd: |
+      podman ps -a --format "{{ '{{.Names}} {{.Status}}' }}" | grep "{{ item }}" | awk '{print $2}'
+  changed_when: false
+  register: container_status
+
+- name: |
+    [TEST] Verify container status
+  ansible.builtin.assert:
+    that:
+      - "'Up' in container_status.stdout"
+    success_msg: "Container '{{ item }}' is in 'Up' status."
+    fail_msg: "Container '{{ item }}' is not in 'Up' status. Current status: {{ container_status.stdout }}"
