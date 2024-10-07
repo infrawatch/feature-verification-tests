@@ -1,0 +1,13 @@
+---
+- name: Verify logging credentials "{{ item }}"
+  ansible.builtin.shell:
+    cmd: |
+      oc get crd "{{ item }}"
+  changed_when: false
+  register: output
+
+- name: |
+   [Test] Fail if CRD is not found
+  ansible.builtin.fail:
+    msg: "CRD {{ item }} not found. Error: {{ output.stderr }}"
+  when: "'NotFound' in output.stderr"
