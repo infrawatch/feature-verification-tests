@@ -9,13 +9,22 @@
   ansible.builtin.include_tasks:
     file: verify_rabbitmq_metrics.yml
   tags: test
+  when: '"rabbitmq" in metric_sources_to_test'
 
-- name: Verify Ceilometer metrics are being exposed and stored
+- name: Verify Ceilometer compute metrics are being exposed and stored
   ansible.builtin.include_tasks:
-    file: verify_ceilometer_metrics.yml
+    file: verify_ceilometer_compute_metrics.yml
   tags: test
+  when: '"ceilometer_compute_agent" in metric_sources_to_test'
+
+- name: Verify Ceilometer central metrics are being exposed and stored
+  ansible.builtin.include_tasks:
+    file: verify_ceilometer_central_metrics.yml
+  tags: test
+  when: '"ceilometer_central_agent" in metric_sources_to_test'
 
 - name: Verify NodeExporter metrics are being exposed and stored
   ansible.builtin.include_tasks:
     file: verify_node_exporter_metrics.yml
   tags: test
+  when: '"node_exporter" in metric_sources_to_test'
