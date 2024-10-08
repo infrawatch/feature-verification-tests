@@ -54,15 +54,11 @@
         - name: "Run Telemetry Autoscaling tests"
           ansible.builtin.import_role:
             name: telemetry_autoscaling
-          ignore_errors: true
 
-      rescue:
-        - name: Warn the user that there was an error in setup and running autoscaling tests
-          ansible.builtin.debug:
-            msg: "There was an error setting up the autoscaling tests"
       always:
         - name: Revert the version update
           ansible.builtin.shell:
             cmd: |
               oc patch  openstackversions controlplane  --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
           when: "{{ patch_openstackversions | bool }}"
+
