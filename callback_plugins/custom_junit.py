@@ -6,6 +6,32 @@ import time
 import re
 from ansible.utils._junit_xml import TestCase, TestError, TestFailure, TestSuite, TestSuites
 
+DOCUMENTATION = '''
+    callback: custom_junit
+    type: notification
+    short_description: TODO
+    description:
+      TODO
+    options:
+      test_case_prefix:
+        description: todo
+        ini:
+          - section: custom_junit
+            key: test_case_prefix
+        env:
+          - name: JUNIT_TEST_CASE_PREFIX
+        default: "TEST"
+        type: string
+      classname:
+        description: The classname for the tests.
+        ini:
+          - section: custom_junit
+            key: classname
+        env:
+          - name: CUSTOM_JUNIT_CLASSNAME
+        default: "openstack-observability"
+        type: string
+'''
 
 class CallbackModule(JunitCallbackModule):
     """
@@ -14,12 +40,15 @@ class CallbackModule(JunitCallbackModule):
     CALLBACK_NAME = 'custom_junit'
 
     def __init__(self):
+        self._defs = None
         super(CallbackModule, self).__init__()
+        self.set_options()
 
-        # Custom environment variable handling
         # Update this to parse these values from the config file, as well as the env.
         self._output_dir = os.path.expanduser("~/ci-framework-data/tests/feature-verification-tests/")
-        self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', 'TEST')
+        self._test_case_prefix = self.get_option("test_case_prefix")
+        self._classname = self.get_option("classname")
+
         self._fail_on_ignore = 'true'  # this is needed because we use "ignore_errors" on the playbooks so that all the tests are run
         self._include_setup_tasks_in_report = os.getenv('JUNIT_INCLUDE_SETUP_TASKS_IN_REPORT', 'False').lower()
         self._hide_task_arguments = os.getenv('JUNIT_HIDE_TASK_ARGUMENTS', 'True').lower()
@@ -104,5 +133,5 @@ class CallbackModule(JunitCallbackModule):
         # system_err elements that show STDOUT and STDERR
         tc.system_out = None
         tc.system_err = None
-        tc.classname = "openstack-observability"
+        tc.classname = self._classname
         return tc
