@@ -6,6 +6,23 @@ import time
 import re
 from ansible.utils._junit_xml import TestCase, TestError, TestFailure, TestSuite, TestSuites
 
+DOCUMENTATION = '''
+    callback: custom_junit
+    type: notification
+    short_description: TODO
+    description:
+      TODO
+    options:
+      test_case_prefix:
+        description: todo
+        ini:
+          - section: custom_junit
+            key: test_case_prefix
+        env:
+          - name: JUNIT_TEST_CASE_PREFIX
+        default: "TEST"
+        type: string
+'''
 
 class CallbackModule(JunitCallbackModule):
     """
@@ -15,13 +32,15 @@ class CallbackModule(JunitCallbackModule):
 
     def __init__(self):
         super(CallbackModule, self).__init__()
+        self.get_options()
 
         # Custom environment variable handling
         # self._output_dir = os.getcwd()
         # Update this to parse these values from the config file, as well as the env.
         self._output_dir = os.path.expanduser("~/.ansible.log")
         # self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', '[TEST]')
-        self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', 'TEST')
+        # self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', 'TEST')
+        self._test_case_prefix = self.get_options("test_case_prefix")
         #self._fail_on_ignore = os.getenv('JUNIT_FAIL_ON_IGNORE', 'False').lower()
         self._fail_on_ignore = 'true'  # this is needed because we use "ignore_errors" on the playbooks so that all the tests are run
         self._include_setup_tasks_in_report = os.getenv('JUNIT_INCLUDE_SETUP_TASKS_IN_REPORT', 'False').lower()
