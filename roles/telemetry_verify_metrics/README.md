@@ -30,6 +30,7 @@ Tests:
 Role Variables
 --------------
 openstack\_cmd - command to access openstack cli. For example: "oc rsh openstackclient openstack"
+telemetry\_verify\_metrics\_metric\_sources\_to\_test - List of sources to test. Current set of possible sources: ceilometer\_compute\_agent, ceilometer\_central\_agent, node\_exporter, rabbitmq
 
 Example Playbook
 ----------------
