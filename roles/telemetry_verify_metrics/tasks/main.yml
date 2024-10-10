@@ -1,30 +1,48 @@
 ---
 # tasks file for telemetry_verify_metrics
 - name: Verify OpenStack is deployed correctly
-  ansible.builtin.include_tasks:
-    file: openstack_deployed.yml
+  ansible.builtin.include_role:
+    name: common
+    tasks_from: check_openstack_services_rhoso.yml
+  vars:
+    common_verify_resources_are_ready:
+      - kind: telemetry
+        name: telemetry
+        condition_type: Ready
+      - kind: metricstorage
+        name: metric-storage
+        condition_type: Ready
+      - kind: ceilometer
+        name: ceilometer
+        condition_type: Ready
+      - kind: rabbitmq
+        name: rabbitmq
+        condition_type: ReconcileSuccess
+      - kind: rabbitmq
+        name: rabbitmq-cell1
+        condition_type: ReconcileSuccess
   tags: precheck
 
 - name: Verify RabbitMQ metrics are being exposed and stored
   ansible.builtin.include_tasks:
     file: verify_rabbitmq_metrics.yml
   tags: test
-  when: '"rabbitmq" in metric_sources_to_test'
+  when: '"rabbitmq" in telemetry_verify_metrics_metric_sources_to_test'
 
 - name: Verify Ceilometer compute metrics are being exposed and stored
   ansible.builtin.include_tasks:
     file: verify_ceilometer_compute_metrics.yml
   tags: test
-  when: '"ceilometer_compute_agent" in metric_sources_to_test'
+  when: '"ceilometer_compute_agent" in telemetry_verify_metrics_metric_sources_to_test'
 
 - name: Verify Ceilometer central metrics are being exposed and stored
   ansible.builtin.include_tasks:
     file: verify_ceilometer_central_metrics.yml
   tags: test
-  when: '"ceilometer_central_agent" in metric_sources_to_test'
+  when: '"ceilometer_central_agent" in telemetry_verify_metrics_metric_sources_to_test'
 
 - name: Verify NodeExporter metrics are being exposed and stored
   ansible.builtin.include_tasks:
     file: verify_node_exporter_metrics.yml
   tags: test
-  when: '"node_exporter" in metric_sources_to_test'
+  when: '"node_exporter" in telemetry_verify_metrics_metric_sources_to_test'
