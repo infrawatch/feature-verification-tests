@@ -6,21 +6,21 @@
       register: result
       changed_when: result.rc == 0
       failed_when: result.rc >= 1
-    
+
     - name: Create a flavor
       ansible.builtin.shell: |
         {{ openstack_cmd }} flavor create --ram 512 --vcpus 1 --disk 1 --ephemeral 1 fvt_testing_flavor
       register: result
       changed_when: result.rc == 0
       failed_when: result.rc >=1
-    
+
     - name: Create a server
       ansible.builtin.shell: |
         {{ openstack_cmd }} server create --flavor fvt_testing_flavor --image fvt_testing_image --nic none --wait --os-compute-api-version 2.37 fvt_testing_server
       register: result
       changed_when: result.rc == 0
       failed_when: result.rc >= 1
-    
+
     - name: |
         [TEST] Use openstack observabilityclient to verify ceilometer compute metrics are stored in prometheus
         RHOSO-1213
@@ -31,7 +31,7 @@
       retries: 10
       until: result.rc == 0 and "ceilometer_cpu" in result.stdout
       changed_when: false
-    
+
   always:
     - name: Delete the server
       ansible.builtin.shell: |
@@ -39,14 +39,14 @@
       register: result
       changed_when: result.rc == 0
       failed_when: false
-    
+
     - name: Delete the image
       ansible.builtin.shell: |
         {{ openstack_cmd }} image show fvt_testing_image && {{ openstack_cmd }} image delete fvt_testing_image
       register: result
       changed_when: result.rc == 0
       failed_when: false
-    
+
     - name: Delete the flavor
       ansible.builtin.shell: |
         {{ openstack_cmd }} flavor show fvt_testing_flavor && {{ openstack_cmd }} flavor delete fvt_testing_flavor
