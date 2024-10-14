@@ -1,0 +1,46 @@
+logging_pod_checks:
+  - test_id: "RHOS0-12672"
+    status: "Running"
+    namespace: "openstack-operators"
+    pod_list:
+      - telemetry-operator-controller-manager
+      - dataplane-operator-controller-manager
+
+  - test_id: "RHOSO-12752"
+    status: "Running"
+    namespace: "openstack"
+    pod_list:
+      - openstackclient
+
+  - test_id: "RHOSO-12673"
+    status: "Running"
+    namespace: "openshift-operators-redhat"
+    pod_list:
+      - loki-operator-controller-manager
+
+  - test_id: "RHOSO-12676"
+    status: "Running"
+    namespace: "openshift-logging"
+    pod_list:
+      - cluster-logging-operator
+      - collector
+      - logging-loki-compactor
+      - logging-loki-distributor
+      #- logging-loki-gateway
+      - logging-loki-index-gateway
+      - logging-loki-ingester
+      - logging-loki-querier
+      - logging-loki-query-frontend
+      - logging-view-plugin
+
+  - test_id: "RHOSO-12674"
+    status: "Running"
+    namespace: "minio-dev"
+    pod_list:
+      - minio
+
+  - test_id: "RHOSO-12679"
+    status: "Completed"
+    namespace: "openstack"
+    pod_list:
+      - logging-edpm-deployment-openstack-edpm-ipam
