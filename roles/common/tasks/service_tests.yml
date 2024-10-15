@@ -1,0 +1,6 @@
+- name: Verify Service Running - "{{ item }}"
+  ansible.builtin.shell:
+    cmd: |
+      oc get service -n "{{ service_nspace }}" "{{ item }}"
+  register: output
+  changed_when: false
