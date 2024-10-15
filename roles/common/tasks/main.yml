@@ -6,3 +6,9 @@
     - common_pod_status_str is defined
   ansible.builtin.include_tasks: "pod_tests.yml"
   loop: "{{ common_pod_list }}"
+
+- name: "Run endpoint tests"
+  when:
+    - common_endpoint_list is defined
+  ansible.builtin.include_tasks: "endpoint_tests.yml"
+  loop: "{{ common_endpoint_list }}"

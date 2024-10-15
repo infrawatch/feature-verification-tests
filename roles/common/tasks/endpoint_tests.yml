@@ -1,0 +1,14 @@
+---
+- name: Verify endpoint "{{ item }}"
+  ansible.builtin.shell:
+    cmd: |
+      {{ openstack_cmd }} endpoint list --service {{ item[0] }} --interface {{ item[2] }}
+  changed_when: false
+  register: output
+
+- name: Assert that endpoint exist
+  ansible.builtin.assert:
+    that:
+      - output.stdout != ""
+    success_msg: "The endpoint {{ item[0] }} is found."
+    fail_msg: "The endpoint for service {{ item[0] }} "
