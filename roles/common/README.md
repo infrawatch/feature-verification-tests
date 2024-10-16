@@ -35,6 +35,13 @@ For pod_tests.yml tasks:
     common_pod_nspace
       - list of projects where pods exist
 
+For project_tests.yml tasks:
+
+    common_project_test_id
+      - polarion ID number for each test
+    common_project_list
+      - list of projects to validate
+
 
 Dependencies
 ------------
@@ -66,6 +73,14 @@ can be set at the play level.
         ansible.builtin.import_role:
           name: common
 
+      - name: "Verify projects"
+        ansible.builtin.import_role:
+          name: common
+        vars:
+          common_project_test_id: "RHOSO-12668"
+          common_project_list:
+            - openshift-openstack-infra
+            - openshift
 
 License
 -------
