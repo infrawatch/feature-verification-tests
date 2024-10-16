@@ -35,6 +35,15 @@ For pod_tests.yml tasks:
     common_pod_nspace
       - list of projects where pods exist
 
+For subscription_tests.yml tasks:
+
+    common_subscription_test_id
+      - polarion ID number for each test
+    common_subscription_nspace
+      - namespace
+    common_subscription_list
+      - list of subscription to validate
+
 
 Dependencies
 ------------
@@ -65,6 +74,15 @@ can be set at the play level.
       - name: "Verify Running Pods"
         ansible.builtin.import_role:
           name: common
+
+      - name: "Verify subscription"
+        ansible.builtin.import_role:
+          name: common
+        vars:
+          common_subscription_test_id: "RHOSO-12678"
+          common_subscription_nspace: openshift-operators-redhat
+          common_subscription_l :
+            - loki-operator
 
 
 License

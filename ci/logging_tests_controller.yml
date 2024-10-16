@@ -13,6 +13,14 @@
     common_pod_list:
       - telemetry-operator-controller-manager
       - dataplane-operator-controller-manager
+    common_subscription_test_id: "RHOSO-12678"
+    common_subscription_nspace: openshift-operators-redhat
+    common_subscription_list:
+      - loki-operator
+  tasks:
+    - name: "Verify logging infrastructure components"
+      ansible.builtin.import_role:
+        name: common
 
 - name: "Verify logging pods are running in openstack"
   hosts: controller
