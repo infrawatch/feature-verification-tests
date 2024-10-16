@@ -98,12 +98,13 @@ can be set at the play level.
           common_project_list:
             - openshift-openstack-infra
             - openshift
+
       - name: "Verify crd"
         ansible.builtin.import_role:
           name: common
         vars:
-          common_crd_test_id
-          common_crd_list
+          common_crd_test_id : "crd_test_id"
+          common_crd_list:
             - list of crd to validate
 
 
