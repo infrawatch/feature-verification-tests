@@ -6,6 +6,9 @@
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+    - vars/osp18_env.yml
   vars:
     common_pod_test_id: "RHOS0-12672"
     common_pod_status_str: "Running"
@@ -13,26 +16,8 @@
     common_pod_list:
       - telemetry-operator-controller-manager
       - dataplane-operator-controller-manager
-    common_endpoint_test_id: "RHOSO-12682"
-    common_endpoint_list:
-      - [nova,compute,public]
-      - [nova,compute,internal]
-      - [placement,placement,public]
-      - [placement,placement,internal]
-      - [swift,object-store,public]
-      - [swift,object-store,internal]
-      - [cinderv3,volumev3,public]
-      - [cinderv3,volumev3,internal]
-      - [barbican,key-manager,public]
-      - [barbican,key-manager,internal]
-      - [keystone,identity,public]
-      - [keystone,identity,internal]
-      - [glance,image,public]
-      - [glance,image,internal]
-      - [neutron,network,public]
-      - [neutron,network,internal]
   tasks:
-    - name: "Verify the endpoints exist"
+    - name: "Verify the resources exist"
       ansible.builtin.import_role:
         name: common
 
