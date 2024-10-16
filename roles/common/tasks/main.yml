@@ -8,7 +8,7 @@
   loop: "{{ common_pod_list }}"
 
 
-- name: "Verify container - {{ common_container_test_id }}"
+- name: "Verify container tests"
   when:
     - common_container_list is defined
   ansible.builtin.include_tasks: "container_test.yml"

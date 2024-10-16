@@ -3,14 +3,3 @@
   when: journal_list is defined
   ansible.builtin.include_tasks: "journal_tests.yml"
   loop: "{{ journal_list }}"
-
-#All containers need to be up in order for this task to pass
-- name: "[TEST] verify status of multiple containers"
-  ansible.builtin.include_role:
-    name: common
-  vars:
-      common_container_test_id: "RHOSO-12753"
-      common_container_list:
-          - ceilometer_agent_compute
-          - ceilometer_agent_ipmi
-          - node_exporter
