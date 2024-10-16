@@ -102,8 +102,8 @@ can be set at the play level.
         ansible.builtin.import_role:
           name: common
         vars:
-          common_crd_test_id
-          common_crd_list
+          common_crd_test_id : "crd_test_id"
+          common_crd_list:
             - list of crd to validate
 
 

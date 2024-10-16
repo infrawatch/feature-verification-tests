@@ -145,6 +145,6 @@
       - recordingrules.loki.grafana.com
       - rulerconfigs.loki.grafana.com
   tasks:
-    - name: "[TEST] verify the crds exist"
+    - name: "Run the crds tests"
       ansible.builtin.import_role:
         name: common
