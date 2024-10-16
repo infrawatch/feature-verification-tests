@@ -6,3 +6,10 @@
     - common_pod_status_str is defined
   ansible.builtin.include_tasks: "pod_tests.yml"
   loop: "{{ common_pod_list }}"
+
+- name: "Run subscription tests"
+  when:
+    - common_subscription_nspace is defined
+    - common_subscription_list is defined
+  ansible.builtin.include_tasks: "subscription_tests.yml"
+  loop: "{{ common_subscription_list }}"
