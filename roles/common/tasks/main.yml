@@ -12,3 +12,4 @@
     - common_endpoint_list is defined
   ansible.builtin.include_tasks: "endpoint_tests.yml"
   loop: "{{ common_endpoint_list }}"
+
