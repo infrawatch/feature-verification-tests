@@ -6,7 +6,7 @@
   changed_when: false
   register: output
 
-- name: Assert that endpoint exist
+- name: Check that endpoint exist {{ common_endpoint_test_id }}
   ansible.builtin.assert:
     that:
       - output.stdout != ""
