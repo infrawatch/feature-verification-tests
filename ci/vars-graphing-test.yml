@@ -1,9 +1,9 @@
----
-# pre_tests or post_tests are also options for when the FVT roles are run
-post_deploy_00_fvt_logging:
-  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/logging_tests_all.yml"
+# temp: skip os-net-setup
+cifmw_os_net_setup_config: []
+post_deploy_00_run_graphing_test:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_graphing_test.yml"
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
-  type: playbook
+  type: playbook 
 post_deploy_99_collect_results:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
   type: playbook
