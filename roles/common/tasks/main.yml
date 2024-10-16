@@ -7,7 +7,7 @@
   ansible.builtin.include_tasks: "pod_tests.yml"
   loop: "{{ common_pod_list }}"
 
-- name: "Verify crd - {{ common_crd_test_id }}"
+- name: "Run crd tests"
   when:
     - common_crd_list is defined
   ansible.builtin.include_tasks: "crd_tests.yml"
