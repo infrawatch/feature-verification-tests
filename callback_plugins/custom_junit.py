@@ -17,12 +17,9 @@ class CallbackModule(JunitCallbackModule):
         super(CallbackModule, self).__init__()
 
         # Custom environment variable handling
-        # self._output_dir = os.getcwd()
         # Update this to parse these values from the config file, as well as the env.
         self._output_dir = os.path.expanduser("~/.ansible.log")
-        # self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', '[TEST]')
         self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', 'TEST')
-        #self._fail_on_ignore = os.getenv('JUNIT_FAIL_ON_IGNORE', 'False').lower()
         self._fail_on_ignore = 'true'  # this is needed because we use "ignore_errors" on the playbooks so that all the tests are run
         self._include_setup_tasks_in_report = os.getenv('JUNIT_INCLUDE_SETUP_TASKS_IN_REPORT', 'False').lower()
         self._hide_task_arguments = os.getenv('JUNIT_HIDE_TASK_ARGUMENTS', 'True').lower()
@@ -37,7 +34,6 @@ class CallbackModule(JunitCallbackModule):
     def _finish_task(self, status, result):
         """ record the results of a task for a single host """
         task_uuid = result._task._uuid
-
         if hasattr(result, '_host'):
             host_uuid = result._host._uuid
             host_name = result._host.name
@@ -62,7 +58,7 @@ class CallbackModule(JunitCallbackModule):
         if self._test_case_prefix in task_data.name:
             task_data.add_host(HostData(host_uuid, host_name, status, result))
 
-        # This bit is new
+        # Debugging
         if task_data.name.startswith(self._test_case_prefix):
             print(f"This task ({task_data.name}) starts with the test_prefix({self._test_case_prefix})")
         if self._test_case_prefix in task_data.name:
@@ -71,37 +67,23 @@ class CallbackModule(JunitCallbackModule):
             print(f"This task ({task_data.name}) failed, but may not be reported")
 
     def mutate_task_name(self, task_name):
-        #print("enter mutate_task_name(task_name=%s)" % task_name)
-
+        # Debugging
         if not self._test_case_prefix in task_name:
             print("task_name (%s) does not contain prefix (%s)" % (task_name, self._test_case_prefix))
-
         new_name = task_name
         new_name = new_name.split("\n")[0]  # only use the first line, so we can include IDs and additional description
-        #print("%s\t(take the first line of the task name)" % new_name)
-
         # this covers when a task is included, but the including task is the one that is the test
         new_name = new_name.split(":")[-1]  # only provide the last part of the name when the role name is included
-        #print("%s\t(split at :, take last element)" % new_name)
 
         if len(self._test_case_prefix) > 0:
             # this one may not be needed...
             new_name = new_name.split(self._test_case_prefix)[-1]  # remove the test prefix and everything before it
-            #print("%s\t(remove test prefix)" % new_name)
 
         new_name = new_name.lower()
-        #print("%s\t(lowercase)" % new_name)
-
         new_name = re.sub(r'\W', ' ', new_name)  # replace all non-alphanumeric characters (except _) with a space
-        #print("%s (Replace non-alphanumerics with a space)" % new_name)
-
         new_name = re.sub(r'(^\W*|\W*$)', '', new_name)  # trim any trailing or leading non-alphanumeric characters
-        #print("%s\t(trim leading or trailing characters" % new_name)
-
         new_name = re.sub(r' +', '_', new_name)  # replace any number of spaces with _
-        #print("%s\t(spaces -> _)" % new_name)
 
-        #print("exit mutate_task_name")
         return new_name
 
     def _build_test_case(self, task_data, host_data):
@@ -109,7 +91,6 @@ class CallbackModule(JunitCallbackModule):
            This is used in generate_report. The task_data and host data will get passed.
         """
         # Use the original task name to define the final name
-        #new_name = self.mutate_task_name(task_data.name)
 
         print("%s\t(task_name, pre-_build_test_case)" % task_data.name)
         tc = super()._build_test_case(task_data, host_data)
@@ -118,11 +99,10 @@ class CallbackModule(JunitCallbackModule):
 
         print("%s\t(tc.name, post-mutate_task_name)" % tc.name)
 
-        # I don't want these properties for now; I may be able to omit them with a config option
+        # These can be able to omit with a config option
         # These two control whether testcases contain the system_out and
         # system_err elements that show STDOUT and STDERR
         tc.system_out = None
         tc.system_err = None
-
         tc.classname = "openstack-observability"
         return tc
