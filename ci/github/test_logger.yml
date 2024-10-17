@@ -10,8 +10,8 @@
       debug: msg="You can place the test ID anywhere in the task name."
 
     - name: |
-        Check how a multiline string task name is
-        handles for RHOSO-03
+        [TEST] Check how a multiline string task name is
+        handled for RHOSO-03
       debug: msg="You can use a multiline string for the task name."
 
     - name: try a test where there is no ID, just the RHOSO prefix
@@ -23,22 +23,29 @@
     - name: What happens when the ID is at the end RHELOSP-043
       debug: msg="You can put the test ID at the end of the task name."
 
-    - name: This is a negative test
+    - name: "[TEST] This is a negative test"
       debug: msg="This task will not be reported by the custom_logger"
 
-    - name: Check what happens with multiple matches RHELOSP-054 RHOSO-056
+    - name: |
+        [TEST] Check what happens with multiple matches
+        RHELOSP-054 RHOSO-056
       debug: msg="If there are two test IDs, only the first one is reported."
 
-    - name: Check what happens with lowercase rhoso-066
+    - name: |
+        [TEST] Check what happens with lowercase
+        rhoso-066
       debug: msg="The test ID must be uppercase"
 
-    - name: Check that failed tests are also represented RHOSO-078
+    - name: |
+        [TEST] Check that failed tests are also represented
+        RHOSO-078
       when: true
       fail:
         msg: "If the task fails, the status will be reported since there's a test ID."
 
-    - name: "Set the name based on a var input"
+    - name: "[TEST] Set the name based on a var input"
       set_fact:
         testid: "RHOSO-1234"
+
     - name: "run test with variable name - {{ testid }}"
       debug: msg="test"
