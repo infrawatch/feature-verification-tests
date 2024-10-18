@@ -35,12 +35,20 @@ For pod_tests.yml tasks:
     common_pod_nspace
       - list of projects where pods exist
 
+
 For endpoint_tests.yml tasks:
 
     common_endpoint_test_id
       - polarion ID number for each test.
     common_endpoint_list
       - list of endpoints to validate
+
+For manifest_tests.yml tasks:
+
+     manifest_test_id
+       - polarion ID number for each test
+     manifest_list
+       - list of package manifests to validate
 
 
 
