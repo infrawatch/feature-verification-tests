@@ -7,6 +7,13 @@
   ansible.builtin.include_tasks: "pod_tests.yml"
   loop: "{{ common_pod_list }}"
 
+
+- name: "Run crd tests"
+  when:
+    - common_crd_list is defined
+  ansible.builtin.include_tasks: "crd_tests.yml"
+  loop: "{{ common_crd_list }}"
+
 - name: "Run project tests"
   when:
     - common_project_list is defined
@@ -19,4 +26,5 @@
     - manifest_list is defined
   ansible.builtin.include_tasks: "manifest_tests.yml"
   loop: "{{ manifest_list }}"
+
 
