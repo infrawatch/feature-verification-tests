@@ -43,6 +43,14 @@ For endpoint_tests.yml tasks:
     common_endpoint_list
       - list of endpoints to validate
 
+For project_tests.yml tasks:
+
+    common_project_test_id
+      - polarion ID number for each test
+    common_project_list
+      - list of projects to validate
+
+
 For manifest_tests.yml tasks:
 
      manifest_test_id
@@ -82,6 +90,7 @@ can be set at the play level.
         ansible.builtin.import_role:
           name: common
 
+
       - name: "Verify Endpoint"
         ansible.builtin.import_role:
           name: common
@@ -91,6 +100,15 @@ can be set at the play level.
             - [nova,compute,public]
             - [nova,compute,internal]
             - [placement,placement,public]
+
+      - name: "Verify projects"
+        ansible.builtin.import_role:
+          name: common
+        vars:
+          common_project_test_id: "RHOSO-12668"
+          common_project_list:
+            - openshift-openstack-infra
+            - openshift
 
 
 License
