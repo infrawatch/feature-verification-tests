@@ -12,6 +12,6 @@
       - ceilometer_agent_compute
       - nova_compute
   tasks:
-    - name: "Verify journalctl logging identifiers"
+    - name: "Run Telemetry Logging tests"
       ansible.builtin.import_role:
         name: telemetry_logging
