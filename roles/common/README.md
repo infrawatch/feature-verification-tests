@@ -45,6 +45,22 @@ For subscription_tests.yml tasks:
       - list of subscription to validate
 
 
+For project_tests.yml tasks:
+
+    common_project_test_id
+      - polarion ID number for each test
+    common_project_list
+      - list of projects to validate
+
+For manifest_tests.yml tasks:
+
+     manifest_test_id
+       - polarion ID number for each test
+     manifest_list
+       - list of package manifests to validate
+
+
+
 Dependencies
 ------------
 
@@ -75,6 +91,7 @@ can be set at the play level.
         ansible.builtin.import_role:
           name: common
 
+
       - name: "Verify subscription"
         ansible.builtin.import_role:
           name: common
@@ -82,6 +99,16 @@ can be set at the play level.
           common_subscription_test_id: "RHOSO-12678"
           common_subscription_nspace: openshift-operators-redhat
           common_subscription_l
+
+
+      - name: "Verify projects"
+        ansible.builtin.import_role:
+          name: common
+        vars:
+          common_project_test_id: "RHOSO-12668"
+          common_project_list:
+            - openshift-openstack-infra
+            - openshift
 
 
 License
