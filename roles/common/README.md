@@ -35,12 +35,21 @@ For pod_tests.yml tasks:
     common_pod_nspace
       - list of projects where pods exist
 
+
 For project_tests.yml tasks:
 
     common_project_test_id
       - polarion ID number for each test
     common_project_list
       - list of projects to validate
+
+For manifest_tests.yml tasks:
+
+     manifest_test_id
+       - polarion ID number for each test
+     manifest_list
+       - list of package manifests to validate
+
 
 
 Dependencies

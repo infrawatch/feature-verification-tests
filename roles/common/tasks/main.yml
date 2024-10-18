@@ -12,3 +12,11 @@
     - common_project_list is defined
   ansible.builtin.include_tasks: "project_tests.yml"
   loop: "{{ common_project_list }}"
+
+- name: "Run manifest tests"
+  when:
+    - manifest_test_id is defined
+    - manifest_list is defined
+  ansible.builtin.include_tasks: "manifest_tests.yml"
+  loop: "{{ manifest_list }}"
+
