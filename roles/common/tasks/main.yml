@@ -6,3 +6,10 @@
     - common_pod_status_str is defined
   ansible.builtin.include_tasks: "pod_tests.yml"
   loop: "{{ common_pod_list }}"
+
+- name: "Run manifest tests"
+  when:
+    - manifest_test_id is defined
+    - manifest_list is defined
+  ansible.builtin.include_tasks: "manifest_tests.yml"
+  loop: "{{ manifest_list }}"
