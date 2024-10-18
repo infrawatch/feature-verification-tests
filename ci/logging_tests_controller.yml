@@ -13,6 +13,17 @@
     common_pod_list:
       - telemetry-operator-controller-manager
       - dataplane-operator-controller-manager
+    common_project_test_id: "RHOSO-12668"
+    common_project_list:
+      - openshift-openstack-infra
+      - openshift
+      - openstack-operators
+      - openshift-logging
+  tasks:
+    - name: "Verify projects exist"
+      ansible.builtin.import_role:
+        name: common
+
 
 - name: "Verify logging pods are running in openstack"
   hosts: controller
