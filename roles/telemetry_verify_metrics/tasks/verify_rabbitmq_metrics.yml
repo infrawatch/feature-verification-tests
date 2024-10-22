@@ -21,7 +21,7 @@
   delay: 30
   retries: 10
   changed_when: false
-  failed_when: not "rabbitmq_identity_info" in result.stdout or result.rc >= 1
+  until: result.rc == 0 and "rabbitmq_identity_info" in result.stdout
 
 - name: |
     [TEST] Use openstack observabilityclient to verify rabbitmq-cell1 metrics are stored in prometheus
@@ -32,4 +32,4 @@
   delay: 30
   retries: 10
   changed_when: false
-  failed_when: not "rabbitmq_identity_info" in result.stdout or result.rc >= 1
+  until: result.rc == 0 and "rabbitmq_identity_info" in result.stdout
