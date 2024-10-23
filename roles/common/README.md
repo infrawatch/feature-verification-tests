@@ -36,6 +36,22 @@ For pod_tests.yml tasks:
       - list of projects where pods exist
 
 
+For project_tests.yml tasks:
+
+    common_project_test_id
+      - polarion ID number for each test
+    common_project_list
+      - list of projects to validate
+
+For manifest_tests.yml tasks:
+
+     manifest_test_id
+       - polarion ID number for each test
+     manifest_list
+       - list of package manifests to validate
+
+
+
 Dependencies
 ------------
 
@@ -76,6 +92,14 @@ can be set at the play level.
                 - ceilometer_agent_ipmi
                 - node_exporter
 
+      - name: "Verify projects"
+        ansible.builtin.import_role:
+          name: common
+        vars:
+          common_project_test_id: "RHOSO-12668"
+          common_project_list:
+            - openshift-openstack-infra
+            - openshift
 
 License
 -------
