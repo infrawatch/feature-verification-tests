@@ -1,5 +1,5 @@
 ---
-- name: Create the output files
+- name: "Create the output files"
   hosts:
      - controller
   vars_files:
@@ -11,7 +11,7 @@
         state: directory
         mode: "0755"
 
-- name: Run the log file collection
+- name: "Run the log file collection"
   hosts:
     - controller
     - compute
@@ -19,14 +19,35 @@
   vars_files:
     - vars/common.yml
   tasks:
-    - name: Collect the custom_logger results
+    - name: "Find the XML file"
+      ansible.builtin.shell:
+        cmd: |
+          find ~/.ansible.log/ -name *.xml
+      register: xml_file_list
+      ignore_errors: true
+
+    - name: "Show the XML files"
+      ansible.builtin.debug:
+        var: xml_file_list.stdout_lines
+      ignore_errors: true
+
+    - name: "Collect the XML files, renaming them for the host that they are collected from"
+      delegate_to: controller
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ item }}"
+        dest: "{{ logs_dir }}/{{ item | basename }} "
+      with_items: "{{ xml_file_list.stdout_lines }}"
+      when: xml_file_list.stdout_lines | length != 0
+
+    - name: "Collect the custom_logger results"
       delegate_to: controller
       ansible.builtin.copy:
         remote_src: true
         src: "{{ ansible_env.HOME }}/test_run_result.out"
         dest: "{{ logs_dir }}/test_run_result.out"
 
-    - name: Collect the results summary
+    - name: "Collect the results summary"
       delegate_to: controller
       ansible.builtin.copy:
         remote_src: true
