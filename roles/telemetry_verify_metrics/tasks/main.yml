@@ -3,7 +3,6 @@
 - name: Verify OpenStack is deployed correctly
   ansible.builtin.include_role:
     name: common
-    tasks_from: check_openstack_services_rhoso.yml
   vars:
     common_verify_resources_are_ready:
       - kind: telemetry

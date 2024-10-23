@@ -20,3 +20,16 @@
   ansible.builtin.include_tasks: "manifest_tests.yml"
   loop: "{{ manifest_list }}"
 
+- name: "Run openstack resources ready tests"
+  when:
+    - common_verify_resources_are_ready is defined
+  ansible.builtin.include_tasks: "check_openstack_services_rhoso.yml"
+  loop: "{{ common_verify_resources_are_ready }}"
+
+- name: "Run CR tests"
+  when:
+    - common_cr_test_id is defined
+    - common_cr_list is defined
+  ansible.builtin.include_tasks: "cr_tests.yml"
+  loop: "{{ common_cr_list }}"
+

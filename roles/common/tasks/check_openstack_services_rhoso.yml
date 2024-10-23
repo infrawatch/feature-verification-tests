@@ -1,4 +1,4 @@
-- name: Verify that custom resources are ready
+- name: Verify that the following CR is ready {{ item.kind }} {{ item.name }}
   ansible.builtin.command:
     cmd: |
       oc get {{ item.kind }} {{ item.name }} -o jsonpath='{.status.conditions[?(@.type=="{{ item.condition_type }}")].status}{"\n"}'
@@ -6,4 +6,3 @@
   changed_when: false
   failed_when:
     - result.stdout != "True"
-  loop: "{{ common_verify_resources_are_ready }}"

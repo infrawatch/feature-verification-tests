@@ -1,0 +1,8 @@
+- name: Verify that the following CR exists {{ item.kind }} {{ item.name }} {{ common_cr_test_id }}
+  ansible.builtin.command:
+    cmd: |
+      oc get {{ item.kind }} {{ item.name }}
+  register: result
+  changed_when: false
+  failed_when:
+    - result.rc != 0

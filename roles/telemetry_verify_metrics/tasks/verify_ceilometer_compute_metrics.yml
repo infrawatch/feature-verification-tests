@@ -1,3 +1,12 @@
+- name: Verify ceilometer scrapeconfig exists
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_test_id: RHOSO-1221
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-ceilometer
+
 - block:
     - name: Create an image
       ansible.builtin.shell: |

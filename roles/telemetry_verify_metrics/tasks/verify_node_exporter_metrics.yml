@@ -1,3 +1,14 @@
+- name: Verify node exporter scrapeconfigs exist
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_test_id: RHOSO-1222
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-node-exporter
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-node-exporter-tls
+
 - name: |
     [TEST] Use openstack observabilityclient to verify Node Exporter metrics are stored in prometheus
     RHOSO-1214

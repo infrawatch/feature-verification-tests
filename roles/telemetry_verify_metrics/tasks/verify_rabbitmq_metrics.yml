@@ -1,3 +1,12 @@
+- name: Verify rabbitmq scrapeconfig exists
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_test_id: RHOSO-1223
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-rabbitmq
+
 - name: Check rabbitmq metric endpoint
   ansible.builtin.shell: |
     oc rsh openstackclient curl https://rabbitmq.openstack.svc:15691/metrics

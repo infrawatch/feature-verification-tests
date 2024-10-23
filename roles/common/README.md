@@ -60,6 +60,13 @@ For manifest_tests.yml tasks:
      manifest_list
        - list of package manifests to validate
 
+For cr\_tests.yml tasks:
+
+    common\_cr\_test\_id is defined
+       - polarion ID number for each test
+    common\_cr\_list is defined
+       - list of CRs to check for existence
+
 
 
 Dependencies
