@@ -130,3 +130,21 @@
       ansible.builtin.import_role:
         name: common
 
+- name: "Verify the crds exist"
+  hosts: controller
+  gather_facts: no
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars:
+    common_crd_test_id: "RHOSO-12670"
+    common_crd_list:
+      - alertingrules.loki.grafana.com
+      - lokistacks.loki.grafana.com
+      - recordingrules.loki.grafana.com
+      - rulerconfigs.loki.grafana.com
+  tasks:
+    - name: "Run the crds tests"
+      ansible.builtin.import_role:
+        name: common
