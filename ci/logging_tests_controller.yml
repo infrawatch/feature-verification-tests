@@ -6,6 +6,9 @@
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+    - vars/osp18_env.yml
   vars:
     common_pod_test_id: "RHOS0-12672"
     common_pod_status_str: "Running"
@@ -20,10 +23,9 @@
       - openstack-operators
       - openshift-logging
   tasks:
-    - name: "Verify projects exist"
+    - name: "Verify the resources exist"
       ansible.builtin.import_role:
         name: common
-
 
 - name: "Verify logging pods are running in openstack"
   hosts: controller
@@ -57,7 +59,6 @@
     common_pod_nspace: openshift-operators-redhat
     common_pod_list:
       - loki-operator-controller-manager
-
   tasks:
     - name: "Verify Pods running"
       ansible.builtin.import_role:
@@ -105,7 +106,6 @@
     common_pod_nspace: minio-dev
     common_pod_list:
       - minio
-
   tasks:
     - name: "Run pod running tests"
       ansible.builtin.import_role:
@@ -129,4 +129,3 @@
     - name: "Run pods completed tests"
       ansible.builtin.import_role:
         name: common
-
