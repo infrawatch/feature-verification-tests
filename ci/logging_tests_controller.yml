@@ -1,0 +1,132 @@
+---
+- name: "Verify logging projects, endpoints, credentials, nodes, pods, services, manifests and subscriptions"
+  hosts: controller
+  gather_facts: no
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars:
+    common_pod_test_id: "RHOS0-12672"
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack-operators
+    common_pod_list:
+      - telemetry-operator-controller-manager
+      - dataplane-operator-controller-manager
+    common_project_test_id: "RHOSO-12668"
+    common_project_list:
+      - openshift-openstack-infra
+      - openshift
+      - openstack-operators
+      - openshift-logging
+  tasks:
+    - name: "Verify projects exist"
+      ansible.builtin.import_role:
+        name: common
+
+
+- name: "Verify logging pods are running in openstack"
+  hosts: controller
+  gather_facts: no
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars:
+    common_pod_test_id: "RHOSO-12752"
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack
+    common_pod_list:
+      - openstackclient
+  tasks:
+    - name: "Verify Running Pods"
+      ansible.builtin.import_role:
+        name: common
+
+
+- name: "Verify logging pods are running in openshift-operators-redhat"
+  hosts: controller
+  gather_facts: no
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars:
+    common_pod_test_id: "RHOSO-12673"
+    common_pod_status_str: "Running"
+    common_pod_nspace: openshift-operators-redhat
+    common_pod_list:
+      - loki-operator-controller-manager
+
+  tasks:
+    - name: "Verify Pods running"
+      ansible.builtin.import_role:
+        name: common
+
+- name: "Verify logging pods are running in openshift-logging"
+  hosts: controller
+  gather_facts: no
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars:
+    common_pod_test_id: "RHOSO-12676"
+    common_pod_status_str: "Running"
+    common_pod_nspace: openshift-logging
+    common_pod_list:
+      - cluster-logging-operator
+      - collector
+      - logging-loki-compactor
+      - logging-loki-distributor
+      #- logging-loki-gateway
+      - logging-loki-index-gateway
+      - logging-loki-ingester
+      - logging-loki-querier
+      - logging-loki-query-frontend
+      - logging-view-plugin
+
+  ### see JIRA LOG-5431 if pods not running
+  tasks:
+    - name: "Verify Pods running"
+      ansible.builtin.import_role:
+        name: common
+
+- name: "Verify logging pods are running in minio-dev"
+  hosts: controller
+  gather_facts: no
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars:
+    common_pod_test_id: "RHOSO-12674"
+    common_pod_status_str: "Running"
+    common_pod_nspace: minio-dev
+    common_pod_list:
+      - minio
+
+  tasks:
+    - name: "Run pod running tests"
+      ansible.builtin.import_role:
+        name: common
+
+
+- name: "Verify logging pods have complete status in openstack"
+  hosts: controller
+  gather_facts: no
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars:
+    common_pod_test_id: "RHOSO-12679"
+    common_pod_nspace: openstack
+    common_pod_status_str: "Completed"
+    common_pod_list:
+      - logging-edpm-deployment-openstack-edpm-ipam
+  tasks:
+    - name: "Run pods completed tests"
+      ansible.builtin.import_role:
+        name: common
+
