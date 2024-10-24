@@ -1,4 +1,4 @@
-- name: Verify that the following CR is ready {{ item.kind }} {{ item.name }}
+- name: Verify that a CR is ready
   ansible.builtin.command:
     cmd: |
       oc get {{ item.kind }} {{ item.name }} -o jsonpath='{.status.conditions[?(@.type=="{{ item.condition_type }}")].status}{"\n"}'
