@@ -9,6 +9,14 @@
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-node-exporter-tls
 
+- name: Verify node exporter container is up
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_container_test_id: RHOSO-1231
+    common_container_list:
+      - node_exporter
+
 - name: |
     [TEST] Use openstack observabilityclient to verify Node Exporter metrics are stored in prometheus
     RHOSO-1214

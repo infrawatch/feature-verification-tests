@@ -7,6 +7,24 @@
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-ceilometer
 
+- name: Verify ceilometer compute agent container is up
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_container_test_id: RHOSO-1230
+    common_container_list:
+      - ceilometer_agent_compute
+
+- name: Verify ceilometer controlplane pod is running
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_pod_test_id: RHOSO-1242
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack
+    common_pod_list:
+      - ceilometer-0
+
 - block:
     - name: Create an image
       ansible.builtin.shell: |

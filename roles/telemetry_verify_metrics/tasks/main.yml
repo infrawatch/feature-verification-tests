@@ -1,5 +1,4 @@
 ---
-# tasks file for telemetry_verify_metrics
 - name: Verify OpenStack is deployed correctly
   ansible.builtin.include_role:
     name: common

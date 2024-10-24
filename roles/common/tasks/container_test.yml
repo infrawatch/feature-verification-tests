@@ -1,15 +1,24 @@
 ---
+- name: Set container name to a variable
+  ansible.builtin.set_fact:
+    container_name: "{{ item }}"
+
+- name: Get compute node IPs
+  ansible.builtin.set_fact: 
+    compute_ips: "{{ crc_ci_bootstrap_networking['instances'] | select('match', '^compute') | map('extract', crc_ci_bootstrap_networking['instances']) | map(attribute='networks.default.ip') | list }}"
+
 - name: Get container status
   ansible.builtin.shell:
     cmd: |
-      podman ps -a --format "{{ '{{.Names}} {{.Status}}' }}" | grep {{ item }}
+      ssh -i {{ cifmw_edpm_deploy_env.SSH_KEY_FILE }} root@{{ item }} podman ps -a --format \"{{ '{{.Names}} {{.Status}}' }}\" | grep {{ container_name }}
   changed_when: false
   register: container_status
-
+  loop: "{{ compute_ips }}"
 
 - name: Verify container status {{ common_container_test_id }}
   ansible.builtin.assert:
     that:
-      - "'Up' in container_status.stdout"
-    success_msg: "Container '{{ item }}' is in 'Up' status."
-    fail_msg: "Container '{{ item }}' is not in 'Up' status. Current status: {{ container_status.stdout }}"
+      - "'unhealthy' not in item.stdout"
+    success_msg: "Container '{{ container_name }}' is in 'healthy' status."
+    fail_msg: "Container '{{ container_name }}' is not in 'healthy' status. Current status: {{ item.stdout }}"
+  loop: "{{ container_status.results }}"

@@ -7,6 +7,17 @@
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-rabbitmq
 
+- name: Verify rabbitmq pods are running
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_pod_test_id: RHOSO-1241
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack
+    common_pod_list:
+      - rabbitmq-server-0
+      - rabbitmq-cell1-server-0
+
 - name: Check rabbitmq metric endpoint
   ansible.builtin.shell: |
     oc rsh openstackclient curl https://rabbitmq.openstack.svc:15691/metrics
