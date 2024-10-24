@@ -1,11 +1,5 @@
 heat_template_version: wallaby
 description:  Example auto scale group, policy and alarm
-parameters:
-  server_name_prefix:
-    description: A prefix for servers created by this stack. Can be used in queries.
-    type: string
-    default: autoscaling_server_
-
 resources:
   scaleup_group:
     type: OS::Heat::AutoScalingGroup
@@ -16,7 +10,6 @@ resources:
       resource:
         type: OS::Nova::Server::VNF
         properties:
-          server_name_prefix: { get_param: server_name_prefix }
           metadata: {"metering.server_group": {get_param: "OS::stack_id"}}
 
 
@@ -70,9 +63,9 @@ resources:
         {% endif -%}
         {% if metrics_backend == "prometheus" -%}
         str_replace:
-          template: "(rate(ceilometer_cpu{resource_name=~'server_name_prefix.*'}[150s]))/10000000"
+          template: "(rate(ceilometer_cpu{server_group=~'stack_id'}[150s]))/10000000"
           params:
-            server_name_prefix: {get_param: server_name_prefix}
+            stack_id: {get_param: OS::stack_id}
         {%- endif %}
 
   cpu_alarm_low:
@@ -107,9 +100,9 @@ resources:
         {% endif -%}
         {% if metrics_backend == "prometheus" -%}
         str_replace:
-          template: "(rate(ceilometer_cpu{resource_name=~'server_name_prefix.*'}[150s]))/10000000"
+          template: "(rate(ceilometer_cpu{server_group=~'stack_id'}[150s]))/10000000"
           params:
-            server_name_prefix: {get_param: server_name_prefix}
+            stack_id: {get_param: OS::stack_id}
         {% endif %}
 
 outputs:
