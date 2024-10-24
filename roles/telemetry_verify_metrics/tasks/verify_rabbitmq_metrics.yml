@@ -1,0 +1,55 @@
+- name: Verify rabbitmq scrapeconfig exists
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_test_id: RHOSO-1223
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-rabbitmq
+
+- name: Verify rabbitmq pods are running
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_pod_test_id: RHOSO-1241
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack
+    common_pod_list:
+      - rabbitmq-server-0
+      - rabbitmq-cell1-server-0
+
+- name: Check rabbitmq metric endpoint
+  ansible.builtin.shell: |
+    oc rsh openstackclient curl https://rabbitmq.openstack.svc:15691/metrics
+  register: result
+  changed_when: false
+  failed_when: result.rc >= 1
+
+- name: Check rabbitmq-cell1 metric endpoint
+  ansible.builtin.shell: |
+    oc rsh openstackclient curl https://rabbitmq-cell1.openstack.svc:15691/metrics
+  register: result
+  changed_when: false
+  failed_when: result.rc >= 1
+
+- name: |
+    [TEST] Use openstack observabilityclient to verify rabbitmq metrics are stored in prometheus
+    RHOSO-1215
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric query rabbitmq_identity_info{instance=\'rabbitmq.openstack.svc:15691\'}
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and "rabbitmq_identity_info" in result.stdout
+
+- name: |
+    [TEST] Use openstack observabilityclient to verify rabbitmq-cell1 metrics are stored in prometheus
+    RHOSO-1216
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric query rabbitmq_identity_info{instance=\'rabbitmq-cell1.openstack.svc:15691\'}
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and "rabbitmq_identity_info" in result.stdout
