@@ -21,10 +21,10 @@
 - name: "RHELOSP-144481 Check for snmpTraps logs"
   ansible.builtin.shell:
     cmd: |
-      oc logs -l "app=default-snmp-webhook"  | grep "Sending SNMP trap" | wc -l
+      oc logs -l "app=default-snmp-webhook"  | grep "Sending SNMP trap"
   register: cmd_output
   changed_when: false
-  failed_when: "cmd_output.stdout|int == 0"
+  failed_when: "cmd_output.stdout_lines | length == 0"
 
 
 - name: "Wait 2 minutes to make sure all SG pods are back to normal"
