@@ -16,7 +16,7 @@
 - name: Get container status
   ansible.builtin.shell:
     cmd: |
-      ssh -i {{ cifmw_edpm_deploy_env.SSH_KEY_FILE }} root@{{ item }} podman ps -a --format \"{{ '{{.Names}} {{.Status}}' }}\" | grep {{ container_name }}
+      ssh -i {{ cifmw_artifacts_crc_sshkey }} root@{{ item }} podman ps -a --format \"{{ '{{.Names}} {{.Status}}' }}\" | grep {{ container_name }}
   changed_when: false
   register: container_status
   loop: "{{ compute_ips }}"
