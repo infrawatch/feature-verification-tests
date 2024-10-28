@@ -17,6 +17,12 @@
     common_subscription_nspace: openshift-operators-redhat
     common_subscription_list:
       - loki-operator
+    common_project_test_id: "RHOSO-12668"
+    common_project_list:
+      - openshift-openstack-infra
+      - openshift
+      - openstack-operators
+      - openshift-logging
   tasks:
     - name: "Verify logging infrastructure components"
       ansible.builtin.import_role:
