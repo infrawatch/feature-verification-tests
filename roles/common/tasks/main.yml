@@ -26,3 +26,9 @@
   ansible.builtin.include_tasks: "manifest_tests.yml"
   loop: "{{ manifest_list }}"
 
+- name: "Verify container tests"
+  when:
+    - common_container_list is defined
+    - common_container_test_id is defined
+  ansible.builtin.include_tasks: "container_test.yml"
+  loop: "{{ common_container_list }}"

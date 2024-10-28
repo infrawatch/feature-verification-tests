@@ -6,9 +6,6 @@
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
-  vars_files:
-    - vars/common.yml
-    - vars/osp18_env.yml
   vars:
     common_pod_test_id: "RHOS0-12672"
     common_pod_status_str: "Running"
@@ -23,7 +20,7 @@
       - openstack-operators
       - openshift-logging
   tasks:
-    - name: "Verify the resources exist"
+    - name: "Verify projects exist"
       ansible.builtin.import_role:
         name: common
 
