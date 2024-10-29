@@ -1,7 +1,7 @@
 ---
 - block:
       # expects that one line will be returned
-      # todo: define what hapens when there are multiple pods returned
+      # todo: define what happens when there are multiple pods returned
     - name: Get Pod Instance name "{{ common_pod_status_str }}"
       ansible.builtin.shell:
         cmd: |
