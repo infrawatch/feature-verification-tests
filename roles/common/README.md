@@ -35,6 +35,14 @@ For pod_tests.yml tasks:
     common_pod_nspace
       - list of projects where pods exist
 
+For crd_tests.yml tasks:
+
+    common_crd_test_id
+      - polarion ID number for each test.
+    common_crd_list
+      - list of crd to validate
+
+
 
 For project_tests.yml tasks:
 
@@ -71,16 +79,26 @@ can be set at the play level.
     environment:
       KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
       PATH: "{{ cifmw_path }}"
-    vars:
-      common_pod_test_id: "RHOSO-12752"
-      common_pod_status_str: "Running"
-      common_pod_nspace: openstack
-      common_pod_list:
-        - openstackclient
     tasks:
       - name: "Verify Running Pods"
         ansible.builtin.import_role:
           name: common
+        vars:
+            common_pod_test_id: "RHOSO-12752"
+            common_pod_status_str: "Running"
+            common_pod_nspace: openstack
+            common_pod_list:
+              - openstackclient
+
+      - name: "Verify status of multiple containers"
+        ansible.builtin.include_role:
+          name: common
+        vars:
+            common_container_test_id: "RHOSO-12753"
+            common_container_list:
+                - ceilometer_agent_compute
+                - ceilometer_agent_ipmi
+                - node_exporter
 
       - name: "Verify projects"
         ansible.builtin.import_role:
@@ -90,6 +108,15 @@ can be set at the play level.
           common_project_list:
             - openshift-openstack-infra
             - openshift
+
+      - name: "Verify crd"
+        ansible.builtin.import_role:
+          name: common
+        vars:
+          common_crd_test_id : "crd_test_id"
+          common_crd_list:
+            - list of crd to validate
+
 
 License
 -------
