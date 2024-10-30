@@ -35,6 +35,7 @@ For pod_tests.yml tasks:
     common_pod_nspace
       - list of projects where pods exist
 
+
 For subscription_tests.yml tasks:
 
     common_subscription_test_id
@@ -43,6 +44,13 @@ For subscription_tests.yml tasks:
       - namespace
     common_subscription_list
       - list of subscription to validate
+
+For crd_tests.yml tasks:
+
+    common_crd_test_id
+      - polarion ID number for each test.
+    common_crd_list
+      - list of crd to validate
 
 
 For project_tests.yml tasks:
@@ -118,6 +126,15 @@ can be set at the play level.
           common_project_list:
             - openshift-openstack-infra
             - openshift
+
+
+      - name: "Verify crd"
+        ansible.builtin.import_role:
+          name: common
+        vars:
+          common_crd_test_id : "crd_test_id"
+          common_crd_list:
+            - list of crd to validate
 
 
 License
