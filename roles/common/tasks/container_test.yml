@@ -16,15 +16,19 @@
 - name: Get container status
   ansible.builtin.shell:
     cmd: |
-      ssh -i {{ cifmw_artifacts_crc_sshkey }} root@{{ item }} podman ps -a --format \"{{ '{{.Names}} {{.Status}}' }}\" | grep {{ container_name }}
+      ssh -i {{ cifmw_artifacts_crc_sshkey }} root@{{ ip }} podman ps -a --format \"{{ '{{.Names}} {{.Status}}' }}\" | grep {{ container_name }}
   changed_when: false
   register: container_status
   loop: "{{ compute_ips }}"
+  loop_control:
+    loop_var: ip
 
 - name: Verify container status {{ common_container_test_id }}
   ansible.builtin.assert:
     that:
-      - "'unhealthy' not in item.stdout"
+      - "'unhealthy' not in status.stdout"
     success_msg: "Container '{{ container_name }}' is in 'healthy' status."
-    fail_msg: "Container '{{ container_name }}' is not in 'healthy' status. Current status: {{ item.stdout }}"
+    fail_msg: "Container '{{ container_name }}' is not in 'healthy' status. Current status: {{ status.stdout }}"
   loop: "{{ container_status.results }}"
+  loop_control:
+    loop_var: status
