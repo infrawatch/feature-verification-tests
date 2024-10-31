@@ -3,25 +3,16 @@
   ansible.builtin.set_fact:
     container_name: "{{ item }}"
 
-- name: Get compute node IPs
-  vars:
-    # NOTE there is some templating used in crc_ci_bootstrap_networking,
-    # which expects a nodepool.cloud variable. This task fails if the
-    # variable isn't set
-    nodepool:
-      cloud: placeholder
-  ansible.builtin.set_fact: 
-    compute_ips: "{{ crc_ci_bootstrap_networking['instances'] | select('match', '^compute') | map('extract', crc_ci_bootstrap_networking['instances']) | map(attribute='networks.default.ip') | list }}"
-
 - name: Get container status
   ansible.builtin.shell:
     cmd: |
-      ssh -i {{ cifmw_artifacts_crc_sshkey }} root@{{ ip }} podman ps -a --format \"{{ '{{.Names}} {{.Status}}' }}\" | grep {{ container_name }}
+      podman ps -a --format \"{{ '{{.Names}} {{.Status}}' }}\" | grep {{ container_name }}
   changed_when: false
   register: container_status
-  loop: "{{ compute_ips }}"
+  delegate_to: "{{ compute_node }}"
+  loop: "{{ groups['computes'] }}"
   loop_control:
-    loop_var: ip
+    loop_var: compute_node
 
 - name: Verify container status {{ common_container_test_id }}
   ansible.builtin.assert:
