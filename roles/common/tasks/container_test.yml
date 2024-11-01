@@ -3,42 +3,6 @@
   ansible.builtin.set_fact:
     container_name: "{{ item }}"
 
-- name: debug - print groups[computes]
-  ansible.builtin.debug:
-    var: groups['computes']
-
-- name: debug - try whoami with delegate_to
-  ansible.builtin.shell:
-    cmd: |
-      whoami
-  changed_when: false
-  register: results
-  delegate_to: "{{ compute_node }}"
-  become: true
-  loop: "{{ groups['computes'] }}"
-  loop_control:
-    loop_var: compute_node
-
-- name: debug - print output of whoami commands
-  ansible.builtin.debug:
-    var: results
-
-- name: debug - try podman cmd without grep
-  ansible.builtin.shell:
-    cmd: |
-      podman ps -a --format "{{ '{{.Names}} {{.Status}}' }}"
-  changed_when: false
-  register: results
-  delegate_to: "{{ compute_node }}"
-  become: true
-  loop: "{{ groups['computes'] }}"
-  loop_control:
-    loop_var: compute_node
-
-- name: debug - print output of podman commands
-  ansible.builtin.debug:
-    var: results
-
 - name: Get container status
   ansible.builtin.shell:
     cmd: |
@@ -46,6 +10,7 @@
   changed_when: false
   register: container_status
   delegate_to: "{{ compute_node }}"
+  # The containers on compute nodes seem to run on the root user, so we need to connect as root
   become: true
   loop: "{{ groups['computes'] }}"
   loop_control:
