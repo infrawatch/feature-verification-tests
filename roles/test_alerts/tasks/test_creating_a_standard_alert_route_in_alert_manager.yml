@@ -3,6 +3,13 @@
 
 # Pre-check: is the value of global.timeout = 5m in the alertmanager secret
 
+- name: "Get the number of default-interconnect pods"
+  ansible.builtin.command:
+    cmd: |
+      oc get pods -l application=default-interconnect
+  register: expected_pods
+  changed_when: false
+
 - name: "Do the test procedure"
   block:
       # TODO: put the patch into a file. and use --patch-file instead of -p OR slurp the file from files/
@@ -61,9 +68,15 @@
       changed_when: false
       failed_when: cmd_output.stdout_lines | length == 0
   always:
-    - name: "Wait 2 minutes to make sure all SG pods are back to normal"
-      ansible.builtin.pause:
-        minutes: 2
+    - name: "Wait up to 5 minutes to make sure all default-interconnect pods are back"
+      ansible.builtin.command:
+        cmd: |
+          oc get pods -l application=default-interconnect
+      retries: 30
+      delay: 10
+      register: output
+      until: output.stdout_lines | length == expected_pods.stdout_lines | length
+      changed_when: false
 
 
     - name: "RHELOSP-176039 Remove alertmanagerConfigManifest from the ServiceTelemetry object"
