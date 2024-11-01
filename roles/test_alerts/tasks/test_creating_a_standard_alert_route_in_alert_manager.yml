@@ -27,11 +27,10 @@
 
       # oc get secret alertmanager-default -o go-template='{{index .data "alertmanager.yaml" | base64decode }}'
       # Can't use -o go-template because of the "{{" and "}}", which are mistaken for templating syntax.
-      # The alertmanager.yaml key needed to be surrounded by [".."] because of the period in the key name.
     - name: "Get the updated secret"
       ansible.builtin.shell:
         cmd: |
-          oc get secret alertmanager-default -ojson | jq '.data | .["alertmanager.yaml"]'
+          oc get secret alertmanager-default -ojsonpath="{ .data.alertmanager\.yaml }"
       register: cmd_output
       changed_when: false
 
@@ -81,15 +80,15 @@
             https://default-alertmanager-proxy:9095/api/v1/alerts' | grep 'active' | grep 'FVT_TESTING Collectd metrics receive rate is zero'
       register: cmd_output
       changed_when: false
-      failed_when: cmd_output.stdout_lines | length == 0
+      failed_when: '"Collectd metrics receive rate is zero" not in cmd_output.stdout'
 
     - name: "RHELOSP-148699 Verify that the alert is firing in Prometheus"
       ansible.builtin.shell:
         cmd: >-
-          /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/alerts | grep 'firing' | grep 'FVT_TESTING Collectd metrics receive rate is zero'
+          curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/alerts | jq '.data.alerts | select (.[].state == "firing") | .[].labels.alertname'
       register: cmd_output
       changed_when: false
-      failed_when: cmd_output.stdout_lines | length == 0
+      failed_when: '"Collectd metrics receive rate is zero" not in cmd_output.stdout'
 
   always:
     - name: "Delete the PrometheusRule"
@@ -117,7 +116,6 @@
       register: output
       until: output.stdout_lines | length == expected_pods.stdout_lines | length
       changed_when: false
-      
 
     - name: "RHELOSP-176039 Remove alertmanagerConfigManifest from the ServiceTelemetry object"
       ansible.builtin.shell:
