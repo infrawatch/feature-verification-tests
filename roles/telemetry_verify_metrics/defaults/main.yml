@@ -2,5 +2,6 @@
 telemetry_verify_metrics_metric_sources_to_test:
   - ceilometer_compute_agent
   - ceilometer_central_agent
-  - node_exporter
+# Disable node exporter testing until OSPRH-11059 is fixed
+#  - node_exporter
   - rabbitmq
