@@ -62,6 +62,7 @@
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list -c state -c name -f value| \
         grep -i "cpu_alarm_high" | \
+        grep -i "{{ stack_name }}" | \
         awk '{print $2}'
   retries: 100
   delay: 5
@@ -92,20 +93,18 @@
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list -c state -c name -f value| \
         grep -i "cpu_alarm_low" | \
+        grep -i "{{ stack_name }}" | \
         awk '{print $2}'
   retries: 100
   delay: 5
   register: result
   until: result.stdout == "alarm"
 
-  # TODO: the metering.server group metadata was used for gnocchi alarm
-  # selection.
-  # prom uses the instance name, so the metadata MIGHT be removed, and a new
-  # check for whether the scaling group has scaled down may be needed.
 - name: RHOSO-12663 Verify that the Orchestration service has scaled down the instances
   ansible.builtin.shell: |
     # source ~/overcloudrc;
-    {{ openstack_cmd }} server list --long|grep -i metering.server_group |wc -l
+    export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
+    {{ openstack_cmd }} server list --long|grep -i metering.server_group=\'$STACK_ID\' |wc -l
   retries: 100
   delay: 5
   register: instance_count3

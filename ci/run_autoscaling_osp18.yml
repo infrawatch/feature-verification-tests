@@ -29,6 +29,17 @@
           tags:
             - setup
 
+        - name: Redeploy the dataplane
+          ansible.builtin.shell:
+            cmd: |
+              oc get osdpd edpm-deployment -oyaml > /tmp/osdpd.yaml
+              oc delete osdpd edpm-deployment
+              sleep 10
+              oc apply -f /tmp/osdpd.yaml
+          when: "{{ patch_openstackversions | bool }}"
+          tags:
+            - setup
+
         - name: Patch observabilityclient into openstackclient
           ansible.builtin.shell:
             cmd: |
@@ -51,6 +62,18 @@
           tags:
             - setup
 
+        - name: Wait until the osdpd is redeployed to continue
+          ansible.builtin.shell:
+            cmd: |
+              oc get osdpd | grep "Setup complete"
+          retries: 60
+          delay: 45
+          until: output.stdout_lines | length == 1
+          register: output
+          when: "{{ patch_openstackversions | bool }}"
+          tags:
+            - setup
+
         - name: "Run Telemetry Autoscaling tests"
           ansible.builtin.import_role:
             name: telemetry_autoscaling
@@ -61,4 +84,15 @@
             cmd: |
               oc patch  openstackversions controlplane  --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
           when: "{{ patch_openstackversions | bool }}"
+
+        - name: Redeploy the dataplane
+          ansible.builtin.shell:
+            cmd: |
+              oc get osdpd edpm-deployment -oyaml > /tmp/osdpd.yaml
+              oc delete osdpd edpm-deployment
+              sleep 10
+              oc apply -f /tmp/osdpd.yaml
+          when: "{{ patch_openstackversions | bool }}"
+          tags:
+            - setup
 

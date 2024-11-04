@@ -14,10 +14,9 @@
 
 - name: Wait until the stack is deleted
   ansible.builtin.shell:
-    cmd: oc rsh openstackclient openstack stack list | grep {{ stack_name }}
+    cmd: oc rsh openstackclient openstack stack list | grep {{ stack_name }} | wc -l
   register: output
-  until: output.stdout_lines == 0
+  until: output.stdout == '0'
   ignore_errors: true
   retries: 50
   timeout: 5
-
