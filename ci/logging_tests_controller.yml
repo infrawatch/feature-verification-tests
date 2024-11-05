@@ -24,7 +24,6 @@
       ansible.builtin.import_role:
         name: common
 
-
 - name: "Verify logging pods are running in openstack"
   hosts: controller
   gather_facts: no
@@ -57,7 +56,6 @@
     common_pod_nspace: openshift-operators-redhat
     common_pod_list:
       - loki-operator-controller-manager
-
   tasks:
     - name: "Verify Pods running"
       ansible.builtin.import_role:
@@ -105,7 +103,6 @@
     common_pod_nspace: minio-dev
     common_pod_list:
       - minio
-
   tasks:
     - name: "Run pod running tests"
       ansible.builtin.import_role:
