@@ -15,13 +15,19 @@
   ansible.builtin.include_tasks: "subscription_tests.yml"
   loop: "{{ common_subscription_list }}"
 
+- name: "Run endpoint tests"
+  when:
+    - common_endpoint_list is defined
+  ansible.builtin.include_tasks: "endpoint_tests.yml"
+  loop: "{{ common_endpoint_list }}"
+
 - name: "Run project tests"
   when:
     - common_project_test_id is defined
     - common_project_list is defined
   ansible.builtin.include_tasks: "project_tests.yml"
   loop: "{{ common_project_list }}"
-
+  
 - name: "Run manifest tests"
   when:
     - common_manifest_test_id is defined
