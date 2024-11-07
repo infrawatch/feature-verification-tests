@@ -55,3 +55,5 @@
     - common_container_test_id is defined
   ansible.builtin.include_tasks: "container_test.yml"
   loop: "{{ common_container_list }}"
+  loop_control:
+    loop_var: container_name
