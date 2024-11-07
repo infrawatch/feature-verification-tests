@@ -49,7 +49,7 @@
       failed_when: result.rc >= 1
 
     - name: |
-        [TEST] Use openstack observabilityclient to verify ceilometer compute metrics are stored in prometheus
+        TEST Use openstack observabilityclient to verify ceilometer compute metrics are stored in prometheus
         RHOSO-1213
       ansible.builtin.shell: |
         {{ openstack_cmd }} metric show ceilometer_cpu

@@ -18,7 +18,7 @@
       - node_exporter
 
 - name: |
-    [TEST] Use openstack observabilityclient to verify Node Exporter metrics are stored in prometheus
+    TEST Use openstack observabilityclient to verify Node Exporter metrics are stored in prometheus
     RHOSO-1214
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac node_exporter_build_info

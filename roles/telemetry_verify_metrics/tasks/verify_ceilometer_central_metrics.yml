@@ -27,7 +27,7 @@
       failed_when: result.rc >= 1
 
     - name: |
-        [TEST] Use openstack observabilityclient to verify ceilometer central metrics are stored in prometheus
+        TEST Use openstack observabilityclient to verify ceilometer central metrics are stored in prometheus
         RHOSO-1212
       ansible.builtin.shell: |
         {{ openstack_cmd }} metric show ceilometer_image_size
