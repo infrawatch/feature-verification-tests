@@ -7,6 +7,16 @@
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-rabbitmq
 
+- name: Get rabbitmq CR names
+  ansible.builtin.shell: |
+    oc get rabbitmq -o custom-columns=NAME:.metadata.name --no-headers
+  register: cr_names
+
+- name: Create rabbitmq pod list
+  ansible.builtin.set_fact:
+    common_pod_list: "{{ common_pod_list | default([]) + [item + '-server-0'] }}"
+  loop: "{{ cr_names.stdout_lines }}"
+
 - name: Verify rabbitmq pods are running
   ansible.builtin.include_role:
     name: common
@@ -14,42 +24,23 @@
     common_pod_test_id: RHOSO-1241
     common_pod_status_str: "Running"
     common_pod_nspace: openstack
-    common_pod_list:
-      - rabbitmq-server-0
-      - rabbitmq-cell1-server-0
 
-- name: Check rabbitmq metric endpoint
+- name: Check rabbitmq metric endpoints
   ansible.builtin.shell: |
-    oc rsh openstackclient curl https://rabbitmq.openstack.svc:15691/metrics
+    oc rsh openstackclient curl https://{{ item }}.openstack.svc:15691/metrics
   register: result
   changed_when: false
   failed_when: result.rc >= 1
-
-- name: Check rabbitmq-cell1 metric endpoint
-  ansible.builtin.shell: |
-    oc rsh openstackclient curl https://rabbitmq-cell1.openstack.svc:15691/metrics
-  register: result
-  changed_when: false
-  failed_when: result.rc >= 1
+  loop: "{{ cr_names.stdout_lines }}"
 
 - name: |
     TEST Use openstack observabilityclient to verify rabbitmq metrics are stored in prometheus
     RHOSO-1215
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric query rabbitmq_identity_info{instance=\'rabbitmq.openstack.svc:15691\'}
+    {{ openstack_cmd }} metric query rabbitmq_identity_info{instance=\'{{ item }}.openstack.svc:15691\'}
   register: result
   delay: 30
   retries: 10
   changed_when: false
   until: result.rc == 0 and "rabbitmq_identity_info" in result.stdout
-
-- name: |
-    TEST Use openstack observabilityclient to verify rabbitmq-cell1 metrics are stored in prometheus
-    RHOSO-1216
-  ansible.builtin.shell: |
-    {{ openstack_cmd }} metric query rabbitmq_identity_info{instance=\'rabbitmq-cell1.openstack.svc:15691\'}
-  register: result
-  delay: 30
-  retries: 10
-  changed_when: false
-  until: result.rc == 0 and "rabbitmq_identity_info" in result.stdout
+  loop: "{{ cr_names.stdout_lines }}"
