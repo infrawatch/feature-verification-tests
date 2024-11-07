@@ -11,6 +11,8 @@
   ansible.builtin.shell: |
     oc get rabbitmq -o custom-columns=NAME:.metadata.name --no-headers
   register: cr_names
+  changed_when: false
+  failed_when: result.rc >= 1 or result.stdout == ""
 
 - name: Create rabbitmq pod list
   ansible.builtin.set_fact:

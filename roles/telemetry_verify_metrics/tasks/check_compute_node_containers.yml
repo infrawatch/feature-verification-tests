@@ -1,7 +1,7 @@
-- block:
-  - name: Check compute node {{ compute_node }} containers are up
-    ansible.builtin.include_role:
-      name: common
-  delegate_to: "{{ compute_node }}"
+- delegate_to: "{{ compute_node }}"
   # The containers on compute nodes seem to run on the root user, so we need to connect as root
   become: true
+  block:
+  - name: Check compute node containers are up for {{ compute_node }}
+    ansible.builtin.include_role:
+      name: common
