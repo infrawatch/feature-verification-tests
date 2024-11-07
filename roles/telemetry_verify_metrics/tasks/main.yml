@@ -3,6 +3,7 @@
   ansible.builtin.include_role:
     name: common
   vars:
+    common_verify_resources_are_ready_test_id: RHOSO-1258
     common_verify_resources_are_ready:
       - kind: telemetry
         name: telemetry

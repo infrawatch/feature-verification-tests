@@ -38,6 +38,7 @@
 - name: "Run openstack resources ready tests"
   when:
     - common_verify_resources_are_ready is defined
+    - common_verify_resources_are_ready_test_id is defined
   ansible.builtin.include_tasks: "check_openstack_services_rhoso.yml"
   loop: "{{ common_verify_resources_are_ready }}"
 
