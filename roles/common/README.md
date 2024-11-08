@@ -52,7 +52,6 @@ For crd_tests.yml tasks:
     common_crd_list
       - list of crd to validate
 
-
 For endpoint_tests.yml tasks:
 
     common_endpoint_test_id
@@ -75,6 +74,21 @@ For manifest_tests.yml tasks:
        - polarion ID number for each test
      manifest_list
        - list of package manifests to validate
+
+For cr\_tests.yml tasks:
+
+    common\_cr\_test\_id is defined
+       - polarion ID number for each test that a CR exists
+    common\_cr\_list is defined
+       - list of CRs to check
+        Each dict should include the following keys: kind, name
+	A dict can optionally include a "condition\_type" key.
+        Example:
+           kind: metricstorage
+           name: metric-storage
+           condition\_type: Ready
+    common\_cr\_ready\_test\_id is optionally defined
+       - polarion ID number for each test of readiness of the CR
 
 
 

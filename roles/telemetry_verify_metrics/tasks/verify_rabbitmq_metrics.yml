@@ -1,0 +1,48 @@
+- name: Verify rabbitmq scrapeconfig exists
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_test_id: RHOSO-1223
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-rabbitmq
+
+- name: Get rabbitmq CR names
+  ansible.builtin.shell: |
+    oc get rabbitmq -o custom-columns=NAME:.metadata.name --no-headers
+  register: cr_names
+  changed_when: false
+  failed_when: cr_names.rc >= 1 or cr_names.stdout == ""
+
+- name: Create rabbitmq pod list
+  ansible.builtin.set_fact:
+    common_pod_list: "{{ common_pod_list | default([]) + [item + '-server-0'] }}"
+  loop: "{{ cr_names.stdout_lines }}"
+
+- name: Verify rabbitmq pods are running
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_pod_test_id: RHOSO-1241
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack
+
+- name: Check rabbitmq metric endpoints
+  ansible.builtin.shell: |
+    oc rsh openstackclient curl https://{{ item }}.openstack.svc:15691/metrics
+  register: result
+  changed_when: false
+  failed_when: result.rc >= 1
+  loop: "{{ cr_names.stdout_lines }}"
+
+- name: |
+    TEST Use openstack observabilityclient to verify rabbitmq metrics are stored in prometheus
+    RHOSO-1215
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric query rabbitmq_identity_info{instance=\'{{ item }}.openstack.svc:15691\'}
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and "rabbitmq_identity_info" in result.stdout
+  loop: "{{ cr_names.stdout_lines }}"
