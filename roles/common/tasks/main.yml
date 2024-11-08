@@ -8,6 +8,13 @@
   ansible.builtin.include_tasks: "pod_tests.yml"
   loop: "{{ common_pod_list }}"
 
+- name: "Run subscription tests"
+  when:
+    - common_subscription_nspace is defined
+    - common_subscription_list is defined
+  ansible.builtin.include_tasks: "subscription_tests.yml"
+  loop: "{{ common_subscription_list }}"
+
 - name: "Run endpoint tests"
   when:
     - common_endpoint_list is defined
