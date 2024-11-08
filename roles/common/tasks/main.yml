@@ -35,10 +35,18 @@
   ansible.builtin.include_tasks: "crd_tests.yml"
   loop: "{{ common_crd_list }}"
 
+- name: "Run CR tests"
+  when:
+    - common_cr_test_id is defined
+    - common_cr_list is defined
+  ansible.builtin.include_tasks: "cr_tests.yml"
+  loop: "{{ common_cr_list }}"
+
 - name: "Verify container tests"
   when:
     - common_container_list is defined
     - common_container_test_id is defined
   ansible.builtin.include_tasks: "container_test.yml"
   loop: "{{ common_container_list }}"
-
+  loop_control:
+    loop_var: container_name

@@ -1,0 +1,28 @@
+---
+- name: Run telemetry tests to verify metrics on osp18
+  hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
+  gather_facts: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+    - vars/osp18_env.yml
+  tasks:
+    - name: Include vars from the extra_vars files
+      ansible.builtin.include_vars:
+        dir: "{{ cifmw_basedir }}/artifacts/parameters"
+
+    - name: Patch observabilityclient into openstackclient
+      ansible.builtin.shell:
+        cmd: |
+          oc exec openstackclient -- python3 -m ensurepip --upgrade
+          oc exec openstackclient -- python3 -m pip install --upgrade aodhclient
+          oc exec openstackclient -- python3 -m pip install --upgrade python-observabilityclient
+      when: patch_observabilityclient | bool
+      tags:
+        - setup
+
+    - name: "Run Telemetry Verify Metrics tests"
+      ansible.builtin.import_role:
+        name: telemetry_verify_metrics
