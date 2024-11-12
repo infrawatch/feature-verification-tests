@@ -23,7 +23,9 @@
     stack_network: private
     stack_external_network: public
 
-- name: TEST create stack
+- name: |
+    TEST create stack
+    RHOSO-12648
   ansible.builtin.shell: |
     #source ~/overcloudrc;
     {{ openstack_cmd }} stack create \
@@ -38,7 +40,9 @@
     var: result
 
 
-- name: TEST verify stack was successfully created
+- name: |
+    TEST verify stack was successfully created
+    RHOSO-12704
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} stack show {{ stack_name }};
@@ -48,7 +52,9 @@
   retries: 20
 
 
-- name: TEST Verify stack resources created
+- name: |
+    TEST Verify stack resources created
+    RHOSO-12650
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
@@ -59,7 +65,9 @@
   until: '"CREATE_COMPLETE" in result.stdout'
   #failed_when: '"CREATE_COMPLETE" not in result.stdout'
 
-- name: TEST Verify ceilometer cpu metrics exist
+- name: |
+    TEST Verify ceilometer cpu metrics exist
+    RHOSO-12707
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} metric list
@@ -70,7 +78,9 @@
   ansible.builtin.debug:
     var: result
 
-- name: TEST Verify that an instance was launched
+- name: |
+    TEST Verify that an instance was launched
+    RHOSO-12651
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
@@ -78,7 +88,9 @@
   register: result
   failed_when: result.rc >= 1
 
-- name: TEST Verify that alarms were created
+- name: |
+    TEST Verify that alarms were created
+    RHOSO-12652
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list
@@ -99,7 +111,9 @@
     {{ openstack_cmd }} stack resource list $STACK_ID |grep -i cpu_alarm_high | awk '{print $4}'
   register: physical_resource_id_high
 
-- name: TEST Verify resource id match alarm id low
+- name: |
+    TEST Verify resource id match alarm id low
+    RHOSO-12653
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list |grep -i cpu_alarm_low | grep {{ stack_name }} | awk '{print $2}'
@@ -107,7 +121,9 @@
   failed_when:
     - physical_resource_id_low.stdout != alarm_id_low.stdout
 
-- name: TEST Verify physical resource id match the alaram high
+- name: |
+    TEST Verify physical resource id match the alarm high
+    RHOSO-12654
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list |grep -i cpu_alarm_high | grep {{ stack_name }} | awk '{print $2}'

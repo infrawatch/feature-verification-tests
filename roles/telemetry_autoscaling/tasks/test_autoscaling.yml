@@ -20,7 +20,9 @@
   fail:
     msg: "bad vnf_instance_ip"
 
-- name: TEST Verify number instances before scaling
+- name: |
+    TEST Verify number instances before scaling
+    RHOSO-12665
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} server list --long | grep -i 'metering.server_group' | wc -l
@@ -57,7 +59,9 @@
   register: busy_process
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
-- name: TEST Verify cpu high alarm has been triggered
+- name: |
+    TEST Verify cpu high alarm has been triggered
+    RHOSO-12660
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list -c state -c name -f value| \
@@ -69,7 +73,9 @@
   register: result
   until: result.stdout == "alarm"
 
-- name: TEST Verify orchestration scaled up instances
+- name: |
+    TEST Verify orchestration scaled up instances
+    RHOSO-12661
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} server list --long|grep -i metering.server_group | wc -l
@@ -88,7 +94,9 @@
   ansible.builtin.pause:
     minutes: 5
 
-- name: TEST Verify cpu low alaram has been triggered
+- name: |
+    TEST Verify cpu low alaram has been triggered
+    RHOSO-12664
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list -c state -c name -f value| \
@@ -102,7 +110,7 @@
 
 - name: |
     TEST Verify Orchestration scaled down instances
-    Verify that the orchestration service has scaled down the instances
+    RHOSO-12663
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
