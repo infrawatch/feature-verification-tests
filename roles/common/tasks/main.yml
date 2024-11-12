@@ -1,22 +1,59 @@
 ---
-- name: "Run pod tests"
+- name: "Verify pod - {{ common_pod_test_id }}"
   when:
+    - common_pod_test_id is defined
     - common_pod_list is defined
     - common_pod_nspace is defined
     - common_pod_status_str is defined
   ansible.builtin.include_tasks: "pod_tests.yml"
   loop: "{{ common_pod_list }}"
 
+- name: "Run subscription tests"
+  when:
+    - common_subscription_nspace is defined
+    - common_subscription_list is defined
+  ansible.builtin.include_tasks: "subscription_tests.yml"
+  loop: "{{ common_subscription_list }}"
+
+- name: "Run endpoint tests"
+  when:
+    - common_endpoint_list is defined
+  ansible.builtin.include_tasks: "endpoint_tests.yml"
+  loop: "{{ common_endpoint_list }}"
+
 - name: "Run project tests"
   when:
+    - common_project_test_id is defined
     - common_project_list is defined
   ansible.builtin.include_tasks: "project_tests.yml"
   loop: "{{ common_project_list }}"
-
+  
 - name: "Run manifest tests"
   when:
-    - manifest_test_id is defined
-    - manifest_list is defined
+    - common_manifest_test_id is defined
+    - common_manifest_list is defined
   ansible.builtin.include_tasks: "manifest_tests.yml"
-  loop: "{{ manifest_list }}"
+  loop: "{{ common_manifest_list }}"
 
+- name: "Run crd tests"
+  when:
+    - common_crd_test_id is defined
+    - common_crd_list is defined
+  ansible.builtin.include_tasks: "crd_tests.yml"
+  loop: "{{ common_crd_list }}"
+
+- name: "Run CR tests"
+  when:
+    - common_cr_test_id is defined
+    - common_cr_list is defined
+  ansible.builtin.include_tasks: "cr_tests.yml"
+  loop: "{{ common_cr_list }}"
+
+- name: "Verify container tests"
+  when:
+    - common_container_list is defined
+    - common_container_test_id is defined
+  ansible.builtin.include_tasks: "container_test.yml"
+  loop: "{{ common_container_list }}"
+  loop_control:
+    loop_var: container_name

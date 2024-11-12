@@ -24,10 +24,6 @@ parameters:
     type: string
     description: network used for floating IPs
     default: {{ stack_external_network | default("public") }}
-  server_name_prefix:
-    type: string
-    description: a prefix for each server name.
-    default: ""
   security_group:
     type: string
     description: the security group for the instances
@@ -37,10 +33,6 @@ resources:
   vnf:
     type: OS::Nova::Server
     properties:
-      {% if metrics_backend == "prometheus" -%}
-      name:
-        list_join: ["", [{get_param: server_name_prefix}, {get_param: OS::stack_name}]]
-      {% endif -%}
       flavor: {get_param: flavor}
       #key_name: {get_param: key_name}
       image: { get_param: image }

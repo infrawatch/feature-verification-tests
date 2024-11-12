@@ -36,6 +36,30 @@ For pod_tests.yml tasks:
       - list of projects where pods exist
 
 
+For subscription_tests.yml tasks:
+
+    common_subscription_test_id
+      - polarion ID number for each test
+    common_subscription_nspace
+      - namespace
+    common_subscription_list
+      - list of subscription to validate
+
+For crd_tests.yml tasks:
+
+    common_crd_test_id
+      - polarion ID number for each test.
+    common_crd_list
+      - list of crd to validate
+
+For endpoint_tests.yml tasks:
+
+    common_endpoint_test_id
+      - polarion ID number for each test.
+    common_endpoint_list
+      - list of endpoints to validate
+
+
 For project_tests.yml tasks:
 
     common_project_test_id
@@ -43,12 +67,28 @@ For project_tests.yml tasks:
     common_project_list
       - list of projects to validate
 
+
 For manifest_tests.yml tasks:
 
      manifest_test_id
        - polarion ID number for each test
      manifest_list
        - list of package manifests to validate
+
+For cr\_tests.yml tasks:
+
+    common\_cr\_test\_id is defined
+       - polarion ID number for each test that a CR exists
+    common\_cr\_list is defined
+       - list of CRs to check
+        Each dict should include the following keys: kind, name
+	A dict can optionally include a "condition\_type" key.
+        Example:
+           kind: metricstorage
+           name: metric-storage
+           condition\_type: Ready
+    common\_cr\_ready\_test\_id is optionally defined
+       - polarion ID number for each test of readiness of the CR
 
 
 
@@ -71,16 +111,45 @@ can be set at the play level.
     environment:
       KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
       PATH: "{{ cifmw_path }}"
-    vars:
-      common_pod_test_id: "RHOSO-12752"
-      common_pod_status_str: "Running"
-      common_pod_nspace: openstack
-      common_pod_list:
-        - openstackclient
     tasks:
       - name: "Verify Running Pods"
         ansible.builtin.import_role:
           name: common
+        vars:
+          common_pod_test_id: "RHOSO-12752"
+          common_pod_status_str: "Running"
+          common_pod_nspace: openstack
+          common_pod_list:
+            - openstackclient
+
+      - name: "Verify subscription"
+        ansible.builtin.import_role:
+          name: common
+        vars:
+          common_subscription_test_id: "RHOSO-12678"
+          common_subscription_nspace: openshift-operators-redhat
+          common_subscription_l :
+            - loki-operator
+
+      - name: "Verify status of multiple containers"
+        ansible.builtin.include_role:
+          name: common
+        vars:
+            common_container_test_id: "RHOSO-12753"
+            common_container_list:
+                - ceilometer_agent_compute
+                - ceilometer_agent_ipmi
+                - node_exporter
+
+      - name: "Verify Endpoint"
+        ansible.builtin.import_role:
+          name: common
+        vars:
+          common_endpoint_test_id: "RHOSO-12682"
+          common_endpoint_list:
+            - [nova,compute,public]
+            - [nova,compute,internal]
+            - [placement,placement,public]
 
       - name: "Verify projects"
         ansible.builtin.import_role:
@@ -90,6 +159,16 @@ can be set at the play level.
           common_project_list:
             - openshift-openstack-infra
             - openshift
+
+
+      - name: "Verify crd"
+        ansible.builtin.import_role:
+          name: common
+        vars:
+          common_crd_test_id : "crd_test_id"
+          common_crd_list:
+            - list of crd to validate
+
 
 License
 -------
