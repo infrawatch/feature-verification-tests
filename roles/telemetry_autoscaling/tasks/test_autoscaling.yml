@@ -95,7 +95,7 @@
     minutes: 5
 
 - name: |
-    TEST Verify cpu low alaram has been triggered
+    TEST Verify cpu low alarm has been triggered
     RHOSO-12664
   ansible.builtin.shell: |
     # source ~/overcloudrc;
