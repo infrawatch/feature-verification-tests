@@ -1,5 +1,6 @@
 ---
 # pre_tests or post_tests are also options for when the FVT roles are run
+cifmw_polarion_jump_result_dir: “{{ ansible_user_dir }}/ci-framework-data/logs/feature-verification-tests”
 post_deploy_00_fvt_logging:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/logging_tests_all.yml"
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
