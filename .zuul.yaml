@@ -34,6 +34,15 @@
       - callback_plugins/.*
       - README*
       - .*/*.md
+      - roles/client_side_tests/.*
+      - roles/test_alerts/.*
+      - roles/test_collectd/.*
+      - roles/test_metrics_retention/.*
+      - roles/test_observability_strategy/.*
+      - roles/test_qdr/.*
+      - roles/test_sensubility/.*
+      - roles/test_snmp_traps/.*
+      - roles/test_verify_email/.*
 
 - job:
     name: functional-logging-tests-osp18
