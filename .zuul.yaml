@@ -109,6 +109,7 @@
         - feature-verification-tests-noop
         - openstack-k8s-operators-content-provider:
             override-checkout: main
+            irrelevant-files: *irrelevant_files
         - functional-tests-on-osp18
         - functional-logging-tests-osp18
         - functional-graphing-tests-osp18
