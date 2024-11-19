@@ -16,13 +16,13 @@
             labels:
               prometheus: default
               role: alert-rules
-            name: prometheus-alarm-rules
+            name: fvt-testing-prometheus-alarm-rules
             namespace: service-telemetry
           spec:
             groups:
               - name: ./openstack.rules
                 rules:
-                  - alert: Collectd metrics receive rate is zero
+                  - alert: FVT_TESTING Collectd metrics receive rate is zero
                     expr: rate(sg_total_collectd_msg_received_count[1m]) == 0
           EOF
       changed_when: false
@@ -34,5 +34,20 @@
         cmd: |
           curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
       register: cmd_output
+
+  always:
+    - name: "Delete the PrometheusRule"
+      ansible.builtin.command:
+        cmd: |
+          oc delete prometheusrule.{{ observability_api }} fvt-testing-prometheus-alarm-rules
+      register: delete_prom
+      changed_when: delete_prom.rc == 0
+
+    - name: Wait up to two minutes until the rule is deleted
+      ansible.builtin.command:
+        cmd: |
+          curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
+      retries: 12
+      delay: 10
+      until: 'not "FVT_TESTING Collectd metrics receive rate is zero" in cmd_output.stdout'
       changed_when: false
-      failed_when: cmd_output.rc != 0
