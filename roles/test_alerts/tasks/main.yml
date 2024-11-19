@@ -1,4 +1,8 @@
 ---
+- name: "Get the observability strategy and set the observability_api"
+  ansible.builtin.include_tasks:
+    file: get_observability_api.yml
+
 - name: "Test Creating an alert rule in Prometheus"
   ansible.builtin.include_tasks:
     file: test_create_an_alert.yml
