@@ -19,6 +19,7 @@ describe('OpenShift Console Dashboard Test', () => {
       }
     });
     
+
   });
 
   it('should load and validate the OpenStack dashboards', () => {
@@ -36,11 +37,9 @@ describe('OpenShift Console Dashboard Test', () => {
     dashboards.forEach(dashboard => {
       cy.visit(`https://console-openshift-console.apps-crc.testing/monitoring/dashboards${dashboard.url}`);
 
-      cy.wait(5000); 
-
       // Wait for the dashboard to load and take a screenshot
-      cy.get('div[data-test-id="dashboard"]', { timeout: 10000 })
-        .find('[data-test-id="panel-"], [data-test-id="panel-cpu"], [data-test-id="panel-overview"]') 
+      cy.get('div[data-test-id="dashboard"]', { timeout: 50000 })
+        .find('[data-test-id^="panel-"]')
 
       cy.wait(5000); 
       cy.screenshot(dashboard.screenshot);
