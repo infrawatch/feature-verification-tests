@@ -42,12 +42,12 @@
       until: '"FVT_TESTING Collectd metrics receive rate is zero" in cmd_output.stdout'
 
   always:
-    - name: "Delete the alert"
+    - name: "Delete the PrometheusRule"
       ansible.builtin.command:
         cmd: |
           oc delete prometheusrule.{{ observability_api }} fvt-testing-prometheus-alarm-rules
 
-    - name: Wait up to two minutes until the alert is deleted
+    - name: Wait up to two minutes until the rule is deleted
       ansible.builtin.command:
         cmd: |
           curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
