@@ -1,5 +1,4 @@
 ---
-- name: "RHELOSP-57534"
-# description: "Test health status"
+- name: "RHELOSP-57534 Test health status"
   ansible.builtin.include_tasks:
     file: test_health_status.yml
