@@ -7,7 +7,7 @@
   ansible.builtin.shell:
     cmd: |
       oc apply -f - <<EOF
-      apiVersion: monitoring.coreos.com/v1
+      apiVersion: {{ observability_api }}/v1
       kind: PrometheusRule
       metadata:
         creationTimestamp: null

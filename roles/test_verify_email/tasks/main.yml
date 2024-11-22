@@ -1,11 +1,15 @@
 ---
 # tasks file for roles/test_verify_email
+- name: "Get the observability strategy and set observability_api"
+  ansible.builtin.include_role:
+    name: test_alerts
+    tasks_from: get_observability_api.yml
 
 - name: "RHELOSP-176042 Create the alert"
   ansible.builtin.shell:
     cmd: |
       oc apply -f - <<EOF
-      apiVersion: monitoring.coreos.com/v1
+      apiVersion: {{ observability_api }}/v1
       kind: PrometheusRule
       metadata:
         creationTimestamp: null
