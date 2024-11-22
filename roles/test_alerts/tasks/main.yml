@@ -1,4 +1,11 @@
 ---
+- name: "Set the prom auth"
+  ansible.builtin.include_role:
+    name: client_side_tests
+    tasks_from: get_prom_info.yml
+  vars:
+    prom_auth_method: token
+
 - name: "Test Creating an alert rule in Prometheus"
   ansible.builtin.include_tasks:
     file: test_create_an_alert.yml

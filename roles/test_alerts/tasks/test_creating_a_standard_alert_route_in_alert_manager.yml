@@ -3,8 +3,7 @@
 
 # Pre-check: is the value of global.timeout = 5m in the alertmanager secret
   # TODO: put the patch into a file. and use --patch-file instead of -p OR slurp the file from files/
-- name: "RHELOSP-144965"
-# description: "Patch the ServiceTelemetry object for the STF deployment"
+- name: "RHELOSP-144965 Patch the ServiceTelemetry object for the STF deployment"
   ansible.builtin.shell:
     cmd: |
       oc patch stf default --type merge -p '{"spec": {"alertmanagerConfigManifest": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: 'alertmanager-default'\n  namespace: 'service-telemetry'\ntype: Opaque\nstringData:\n  alertmanager.yaml: |-\n    global:\n      resolve_timeout: 10m\n    route:\n      group_by: ['job']\n      group_wait: 30s\n      group_interval: 5m\n      repeat_interval: 12h\n      receiver: 'null'\n    receivers:\n    - name: 'null'\n"}}'
@@ -34,16 +33,14 @@
   ansible.builtin.debug:
     var: alertmanager_secret
 
-- name: "RHELOSP-148697"
-# description: Interrupt metrics flow by preventing the QDR from running
+- name: "RHELOSP-148697 Interrupt metrics flow by preventing the QDR from running"
   ansible.builtin.shell:
     cmd: |
       for i in {1..15}; do oc delete po -l application=default-interconnect; sleep 1; done
   changed_when: false
 
 
-- name: "RHELOSP-148698"
-# description: Verify that the alert is active in Alertmanager
+- name: "RHELOSP-148698 Verify that the alert is active in Alertmanager"
   ansible.builtin.shell: 
     cmd: >-
       oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c 'wget --header \
@@ -53,8 +50,7 @@
   changed_when: false
   failed_when: cmd_output.stdout|int == 0
 
-- name: "RHELOSP-148699"
-# description: "Verify that the alert is firing in Prometheus"
+- name: "RHELOSP-148699 Verify that the alert is firing in Prometheus"
   ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/alerts | grep 'firing' | grep 'Collectd metrics receive rate is zero' | wc -l
@@ -68,8 +64,7 @@
     minutes: 2
 
 
-- name: "RHELOSP-176039"
-  # Remove alertmanagerConfigManifest from the ServiceTelemetry object
+- name: "RHELOSP-176039 Remove alertmanagerConfigManifest from the ServiceTelemetry object"
   ansible.builtin.shell:
     cmd: |
       oc patch stf/default --type='json' -p '[{"op": "remove", "path": "/spec/alertmanagerConfigManifest"}]'
