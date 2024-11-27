@@ -1,23 +1,9 @@
 ---
-- name: Get number of packages
-  ansible.builtin.shell:
-    cmd: |
-      echo "{{ item }}" | awk '{print $2;}'
-  register: num_expected
-  changed_when: false
-
-- name: Get package name
-  ansible.builtin.shell:
-    cmd: |
-      echo "{{ item }}" | awk '{print $1;}'
-  register: pack_name
-  changed_when: false
-
 - name: |
-    TEST Get {{ item }} packagemanifest
+    TEST Get {{ manifest[0] }} {{ manifest[1] }} packagemanifest
   ansible.builtin.shell:
     cmd: |
-      oc get packagemanifests | grep "{{ pack_name.stdout }}" | wc -l
-  register: num_found 
+      oc get packagemanifests | grep "{{ manifest[0] }}"
+  register: num_found
   changed_when: false
-  failed_when: num_expected.stdout != num_found.stdout
+  failed_when: manifest[1] | int != num_found.stdout_lines | length
