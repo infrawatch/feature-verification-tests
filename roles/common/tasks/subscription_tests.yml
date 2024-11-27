@@ -6,7 +6,9 @@
   changed_when: false
   register: output
 
-- name: Check that subscription exist {{ common_subscription_test_id }}
+- name: |
+    TEST Check that {{ item }} subscription exists
+    {{ common_subscription_test_id }}
   ansible.builtin.assert:
     that:
       - "'NotFound' not in output.stderr"
