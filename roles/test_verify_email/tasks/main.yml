@@ -18,13 +18,13 @@
             labels:
               prometheus: default
               role: alert-rules
-            name: prometheus-alarm-rules
+            name: fvt-testing-prometheus-alarm-rules-email
             namespace: service-telemetry
           spec:
             groups:
               - name: ./openstack.rules
                 rules:
-                  - alert: Collectd metrics receive rate is zero
+                  - alert: FVT_TESTING Collectd metrics receive rate is zero
                     expr: rate(sg_total_collectd_msg_received_count[1m]) == 0
           EOF
       changed_when: false
