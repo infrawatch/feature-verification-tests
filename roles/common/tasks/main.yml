@@ -44,6 +44,8 @@
     - common_manifest_list is defined
   ansible.builtin.include_tasks: "manifest_tests.yml"
   loop: "{{ common_manifest_list }}"
+  loop_control:
+    loop_var: manifest
 
 - name: "Run crd tests"
   when:
