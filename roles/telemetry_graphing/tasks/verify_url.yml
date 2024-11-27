@@ -10,9 +10,7 @@
   ansible.builtin.set_fact:
     openshift_console_url: "https://{{ console_url.stdout }}"
 
-- name: |
-    TEST Check OpenShift Console URL is accessible
-    RHOSO-13626
+- name: "UI-1 Check OpenShift Console URL is accessible"
   ansible.builtin.shell:
     cmd: |
       curl -o /dev/null -s -w "%{http_code}" -k {{ openshift_console_url }}
