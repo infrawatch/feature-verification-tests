@@ -10,7 +10,9 @@
   failed_when:
     - result.rc != 0
 
-- name: Verify that a CR is ready {{ common_cr_ready_test_id }}
+- name: |
+    TEST Verify that the {{ item.kind }} {{ item.name }} CR is ready
+    {{ common_cr_ready_test_id }}
   ansible.builtin.command:
     cmd: |
       oc get {{ item.kind }} {{ item.name }} -o jsonpath='{.status.conditions[?(@.type=="{{ item.condition_type }}")].status}{"\n"}'
