@@ -11,7 +11,7 @@
     openshift_console_url: "https://{{ console_url.stdout }}"
 
 - name: |
-    TEST UI-1 Check OpenShift Console URL is accessible
+    TEST Check OpenShift Console URL is accessible
     RHOSO-13626
   ansible.builtin.shell:
     cmd: |
