@@ -60,7 +60,9 @@
     chdir: "{{ cypress_tests_dir }}"
   changed_when: false
 
-- name: "UI-2 Run Cypress tests to validate dashboards exist"
+- name: |
+    TEST Cypress tests to validate dashboards exist
+    RHOSO-13627
   ansible.builtin.shell: |
       Xvfb :99 -ac &
       export DISPLAY=:99
@@ -80,7 +82,9 @@
   ansible.builtin.debug:
     var: cypress_run.stdout_lines
 
-- name: "UI-3 Check if all Cypress tests passed"
+- name: |
+    TEST Check if all Cypress tests passed
+    RHOSO-13628
   ansible.builtin.fail:
     msg: "Some Cypress tests failed."
   when: cypress_run.rc != 0
