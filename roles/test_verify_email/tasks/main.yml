@@ -1,5 +1,16 @@
 ---
 # tasks file for roles/test_verify_email
+
+- name: "Set the prom auth"
+  ansible.builtin.include_role:
+    name: client_side_tests
+    tasks_from: get_prom_info.yml
+  vars:
+    prom_auth_method: token
+  when:
+    - prom_auth_string is not defined
+    - prom_url is not defined
+
 - name: "Get the observability strategy and set observability_api"
   ansible.builtin.include_role:
     name: test_alerts
@@ -54,6 +65,18 @@
       changed_when: false
 
   always:
+    - name: "Delete the PrometheusRule"
+      ansible.builtin.command: |
+        oc delete prometheusrule.{{ observability_api }} fvt-testing-prometheus-alarm-rules-email
+
+    - name: "Wait up to two minutes until the rule is deleted"
+      ansible.builtin.command:
+        cmd: |
+          curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
+      retries: 12
+      delay: 10
+      until: 'not "FVT_TESTING Collectd metrics receive rate is zero" in cmd_output.stdout'
+
     - name: "RHELOSP-176046 Remove alertmanagerConfigManifest from the ServiceTelemetry object"
       ansible.builtin.shell:
         cmd: |
