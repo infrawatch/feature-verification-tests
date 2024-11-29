@@ -3,6 +3,12 @@
 # Following procedure on https://infrawatch.github.io/documentation/#configuring-snmp-traps_assembly-advanced-features
 # Assuming we're in the right project already...
 
+- name: "Get the number of default-interconnect pods"
+  ansible.builtin.shell:
+    cmd: |
+      oc get pods -l application=default-interconnect
+  register: expected_pods
+
 - name: "Do the test procedure"
   block:
     - name: "RHELOSP-144987 Set the alerting.alertmanager.receivers.snmpTraps parameters"
@@ -29,7 +35,11 @@
       failed_when: "cmd_output.stdout_lines | length == 0"
 
   always:
-    - name: "Wait 2 minutes to make sure all SG pods are back to normal"
-      ansible.builtin.pause:
-        minutes: 2
+    - name: "Wait up to 2 minutes to make sure all default-interconnect pods are back"
+      ansible.builtin.shell:
+        oc get pods -l application=default-interconnect
+      retries: 24
+      delay: 5
+      register: output
+      until: output.stdout_lines | length == expected_pods.stdout_lines | length
       changed_when: false
