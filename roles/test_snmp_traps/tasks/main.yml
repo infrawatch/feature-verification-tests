@@ -8,7 +8,11 @@
     cmd: |
       oc get pods -l application=default-interconnect
   register: expected_pods
-  changed_when: false
+
+- name: "Get the observability strategy and set the observability_api"
+  ansible.builtin.include_role:
+    name: test_alerts
+    tasks_from: get_observability_api.yml
 
 - name: "Do the test procedure"
   block:
@@ -20,6 +24,29 @@
       register: cmd_output
       failed_when: cmd_output.rc != 0
 
+    - name: "Create an alert for an interrruption to metrics"
+      ansible.builtin.shell:
+        cmd: |
+          oc apply -f - <<EOF
+          apiVersion: {{ observability_api }}/v1
+          kind: PrometheusRule
+          metadata:
+            creationTimestamp: null
+            labels:
+              prometheus: default
+              role: alert-rules
+            name: fvt-test-prometheus-alarm-rules-snmp
+            namespace: service-telemetry
+          spec:
+            groups:
+              - name: ./openstack.rules
+                rules:
+                  - alert: FVT_TESTING Collectd metrics receive rate is zero
+                    expr: rate(sg_total_collectd_msg_received_count[1m]) == 0
+                    labels:
+                      oid: 1.3.6.1.4.1.50495.15.1.2.1
+                      severity: critical
+          EOF
 
     - name: "RHELOSP-144966 Interrupt metrics flow by preventing the QDR from running"
       ansible.builtin.shell:
@@ -36,6 +63,18 @@
       failed_when: "cmd_output.stdout_lines | length == 0"
 
   always:
+    - name: "Delete the PrometheusRule"
+      ansible.builtin.command: |
+        oc delete prometheusrule.{{ observability_api }} fvt-test-prometheus-alarm-rules-snmp
+
+    - name: "Wait up to two minutes until the rule is deleted"
+      ansible.builtin.command:
+        cmd: |
+          curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
+      retries: 12
+      delay: 10
+      until: 'not "FVT_TESTING Collectd metrics receive rate is zero" in cmd_output.stdout'
+
     - name: "Wait up to 2 minutes to make sure all default-interconnect pods are back"
       ansible.builtin.shell:
         oc get pods -l application=default-interconnect
