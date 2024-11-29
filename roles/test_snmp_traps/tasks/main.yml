@@ -41,6 +41,11 @@
           oc logs -l "app=default-snmp-webhook"
 
   always:
+    - name: "Delete the alert"
+      ansible.builtin.shell:
+        cmd: |
+          oc delete prometheusrules.{{ observability_api }} test-prometheus-alarm-rules-snmp
+
     - name: "Wait up to 2 minutes to make sure all default-interconnect pods are back"
       ansible.builtin.command:
         cmd: |
