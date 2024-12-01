@@ -83,7 +83,7 @@
     var: cypress_run.stdout_lines
 
 - name: |
-    TEST Check if all Cypress tests passed
+    TEST Check if all tests passed
     RHOSO-13628
   ansible.builtin.fail:
     msg: "Some Cypress tests failed."
