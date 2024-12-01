@@ -61,7 +61,7 @@
   changed_when: false
 
 - name: |
-    TEST Cypress tests to validate dashboards exist
+    TEST Run Cypress tests
     RHOSO-13627
   ansible.builtin.shell: |
       Xvfb :99 -ac &
