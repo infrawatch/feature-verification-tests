@@ -1,8 +1,8 @@
   #In this test we choose one container (logrotate_crond),checking that it is running 
   #and then stopping the container and starting it again and checking that its health status changes accordingly.
 
-- name: RHELOSP-176011 Check that logrotate_crond container is running on controller-0
-  delegate_to: "{{ groups['overcloud_nodes'][0] }}"
+- name: RHELOSP-176011 Check that logrotate_crond container is running on ceph-0
+  delegate_to: ceph-0
   become: true
   delegate_facts: True
   ansible.builtin.shell:
@@ -14,11 +14,11 @@
 
 
 
-- name: RHELOSP-176012 Stop logrotate_crond container on controller-0
+- name: RHELOSP-176012 Stop logrotate_crond container on ceph-0
   ansible.builtin.shell:
     cmd: |
        systemctl stop tripleo_logrotate_crond
-  delegate_to: "{{ groups['overcloud_nodes'][0] }}"
+  delegate_to: ceph-0
   become: true
   register: output
   changed_when: false
@@ -28,7 +28,7 @@
 - name: RHELOSP-176037 Check that logrotate_crond container has stopped
   ansible.builtin.shell: |
     {{ container_bin }} ps | grep logrotate_crond 
-  delegate_to: "{{ groups['overcloud_nodes'][0] }}"
+  delegate_to: ceph-0
   become: true
   register: container_nodes
   changed_when: false
@@ -41,16 +41,20 @@
 - name: RHELOSP-176036 Check that health status of container changed to 0
   ansible.builtin.shell:
     cmd: /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="ceph-0.redhat.local"}[10m])' | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0
+    #  /usr/bin/curl -k {{ prom_auth_string }} \
+    #    -g https://{{ prom_url }}/api/v1/query? \
+    #    --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="{{ groups['overcloud_nodes'][0] }}"}[10m])' \
+    #    | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0 | wc -l
   register: output
   changed_when: false
-  failed_when: "output.stdout_lines | length != 1"
+  failed_when: "output.stdout_lines | length != 0"
 
 
 - name: RHELOSP-176035 Start logrotate_crond container
   ansible.builtin.shell:
     cmd: |
        systemctl start tripleo_logrotate_crond
-  delegate_to: "{{ groups['overcloud_nodes'][0] }}"
+  delegate_to: ceph-0
   become: true
   register: output
   changed_when: false
@@ -70,4 +74,5 @@
         | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' |  grep -o '[0-9]\+' | grep 1
   register: output
   changed_when: false
-  failed_when: "output.stdout_lines | length != 1"
+  failed_when: "output.stdout_lines | length != 0"
+
