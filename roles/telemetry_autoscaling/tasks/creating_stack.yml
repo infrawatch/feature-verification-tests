@@ -72,6 +72,8 @@
     # source ~/overcloudrc;
     {{ openstack_cmd }} metric list
   register: result
+  retries: 12
+  delay: 10
   failed_when: '"ceilometer_cpu" not in result.stdout'
 
 - name: Print the result
