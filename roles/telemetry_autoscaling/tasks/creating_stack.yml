@@ -72,7 +72,9 @@
     # source ~/overcloudrc;
     {{ openstack_cmd }} metric list
   register: result
-  failed_when: '"ceilometer_cpu" not in result.stdout'
+  retries: 12
+  delay: 10
+  until: '"ceilometer_cpu" in result.stdout'
 
 - name: Print the result
   ansible.builtin.debug:

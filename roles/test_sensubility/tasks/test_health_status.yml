@@ -75,3 +75,4 @@
   register: output
   changed_when: false
   failed_when: "output.stdout_lines | length != 0"
+
