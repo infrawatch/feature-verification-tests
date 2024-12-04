@@ -46,7 +46,6 @@
       oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c 'curl -k -H \
         "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
         https://default-alertmanager-proxy:9095/api/v1/alerts' | grep 'active' | grep 'Collectd metrics receive rate is zero'
-
   register: cmd_output
   changed_when: false
   failed_when: cmd_output.stdout_lines | length == 0
