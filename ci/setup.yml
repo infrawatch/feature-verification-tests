@@ -1,5 +1,5 @@
 ---
-- name: Run telemetry autoscaling tests on osp18
+- name: Run telemetry tests on osp18
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
   environment:
@@ -17,8 +17,6 @@
         - community.general.make:
             chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
             target: edpm_deploy_instance
-          tags:
-            - setup
 
         - name: Patch the openstackversions to use the master containers for aodh and heat
           ansible.builtin.shell:
@@ -26,8 +24,6 @@
               oc patch openstackversions controlplane --type merge --patch-file ci/patch-openstack-versions.yaml
             chdir: "{{ fvt_dir }}"
           when: "{{ patch_openstackversions | bool }}"
-          tags:
-            - setup
 
         - name: Redeploy the dataplane
           ansible.builtin.shell:
@@ -37,8 +33,7 @@
               sleep 10
               oc apply -f /tmp/osdpd.yaml
           when: "{{ patch_openstackversions | bool }}"
-          tags:
-            - setup
+
 
         - name: Patch observabilityclient into openstackclient
           ansible.builtin.shell:
@@ -47,8 +42,16 @@
               oc exec openstackclient -- python3 -m pip install --upgrade aodhclient
               oc exec openstackclient -- python3 -m pip install --upgrade python-observabilityclient
           when: "{{ patch_openstackversions | bool }}"
-          tags:
-            - setup
+
+
+        - name: "Enable Graphing"
+          ansible.builtin.shell:
+            cmd: |
+              oc patch oscp/controlplane --type='json' -p '[{"op": "replace", "path": "/spec/telemetry/template/metricStorage/dashboardsEnabled", "value":true}]'
+          register: oscp_change
+          changed_when: false
+          when: "{{ running_job = telemetry_graphing }}"
+
 
         - name: Wait until the oscp is resolved the changes to continue
           ansible.builtin.shell:
@@ -59,8 +62,6 @@
           until: output.stdout_lines | length == 1
           register: output
           when: "{{ patch_openstackversions | bool }}"
-          tags:
-            - setup
 
         - name: Wait until the osdpd is redeployed to continue
           ansible.builtin.shell:
@@ -71,29 +72,6 @@
           until: output.stdout_lines | length == 1
           register: output
           when: "{{ patch_openstackversions | bool }}"
-          tags:
-            - setup
 
-        - name: "Run Telemetry Autoscaling tests"
-          ansible.builtin.import_role:
-            name: telemetry_autoscaling
-          ignore_errors: true
 
-      always:
-        - name: Revert the version update
-          ansible.builtin.shell:
-            cmd: |
-              oc patch  openstackversions controlplane  --type json -p='[{"op": "replace", "path": "/spec/customContainerImages", "value": {} }]'
-          when: "{{ patch_openstackversions | bool }}"
-
-        - name: Redeploy the dataplane
-          ansible.builtin.shell:
-            cmd: |
-              oc get osdpd edpm-deployment -oyaml > /tmp/osdpd.yaml
-              oc delete osdpd edpm-deployment
-              sleep 10
-              oc apply -f /tmp/osdpd.yaml
-          when: "{{ patch_openstackversions | bool }}"
-          tags:
-            - setup
 
