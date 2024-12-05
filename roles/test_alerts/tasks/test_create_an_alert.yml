@@ -46,6 +46,8 @@
       ansible.builtin.command:
         cmd: |
           oc delete prometheusrule.{{ observability_api }} fvt-testing-prometheus-alarm-rules
+      register: delete_prom
+      changed_when: delete_prom.rc == 0
 
     - name: Wait up to two minutes until the rule is deleted
       ansible.builtin.command:
@@ -54,3 +56,4 @@
       retries: 12
       delay: 10
       until: 'not "FVT_TESTING Collectd metrics receive rate is zero" in cmd_output.stdout'
+      changed_when: false
