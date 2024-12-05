@@ -33,22 +33,21 @@
   register: container_nodes
   changed_when: false
   failed_when: container_nodes.stdout_lines|length != 0
- 
+
 - name: "Wait 1 minute before checking that health status of container has been changed"
   ansible.builtin.pause:
     minutes: 1
 
 - name: RHELOSP-176036 Check that health status of container changed to 0
   ansible.builtin.shell:
-    cmd: /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="ceph-0.redhat.local"}[10m])' | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0 | wc -l
+    cmd: /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="ceph-0.redhat.local"}[10m])' | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0
     #  /usr/bin/curl -k {{ prom_auth_string }} \
     #    -g https://{{ prom_url }}/api/v1/query? \
     #    --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="{{ groups['overcloud_nodes'][0] }}"}[10m])' \
     #    | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0 | wc -l
   register: output
   changed_when: false
-  failed_when: "output.stdout|int != 0"
-  
+  failed_when: "output.stdout_lines | length != 0"
 
 
 - name: RHELOSP-176035 Start logrotate_crond container
@@ -72,8 +71,8 @@
       /usr/bin/curl -k {{ prom_auth_string }} \
         -g https://{{ prom_url }}/api/v1/query? \
         --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="ceph-0.redhat.local"}[10m])' \
-        | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' |  grep -o '[0-9]\+' | grep 1 | wc -l
+        | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' |  grep -o '[0-9]\+' | grep 1
   register: output
   changed_when: false
-  failed_when: "output.stdout|int != 0"
+  failed_when: "output.stdout_lines | length != 0"
 

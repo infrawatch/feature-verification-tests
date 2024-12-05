@@ -45,18 +45,18 @@
     cmd: >-
       oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c 'curl -k -H \
         "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
-        https://default-alertmanager-proxy:9095/api/v1/alerts' | grep 'active' | grep 'Collectd metrics receive rate is zero' | wc -l
+        https://default-alertmanager-proxy:9095/api/v1/alerts' | grep 'active' | grep 'Collectd metrics receive rate is zero'
   register: cmd_output
   changed_when: false
-  failed_when: cmd_output.stdout|int == 0
+  failed_when: cmd_output.stdout_lines | length == 0
 
 - name: "RHELOSP-148699 Verify that the alert is firing in Prometheus"
   ansible.builtin.shell:
     cmd: >-
-      /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/alerts | grep 'firing' | grep 'Collectd metrics receive rate is zero' | wc -l
+      /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/alerts | grep 'firing' | grep 'Collectd metrics receive rate is zero'
   register: cmd_output
   changed_when: false
-  failed_when: cmd_output.stdout|int == 0
+  failed_when: cmd_output.stdout_lines | length == 0
 
 
 - name: "Wait 2 minutes to make sure all SG pods are back to normal"
