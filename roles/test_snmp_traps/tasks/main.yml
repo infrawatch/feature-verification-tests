@@ -13,7 +13,6 @@
       register: cmd_output
       failed_when: cmd_output.rc != 0
 
-
     - name: "RHELOSP-144966 Interrupt metrics flow by preventing the QDR from running"
       ansible.builtin.shell:
         cmd: |
@@ -23,10 +22,16 @@
     - name: "RHELOSP-144481 Check for snmpTraps logs"
       ansible.builtin.shell:
         cmd: |
-          oc logs -l "app=default-snmp-webhook"  | grep "Sending SNMP trap"
+          oc logs -l "app=default-snmp-webhook" | grep "Sending SNMP trap"
       register: cmd_output
       changed_when: false
       failed_when: "cmd_output.stdout_lines | length == 0"
+
+  rescue:
+    - name: "Get the snmp traps logs"
+      ansible.builtin.shell:
+        cmd: |
+          oc logs -l "app=default-snmp-webhook"
 
   always:
     - name: "Wait 2 minutes to make sure all SG pods are back to normal"
