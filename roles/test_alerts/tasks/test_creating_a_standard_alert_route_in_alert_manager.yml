@@ -97,7 +97,7 @@
       failed_when: '"FVT_TESTING Collectd metrics receive rate is zero" not in cmd_output.stdout'
 
     - name: "Check what alerts are firing in prometheus"
-      ansible.builtin.shell:
+      ansible.builtin.command:
         cmd: >-
           curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/alerts
       register: cmd_output
