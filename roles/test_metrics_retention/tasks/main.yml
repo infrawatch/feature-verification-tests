@@ -13,16 +13,12 @@
   failed_when: cmd_output.rc != 0
 
 
-- name: "Wait 2 minutes for prometheus container to restart"
-  ansible.builtin.pause:
-    minutes: 2
-  changed_when: false
-
-
 - name: "RHELOSP-144484 Check that the retention was set"
   ansible.builtin.shell:
     cmd: |
       oc describe pod prometheus-default-0  | grep -o 'storage.tsdb.retention.time=17d'
   register: cmd_output
   changed_when: false
-  failed_when: "cmd_output.stdout_lines | length == 0"
+  retries: 12
+  delay: 10
+  until: "cmd_output.stdout_lines | length > 0"
