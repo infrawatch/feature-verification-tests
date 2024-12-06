@@ -68,7 +68,7 @@
     - name: "Delete the PrometheusRule"
       ansible.builtin.command:
         cmd: |
-          oc delete prometheusrule.{{ observability_api }} fvt-testing-prometheus-alarm-rules-snmp
+          oc delete prometheusrule.{{ observability_api }} fvt-test-prometheus-alarm-rules-snmp
       register: delete_prom
       changed_when: delete_prom.rc == 0
 
