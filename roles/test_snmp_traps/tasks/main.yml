@@ -3,31 +3,33 @@
 # Following procedure on https://infrawatch.github.io/documentation/#configuring-snmp-traps_assembly-advanced-features
 # Assuming we're in the right project already...
 
-- name: "RHELOSP-144987 Set the alerting.alertmanager.receivers.snmpTraps parameters"
-  ansible.builtin.shell:
-    cmd: |
-      oc patch stf/default --type merge -p '{"spec": {"alerting": {"alertmanager": {"receivers": {"snmpTraps": {"enabled": true, "target": "10.10.10.10" }}}}}}'
-  changed_when: false
-  register: cmd_output
-  failed_when: cmd_output.rc != 0
+- name: "Do the test procedure"
+  block:
+    - name: "RHELOSP-144987 Set the alerting.alertmanager.receivers.snmpTraps parameters"
+      ansible.builtin.shell:
+        cmd: |
+          oc patch stf/default --type merge -p '{"spec": {"alerting": {"alertmanager": {"receivers": {"snmpTraps": {"enabled": true, "target": "10.10.10.10" }}}}}}'
+      changed_when: false
+      register: cmd_output
+      failed_when: cmd_output.rc != 0
 
 
-- name: "RHELOSP-144966 Interrupt metrics flow by preventing the QDR from running"
-  ansible.builtin.shell:
-    cmd: |
-      for i in {1..30}; do oc delete po -l application=default-interconnect; sleep 1; done
-  changed_when: false
+    - name: "RHELOSP-144966 Interrupt metrics flow by preventing the QDR from running"
+      ansible.builtin.shell:
+        cmd: |
+          for i in {1..30}; do oc delete po -l application=default-interconnect; sleep 1; done
+      changed_when: false
 
-- name: "RHELOSP-144481 Check for snmpTraps logs"
-  ansible.builtin.shell:
-    cmd: |
-      oc logs -l "app=default-snmp-webhook"  | grep "Sending SNMP trap"
-  register: cmd_output
-  changed_when: false
-  failed_when: "cmd_output.stdout_lines | length == 0"
+    - name: "RHELOSP-144481 Check for snmpTraps logs"
+      ansible.builtin.shell:
+        cmd: |
+          oc logs -l "app=default-snmp-webhook"  | grep "Sending SNMP trap"
+      register: cmd_output
+      changed_when: false
+      failed_when: "cmd_output.stdout_lines | length == 0"
 
-
-- name: "Wait 2 minutes to make sure all SG pods are back to normal"
-  ansible.builtin.pause:
-    minutes: 2
-  changed_when: false
+  always:
+    - name: "Wait 2 minutes to make sure all SG pods are back to normal"
+      ansible.builtin.pause:
+        minutes: 2
+      changed_when: false
