@@ -24,8 +24,11 @@ Tests:
 - Verify Ceilometer metrics are being exposed and stored
     - Use openstack observabilityclient to verify Ceilometer central metrics are stored in Prometheus
     - Use openstack observabilityclient to verify Ceilometer compute metrics are stored in Prometheus
+    - Use openstack observabilityclient to verify Ceilometer ipmi metrics are stored in Prometheus
 - Verify NodeExporter metrics are being exposed and stored
     - Use openstack observabilityclient to verify NodeExporter metrics are stored in Prometheus
+- Verify Kepler metrics are being exposed and stored
+    - Use openstack observabilityclient to verify Kepler metrics are stored in Prometheus
 
 Role Variables
 --------------
