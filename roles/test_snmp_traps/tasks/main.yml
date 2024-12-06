@@ -76,7 +76,7 @@
     - name: "Delete the PrometheusRule"
       ansible.builtin.command:
         cmd: |
-          oc delete prometheusrule.{{ observability_api }} fvt-testing-prometheus-alarm-rules-snmp
+          oc delete prometheusrule.{{ observability_api }} fvt-test-prometheus-alarm-rules-snmp
       # Will be changed when the rc is 0, since this indicates that the resource was found and will be deleted
       # the errors should be ignored
       # failed_when, the rc has an error...
