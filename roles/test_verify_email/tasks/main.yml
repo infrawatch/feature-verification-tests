@@ -45,7 +45,7 @@
     - name: "RHELOSP-176043 Patch the ServiceTelemetry object for the STF deployment"
       ansible.builtin.shell:
         cmd: |
-          oc patch stf default --type merge -p '{"spec": {"alertmanagerConfigManifest": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: 'alertmanager-default'\n  namespace: 'service-telemetry'\ntype: Opaque\nstringData:\n  alertmanager.yaml: |-\n    global:\n      resolve_timeout: 10m\n      smtp_smarthost: localhost:25\n      smtp_from: lesik@gmail.com\n      smtp_auth_username: alertmanager\n      smtp_auth_password: password\n    route:\n      group_by: ['job']\n      group_wait: 30s\n      group_interval: 5m\n      repeat_interval: 12h\n      receiver: 'email'\n    receivers:\n    - name: 'email'\n      email_configs:\n      - to: mx@redhat.com"}}'
+          oc patch stf default --type merge -p '{"spec": {"alertmanagerConfigManifest": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: 'alertmanager-default'\n  namespace: 'service-telemetry'\ntype: Opaque\nstringData:\n  alertmanager.yaml: |-\n    global:\n      resolve_timeout: 10m\n      smtp_smarthost: localhost:25\n      smtp_from: lesik@gmail.com\n      smtp_auth_username: alertmanager\n      smtp_auth_password: password\n    route:\n      group_by: ['job']\n      group_wait: 30s\n      group_interval: 5m\n      repeat_interval: 12h\n      receiver: 'email'\n    receivers:\n    - name: \"email\"\n      email_configs:\n      - to: mx@redhat.com"}}'
       changed_when: false
 
     - name: "RHELOSP-176044 Interrupt metrics flow by preventing the QDR from running"
