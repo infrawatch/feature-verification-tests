@@ -83,8 +83,10 @@
     var: cypress_run.stdout_lines
 
 - name: |
-    TEST Check if all tests passed
+    TEST Check if all Cypress tests passed
     RHOSO-13628
-  ansible.builtin.fail:
-    msg: "Some Cypress tests failed."
-  when: cypress_run.rc != 0
+  ansible.builtin.assert:
+    that:
+      - cypress_run.rc == 0
+    fail_msg: "Some Cypress tests failed."
+    success_msg: "All Cypress tests passed successfully."
