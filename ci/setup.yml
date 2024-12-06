@@ -9,7 +9,9 @@
     - vars/common.yml
     - vars/osp18_env.yml
   tasks:
-    - block:
+    - name: Setup Tasks for autoscaling
+      when: running_job == "telemetry_autoscaling"
+      block:
         - name: Include vars from the extra_vars files
           ansible.builtin.include_vars:
             dir: "{{ cifmw_basedir }}/artifacts/parameters"
@@ -43,16 +45,6 @@
               oc exec openstackclient -- python3 -m pip install --upgrade python-observabilityclient
           when: "{{ patch_openstackversions | bool }}"
 
-
-        - name: "Enable Graphing"
-          ansible.builtin.shell:
-            cmd: |
-              oc patch oscp/controlplane --type='json' -p '[{"op": "replace", "path": "/spec/telemetry/template/metricStorage/dashboardsEnabled", "value":true}]'
-          register: oscp_change
-          changed_when: false
-          when: "{{ running_job = telemetry_graphing }}"
-
-
         - name: Wait until the oscp is resolved the changes to continue
           ansible.builtin.shell:
             cmd: |
@@ -72,6 +64,17 @@
           until: output.stdout_lines | length == 1
           register: output
           when: "{{ patch_openstackversions | bool }}"
+
+    - name: Setup Tasks for graphing
+      when: running_job == "telemetry_graphing"
+      block:
+        - name: "Enable Graphing"
+          ansible.builtin.shell:
+            cmd: |
+              oc patch oscp/controlplane --type='json' -p '[{"op": "replace", "path": "/spec/telemetry/template/metricStorage/dashboardsEnabled", "value":true}]'
+          register: oscp_change
+          changed_when: false
+          when: "{{ running_job = telemetry_graphing }}"
 
 
 
