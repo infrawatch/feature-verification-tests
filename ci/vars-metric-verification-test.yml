@@ -1,4 +1,5 @@
 ---
+cifmw_polarion_jump_result_dir: “{{ ansible_user_dir }}/ci-framework-data/logs/feature-verification-tests”
 post_deploy_00_fvt_verify_metrics:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_verify_metrics_osp18.yml"
   type: playbook
