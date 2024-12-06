@@ -36,8 +36,9 @@
 
   always:
     - name: "Wait up to 2 minutes to make sure all default-interconnect pods are back"
-      ansible.builtin.shell:
-        oc get pods -l application=default-interconnect
+      ansible.builtin.command:
+        cmd: |
+          oc get pods -l application=default-interconnect
       retries: 24
       delay: 5
       register: output
