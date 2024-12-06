@@ -20,7 +20,6 @@
       register: cmd_output
       failed_when: cmd_output.rc != 0
 
-
     - name: "RHELOSP-144966 Interrupt metrics flow by preventing the QDR from running"
       ansible.builtin.shell:
         cmd: |
