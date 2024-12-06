@@ -48,6 +48,7 @@
                       severity: critical
           EOF
 
+
     - name: "RHELOSP-144966 Interrupt metrics flow by preventing the QDR from running"
       ansible.builtin.shell:
         cmd: |
