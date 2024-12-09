@@ -45,7 +45,7 @@
       - roles/test_verify_email/.*
 
 - job:
-    name: functional-logging-test-osp18
+    name: functional-logging-tests-osp18
     parent: telemetry-operator-multinode-logging
     description: |
       Run the logging functional tests on osp18
@@ -111,6 +111,6 @@
             override-checkout: main
             irrelevant-files: *irrelevant_files
         - functional-tests-on-osp18
-        - functional-logging-test-osp18
+        - functional-logging-tests-osp18
         - functional-graphing-tests-osp18
         - functional-metric-verification-tests-osp18
