@@ -45,7 +45,7 @@
       - roles/test_verify_email/.*
 
 - job:
-    name: functional-logging-tests-osp18
+    name: functional-logging-test-osp18
     parent: telemetry-operator-multinode-logging
     description: |
       Run the logging functional tests on osp18
