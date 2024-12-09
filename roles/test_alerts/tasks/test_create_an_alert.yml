@@ -34,6 +34,7 @@
         cmd: |
           curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
       register: cmd_output
+      changed_when: true
 
   always:
     - name: "Delete the PrometheusRule"
