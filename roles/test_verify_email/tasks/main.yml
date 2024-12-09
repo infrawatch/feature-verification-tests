@@ -46,9 +46,11 @@
     - name: "RHELOSP-176045 Check for alertmanager logs"
       ansible.builtin.shell:
         cmd: |
-          oc logs alertmanager-default-0 -c alertmanager  | grep 'receiver=email'
+          oc logs alertmanager-default-0 -c alertmanager
       register: cmd_output
-      failed_when: "cmd_output.stdout_lines | length == 0"
+      retries: 18
+      delay: 10
+      until: "'receiver=email' in cmd_output.stdout"
       changed_when: false
 
   always:
