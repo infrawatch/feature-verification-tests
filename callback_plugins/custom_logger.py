@@ -85,7 +85,7 @@ class CallbackModule(CallbackBase):
             print("The host %s does not have any results" % host)
             return
 
-        with open(file_path, 'w') as f:
+        with open(file_path, 'a') as f:
             f.write(f"Host: {host}\n")
             f.write(f"Tasks Succeeded: {self.results[host]['passed']}\n")
             f.write(f"Tasks Failed: {self.results[host]['failed']}\n")
