@@ -17,7 +17,7 @@
       ansible.builtin.shell:
         cmd: |
           oc patch stf default --type merge -p '{"spec": {"alertmanagerConfigManifest": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: 'alertmanager-default'\n  namespace: 'service-telemetry'\ntype: Opaque\nstringData:\n  alertmanager.yaml: |-\n    global:\n      resolve_timeout: 10m\n    route:\n      group_by: ['job']\n      group_wait: 30s\n      group_interval: 5m\n      repeat_interval: 12h\n      receiver: 'null'\n    receivers:\n    - name: 'null'\n"}}'
-      changed_when: false
+      changed_when: 'cmd_output == "servicetelemetry.infra.watch/default patched"'
       register: cmd_output
       failed_when: cmd_output.rc != 0
 
