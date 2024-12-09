@@ -31,7 +31,7 @@
       ansible.builtin.shell:
         cmd: |
           oc patch stf/default --type merge -p '{"spec": {"alerting": {"alertmanager": {"receivers": {"snmpTraps": {"enabled": true, "target": "10.10.10.10" }}}}}}'
-      changed_when: false
+      changed_when: 'cmd_output == "servicetelemetry.infra.watch/default patched"'
       register: cmd_output
       failed_when: cmd_output.rc != 0
 
@@ -95,6 +95,14 @@
       delay: 10
       until: 'not "FVT_TESTING Collectd metrics receive rate is zero" in cmd_output.stdout'
       changed_when: false
+
+    - name: "Remove alertmanagerConfigManifest from the ServiceTelemetry object"
+      ansible.builtin.shell:
+        cmd: |
+          oc patch stf/default --type='json' -p '[{"op": "replace", "path": "/spec/alerting/alertmanager/receivers/snmpTraps/enabled", "value": false }]'
+      changed_when: false
+      register: cmd_output
+      failed_when: cmd_output.rc != 0
 
     - name: "Wait up to 2 minutes to make sure all default-interconnect pods are back"
       ansible.builtin.command:
