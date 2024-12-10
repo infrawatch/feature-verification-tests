@@ -10,15 +10,48 @@
   register: expected_pods
   changed_when: false
 
+- name: "Get the observability strategy and set the observability_api"
+  ansible.builtin.include_role:
+    name: test_alerts
+    tasks_from: get_observability_api.yml
+
 - name: "Do the test procedure"
   block:
     - name: "RHELOSP-144987 Set the alerting.alertmanager.receivers.snmpTraps parameters"
       ansible.builtin.shell:
         cmd: |
           oc patch stf/default --type merge -p '{"spec": {"alerting": {"alertmanager": {"receivers": {"snmpTraps": {"enabled": true, "target": "10.10.10.10" }}}}}}'
-      changed_when: false
+      changed_when: 'cmd_output == "servicetelemetry.infra.watch/default patched"'
       register: cmd_output
       failed_when: cmd_output.rc != 0
+
+    - name: "Create an alert for an interrruption to metrics"
+      ansible.builtin.shell:
+        cmd: |
+          oc apply -f - <<EOF
+          apiVersion: {{ observability_api }}/v1
+          kind: PrometheusRule
+          metadata:
+            creationTimestamp: null
+            labels:
+              prometheus: default
+              role: alert-rules
+            name: fvt-test-prometheus-alarm-rules-snmp
+            namespace: service-telemetry
+          spec:
+            groups:
+              - name: ./openstack.rules
+                rules:
+                  - alert: FVT_TESTING Collectd metrics receive rate is zero
+                    expr: rate(sg_total_collectd_msg_received_count[1m]) == 0
+                    labels:
+                      oid: 1.3.6.1.4.1.50495.15.1.2.1
+                      severity: critical
+          EOF
+      changed_when: true
+      # perhaps the changed_when should be explicit
+      # i.e. changed_when stdout contains "resource X was updated/created"
+      # which would mean it would report as not changed when the alarm already exists and is identical to what is being created
 
     - name: "RHELOSP-144966 Interrupt metrics flow by preventing the QDR from running"
       ansible.builtin.shell:
@@ -29,12 +62,44 @@
     - name: "RHELOSP-144481 Check for snmpTraps logs"
       ansible.builtin.shell:
         cmd: |
-          oc logs -l "app=default-snmp-webhook"  | grep "Sending SNMP trap"
+          oc logs -l "app=default-snmp-webhook"
       register: cmd_output
       changed_when: false
-      failed_when: "cmd_output.stdout_lines | length == 0"
+      failed_when: "'Sending SNMP trap' not in cmd_output.stdout"
+
+  rescue:
+    - name: "Get the snmp traps logs"
+      ansible.builtin.debug:
+        var: cmd_output.stdout
 
   always:
+    - name: "Delete the PrometheusRule"
+      ansible.builtin.command:
+        cmd: |
+          oc delete prometheusrule.{{ observability_api }} fvt-test-prometheus-alarm-rules-snmp
+      # Will be changed when the rc is 0, since this indicates that the resource was found and will be deleted
+      # the errors should be ignored
+      # failed_when, the rc has an error...
+      register: delete_prom
+      changed_when: delete_prom.rc == 0
+
+    - name: "Wait up to two minutes until the rule is deleted"
+      ansible.builtin.command:
+        cmd: |
+          curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
+      retries: 12
+      delay: 10
+      until: 'not "FVT_TESTING Collectd metrics receive rate is zero" in cmd_output.stdout'
+      changed_when: false
+
+    - name: "Remove alertmanagerConfigManifest from the ServiceTelemetry object"
+      ansible.builtin.shell:
+        cmd: |
+          oc patch stf/default --type='json' -p '[{"op": "replace", "path": "/spec/alerting/alertmanager/receivers/snmpTraps/enabled", "value": false }]'
+      changed_when: 'cmd_output == "servicetelemetry.infra.watch/default patched"'
+      register: cmd_output
+      failed_when: cmd_output.rc != 0
+
     - name: "Wait up to 2 minutes to make sure all default-interconnect pods are back"
       ansible.builtin.command:
         cmd: |

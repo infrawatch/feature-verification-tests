@@ -23,8 +23,6 @@
   register: output
   changed_when: false
 
-
-
 - name: RHELOSP-176037 Check that logrotate_crond container has stopped
   ansible.builtin.shell: |
     {{ container_bin }} ps | grep logrotate_crond 
@@ -34,16 +32,61 @@
   changed_when: false
   failed_when: container_nodes.stdout_lines|length != 0
 
-- name: "Wait 1 minute before checking that health status of container has been changed"
-  ansible.builtin.pause:
-    minutes: 1
 
+  # issue might be that the value is aggregated over 10m, and we only check for 2
 - name: RHELOSP-176036 Check that health status of container changed to 0
   ansible.builtin.shell:
     cmd: /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="ceph-0.redhat.local"}[10m])' | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0
   register: output
   changed_when: false
-  failed_when: "output.stdout_lines | length != 1"
+  retries: 12
+  delay: 10
+  until: "output.stdout_lines | length == 1"
+
+- name: NEW RHELOSP-176036 but check over a smaller time
+  ansible.builtin.shell:
+    cmd: /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="ceph-0.redhat.local"}[2m])' | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0
+  register: output
+  changed_when: false
+  retries: 12
+  delay: 10
+  until: "output.stdout_lines | length == 1"
+
+- name: NEW RHELOSP-176036 but check over a smaller time
+  ansible.builtin.shell:
+    cmd: /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="ceph-0.redhat.local"}[2m])' | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0
+  register: output
+  changed_when: false
+  retries: 12
+  delay: 10
+  until: "output.stdout_lines | length == 1"
+
+- name: NEW RHELOSP-176036 but wait for up to 10 minutes
+  ansible.builtin.shell:
+    cmd: /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="ceph-0.redhat.local"}[10m])' | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0
+  register: output
+  changed_when: false
+  retries: 60
+  delay: 10
+  until: "output.stdout_lines | length == 1"
+
+- name: NEW RHELOSP-176036 but don't "grep 0"
+  ansible.builtin.shell:
+    cmd: /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="ceph-0.redhat.local"}[10m])' | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+'
+  register: output
+  changed_when: false
+
+- name: NEW RHELOSP-176036 but skip the awk
+  ansible.builtin.shell:
+    cmd: /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="ceph-0.redhat.local"}[10m])' | grep -oP '(?<="value":).*'
+  register: output
+  changed_when: false
+
+- name: NEW RHELOSP-176036 but check the whole output
+  ansible.builtin.shell:
+    cmd: /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="ceph-0.redhat.local"}[10m])'
+  register: output
+  changed_when: false
 
 
 - name: RHELOSP-176035 Start logrotate_crond container
@@ -56,11 +99,6 @@
   changed_when: false
 
 
-- name: "Wait 1 minute before checking that health status of container has been changed"
-  ansible.builtin.pause:
-    minutes: 1
-
-
 - name: RHELOSP-176038 Check that health status of container changed to 1
   ansible.builtin.shell:
     cmd: >-
@@ -70,5 +108,7 @@
         | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' |  grep -o '[0-9]\+' | grep 1
   register: output
   changed_when: false
-  failed_when: "output.stdout_lines | length != 1"
+  retries: 12
+  delay: 10
+  until: "output.stdout_lines | length == 1"
 
