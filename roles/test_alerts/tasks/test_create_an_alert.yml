@@ -3,34 +3,36 @@
 # Assuming we're in the right project already...
 # Following procedure on https://infrawatch.github.io/documentation/#creating-an-alert-rule-in-prometheus_assembly-advanced-features
 
-- name: "RHELOSP-144965 Create the alert"
-  ansible.builtin.shell:
-    cmd: |
-      oc apply -f - <<EOF
-      apiVersion: {{ observability_api }}/v1
-      kind: PrometheusRule
-      metadata:
-        creationTimestamp: null
-        labels:
-          prometheus: default
-          role: alert-rules
-        name: prometheus-alarm-rules
-        namespace: service-telemetry
-      spec:
-        groups:
-          - name: ./openstack.rules
-            rules:
-              - alert: Collectd metrics receive rate is zero
-                expr: rate(sg_total_collectd_msg_received_count[1m]) == 0
-      EOF
-  changed_when: false
-  register: cmd_output
-  failed_when: cmd_output.rc != 0
+- name: "Do the test procedure"
+  block:
+    - name: "RHELOSP-144965 Create the alert"
+      ansible.builtin.shell:
+        cmd: |
+          oc apply -f - <<EOF
+          apiVersion: {{ observability_api }}/v1
+          kind: PrometheusRule
+          metadata:
+            creationTimestamp: null
+            labels:
+              prometheus: default
+              role: alert-rules
+            name: prometheus-alarm-rules
+            namespace: service-telemetry
+          spec:
+            groups:
+              - name: ./openstack.rules
+                rules:
+                  - alert: Collectd metrics receive rate is zero
+                    expr: rate(sg_total_collectd_msg_received_count[1m]) == 0
+          EOF
+      changed_when: false
+      register: cmd_output
+      failed_when: cmd_output.rc != 0
 
-- name: "RHELOSP-144480 Check that the alert was created"
-  ansible.builtin.command:
-    cmd: |
-      curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
-  register: cmd_output
-  changed_when: false
-  failed_when: cmd_output.rc != 0
+    - name: "RHELOSP-144480 Check that the alert was created"
+      ansible.builtin.command:
+        cmd: |
+          curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
+      register: cmd_output
+      changed_when: false
+      failed_when: cmd_output.rc != 0
