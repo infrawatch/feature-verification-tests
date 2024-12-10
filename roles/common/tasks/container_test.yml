@@ -6,7 +6,9 @@
   changed_when: false
   register: container_status
 
-- name: Verify container status {{ common_container_test_id }}
+- name: |
+    Verify {{ container_name }} container status
+    {{ common_container_test_id }}
   ansible.builtin.assert:
     that:
       - "'unhealthy' not in container_status.stdout"

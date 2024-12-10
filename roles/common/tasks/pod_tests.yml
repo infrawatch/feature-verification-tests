@@ -11,7 +11,9 @@
         - podinstance.stdout_lines | length != 1
       changed_when: false
 
-    - name: Check pod {{ common_pod_test_id }}
+    - name: |
+        TEST Check {{ item }} pod
+        {{ common_pod_test_id }}
       ansible.builtin.command:
         cmd: |
           oc get pod -n "{{ common_pod_nspace }}" "{{ podinstance.stdout }}"
