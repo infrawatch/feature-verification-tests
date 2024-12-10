@@ -27,6 +27,21 @@
     - common_project_list is defined
   ansible.builtin.include_tasks: "project_tests.yml"
   loop: "{{ common_project_list }}"
+
+- name: "Run service tests"
+  when:
+    - common_service_test_id is defined
+    - common_service_nspace is defined
+    - common_service_list is defined
+  ansible.builtin.include_tasks: "service_tests.yml"
+  loop: "{{ common_service_list }}"
+
+- name: "Run file tests"
+  when:
+    - common_file_test_id is defined
+    - common_file_list is defined
+  ansible.builtin.include_tasks: "file_tests.yml"
+  loop: "{{ common_file_list }}"
   
 - name: "Run manifest tests"
   when:
