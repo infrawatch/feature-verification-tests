@@ -54,10 +54,6 @@
         src: "{{ ansible_env.HOME }}/summary_results.log"
         dest: "{{ logs_dir }}/summary_result.log"
 
-    - name: "Print the results summary"
-      ansible.builtin.debug:
-        msg: "Just to trigger the logging job to test the collected"
-
 - name: "Check the results files for failed tasks"
   hosts: controller
   gather_facts: true
