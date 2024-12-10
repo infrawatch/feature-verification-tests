@@ -1,6 +1,7 @@
 ---
 # temp: skip os-net-setup
 cifmw_os_net_setup_config: []
+cifmw_polarion_jump_result_dir: “{{ ansible_user_dir }}/ci-framework-data/logs/feature-verification-tests”
 post_deploy_00_run_functional_test:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_autoscaling_osp18.yml"
   type: playbook
