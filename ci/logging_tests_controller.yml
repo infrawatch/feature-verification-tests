@@ -23,6 +23,29 @@
       - openshift
       - openstack-operators
       - openshift-logging
+    common_service_test_id: "RHOSO-12675"
+    common_service_nspace: openshift-logging
+    common_service_list:
+      - cluster-logging-operator-metrics
+      - logging-loki-compactor-grpc
+      - logging-loki-compactor-http
+      - logging-loki-distributor-grpc
+      - logging-loki-distributor-http
+      - logging-loki-gateway-http
+      - logging-loki-gossip-ring
+      - logging-loki-index-gateway-grpc
+      - logging-loki-index-gateway-http
+      - logging-loki-ingester-grpc
+      - logging-loki-ingester-http
+      - logging-loki-querier-grpc
+      - logging-loki-querier-http
+      - logging-loki-query-frontend-grpc
+      - logging-loki-query-frontend-http
+      - logging-view-plugin
+      - openstack-logging
+    common_file_test_id: "RHOSO-12754"
+    common_file_list:
+      - /etc/rsyslog.d/10-telemetry.conf
   tasks:
     - name: "Verify logging infrastructure components"
       ansible.builtin.import_role:
