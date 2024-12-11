@@ -13,5 +13,5 @@
       - nova_compute
   tasks:
     - name: "Run Telemetry Logging tests"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: telemetry_logging
