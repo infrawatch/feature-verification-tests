@@ -36,19 +36,42 @@
       ansible.builtin.debug:
         var: alertmanager_secret
 
+    - name: "RHELOSP-144965 Create the alert"
+      ansible.builtin.shell:
+        cmd: |
+          oc apply -f - <<EOF
+          apiVersion: {{ observability_api }}/v1
+          kind: PrometheusRule
+          metadata:
+            creationTimestamp: null
+            labels:
+              prometheus: default
+              role: alert-rules
+            name: fvt-testing-prometheus-alarm-rules-alertmanager
+            namespace: service-telemetry
+          spec:
+            groups:
+              - name: ./openstack.rules
+                rules:
+                  - alert: FVT_TESTING Collectd metrics receive rate is zero
+                    expr: rate(sg_total_collectd_msg_received_count[1m]) == 0
+          EOF
+      changed_when: false
+      register: cmd_output
+      failed_when: cmd_output.rc != 0
+
     - name: "RHELOSP-148697 Interrupt metrics flow by preventing the QDR from running"
       ansible.builtin.shell:
         cmd: |
           for i in {1..15}; do oc delete po -l application=default-interconnect; sleep 1; done
       changed_when: false
 
-
     - name: "RHELOSP-148698 Verify that the alert is active in Alertmanager"
       ansible.builtin.shell:
         cmd: >-
           oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c 'curl -k -H \
             "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
-            https://default-alertmanager-proxy:9095/api/v1/alerts' | grep 'active' | grep 'Collectd metrics receive rate is zero'
+            https://default-alertmanager-proxy:9095/api/v1/alerts' | grep 'active' | grep 'FVT_TESTING Collectd metrics receive rate is zero'
       register: cmd_output
       changed_when: false
       failed_when: cmd_output.stdout_lines | length == 0
@@ -56,11 +79,28 @@
     - name: "RHELOSP-148699 Verify that the alert is firing in Prometheus"
       ansible.builtin.shell:
         cmd: >-
-          /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/alerts | grep 'firing' | grep 'Collectd metrics receive rate is zero'
+          /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/alerts | grep 'firing' | grep 'FVT_TESTING Collectd metrics receive rate is zero'
       register: cmd_output
       changed_when: false
       failed_when: cmd_output.stdout_lines | length == 0
+
   always:
+    - name: "Delete the PrometheusRule"
+      ansible.builtin.command:
+        cmd: |
+          oc delete prometheusrule.{{ observability_api }} fvt-testing-prometheus-alarm-rules-alertmanager
+      register: delete_prom
+      changed_when: delete_prom.rc == 0
+
+    - name: "Wait up to two minutes until the rule is deleted"
+      ansible.builtin.command:
+        cmd: |
+          curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
+      retries: 12
+      delay: 10
+      until: 'not "FVT_TESTING Collectd metrics receive rate is zero" in cmd_output.stdout'
+      changed_when: false
+
     - name: "Wait 2 minutes to make sure all SG pods are back to normal"
       ansible.builtin.pause:
         minutes: 2
