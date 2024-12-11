@@ -16,7 +16,7 @@
       - /etc/rsyslog.d/10-telemetry.conf
   tasks:
     - name: "Run Telemetry Logging tests"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: telemetry_logging
 
     - name: "Run the tests from the common role"
