@@ -12,7 +12,7 @@
       changed_when: false
 
     - name: |
-        TEST Check {{ item }} pod
+        TEST Check {{ item }} pod is running in {{ common_pod_namespace }} namespace
         {{ common_pod_test_id }}
       ansible.builtin.command:
         cmd: |
