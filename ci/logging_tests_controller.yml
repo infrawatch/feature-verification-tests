@@ -47,7 +47,7 @@
       - /etc/rsyslog.d/10-telemetry.conf
   tasks:
     - name: "Verify logging infrastructure components"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
 
 - name: "Verify logging pods are running in openstack"
@@ -65,7 +65,7 @@
       - openstackclient
   tasks:
     - name: "Verify Running Pods"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
 
 
@@ -84,7 +84,7 @@
       - loki-operator-controller-manager
   tasks:
     - name: "Verify Pods running"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
 
 - name: "Verify logging pods are running in openshift-logging"
@@ -112,7 +112,7 @@
   ### see JIRA LOG-5431 if pods not running
   tasks:
     - name: "Verify Pods running"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
 
 - name: "Verify logging pods are running in minio-dev"
@@ -130,7 +130,7 @@
       - minio
   tasks:
     - name: "Run pod running tests"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
 
 
@@ -149,7 +149,7 @@
       - logging-edpm-deployment-openstack-edpm-ipam
   tasks:
     - name: "Run pods completed tests"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
 
 - name: "Verify the crds exist"
@@ -168,5 +168,5 @@
       - rulerconfigs.loki.grafana.com
   tasks:
     - name: "Run the crds tests"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
