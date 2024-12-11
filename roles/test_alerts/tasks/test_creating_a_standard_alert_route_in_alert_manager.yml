@@ -70,7 +70,7 @@
     - name: "RHELOSP-148697 Interrupt metrics flow by preventing the QDR from running"
       ansible.builtin.shell:
         cmd: |
-          for i in {1..15}; do oc delete po -l application=default-interconnect; sleep 1; done
+          for i in {1..30}; do oc delete po -l application=default-interconnect; sleep 1; done
       changed_when: false
 
     - name: "RHELOSP-148698 Verify that the alert is active in Alertmanager"
