@@ -1,5 +1,5 @@
 ---
-- name: Verify project "{{ item }}"
+- name: Get the {{ item }} project
   ansible.builtin.shell:
     cmd: |
       oc get project "{{ item }}"
@@ -7,8 +7,8 @@
   register: output
 
 - name: |
-   TEST Verify {{ item }} project is found
-     "{{ common_project_test_id }}"
+   TEST Verify {{ item }} project exists
+   {{ common_project_test_id }}
   ansible.builtin.assert:
     that:
       - "'NotFound' not in output.stderr"
