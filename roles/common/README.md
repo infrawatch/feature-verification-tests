@@ -171,7 +171,6 @@ can be set at the play level.
           name: common
         vars:
           common_project_test_id: "RHOSO-12668"
-          common_service_nspace: openshift-logging
           common_project_list:
             - openshift-openstack-infra
             - openshift
@@ -181,6 +180,7 @@ can be set at the play level.
           name: common
         vars:
           common_service_test_id: "RHOSO-12675"
+          common_service_nspace: openshift-logging
           common_service_list:
             - cluster-logging-operator-metrics
             - logging-loki-compactor-grpc
