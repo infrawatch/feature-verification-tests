@@ -6,7 +6,9 @@
   changed_when: false
   register: output
 
-- name: Verify service is running "{{ common_service_test_id }}"
+- name: |
+    Verify {{ item }} service is running
+    {{ common_service_test_id }}
   ansible.builtin.assert:
     that:
       - "'NotFound' not in output.stderr"
