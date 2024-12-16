@@ -72,7 +72,10 @@
           oc logs -l "app=default-snmp-webhook"
       register: cmd_output
       changed_when: false
-      failed_when: "'Sending SNMP trap' not in cmd_output.stdout"
+      retries: 12
+      delay: 10
+      until: "'Sending SNMP trap' in cmd_output.stdout"
+
 
   rescue:
     - name: "Show the snmp traps logs"
