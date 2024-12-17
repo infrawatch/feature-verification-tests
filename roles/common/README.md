@@ -106,7 +106,6 @@ For cr\_tests.yml tasks:
        - polarion ID number for each test of readiness of the CR
 
 
-
 Dependencies
 ------------
 
