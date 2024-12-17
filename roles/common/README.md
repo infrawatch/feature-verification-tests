@@ -67,6 +67,21 @@ For project_tests.yml tasks:
     common_project_list
       - list of projects to validate
 
+For service_tests.yml tasks:
+
+    common_service_test_id
+      - polarion ID number for each test
+    common_service_nspace
+      - namespace
+    common_service_list
+      - list of services to validate
+
+For file_tests.yml tasks:
+
+    common_file_test_id
+      - polarion ID number for each test
+    common_file_list
+      - list of files to validate
 
 For manifest_tests.yml tasks:
 
@@ -159,7 +174,39 @@ can be set at the play level.
           common_project_list:
             - openshift-openstack-infra
             - openshift
+    
+      - name: "Verify services"
+        ansible.builtin.import_role:
+          name: common
+        vars:
+          common_service_test_id: "RHOSO-12675"
+          common_service_nspace: openshift-logging
+          common_service_list:
+            - cluster-logging-operator-metrics
+            - logging-loki-compactor-grpc
+            - logging-loki-compactor-http
+            - logging-loki-distributor-grpc
+            - logging-loki-distributor-http
+            - logging-loki-gateway-http
+            - logging-loki-gossip-ring
+            - logging-loki-index-gateway-grpc
+            - logging-loki-index-gateway-http
+            - logging-loki-ingester-grpc
+            - logging-loki-ingester-http
+            - logging-loki-querier-grpc
+            - logging-loki-querier-http
+            - logging-loki-query-frontend-grpc
+            - logging-loki-query-frontend-http
+            - logging-view-plugin
+            - openstack-logging
 
+      - name: "Verify files"
+        ansible.builtin.import_role:
+          name: common
+        vars:
+          common_file_test_id: "RHOSO-12754"
+          common_file_list:
+            - /etc/rsyslog.d/10-telemetry.conf
 
       - name: "Verify crd"
         ansible.builtin.import_role:

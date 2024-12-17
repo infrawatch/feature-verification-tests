@@ -1,0 +1,10 @@
+---
+- name: Get stats for file - "{{ item }}"
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  register: fstats
+  failed_when: 
+    - fstats.stat.pw_name != "root"
+    - fstats.stat.size | int < 300
+    - not fstats.stat.exists
+    - not fstats.stat.isreg
