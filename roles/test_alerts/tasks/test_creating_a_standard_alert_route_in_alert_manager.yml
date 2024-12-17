@@ -2,77 +2,114 @@
 # Test creating an alert route in alertmanager following the procedure in: https://infrawatch.github.io/documentation/#creating-an-alert-route-in-alertmanager_assembly-advanced-features
 
 # Pre-check: is the value of global.timeout = 5m in the alertmanager secret
-  # TODO: put the patch into a file. and use --patch-file instead of -p OR slurp the file from files/
-- name: "RHELOSP-144965"
-# description: "Patch the ServiceTelemetry object for the STF deployment"
-  ansible.builtin.shell:
-    cmd: |
-      oc patch stf default --type merge -p '{"spec": {"alertmanagerConfigManifest": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: 'alertmanager-default'\n  namespace: 'service-telemetry'\ntype: Opaque\nstringData:\n  alertmanager.yaml: |-\n    global:\n      resolve_timeout: 10m\n    route:\n      group_by: ['job']\n      group_wait: 30s\n      group_interval: 5m\n      repeat_interval: 12h\n      receiver: 'null'\n    receivers:\n    - name: 'null'\n"}}'
-  changed_when: false
-  register: cmd_output
-  failed_when: cmd_output.rc != 0
 
-- name: "Show the command output"
-  ansible.builtin.debug:
-    var: cmd_output
+- name: "Do the test procedure"
+  block:
+      # TODO: put the patch into a file. and use --patch-file instead of -p OR slurp the file from files/
+    - name: "RHELOSP-144965 Patch the ServiceTelemetry object for the STF deployment"
+      ansible.builtin.shell:
+        cmd: |
+          oc patch stf default --type merge -p '{"spec": {"alertmanagerConfigManifest": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: 'alertmanager-default'\n  namespace: 'service-telemetry'\ntype: Opaque\nstringData:\n  alertmanager.yaml: |-\n    global:\n      resolve_timeout: 10m\n    route:\n      group_by: ['job']\n      group_wait: 30s\n      group_interval: 5m\n      repeat_interval: 12h\n      receiver: 'null'\n    receivers:\n    - name: 'null'\n"}}'
+      changed_when: false
+      register: cmd_output
+      failed_when: cmd_output.rc != 0
 
-  # oc get secret alertmanager-default -o go-template='{{index .data "alertmanager.yaml" | base64decode }}'
-  # Can't use -o go-template because of the "{{" and "}}", which are mistaken for templating syntax.
-  # The alertmanager.yaml key needed to be surrounded by [".."] because of the period in the key name.
-- name: "Get the updated secret"
-  ansible.builtin.shell:
-    cmd: |
-      oc get secret alertmanager-default -ojson | jq '.data | .["alertmanager.yaml"]'
-  register: cmd_output
-  changed_when: false
+    - name: "Show the command output"
+      ansible.builtin.debug:
+        var: cmd_output
 
-- name: "Decode the updated secret"
-  ansible.builtin.set_fact:
-    alertmanager_secret: "{{ cmd_output.stdout | b64decode | to_yaml }}"
+      # oc get secret alertmanager-default -o go-template='{{index .data "alertmanager.yaml" | base64decode }}'
+      # Can't use -o go-template because of the "{{" and "}}", which are mistaken for templating syntax.
+      # The alertmanager.yaml key needed to be surrounded by [".."] because of the period in the key name.
+    - name: "Get the updated secret"
+      ansible.builtin.shell:
+        cmd: |
+          oc get secret alertmanager-default -ojson | jq '.data | .["alertmanager.yaml"]'
+      register: cmd_output
+      changed_when: false
 
-- name: "Show the alertmanager.yaml contents"
-  ansible.builtin.debug:
-    var: alertmanager_secret
+    - name: "Decode the updated secret"
+      ansible.builtin.set_fact:
+        alertmanager_secret: "{{ cmd_output.stdout | b64decode | to_yaml }}"
 
-- name: "RHELOSP-148697"
-# description: Interrupt metrics flow by preventing the QDR from running
-  ansible.builtin.shell:
-    cmd: |
-      for i in {1..15}; do oc delete po -l application=default-interconnect; sleep 1; done
-  changed_when: false
+    - name: "Show the alertmanager.yaml contents"
+      ansible.builtin.debug:
+        var: alertmanager_secret
+
+    - name: "RHELOSP-144965 Create the alert"
+      ansible.builtin.shell:
+        cmd: |
+          oc apply -f - <<EOF
+          apiVersion: {{ observability_api }}/v1
+          kind: PrometheusRule
+          metadata:
+            creationTimestamp: null
+            labels:
+              prometheus: default
+              role: alert-rules
+            name: fvt-testing-prometheus-alarm-rules-alertmanager
+            namespace: service-telemetry
+          spec:
+            groups:
+              - name: ./openstack.rules
+                rules:
+                  - alert: FVT_TESTING Collectd metrics receive rate is zero
+                    expr: rate(sg_total_collectd_msg_received_count[1m]) == 0
+          EOF
+      changed_when: false
+      register: cmd_output
+      failed_when: cmd_output.rc != 0
+
+    - name: "RHELOSP-148697 Interrupt metrics flow by preventing the QDR from running"
+      ansible.builtin.shell:
+        cmd: |
+          for i in {1..30}; do oc delete po -l application=default-interconnect; sleep 1; done
+      changed_when: false
+
+    - name: "RHELOSP-148698 Verify that the alert is active in Alertmanager"
+      ansible.builtin.shell:
+        cmd: >-
+          oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c 'curl -k -H \
+            "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+            https://default-alertmanager-proxy:9095/api/v1/alerts' | grep 'active' | grep 'FVT_TESTING Collectd metrics receive rate is zero'
+      register: cmd_output
+      changed_when: false
+      failed_when: cmd_output.stdout_lines | length == 0
+
+    - name: "RHELOSP-148699 Verify that the alert is firing in Prometheus"
+      ansible.builtin.shell:
+        cmd: >-
+          /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/alerts | grep 'firing' | grep 'FVT_TESTING Collectd metrics receive rate is zero'
+      register: cmd_output
+      changed_when: false
+      failed_when: cmd_output.stdout_lines | length == 0
+
+  always:
+    - name: "Delete the PrometheusRule"
+      ansible.builtin.command:
+        cmd: |
+          oc delete prometheusrule.{{ observability_api }} fvt-testing-prometheus-alarm-rules-alertmanager
+      register: delete_prom
+      changed_when: delete_prom.rc == 0
+
+    - name: "Wait up to two minutes until the rule is deleted"
+      ansible.builtin.command:
+        cmd: |
+          curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
+      retries: 12
+      delay: 10
+      until: 'not "FVT_TESTING Collectd metrics receive rate is zero" in cmd_output.stdout'
+      changed_when: false
+
+    - name: "Wait 2 minutes to make sure all SG pods are back to normal"
+      ansible.builtin.pause:
+        minutes: 2
 
 
-- name: "RHELOSP-148698"
-# description: Verify that the alert is active in Alertmanager
-  ansible.builtin.shell: 
-    cmd: >-
-      oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c 'wget --header \
-        "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
-        https://default-alertmanager-proxy:9095/api/v1/alerts -q -O -' | grep 'active' | grep 'Collectd metrics receive rate is zero' | wc -l
-  register: cmd_output
-  changed_when: false
-  failed_when: cmd_output.stdout|int == 0
-
-- name: "RHELOSP-148699"
-# description: "Verify that the alert is firing in Prometheus"
-  ansible.builtin.shell:
-    cmd: >-
-      /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/alerts | grep 'firing' | grep 'Collectd metrics receive rate is zero' | wc -l
-  register: cmd_output
-  changed_when: false
-  failed_when: cmd_output.stdout|int == 0
-
-
-- name: "Wait 2 minutes to make sure all SG pods are back to normal"
-  ansible.builtin.pause:
-    minutes: 2
-
-
-- name: "RHELOSP-176039"
-  # Remove alertmanagerConfigManifest from the ServiceTelemetry object
-  ansible.builtin.shell:
-    cmd: |
-      oc patch stf/default --type='json' -p '[{"op": "remove", "path": "/spec/alertmanagerConfigManifest"}]'
-  changed_when: false
-  register: cmd_output
-  failed_when: cmd_output.rc != 0
+    - name: "RHELOSP-176039 Remove alertmanagerConfigManifest from the ServiceTelemetry object"
+      ansible.builtin.shell:
+        cmd: |
+          oc patch stf/default --type='json' -p '[{"op": "remove", "path": "/spec/alertmanagerConfigManifest"}]'
+      changed_when: false
+      register: cmd_output
+      failed_when: cmd_output.rc != 0

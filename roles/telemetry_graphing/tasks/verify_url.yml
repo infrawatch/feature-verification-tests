@@ -1,0 +1,21 @@
+---
+- name: "Get OpenShift Console URL"
+  ansible.builtin.shell:
+    cmd: |
+      oc get routes -n openshift-console -o jsonpath='{.items[0].spec.host}'
+  register: console_url
+  changed_when: false
+
+- name: "Set OpenShift Console URL fact"
+  ansible.builtin.set_fact:
+    openshift_console_url: "https://{{ console_url.stdout }}"
+
+- name: |
+    TEST Check OpenShift Console is accessible
+    RHOSO-13626
+  ansible.builtin.shell:
+    cmd: |
+      curl -o /dev/null -s -w "%{http_code}" -k {{ openshift_console_url }}
+  register: curl_result
+  changed_when: false
+  failed_when: curl_result.stdout != "200"

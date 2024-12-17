@@ -1,0 +1,6 @@
+---
+telemetry_verify_metrics_metric_sources_to_test:
+  - ceilometer_compute_agent
+  - ceilometer_central_agent
+  - node_exporter
+  - rabbitmq

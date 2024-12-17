@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<testsuites disabled="0" errors="0" failures="1" tests="6" time="42">
+	<testsuite disabled="0" errors="0" failures="1" name="test_logger" skipped="0" tests="6" time="42">
+		<testcase classname="openstack-observability" name="check_how_a_multiline_string_task_name_is" time="42"/>
+		<testcase classname="openstack-observability" name="this_is_a_negative_test" time="42"/>
+		<testcase classname="openstack-observability" name="check_what_happens_with_multiple_matches" time="42"/>
+		<testcase classname="openstack-observability" name="check_what_happens_with_lowercase" time="42"/>
+		<testcase classname="openstack-observability" name="check_that_failed_tests_are_also_represented" time="42">
+			<failure message="If the task fails, the status will be reported since there's a test ID." type="failure">{
+    &quot;changed&quot;: false,
+    &quot;msg&quot;: &quot;If the task fails, the status will be reported since there's a test ID.&quot;
+}</failure>
+		</testcase>
+		<testcase classname="openstack-observability" name="set_the_name_based_on_a_var_input" time="42"/>
+	</testsuite>
+</testsuites>

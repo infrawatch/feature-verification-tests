@@ -22,7 +22,10 @@
     #stack_keyname:
     stack_network: private
     stack_external_network: public
-- name: RHOSO-12648 Create the stack
+
+- name: |
+    TEST create stack
+    RHOSO-12648
   ansible.builtin.shell: |
     #source ~/overcloudrc;
     {{ openstack_cmd }} stack create \
@@ -37,7 +40,9 @@
     var: result
 
 
-- name: RHOSO-12704 Verify that the stack was created successfully
+- name: |
+    TEST verify stack was successfully created
+    RHOSO-12704
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} stack show {{ stack_name }};
@@ -47,7 +52,9 @@
   retries: 20
 
 
-- name: RHOSO-12650 Verify that the stack resources are created
+- name: |
+    TEST Verify stack resources created
+    RHOSO-12650
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
@@ -58,18 +65,24 @@
   until: '"CREATE_COMPLETE" in result.stdout'
   #failed_when: '"CREATE_COMPLETE" not in result.stdout'
 
-- name: RHOSO-12707 Verify that ceilometer_cpu metric exist
+- name: |
+    TEST Verify ceilometer cpu metrics exist
+    RHOSO-12707
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} metric list
   register: result
-  failed_when: result.rc >= 1
+  retries: 12
+  delay: 10
+  until: '"ceilometer_cpu" in result.stdout'
 
 - name: Print the result
   ansible.builtin.debug:
     var: result
 
-- name: RHOSO-12651 Verify that an instance was launched by the stack creation
+- name: |
+    TEST Verify that an instance was launched
+    RHOSO-12651
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
@@ -77,12 +90,14 @@
   register: result
   failed_when: result.rc >= 1
 
-- name: RHOSO-12652 Verify that the alarms were created for the stack
+- name: |
+    TEST Verify that alarms were created
+    RHOSO-12652
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list
   register: result
-  failed_when: result.rc >= 1
+  failed_when: '"cpu_alarm_high" not in result.stdout or "cpu_alarm_low" not in result.stdout'
 
 - name: Note the physical_resource_id values for the cpu_alarm_low resource
   ansible.builtin.shell: |
@@ -98,23 +113,26 @@
     {{ openstack_cmd }} stack resource list $STACK_ID |grep -i cpu_alarm_high | awk '{print $4}'
   register: physical_resource_id_high
 
-- name: RHOSO-12653 Verify physical_resource_id match the alarm id for cpu_alarm_low
+- name: |
+    TEST Verify resource id match alarm id low
+    RHOSO-12653
   ansible.builtin.shell: |
     # source ~/overcloudrc;
-    {{ openstack_cmd }} alarm list |grep -i cpu_alarm_low | awk '{print $2}'
+    {{ openstack_cmd }} alarm list |grep -i cpu_alarm_low | grep {{ stack_name }} | awk '{print $2}'
   register: alarm_id_low
   failed_when:
     - physical_resource_id_low.stdout != alarm_id_low.stdout
 
-- name: RHOSO-12654 Verify physical_resource_id match the alarm id for cpu_alarm_high
+- name: |
+    TEST Verify physical resource id match the alarm high
+    RHOSO-12654
   ansible.builtin.shell: |
     # source ~/overcloudrc;
-    {{ openstack_cmd }} alarm list |grep -i cpu_alarm_high | awk '{print $2}'
+    {{ openstack_cmd }} alarm list |grep -i cpu_alarm_high | grep {{ stack_name }} | awk '{print $2}'
   register: alarm_id_high
   failed_when:
     - physical_resource_id_high.stdout != alarm_id_high.stdout
 
-  # TODO: get alt check for prom
 - name: Verify that metric resources exist for the stack
   when: metrics_backend == "gnocchi"
   ansible.builtin.shell: |
@@ -125,5 +143,17 @@
     -c display_name -c launched_at \
     -c deleted_at --type instance \
     server_group="$STACK_ID"
+  register: result
+  failed_when: result.rc >= 1
+
+# NOTE(jwysogla) we query a specific metric instead of existence of server_group='$STACK_ID' in general
+# which is a little different from the task above. We could also curl the Prometheus API directly to check
+# if there is a label with some value like this: "curl <prometheus>/api/v1/label/server_group/values | grep $STACK_ID"
+# but this isn't possible with the "openstack metric" command (at least not right now).
+- name: Verify that metric resources exist for the stack
+  when: metrics_backend == "prometheus"
+  ansible.builtin.shell: |
+    export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
+    {{ openstack_cmd }} metric query "ceilometer_cpu{server_group='$STACK_ID'}"
   register: result
   failed_when: result.rc >= 1

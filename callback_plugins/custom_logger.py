@@ -17,6 +17,16 @@ DOCUMENTATION = '''
     - Log file names:
         - test_run_result.out
         - summary_results.log
+    options:
+        output_dir:
+            description: todo
+            ini:
+              - section: custom_logger
+                key: output_dir
+            env:
+              - name: CUSTOM_LOGGER_OUTPUT_DIR
+            default: "."
+            type: path
 '''
 
 class CallbackModule(CallbackBase):
@@ -31,9 +41,11 @@ class CallbackModule(CallbackBase):
 
     def __init__(self):
         super(CallbackModule, self).__init__()
-        self.output_dir =  os.path.expanduser("~/")
-        self.results = {}
+        self.set_options()
         
+        self.output_dir = self.get_option('output_dir')
+        self.results = {}
+
     def playbook_on_stats(self, stats):
         #Log results for each host
         hosts= stats.processed
@@ -42,11 +54,13 @@ class CallbackModule(CallbackBase):
 
     def log_task_result(self, host, result, task_name):
         # test_run_result.out only interested in the test tasks, not setup or debug.
-        if "RHELOSP" in task_name or "RHOSO" in task_name:
+        if "RHELOSP" in task_name or "RHOSO" in task_name  or "UI" in task_name:
             if "RHELOSP" in task_name:
                 test_id = re.search(r'RHELOSP\S*', task_name).group(0)
             elif "RHOSO" in task_name:
                 test_id = re.search(r'RHOSO\S*', task_name).group(0)
+            elif "UI" in task_name:
+                test_id = re.search(r'UI\S*', task_name).group(0)
 
             file_path = os.path.join(self.output_dir, f"test_run_result.out")
             test_result_message = self.MSG_FORMAT.format(task=test_id, status=result)
@@ -64,7 +78,14 @@ class CallbackModule(CallbackBase):
 
     def log_summary_results(self, host):
         file_path = os.path.join(self.output_dir, f"summary_results.log")
-        with open(file_path, 'w') as f:
+
+        # Make sure that the there is a result for the host, or else we get
+        # errors referencing the results dict later
+        if not self.results.get(host):
+            print("The host %s does not have any results" % host)
+            return
+
+        with open(file_path, 'a') as f:
             f.write(f"Host: {host}\n")
             f.write(f"Tasks Succeeded: {self.results[host]['passed']}\n")
             f.write(f"Tasks Failed: {self.results[host]['failed']}\n")

@@ -1,18 +1,81 @@
 ---
-- name: Move callback_plugin result to log dir
-  ansible.builtin.shell:
-    cmd: |
-      cp  ~/test_run_result.out  {{ test_dir }}/test_run_result.log
-     # cp  ~/summary_results.log {{ autoscaling_logs_dir }}/summary_results.log
+- name: "Create the output files"
+  hosts:
+     - controller
+  vars_files:
+    - vars/common.yml
+  tasks:
+    - name: Create log dir
+      ansible.builtin.file:
+        path: "{{ logs_dir }}"
+        state: directory
+        mode: "0755"
 
-- name: Grep the number of failed tasks
-  ansible.builtin.shell:
-    cmd: |
-      grep -c "failed" ~/test_run_result.out
-  register: tasks_failed
-  ignore_errors: yes
+- name: "Run the log file collection"
+  hosts:
+    - controller
+    - compute
+  gather_facts: true
+  vars_files:
+    - vars/common.yml
+  tasks:
+    - name: "Find the XML file"
+      ansible.builtin.shell:
+        cmd: |
+          find ~/.ansible.log/ -name *.xml
+      register: xml_file_list
+      ignore_errors: true
 
-- name: Determine success or failure based on the number of failed tasks
-  ansible.builtin.fail:
-    msg: "The log file contains failed task."
-  when: tasks_failed.rc == 0
+    - name: "Show the XML files"
+      ansible.builtin.debug:
+        var: xml_file_list.stdout_lines
+      ignore_errors: true
+
+    - name: "Collect the XML files, renaming them for the host that they are collected from"
+      delegate_to: controller
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ item }}"
+        dest: "{{ logs_dir }}/{{ item | basename }} "
+      with_items: "{{ xml_file_list.stdout_lines }}"
+      when: xml_file_list.stdout_lines | length != 0
+
+    - name: "Collect the custom_logger results"
+      delegate_to: controller
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ ansible_env.HOME }}/test_run_result.out"
+        dest: "{{ logs_dir }}/test_run_result.out"
+
+    - name: "Collect the results summary"
+      delegate_to: controller
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ ansible_env.HOME }}/summary_results.log"
+        dest: "{{ logs_dir }}/summary_result.log"
+
+- name: "Check the results files for failed tasks"
+  hosts: controller
+  gather_facts: true
+  vars_files:
+    - vars/common.yml
+  tasks:
+    - name: Grep the number of failed tasks
+      ansible.builtin.shell:
+        cmd: |
+          grep "failed" {{ logs_dir }}/test_run_result.out
+      register: tasks_failed
+      # The RC from grep is 1 when there is no string matched (i.e. when there are no failures)
+      ignore_errors: yes
+
+      # The RC from grep is 0 if the string is matched
+    - name: Determine success or failure based on the number of failed tasks
+      ansible.builtin.fail:
+        msg: "The log file(s) contain failed task."
+      when: tasks_failed.stdout_lines | length > 0 and tasks_failed.rc == 0
+
+      # The RC from grep is 2 if an error occurred.
+    - name: Fail if the file was not found (or other grep error)
+      ansible.builtin.fail:
+        msg: "{{ tasks_failed.stderr if tasks_failed.stderr | length > 0 else 'There was an error with grep.' }}"
+      when: tasks_failed.rc > 1
