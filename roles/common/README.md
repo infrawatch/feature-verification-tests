@@ -155,6 +155,7 @@ can be set at the play level.
                 - ceilometer_agent_compute
                 - ceilometer_agent_ipmi
                 - node_exporter
+                - kepler
 
       - name: "Verify Endpoint"
         ansible.builtin.import_role:
