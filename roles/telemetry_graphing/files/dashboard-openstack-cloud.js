@@ -28,7 +28,8 @@ describe('OpenShift Console Dashboard Test', () => {
       { url: '/grafana-dashboard-openstack-cloud', screenshot: 'openstack-cluster' },
       { url: '/grafana-dashboard-openstack-rabbitmq', screenshot: 'openstack-rabbitmq' },
       { url: '/grafana-dashboard-openstack-node', screenshot: 'openstack-node' },
-      { url: '/grafana-dashboard-openstack-vm', screenshot: 'openstack-vms' }
+      { url: '/grafana-dashboard-openstack-vm', screenshot: 'openstack-vms' },
+      { url: '/grafana-dashboard-openstack-network-traffic', screenshot: 'openstack-network-traffic' }
     ];
     
 
