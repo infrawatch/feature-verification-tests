@@ -12,7 +12,7 @@
     common_pod_nspace: openstack-operators
     common_pod_list:
       - telemetry-operator-controller-manager
-      - dataplane-operator-controller-manager
+      - openstack-operator-controller-manager
     common_subscription_test_id: "RHOSO-12678"
     common_subscription_nspace: openshift-operators-redhat
     common_subscription_list:
