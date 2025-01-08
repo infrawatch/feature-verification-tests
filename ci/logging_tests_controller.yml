@@ -12,7 +12,7 @@
     common_pod_nspace: openstack-operators
     common_pod_list:
       - telemetry-operator-controller-manager
-      - dataplane-operator-controller-manager
+      - openstack-operator-controller-manager
     common_subscription_test_id: "RHOSO-12678"
     common_subscription_nspace: openshift-operators-redhat
     common_subscription_list:
@@ -41,7 +41,6 @@
       - logging-loki-querier-http
       - logging-loki-query-frontend-grpc
       - logging-loki-query-frontend-http
-      - logging-view-plugin
       - openstack-logging
     common_file_test_id: "RHOSO-12754"
     common_file_list:
@@ -101,7 +100,6 @@
     common_pod_nspace: openshift-logging
     common_pod_list:
       - cluster-logging-operator
-      - collector
       - logging-loki-compactor
       - logging-loki-distributor
       #- logging-loki-gateway
@@ -109,7 +107,7 @@
       - logging-loki-ingester
       - logging-loki-querier
       - logging-loki-query-frontend
-      - logging-view-plugin
+      - collector
 
   ### see JIRA LOG-5431 if pods not running
   tasks:
