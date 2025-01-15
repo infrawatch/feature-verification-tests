@@ -9,22 +9,22 @@
   vars_files:
     - vars/osp18_env.yml
   vars:
-    common_pod_test_id: "RHOSO-12672"
-    common_pod_status_str: "Running"
-    common_pod_nspace: openstack-operators
+    common_pod_test_id: "RHOS0-12672"
+    # common_pod_status_str: "Running"
+    # common_pod_nspace: openstack-operators
     common_pod_list:
-      - telemetry-operator-controller-manager
-      - openstack-operator-controller-manager
+      - { name: telemetry-operator-controller-manager, nspace: openstack-operators, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      - { name: openstack-operator-controller-manager, nspace: openstack-operators, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
     common_subscription_test_id: "RHOSO-12678"
-    common_subscription_nspace: openshift-operators-redhat
+    # common_subscription_nspace: openshift-operators-redhat
     common_subscription_list:
-      - loki-operator
+      - { name: loki-operator, nspace: openshift-operators-redhat, test_id: "{{ common_subscription_test_id }}"}
     common_project_test_id: "RHOSO-12668"
     common_project_list:
-      - openshift-openstack-infra
-      - openshift
-      - openstack-operators
-      - openshift-logging
+      - { name: openshift-openstack-infra, test_id: "{{ common_project_test_id }}" }
+      - { name: openshift, test_id: "{{ common_project_test_id }}"}
+      - { name: openstack-operators, test_id: "{{ common_project_test_id }}" }
+      - { name: openshift-logging, test_id: "{{ common_project_test_id }}"}
     common_endpoint_test_id: "RHOSO-12682"
     common_endpoint_list:
       - [nova,compute,public]
@@ -43,31 +43,29 @@
       - [glance,image,internal]
       - [neutron,network,public]
       - [neutron,network,internal]
-
     common_manifest_test_id: "RHOSO-12677"
     common_manifest_list:
       - "loki-operator 2"
       - "loki-helm-operator 1"
-
     common_service_test_id: "RHOSO-12675"
-    common_service_nspace: openshift-logging
+    # common_service_nspace: openshift-logging
     common_service_list:
-      - cluster-logging-operator-metrics
-      - logging-loki-compactor-grpc
-      - logging-loki-compactor-http
-      - logging-loki-distributor-grpc
-      - logging-loki-distributor-http
-      - logging-loki-gateway-http
-      - logging-loki-gossip-ring
-      - logging-loki-index-gateway-grpc
-      - logging-loki-index-gateway-http
-      - logging-loki-ingester-grpc
-      - logging-loki-ingester-http
-      - logging-loki-querier-grpc
-      - logging-loki-querier-http
-      - logging-loki-query-frontend-grpc
-      - logging-loki-query-frontend-http
-      - openstack-logging
+      - { name: cluster-logging-operator-metrics, nspace: openshift-logging,test_id: "RHOSO-13744"}
+      - { name: logging-loki-compactor-grpc, nspace: openshift-logging, test_id: "RHOSO-13746"}
+      - { name: logging-loki-compactor-http, nspace: openshift-logging, test_id: "RHOSO-13747"}
+      - { name: logging-loki-distributor-grpc, nspace: openshift-logging, test_id: "RHOSO-13748"}
+      - { name: logging-loki-distributor-http, nspace: openshift-logging, test_id: "RHOSO-13749"}
+      - { name: logging-loki-gateway-http, nspace: openshift-logging, test_id: "RHOSO-13750"}
+      - { name: logging-loki-gossip-ring, nspace: openshift-logging, test_id: "RHOSO-13751"}
+      - { name: logging-loki-index-gateway-grpc, nspace: openshift-logging, test_id: "RHOSO-13752"}
+      - { name: logging-loki-index-gateway-http, nspace: openshift-logging, test_id: "RHOSO-13753"}
+      - { name: logging-loki-ingester-grpc, nspace: openshift-logging, test_id: "RHOSO-13754"}
+      - { name: logging-loki-ingester-http, nspace: openshift-logging, test_id: "RHOSO-13755"}
+      - { name: logging-loki-querier-grpc, nspace: openshift-logging, test_id: "RHOSO-13756"}
+      - { name: logging-loki-querier-http, nspace: openshift-logging, test_id: "RHOSO-13757"}
+      - { name: logging-loki-query-frontend-grpc, nspace: openshift-logging, test_id: "RHOSO-13758"}
+      - { name: logging-loki-query-frontend-http, nspace: openshift-logging, test_id: "RHOSO-13759"}
+      - { name: openstack-logging, nspace: openshift-logging, test_id: "RHOSO-13760"}
   tasks:
     - name: "Verify logging infrastructure components"
       ansible.builtin.include_role:
@@ -82,10 +80,10 @@
     PATH: "{{ cifmw_path }}"
   vars:
     common_pod_test_id: "RHOSO-12752"
-    common_pod_status_str: "Running"
-    common_pod_nspace: openstack
+    # common_pod_status_str: "Running"
+    # common_pod_nspace: openstack
     common_pod_list:
-      - openstackclient
+      - { name: openstackclient, status_str: "Running", nspace: "openstack", test_id: "{{ common_pod_test_id }}"} 
   tasks:
     - name: "Verify Running Pods"
       ansible.builtin.include_role:
@@ -101,10 +99,10 @@
     PATH: "{{ cifmw_path }}"
   vars:
     common_pod_test_id: "RHOSO-12673"
-    common_pod_status_str: "Running"
-    common_pod_nspace: openshift-operators-redhat
+    #common_pod_status_str: "Running"
+    #common_pod_nspace: openshift-operators-redhat
     common_pod_list:
-      - loki-operator-controller-manager
+      - { name: loki-operator-controller-manager, nspace: openshift-operators-redhat, status_str: "Running", test_id: "{{ common_pod_test_id }}"}
   tasks:
     - name: "Verify Pods running"
       ansible.builtin.include_role:
@@ -118,11 +116,11 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    common_pod_test_id: "RHOSO-12676"
-    common_pod_status_str: "Running"
-    common_pod_nspace: openshift-logging
+    # common_pod_test_id: "RHOSO-12676"
+    # common_pod_status_str: "Running"
+    # common_pod_nspace: openshift-logging
     common_pod_list:
-      - cluster-logging-operator
+       - cluster-logging-operator
       - logging-loki-compactor
       - logging-loki-distributor
       #- logging-loki-gateway
@@ -130,7 +128,8 @@
       - logging-loki-ingester
       - logging-loki-querier
       - logging-loki-query-frontend
-      - collector
+      - { name: collector, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13745"}
+
 
   ### see JIRA LOG-5431 if pods not running
   tasks:
@@ -147,10 +146,10 @@
     PATH: "{{ cifmw_path }}"
   vars:
     common_pod_test_id: "RHOSO-12674"
-    common_pod_status_str: "Running"
-    common_pod_nspace: minio-dev
+    # common_pod_status_str: "Running"
+    # common_pod_nspace: minio-dev
     common_pod_list:
-      - minio
+      - { name: minio, nspace: minio-dev, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
   tasks:
     - name: "Run pod running tests"
       ansible.builtin.include_role:
@@ -166,25 +165,26 @@
     PATH: "{{ cifmw_path }}"
   vars:
     common_pod_test_id: "RHOSO-12679"
-    common_pod_nspace: openstack
-    common_pod_status_str: "Completed"
+    #common_pod_nspace: openstack
+    #common_pod_status_str: "Completed"
     common_pod_list:
-      - bootstrap-edpm-deployment-openstack-edpm-ipam
-      - configure-network-edpm-deployment-openstack-edpm-ipam
-      - configure-os-edpm-deployment-openstack-edpm-ipam
-      - download-cache-edpm-deployment-openstack-edpm-ipam
-      - install-certs-edpm-deployment-openstack-edpm-ipam
-      - install-os-edpm-deployment-openstack-edpm-ipam
-      - libvirt-edpm-deployment-openstack-edpm-ipam
-      - logging-edpm-deployment-openstack-edpm-ipam
-      - neutron-metadata-edpm-deployment-openstack-edpm-ipam
-      - nova-edpm-deployment-openstack-edpm-ipam
-      - ovn-edpm-deployment-openstack-edpm-ipam
-      - reboot-os-edpm-deployment-openstack-edpm-ipam
-      - run-os-edpm-deployment-openstack-edpm-ipam
-      - ssh-known-hosts-edpm-deployment
-      - telemetry-edpm-deployment-openstack-edpm-ipam
-      - validate-network-edpm-deployment-openstack-edpm-ipam
+      # - bootstrap-edpm-deployment-openstack-edpm-ipam
+      # - configure-network-edpm-deployment-openstack-edpm-ipam
+      # - configure-os-edpm-deployment-openstack-edpm-ipam
+      # - download-cache-edpm-deployment-openstack-edpm-ipam
+      # - install-certs-edpm-deployment-openstack-edpm-ipam
+      # - install-os-edpm-deployment-openstack-edpm-ipam
+      # - libvirt-edpm-deployment-openstack-edpm-ipam
+      # - logging-edpm-deployment-openstack-edpm-ipam
+      # - neutron-metadata-edpm-deployment-openstack-edpm-ipam
+      # - nova-edpm-deployment-openstack-edpm-ipam
+      # - ovn-edpm-deployment-openstack-edpm-ipam
+      # - reboot-os-edpm-deployment-openstack-edpm-ipam
+      # - run-os-edpm-deployment-openstack-edpm-ipam
+      # - ssh-known-hosts-edpm-deployment
+      # - telemetry-edpm-deployment-openstack-edpm-ipam
+      # - validate-network-edpm-deployment-openstack-edpm-ipam
+      - { name: logging-edpm-deployment-openstack-edpm-ipam, nspace: openstack, status_str: "Completed", test_id: "{{ common_pod_test_id }}"}
   tasks:
     - name: "Run pods completed tests"
       ansible.builtin.include_role:
@@ -205,12 +205,12 @@
       - nova-metadata-internal
       - nova-novncproxy-cell1-public
       - nova-public
-    common_crd_test_id: "RHOSO-12670"
+    #common_crd_test_id: "RHOSO-12670"
     common_crd_list:
-      - alertingrules.loki.grafana.com
-      - lokistacks.loki.grafana.com
-      - recordingrules.loki.grafana.com
-      - rulerconfigs.loki.grafana.com
+      - { name: alertingrules.loki.grafana.com, test_id: "RHOSO-12670"}
+      - { name: lokistacks.loki.grafana.com, test_id: "RHOSO-12670"}
+      - { name: recordingrules.loki.grafana.com, test_id: "RHOSO-12670"}
+      - { name: rulerconfigs.loki.grafana.com, test_id: "RHOSO-12670"}
   tasks:
     - name: "Run Services and CRD tests"
       ansible.builtin.import_role:
