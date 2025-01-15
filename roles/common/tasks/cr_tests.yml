@@ -1,23 +1,25 @@
 ---
 - name: |
-    TEST Verify that the {{ item.kind }} {{ item.name }} CR exists
+    TEST Verify that the {{ cr.kind }} {{ cr.name }} CR exists
+    {{ common_cr_test_id }}
   ansible.builtin.command:
     cmd: |
-      oc get {{ item.kind }} {{ item.name }}
+      oc get {{ cr.kind }} {{ cr.name }}
   register: result
   changed_when: false
   failed_when:
     - result.rc != 0
 
 - name: |
-    TEST Verify that the {{ item.kind }} {{ item.name }} CR is {{ item.condition_type }}
+    TEST Verify that the {{ cr.kind }} {{ cr.name }} CR is {{ cr.condition_type }}
     {{ common_cr_ready_test_id }}
   ansible.builtin.command:
     cmd: |
-      oc get {{ item.kind }} {{ item.name }} -o jsonpath='{.status.conditions[?(@.type=="{{ item.condition_type }}")].status}{"\n"}'
+      oc get {{ cr.kind }} {{ cr.name }} -o jsonpath='{.status.conditions[?(@.type=="{{ cr.condition_type }}")].status}{"\n"}'
   register: result
   changed_when: false
   failed_when:
     - result.stdout != "True"
   when:
-    - item.condition_type is defined
+    - common_cr_ready_test_id is defined
+    - cr.condition_type is defined
