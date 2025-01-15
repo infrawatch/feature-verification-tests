@@ -1,7 +1,7 @@
 ---
-- name: Get stats for file - "{{ item }}"
+- name: Get stats for file - "{{ file.name }}"
   ansible.builtin.stat:
-    path: "{{ item }}"
+    path: "{{ ifile.name }}"
   register: fstats
   failed_when: 
     - fstats.stat.pw_name != "root"
