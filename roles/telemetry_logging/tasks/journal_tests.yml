@@ -1,18 +1,17 @@
 ---
 - name: |
-    TEST Get journals {{ item }}
-    {{ journal_test_id }}
+    Get journals {{ journal.name }}
   become: true
   ansible.builtin.shell:
     cmd: |
       tstamp=$(date -d '30 minute ago' "+%Y-%m-%d %H:%M:%S")
-      journalctl -t "{{ item }}" --no-pager -S "${tstamp}"
+      journalctl -t "{{ journal.name }}" --no-pager -S "${tstamp}"
   register: journalctl
   changed_when: false
 
 - name: |
-    TEST Get journals {{ item }}
-    {{ journal_test_id }}
+    TEST Get journals {{ journal.name }}
+    {{ journal.test_id id journal.test_id is defined }}
   ansible.builtin.assert:
     that:
      - 'journalctl.stdout_lines | length > 1'

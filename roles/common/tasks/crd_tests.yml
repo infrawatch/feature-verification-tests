@@ -1,16 +1,16 @@
 ---
-- name: Verify CRD "{{ item }}"
+- name: Verify CRD "{{ crd.name }}"
   ansible.builtin.shell:
     cmd: |
-      oc get crd "{{ item }}"
+      oc get crd "{{ crd.name }}"
   changed_when: false
   register: output
 
 - name: |
-    TEST Verify CRD {{ item }} is found
-    {{ common_crd_test_id }}
+    TEST Verify CRD {{ crd.name }} is found
+    {{ crd.test_id if crd.test_id is defined }}
   ansible.builtin.assert:
     that:
       - "'NotFound' not in output.stderr"
-    success_msg: "CRD {{ item }} is found."
-    fail_msg: "CRD {{ item }} not found. Error: {{ output.stderr }}"
+    success_msg: "CRD {{ crd.name }} is found."
+    fail_msg: "CRD {{ crd.name }} not found. Error: {{ output.stderr }}"

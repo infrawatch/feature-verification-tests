@@ -2,31 +2,31 @@
 - block:
       # expects that one line will be returned
       # todo: define what happens when there are multiple pods returned
-    - name: Get Pod Instance name "{{ common_pod_status_str }}"
+    - name: Get Pod Instance name "{{ pod.status_str }}"
       ansible.builtin.shell:
         cmd: |
-          oc get pods -n "{{ common_pod_nspace }}" | grep "{{ item }}" | grep "{{ common_pod_status_str }}" | awk '{print $1;}'
+          oc get pods -n "{{ pod.nspace }}" | grep "{{ pod.name }}" | grep "{{ pod.status_str }}" | awk '{print $1;}'
       register: podinstance
       failed_when:
         - podinstance.stdout_lines | length != 1
       changed_when: false
 
     - name: |
-        TEST Check {{ item }} pod is {{ common_pod_status_str }} in {{ common_pod_nspace }} namespace
-        {{ common_pod_test_id }}
+        TEST Check {{ pod.name }} pod is {{ pod.status_str }} in {{ pod.nspace }} namespace
+        {{ pod.test_id if pod.test_id is defined }}
       ansible.builtin.command:
         cmd: |
-          oc get pod -n "{{ common_pod_nspace }}" "{{ podinstance.stdout }}"
+          oc get pod -n "{{ pod.nspace }}" "{{ podinstance.stdout }}"
       register: output
       changed_when: false
       failed_when:
         - output.rc != 0
         - podinstance.stdout == ""
   rescue:
-    - name: Get Pod Instance "{{ item }}"
+    - name: Get Pod Instance "{{ pod.name }}"
       ansible.builtin.shell:
         cmd: |
-          oc get pods -n "{{ common_pod_nspace }}" | grep "{{ item }}"
+          oc get pods -n "{{ pod.nspace }}" | grep "{{ pod.name }}"
       register: podinstance
       failed_when:
         - podinstance.stdout_lines | length == 0
