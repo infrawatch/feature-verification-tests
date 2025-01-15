@@ -7,7 +7,7 @@
   register: container_status
 
 - name: |
-    Verify {{ container_name }} container status
+    TEST Verify {{ container_name }} container status
     {{ common_container_test_id }}
   ansible.builtin.assert:
     that:
