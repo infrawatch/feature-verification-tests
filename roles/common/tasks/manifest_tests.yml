@@ -15,7 +15,7 @@
 
 - name: |
     TEST Get {{ manifest.name }} packagemanifest
-    {{ manifest.test_id id manifest.test_id is defined }}
+    {{ manifest.test_id if manifest.test_id is defined }}
   ansible.builtin.shell:
     cmd: |
       oc get packagemanifests | grep "{{ pack_name.stdout }}" | wc -l
