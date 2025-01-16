@@ -7,7 +7,7 @@
   register: output
 
 - name: |
-    TEST Check that {{ item }} subscription exists
+    TEST Check that {{ item }} subscription exists in {{ common_subscription_nspace }} namespace
     {{ common_subscription_test_id }}
   ansible.builtin.assert:
     that:
