@@ -13,18 +13,18 @@
     # common_pod_status_str: "Running"
     # common_pod_nspace: openstack-operators
     common_pod_list:
-      - { name: telemetry-operator-controller-manager, nspace: openstack-operators, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
-      - { name: openstack-operator-controller-manager, nspace: openstack-operators, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      - { name: telemetry-operator-controller-manager, nspace: openstack-operators, status_str: "Running", test_id: "RHOSO-13761" }
+      - { name: openstack-operator-controller-manager, nspace: openstack-operators, status_str: "Running", test_id: "RHOSO-13762" }
     common_subscription_test_id: "RHOSO-12678"
     # common_subscription_nspace: openshift-operators-redhat
     common_subscription_list:
-      - { name: loki-operator, nspace: openshift-operators-redhat, test_id: "{{ common_subscription_test_id }}"}
-    common_project_test_id: "RHOSO-12668"
+      - { name: loki-operator, nspace: openshift-operators-redhat, test_id: "RHOSO-12678"}
+    #common_project_test_id: "RHOSO-12668"
     common_project_list:
-      - { name: openshift-openstack-infra, test_id: "{{ common_project_test_id }}" }
-      - { name: openshift, test_id: "{{ common_project_test_id }}"}
-      - { name: openstack-operators, test_id: "{{ common_project_test_id }}" }
-      - { name: openshift-logging, test_id: "{{ common_project_test_id }}"}
+      - { name: openshift-openstack-infra, test_id: "RHOSO-13764" }
+      - { name: openshift, test_id: "RHOSO-13763"}
+      - { name: openstack-operators, test_id: "RHOSO-13732" }
+      - { name: openshift-logging, test_id: "RHOSO-13731"}
     common_endpoint_test_id: "RHOSO-12682"
     common_endpoint_list:
       - [nova,compute,public]
@@ -164,7 +164,7 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    common_pod_test_id: "RHOSO-12679"
+    #common_pod_test_id: "RHOSO-12679"
     #common_pod_nspace: openstack
     #common_pod_status_str: "Completed"
     common_pod_list:
@@ -184,7 +184,7 @@
       # - ssh-known-hosts-edpm-deployment
       # - telemetry-edpm-deployment-openstack-edpm-ipam
       # - validate-network-edpm-deployment-openstack-edpm-ipam
-      - { name: logging-edpm-deployment-openstack-edpm-ipam, nspace: openstack, status_str: "Completed", test_id: "{{ common_pod_test_id }}"}
+      - { name: logging-edpm-deployment-openstack-edpm-ipam, nspace: openstack, status_str: "Completed", test_id: "RHOSO-12679"}
   tasks:
     - name: "Run pods completed tests"
       ansible.builtin.include_role:
