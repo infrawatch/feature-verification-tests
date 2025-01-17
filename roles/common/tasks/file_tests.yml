@@ -3,8 +3,8 @@
   ansible.builtin.stat:
     path: "{{ item }}"
   register: fstats
-  failed_when: 
-    - fstats.stat.pw_name != "root"
-    - fstats.stat.size | int < 300
-    - not fstats.stat.exists
-    - not fstats.stat.isreg
+  failed_when:
+    - ((fstats.stat.pw_name != "root") or
+      (fstats.stat.size | int < 300) or
+      (not fstats.stat.exists) or
+      (not fstats.stat.isreg) )
