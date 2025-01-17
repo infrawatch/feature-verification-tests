@@ -1,5 +1,5 @@
 ---
-- name: "Verify pod - {{ common_pod_test_id }}"
+- name: "Run pod tests"
   when:
     - common_pod_test_id is defined
     - common_pod_list is defined
