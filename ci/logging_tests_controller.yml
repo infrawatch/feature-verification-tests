@@ -116,18 +116,18 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    # common_pod_test_id: "RHOSO-12676"
+    common_pod_test_id: "RHOSO-12676"
     # common_pod_status_str: "Running"
     # common_pod_nspace: openshift-logging
     common_pod_list:
-       - cluster-logging-operator
-      - logging-loki-compactor
-      - logging-loki-distributor
-      #- logging-loki-gateway
-      - logging-loki-index-gateway
-      - logging-loki-ingester
-      - logging-loki-querier
-      - logging-loki-query-frontend
+      - { name: cluster-logging-operator, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      - { name: logging-loki-compactor, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      - { name: logging-loki-distributor, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      #- { name: logging-loki-gateway, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      - { name: logging-loki-index-gateway, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      - { name: logging-loki-ingester, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      - { name: logging-loki-querier, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      - { name: logging-loki-query-frontend, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
       - { name: collector, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13745"}
 
 
