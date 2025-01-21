@@ -42,9 +42,6 @@
       - logging-loki-query-frontend-grpc
       - logging-loki-query-frontend-http
       - openstack-logging
-    common_file_test_id: "RHOSO-12754"
-    common_file_list:
-      - /etc/rsyslog.d/10-telemetry.conf
   tasks:
     - name: "Verify logging infrastructure components"
       ansible.builtin.import_role:

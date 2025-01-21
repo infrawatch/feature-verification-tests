@@ -11,7 +11,14 @@
     journal_list:
       - ceilometer_agent_compute
       - nova_compute
+    common_file_test_id: "RHOSO-12754"
+    common_file_list:
+      - /etc/rsyslog.d/10-telemetry.conf
   tasks:
     - name: "Run Telemetry Logging tests"
       ansible.builtin.import_role:
         name: telemetry_logging
+
+    - name: "Run the tests from the common role"
+      ansible.builtin.import_role:
+        name: common
