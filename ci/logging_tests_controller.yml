@@ -9,7 +9,7 @@
   vars_files:
     - vars/osp18_env.yml
   vars:
-    common_pod_test_id: "RHOS0-12672"
+    common_pod_test_id: "RHOSO-12672"
     # common_pod_status_str: "Running"
     # common_pod_nspace: openstack-operators
     common_pod_list:
@@ -83,7 +83,7 @@
     # common_pod_status_str: "Running"
     # common_pod_nspace: openstack
     common_pod_list:
-      - { name: openstackclient, status_str: "Running", nspace: "openstack", test_id: "{{ common_pod_test_id }}"} 
+      - { name: openstackclient, status_str: "Running", nspace: "openstack", test_id: "RHOSO-12752"} 
   tasks:
     - name: "Verify Running Pods"
       ansible.builtin.include_role:
@@ -102,7 +102,7 @@
     #common_pod_status_str: "Running"
     #common_pod_nspace: openshift-operators-redhat
     common_pod_list:
-      - { name: loki-operator-controller-manager, nspace: openshift-operators-redhat, status_str: "Running", test_id: "{{ common_pod_test_id }}"}
+      - { name: loki-operator-controller-manager, nspace: openshift-operators-redhat, status_str: "Running", test_id: "RHOSO-12673"}
   tasks:
     - name: "Verify Pods running"
       ansible.builtin.include_role:
@@ -121,13 +121,13 @@
     # common_pod_nspace: openshift-logging
     common_pod_list:
       - { name: cluster-logging-operator, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
-      - { name: logging-loki-compactor, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
-      - { name: logging-loki-distributor, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      - { name: logging-loki-compactor, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13778" }
+      - { name: logging-loki-distributor, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13780" }
       #- { name: logging-loki-gateway, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
-      - { name: logging-loki-index-gateway, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
-      - { name: logging-loki-ingester, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
-      - { name: logging-loki-querier, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
-      - { name: logging-loki-query-frontend, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      - { name: logging-loki-index-gateway, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13781" }
+      - { name: logging-loki-ingester, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13782" }
+      - { name: logging-loki-querier, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13783" }
+      - { name: logging-loki-query-frontend, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13784" }
       - { name: collector, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13745"}
 
 
@@ -149,7 +149,7 @@
     # common_pod_status_str: "Running"
     # common_pod_nspace: minio-dev
     common_pod_list:
-      - { name: minio, nspace: minio-dev, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      - { name: minio, nspace: minio-dev, status_str: "Running", test_id: "RHOSO-12674" }
   tasks:
     - name: "Run pod running tests"
       ansible.builtin.include_role:
@@ -208,9 +208,9 @@
     #common_crd_test_id: "RHOSO-12670"
     common_crd_list:
       - { name: alertingrules.loki.grafana.com, test_id: "RHOSO-12670"}
-      - { name: lokistacks.loki.grafana.com, test_id: "RHOSO-12670"}
-      - { name: recordingrules.loki.grafana.com, test_id: "RHOSO-12670"}
-      - { name: rulerconfigs.loki.grafana.com, test_id: "RHOSO-12670"}
+      - { name: lokistacks.loki.grafana.com, test_id: "RHOSO-13787"}
+      - { name: recordingrules.loki.grafana.com, test_id: "RHOSO-13788"}
+      - { name: rulerconfigs.loki.grafana.com, test_id: "RHOSO-13789"}
   tasks:
     - name: "Run Services and CRD tests"
       ansible.builtin.import_role:
