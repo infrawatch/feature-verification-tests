@@ -7,8 +7,8 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    common_journal_test_id: "RHOSO-12681"
-    common_journal_list:
+    journal_test_id: "RHOSO-12681"
+    journal_list:
       - ceilometer_agent_compute
       - nova_compute
   tasks:
