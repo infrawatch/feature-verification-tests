@@ -11,7 +11,7 @@ describe('OpenShift Console Dashboard Test', () => {
     cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
     cy.get('button[type="submit"]').click();
 
-    cy.wait(5000); 
+    cy.wait(10000);
 
     cy.get('body').then($body => {
       if ($body.find('button:contains("Skip tour")').length > 0) {
