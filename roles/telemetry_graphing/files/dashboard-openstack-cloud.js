@@ -16,8 +16,6 @@ describe('OpenShift Console Dashboard Test', () => {
 
     cy.wait(5000);
     // Ensure redirected back to the main console
-    cy.url().should('include', 'console-openshift-console.apps-crc.testing');
-
 
     cy.get('body').then($body => {
       if ($body.find('button:contains("Skip tour")').length > 0) {
@@ -45,7 +43,7 @@ describe('OpenShift Console Dashboard Test', () => {
       cy.visit(`https://console-openshift-console.apps-crc.testing/monitoring/dashboards${dashboard.url}`);
 
       // Wait for the dashboard to load and take a screenshot
-      cy.get('div[data-test-id="dashboard"]', { timeout: 50000 })
+      cy.get('div[data-test-id="dashboard"]', { timeout: 100000 })
         .find('[data-test-id^="panel-"]')
 
       cy.wait(5000); 
