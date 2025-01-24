@@ -88,7 +88,6 @@
 - job:
     name: functional-graphing-tests-osp18
     parent: telemetry-operator-multinode-autoscaling
-    voting: false
     description: |
       Run the UI Graphing test on osp18.
     vars:
@@ -112,6 +111,7 @@
             override-checkout: main
             irrelevant-files: *irrelevant_files
         - functional-tests-on-osp18
+            voting: false
         - functional-logging-tests-osp18
         - functional-graphing-tests-osp18
         - functional-metric-verification-tests-osp18
