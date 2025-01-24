@@ -69,10 +69,17 @@
     - name: "RHELOSP-144481 Check for snmpTraps logs"
       ansible.builtin.shell:
         cmd: |
-          oc logs -l "app=default-snmp-webhook"  | grep "Sending SNMP trap"
+          oc logs -l "app=default-snmp-webhook" | grep "Sending SNMP trap"
       register: cmd_output
       changed_when: false
       failed_when: "cmd_output.stdout_lines | length == 0"
+
+  rescue:
+    - name: "Get the snmp traps logs"
+      ansible.builtin.shell:
+        cmd: |
+          oc logs -l "app=default-snmp-webhook"
+      changed_when: false
 
   always:
     - name: "Delete the PrometheusRule"
