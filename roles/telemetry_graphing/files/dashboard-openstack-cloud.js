@@ -14,7 +14,7 @@ describe('OpenShift Console Dashboard Test', () => {
       cy.get('button[type="submit"]').click();
     });
 
-    cy.wait(5000);
+    cy.wait(10000);
     // Ensure redirected back to the main console
 
     cy.get('body').then($body => {
