@@ -10,6 +10,16 @@
   register: expected_pods
   changed_when: false
 
+- name: "Set the prom auth"
+  ansible.builtin.include_role:
+    name: client_side_tests
+    tasks_from: get_prom_info.yml
+  vars:
+    prom_auth_method: token
+  when:
+    - prom_auth_string is not defined
+    - prom_url is not defined
+
 - name: "Get the observability strategy and set the observability_api"
   ansible.builtin.include_role:
     name: test_alerts
