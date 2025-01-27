@@ -157,7 +157,7 @@
       - reboot-os-edpm-deployment-openstack-edpm-ipam
       - repo-setup-edpm-deployment-openstack-edpm-ipam
       - run-os-edpm-deployment-openstack-edpm-ipam
-      - ssh-known-hosts-edpm-deployment-hr72k
+      - ssh-known-hosts-edpm-deployment
       - telemetry-edpm-deployment-openstack-edpm-ipam
       - validate-network-edpm-deployment-openstack-edpm-ipam
   tasks:
