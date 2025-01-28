@@ -57,7 +57,11 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-    irrelevant-files: *irrelevant_files
+    irrelevant-files: 
+    <<: *irrelevant_files
+    - roles/telemetry_graphing
+    - roles/telemetry_autoscaling
+    - roles/telemetry_verify_metrics
 
 - job:
     name: functional-metric-verification-tests-osp18
@@ -73,7 +77,12 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-    irrelevant-files: *irrelevant_files
+    irrelevant-files: 
+      <<: *irrelevant_files
+      - roles/telemetry_graphing
+      - roles/telemetry_logging
+      - roles/telemetry_verify_metrics
+
 
 - job:
     name: feature-verification-tests-noop
@@ -99,8 +108,10 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-    irrelevant-files: *irrelevant_files
-      
+    irrelevant-files: 
+      <<: *irrelevant_files
+      - roles/telemetry_logging
+      - roles/telemetry_verify_metrics
 
 - project:
     name: infrawatch/feature-verification-tests
