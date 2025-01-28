@@ -14,12 +14,6 @@
           ansible.builtin.include_vars:
             dir: "{{ cifmw_basedir }}/artifacts/parameters"
 
-        - community.general.make:
-            chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
-            target: edpm_deploy_instance
-          tags:
-            - setup
-
         - name: Patch the openstackversions to use the master containers for aodh and heat
           ansible.builtin.shell:
             cmd: |
@@ -71,6 +65,12 @@
           until: output.stdout_lines | length == 1
           register: output
           when: "{{ patch_openstackversions | bool }}"
+          tags:
+            - setup
+
+        - community.general.make:
+            chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
+            target: edpm_deploy_instance
           tags:
             - setup
 
