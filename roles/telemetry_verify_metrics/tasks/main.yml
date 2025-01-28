@@ -41,8 +41,22 @@
   tags: test
   when: '"ceilometer_central_agent" in telemetry_verify_metrics_metric_sources_to_test'
 
+- name: Verify Ceilometer ipmi metrics are being exposed and stored
+  ansible.builtin.include_tasks:
+    file: verify_ceilometer_ipmi_metrics.yml
+  tags: power_monitoring
+  when: '"ceilometer_ipmi_agent" in telemetry_verify_metrics_metric_sources_to_test'
+
 - name: Verify NodeExporter metrics are being exposed and stored
   ansible.builtin.include_tasks:
     file: verify_node_exporter_metrics.yml
   tags: test
   when: '"node_exporter" in telemetry_verify_metrics_metric_sources_to_test'
+
+- name: Verify Kepler metrics are being exposed and stored
+  ansible.builtin.include_tasks:
+    file: verify_kepler_metrics.yml
+  tags: 
+    - test
+    - power_monitoring
+  when: '"kepler" in telemetry_verify_metrics_metric_sources_to_test'

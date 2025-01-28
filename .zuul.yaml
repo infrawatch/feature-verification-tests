@@ -10,6 +10,7 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-functional-test.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: &required_projects
@@ -57,11 +58,26 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-    irrelevant-files: 
-    <<: *irrelevant_files
-    - roles/telemetry_graphing
-    - roles/telemetry_autoscaling
-    - roles/telemetry_verify_metrics
+    irrelevant-files:
+      # *irrelevant_files
+      - .github/.*
+      - ci/github/.*
+      - callback_plugins/.*
+      - README*
+      - .*/*.md
+      - roles/client_side_tests/.*
+      - roles/test_alerts/.*
+      - roles/test_collectd/.*
+      - roles/test_metrics_retention/.*
+      - roles/test_observability_strategy/.*
+      - roles/test_qdr/.*
+      - roles/test_sensubility/.*
+      - roles/test_snmp_traps/.*
+      - roles/test_verify_email/.*
+      #    
+      - roles/telemetry_graphing
+      - roles/telemetry_autoscaling
+      - roles/telemetry_verify_metrics
 
 - job:
     name: functional-metric-verification-tests-osp18
@@ -74,15 +90,29 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-metric-verification-test.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
     irrelevant-files: 
-      <<: *irrelevant_files
+      # *irrelevant_files
+      - .github/.*
+      - ci/github/.*
+      - callback_plugins/.*
+      - README*
+      - .*/*.md
+      - roles/client_side_tests/.*
+      - roles/test_alerts/.*
+      - roles/test_collectd/.*
+      - roles/test_metrics_retention/.*
+      - roles/test_observability_strategy/.*
+      - roles/test_qdr/.*
+      - roles/test_sensubility/.*
+      - roles/test_snmp_traps/.*
+      - roles/test_verify_email/.*
+      #
       - roles/telemetry_graphing
       - roles/telemetry_logging
-      - roles/telemetry_verify_metrics
-
 
 - job:
     name: feature-verification-tests-noop
@@ -108,8 +138,23 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-    irrelevant-files: 
-      <<: *irrelevant_files
+    irrelevant-files:
+      # *irrelevant_files
+      - .github/.*
+      - ci/github/.*
+      - callback_plugins/.*
+      - README*
+      - .*/*.md
+      - roles/client_side_tests/.*
+      - roles/test_alerts/.*
+      - roles/test_collectd/.*
+      - roles/test_metrics_retention/.*
+      - roles/test_observability_strategy/.*
+      - roles/test_qdr/.*
+      - roles/test_sensubility/.*
+      - roles/test_snmp_traps/.*
+      - roles/test_verify_email/.*
+      #
       - roles/telemetry_logging
       - roles/telemetry_verify_metrics
 
@@ -122,7 +167,7 @@
             override-checkout: main
             irrelevant-files: *irrelevant_files
         - functional-tests-on-osp18:
-            voting: false
+            voting: true
         - functional-logging-tests-osp18
         - functional-graphing-tests-osp18
         - functional-metric-verification-tests-osp18
