@@ -3,10 +3,17 @@
 
 # Pre-check: is the value of global.timeout = 5m in the alertmanager secret
 
+- name: "Get the number of default-interconnect pods"
+  ansible.builtin.command:
+    cmd: |
+      oc get pods -l application=default-interconnect
+  register: expected_pods
+  changed_when: false
+
 - name: "Do the test procedure"
   block:
       # TODO: put the patch into a file. and use --patch-file instead of -p OR slurp the file from files/
-    - name: "RHELOSP-144965 Patch the ServiceTelemetry object for the STF deployment"
+    - name: "Patch the ServiceTelemetry object for the STF deployment"
       ansible.builtin.shell:
         cmd: |
           oc patch stf default --type merge -p '{"spec": {"alertmanagerConfigManifest": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: 'alertmanager-default'\n  namespace: 'service-telemetry'\ntype: Opaque\nstringData:\n  alertmanager.yaml: |-\n    global:\n      resolve_timeout: 10m\n    route:\n      group_by: ['job']\n      group_wait: 30s\n      group_interval: 5m\n      repeat_interval: 12h\n      receiver: 'null'\n    receivers:\n    - name: 'null'\n"}}'
@@ -101,10 +108,16 @@
       until: 'not "FVT_TESTING Collectd metrics receive rate is zero" in cmd_output.stdout'
       changed_when: false
 
-    - name: "Wait 2 minutes to make sure all SG pods are back to normal"
-      ansible.builtin.pause:
-        minutes: 2
-
+    - name: "Wait up to 5 minutes to make sure all default-interconnect pods are back"
+      ansible.builtin.command:
+        cmd: |
+          oc get pods -l application=default-interconnect
+      retries: 30
+      delay: 10
+      register: output
+      until: output.stdout_lines | length == expected_pods.stdout_lines | length
+      changed_when: false
+      
 
     - name: "RHELOSP-176039 Remove alertmanagerConfigManifest from the ServiceTelemetry object"
       ansible.builtin.shell:
