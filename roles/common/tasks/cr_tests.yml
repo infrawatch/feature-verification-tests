@@ -10,23 +10,14 @@
   failed_when:
     - result.rc != 0
 
-  # This is added so that the task name will be rendered correctly
-  # If item.condition_type is used and it doesn't exist, then the
-  # literal template text would appear as the task name
-  # e.g. "Verify that the {{ item.kind }} {{ item.name }} CR is {{ item.condition_type }}"
-  # and it would appear in the XML output incorrectly as
-  # "verify_that_the_item_kind_item_name_cr_is_item_condition_type"
-- name: Set the condition type
-  ansible.builtin.set_fact:
-    condition_type: "{{ item.condition_type if item.condition_type is defined else '' }}"
-
-- name: |
-    {{ 'TEST' if condition_type | length > 0 }} Verify that the {{ item.kind }} {{ item.name }} CR is {{ condition_type }}
-    {{ common_cr_ready_test_id if condition_type | length > 0 }}
+- name: Verify that a CR is ready {{ common_cr_ready_test_id }}
   ansible.builtin.command:
     cmd: |
-      oc get {{ item.kind }} {{ item.name }} -o jsonpath='{.status.conditions[?(@.type=="{{ condition_type }}")].status}{"\n"}'
+      oc get {{ item.kind }} {{ item.name }} -o jsonpath='{.status.conditions[?(@.type=="{{ item.condition_type }}")].status}{"\n"}'
   register: result
   changed_when: false
   failed_when:
     - result.stdout != "True"
+  when:
+    - common_cr_ready_test_id is defined
+    - item.condition_type is defined
