@@ -113,7 +113,7 @@
             override-checkout: main
             irrelevant-files: *irrelevant_files
         - functional-tests-on-osp18:
-            voting: false
+            voting: true
         - functional-logging-tests-osp18
         - functional-graphing-tests-osp18
         - functional-metric-verification-tests-osp18
