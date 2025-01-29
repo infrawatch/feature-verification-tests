@@ -11,6 +11,11 @@
     journal_list:
       - ceilometer_agent_compute
       - nova_compute
+    common_container_test_id: "RHOSO-12753"
+    common_container_list:
+      - ceilometer_agent_compute
+      - ceilometer_agent_ipmi
+      - node_exporter
     common_file_test_id: "RHOSO-12754"
     common_file_list:
       - /etc/rsyslog.d/10-telemetry.conf
