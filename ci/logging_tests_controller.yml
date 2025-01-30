@@ -155,7 +155,6 @@
       - nova-edpm-deployment-openstack-edpm-ipam
       - ovn-edpm-deployment-openstack-edpm-ipam
       - reboot-os-edpm-deployment-openstack-edpm-ipam
-      - repo-setup-edpm-deployment-openstack-edpm-ipam
       - run-os-edpm-deployment-openstack-edpm-ipam
       - ssh-known-hosts-edpm-deployment
       - telemetry-edpm-deployment-openstack-edpm-ipam
