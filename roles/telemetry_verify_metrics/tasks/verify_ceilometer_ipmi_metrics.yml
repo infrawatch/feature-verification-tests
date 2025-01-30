@@ -1,0 +1,40 @@
+- name: Verify ceilometer scrapeconfig exists
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_test_id: RHOSO-1221
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-ceilometer
+
+- name: Verify ceilometer ipmi agent container is up
+  ansible.builtin.include_tasks:
+    file: check_compute_node_containers.yml
+  vars:
+    common_container_test_id: RHOSO-1230
+    common_container_list:
+      - ceilometer_agent_ipmi
+  loop: "{{ groups['computes'] }}"
+  loop_control:
+    loop_var: compute_node
+
+- name: Verify ceilometer controlplane pod is running
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_pod_test_id: RHOSO-1242
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack
+    common_pod_list:
+      - ceilometer-0
+
+- name: |
+    TEST Use openstack observabilityclient to verify ceilometer ipmi metrics are stored in prometheus
+    RHOSO-1217
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show ceilometer_hardware_ipmi_fan --disable-rbac
+  register: result
+  delay: 30
+  retries: 10
+  until: result.rc == 0 and "ceilometer_hardware_ipmi" in result.stdout
+  changed_when: false

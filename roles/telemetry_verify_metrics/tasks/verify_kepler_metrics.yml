@@ -1,0 +1,36 @@
+- name: Verify node exporter scrapeconfigs exist
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_test_id: RHOSO-1222
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-kepler
+    kepler_dashboard_metrics:
+      - kepler_vm_platform_joules_total
+      - kepler_node_platform_joules_total
+      - kepler_process_joules_total
+      - kepler_container_joules_total
+      - kepler_node_info
+
+- name: Verify Kepler container is up
+  ansible.builtin.include_tasks:
+    file: check_compute_node_containers.yml
+  vars:
+    common_container_test_id: RHOSO-1231
+    common_container_list:
+      - kepler
+  loop: "{{ groups['computes'] }}"
+  loop_control:
+    loop_var: compute_node
+
+- name: |
+    TEST Use openstack observabilityclient to verify kepler metrics are stored in prometheus
+    RHOSO-1216
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show --disable-rbac kepler_node_info
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and "kepler_node_info" in result.stdout
