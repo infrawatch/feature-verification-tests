@@ -2,13 +2,15 @@
 - name: Get container status
   ansible.builtin.shell:
     cmd: |
-      podman ps -a --format "{{ '{{.Names}} {{.Status}}' }}" | grep {{ container_name }}
+      podman ps -a --format "{{ '{{.Names}} {{.Status}}' }}" | grep {{ container.name }}
   changed_when: false
   register: container_status
 
-- name: Verify container status {{ common_container_test_id }}
+- name: |
+    Verify {{ container.name }} container status
+    {{ container.test_id if container.test_id is defined }}
   ansible.builtin.assert:
     that:
       - "'unhealthy' not in container_status.stdout"
-    success_msg: "Container '{{ container_name }}' is in 'healthy' status."
-    fail_msg: "Container '{{ container_name }}' is not in 'healthy' status. Current status: {{ container_status.stdout }}"
+    success_msg: "Container '{{ container.name }}' is in 'healthy' status."
+    fail_msg: "Container '{{ container.name }}' is not in 'healthy' status. Current status: {{ container_status.stdout }}"

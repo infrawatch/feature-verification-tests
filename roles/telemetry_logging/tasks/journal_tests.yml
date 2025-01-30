@@ -1,12 +1,12 @@
 ---
 - name: |
-    Get journals {{ item }}
-    {{ journal_test_id }}
+    TEST Get journals {{ journal.name }}
+    {{ telemetry_logging_journal_test_id }}
   become: true
   ansible.builtin.shell:
     cmd: |
       tstamp=$(date -d '30 minute ago' "+%Y-%m-%d %H:%M:%S")
-      journalctl -t "{{ item }}" --no-pager -S "${tstamp}"
+      journalctl -t "{{ journal.name }}" --no-pager -S "${tstamp}"
   register: journal_wc
   changed_when: false
   failed_when:  

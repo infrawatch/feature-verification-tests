@@ -7,47 +7,48 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    common_pod_test_id: "RHOS0-12672"
-    common_pod_status_str: "Running"
-    common_pod_nspace: openstack-operators
+    common_pod_test_id: "RHOSO-12672"
+    # common_pod_status_str: "Running"
+    # common_pod_nspace: openstack-operators
     common_pod_list:
-      - telemetry-operator-controller-manager
-      - openstack-operator-controller-manager
+      - { name: telemetry-operator-controller-manager, nspace: openstack-operators, status_str: "Running", test_id: "RHOSO-13761" }
+      - { name: openstack-operator-controller-manager, nspace: openstack-operators, status_str: "Running", test_id: "RHOSO-13762" }
     common_subscription_test_id: "RHOSO-12678"
-    common_subscription_nspace: openshift-operators-redhat
+    # common_subscription_nspace: openshift-operators-redhat
     common_subscription_list:
-      - loki-operator
+      - { name: loki-operator, nspace: openshift-operators-redhat, test_id: "RHOSO-12678"}
     common_project_test_id: "RHOSO-12668"
     common_project_list:
-      - openshift-openstack-infra
-      - openshift
-      - openstack-operators
-      - openshift-logging
+      - { name: openshift-openstack-infra, test_id: "RHOSO-13764" }
+      - { name: openshift, test_id: "RHOSO-13763"}
+      - { name: openstack-operators, test_id: "RHOSO-13732" }
+      - { name: openshift-logging, test_id: "RHOSO-13731"}
     common_service_test_id: "RHOSO-12675"
-    common_service_nspace: openshift-logging
+    # common_service_nspace: openshift-logging
     common_service_list:
-      - cluster-logging-operator-metrics
-      - logging-loki-compactor-grpc
-      - logging-loki-compactor-http
-      - logging-loki-distributor-grpc
-      - logging-loki-distributor-http
-      - logging-loki-gateway-http
-      - logging-loki-gossip-ring
-      - logging-loki-index-gateway-grpc
-      - logging-loki-index-gateway-http
-      - logging-loki-ingester-grpc
-      - logging-loki-ingester-http
-      - logging-loki-querier-grpc
-      - logging-loki-querier-http
-      - logging-loki-query-frontend-grpc
-      - logging-loki-query-frontend-http
-      - openstack-logging
+      - { name: cluster-logging-operator-metrics, nspace: openshift-logging,test_id: "RHOSO-13744"}
+      - { name: logging-loki-compactor-grpc, nspace: openshift-logging, test_id: "RHOSO-13746"}
+      - { name: logging-loki-compactor-http, nspace: openshift-logging, test_id: "RHOSO-13747"}
+      - { name: logging-loki-distributor-grpc, nspace: openshift-logging, test_id: "RHOSO-13748"}
+      - { name: logging-loki-distributor-http, nspace: openshift-logging, test_id: "RHOSO-13749"}
+      - { name: logging-loki-gateway-http, nspace: openshift-logging, test_id: "RHOSO-13750"}
+      - { name: logging-loki-gossip-ring, nspace: openshift-logging, test_id: "RHOSO-13751"}
+      - { name: logging-loki-index-gateway-grpc, nspace: openshift-logging, test_id: "RHOSO-13752"}
+      - { name: logging-loki-index-gateway-http, nspace: openshift-logging, test_id: "RHOSO-13753"}
+      - { name: logging-loki-ingester-grpc, nspace: openshift-logging, test_id: "RHOSO-13754"}
+      - { name: logging-loki-ingester-http, nspace: openshift-logging, test_id: "RHOSO-13755"}
+      - { name: logging-loki-querier-grpc, nspace: openshift-logging, test_id: "RHOSO-13756"}
+      - { name: logging-loki-querier-http, nspace: openshift-logging, test_id: "RHOSO-13757"}
+      - { name: logging-loki-query-frontend-grpc, nspace: openshift-logging, test_id: "RHOSO-13758"}
+      - { name: logging-loki-query-frontend-http, nspace: openshift-logging, test_id: "RHOSO-13759"}
+      - { name: openstack-logging, nspace: openshift-logging, test_id: "RHOSO-13760"}
+
     common_file_test_id: "RHOSO-12754"
     common_file_list:
-      - /etc/rsyslog.d/10-telemetry.conf
+      - { name: "/etc/rsyslog.d/10-telemetry.conf", test_id: "{{ common_file_test_id }}"}
   tasks:
     - name: "Verify logging infrastructure components"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
 
 - name: "Verify logging pods are running in openstack"
@@ -59,13 +60,13 @@
     PATH: "{{ cifmw_path }}"
   vars:
     common_pod_test_id: "RHOSO-12752"
-    common_pod_status_str: "Running"
-    common_pod_nspace: openstack
+    # common_pod_status_str: "Running"
+    # common_pod_nspace: openstack
     common_pod_list:
-      - openstackclient
+      - { name: openstackclient, status_str: "Running", nspace: "openstack", test_id: "RHOSO-12752"} 
   tasks:
     - name: "Verify Running Pods"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
 
 
@@ -78,13 +79,13 @@
     PATH: "{{ cifmw_path }}"
   vars:
     common_pod_test_id: "RHOSO-12673"
-    common_pod_status_str: "Running"
-    common_pod_nspace: openshift-operators-redhat
+    #common_pod_status_str: "Running"
+    #common_pod_nspace: openshift-operators-redhat
     common_pod_list:
-      - loki-operator-controller-manager
+      - { name: loki-operator-controller-manager, nspace: openshift-operators-redhat, status_str: "Running", test_id: "RHOSO-12673"}
   tasks:
     - name: "Verify Pods running"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
 
 - name: "Verify logging pods are running in openshift-logging"
@@ -96,23 +97,24 @@
     PATH: "{{ cifmw_path }}"
   vars:
     common_pod_test_id: "RHOSO-12676"
-    common_pod_status_str: "Running"
-    common_pod_nspace: openshift-logging
+    # common_pod_status_str: "Running"
+    # common_pod_nspace: openshift-logging
     common_pod_list:
-      - cluster-logging-operator
-      - logging-loki-compactor
-      - logging-loki-distributor
-      #- logging-loki-gateway
-      - logging-loki-index-gateway
-      - logging-loki-ingester
-      - logging-loki-querier
-      - logging-loki-query-frontend
-      - collector
+      - { name: cluster-logging-operator, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      - { name: logging-loki-compactor, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13778" }
+      - { name: logging-loki-distributor, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13780" }
+      #- { name: logging-loki-gateway, nspace: openshift-logging, status_str: "Running", test_id: "{{ common_pod_test_id }}" }
+      - { name: logging-loki-index-gateway, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13781" }
+      - { name: logging-loki-ingester, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13782" }
+      - { name: logging-loki-querier, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13783" }
+      - { name: logging-loki-query-frontend, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13784" }
+      - { name: collector, nspace: openshift-logging, status_str: "Running", test_id: "RHOSO-13745"}
+
 
   ### see JIRA LOG-5431 if pods not running
   tasks:
     - name: "Verify Pods running"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
 
 - name: "Verify logging pods are running in minio-dev"
@@ -124,13 +126,13 @@
     PATH: "{{ cifmw_path }}"
   vars:
     common_pod_test_id: "RHOSO-12674"
-    common_pod_status_str: "Running"
-    common_pod_nspace: minio-dev
+    # common_pod_status_str: "Running"
+    # common_pod_nspace: minio-dev
     common_pod_list:
-      - minio
+      - { name: minio, nspace: minio-dev, status_str: "Running", test_id: "RHOSO-12674" }
   tasks:
     - name: "Run pod running tests"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
 
 
@@ -143,13 +145,13 @@
     PATH: "{{ cifmw_path }}"
   vars:
     common_pod_test_id: "RHOSO-12679"
-    common_pod_nspace: openstack
-    common_pod_status_str: "Completed"
+    #common_pod_nspace: openstack
+    #common_pod_status_str: "Completed"
     common_pod_list:
-      - logging-edpm-deployment-openstack-edpm-ipam
+      - { name: logging-edpm-deployment-openstack-edpm-ipam, nspace: openstack, status_str: "Completed", test_id: "RHOSO-12679"}
   tasks:
     - name: "Run pods completed tests"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
 
 - name: "Verify the crds exist"
@@ -160,13 +162,13 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    common_crd_test_id: "RHOSO-12670"
+    #common_crd_test_id: "RHOSO-12670"
     common_crd_list:
-      - alertingrules.loki.grafana.com
-      - lokistacks.loki.grafana.com
-      - recordingrules.loki.grafana.com
-      - rulerconfigs.loki.grafana.com
+      - { name: alertingrules.loki.grafana.com, test_id: "RHOSO-12670"}
+      - { name: lokistacks.loki.grafana.com, test_id: "RHOSO-13787"}
+      - { name: recordingrules.loki.grafana.com, test_id: "RHOSO-13788"}
+      - { name: rulerconfigs.loki.grafana.com, test_id: "RHOSO-13789"}
   tasks:
     - name: "Run the crds tests"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: common
