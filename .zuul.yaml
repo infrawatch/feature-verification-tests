@@ -15,9 +15,9 @@
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: &required_projects
       - name: github.com/infrawatch/service-telemetry-operator
-      - name: openstack-k8s-operators/ci-framework
+      - name: github.com/openstack-k8s-operators/ci-framework
         override-checkout: main
-      - name: openstack-k8s-operators/install_yamls
+      - name: github.com/openstack-k8s-operators/install_yamls
         override-checkout: main
       - name: github.com/openstack-k8s-operators/dataplane-operator
         override-checkout: main
@@ -44,6 +44,15 @@
       - roles/test_sensubility/.*
       - roles/test_snmp_traps/.*
       - roles/test_verify_email/.*
+    files:
+      - roles/telemetry_autoscaling/.*
+      - .zuul.yaml
+      - ci/vars-functional-test.yml
+      - ci/run_autoscaling_osp18.yml
+      - ci/vars-use-master-containers.yml
+      - ci/use-master-containers.yml
+      - ci/patch-openstack-version.yaml
+      - scenarios/centos-9/multinode-ci.yml
 
 - job:
     name: functional-logging-tests-osp18
@@ -58,7 +67,15 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
+<<<<<<< HEAD
     irrelevant-files: *irrelevant_files
+    files:
+      - roles/telemetry_logging/.*
+      - .zuul.yaml
+      - ci/vars-logging-test.yml
+      - ci/logging_tests_all.yml
+      - ci/logging_tests_computes.yml
+      - ci/logging_tests_controller.yml
 
 - job:
     name: functional-metric-verification-tests-osp18
@@ -72,10 +89,16 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-metric-verification-test.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-    irrelevant-files: *irrelevant_files
+    irrelevant-files:  *irrelevant_files
+    files:
+      - roles/telemetry_verify_metrics/.*
+      - .zuul.yaml
+      - ci/vars-metric-verification-test.yml
+      - ci/run_verify_metrics_osp18.yml
 
 - job:
     name: feature-verification-tests-noop
@@ -97,12 +120,17 @@
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-graphing-test.yml"
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
     irrelevant-files: *irrelevant_files
-      
+    files:
+      - roles/telemetry_graphing/.*
+      - .zuul.yaml
+      - ci/vars-graphing-test.yml
+      - ci/run_graphing_test.yml
 
 - project:
     name: infrawatch/feature-verification-tests

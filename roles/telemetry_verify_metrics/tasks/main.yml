@@ -15,10 +15,10 @@
       - kind: ceilometer
         name: ceilometer
         condition_type: Ready
-      - kind: rabbitmq
+      - kind: rabbitmqclusters
         name: rabbitmq
         condition_type: ReconcileSuccess
-      - kind: rabbitmq
+      - kind: rabbitmqclusters
         name: rabbitmq-cell1
         condition_type: ReconcileSuccess
   tags: precheck
@@ -56,7 +56,13 @@
 - name: Verify Kepler metrics are being exposed and stored
   ansible.builtin.include_tasks:
     file: verify_kepler_metrics.yml
-  tags: 
+  tags:
     - test
     - power_monitoring
   when: '"kepler" in telemetry_verify_metrics_metric_sources_to_test'
+
+- name: Verify OpenstackNetworkExporter metrics are being exposed and stored
+  ansible.builtin.include_tasks:
+    file: verify_openstack_network_exporter_metrics.yml
+  tags: test
+  when: '"openstack_network_exporter" in telemetry_verify_metrics_metric_sources_to_test'
