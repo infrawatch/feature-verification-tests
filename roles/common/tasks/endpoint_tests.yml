@@ -13,5 +13,4 @@
     that:
       - output.stdout != ""
     success_msg: "The endpoint {{ item[0] }} is found."
-    fail_msg: "The endpoint for service {{ item[0] }} "
     fail_msg: "The endpoint for service {{ item[0] }} on the {{ item[2] }} interface was not found"
