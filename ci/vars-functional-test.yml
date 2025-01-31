@@ -1,5 +1,9 @@
 ---
-# temp: skip os-net-setup
+# This is added so we skip the os_net_setup role, which would normally be used
+# to create a network.
+# A network gets created by `make edpm_deploy_instance` during the autoscaling
+# tests.
+# skip os-net-setup
 cifmw_os_net_setup_config: []
 post_deploy_00_run_functional_test:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_autoscaling_osp18.yml"
