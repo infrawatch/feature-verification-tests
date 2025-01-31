@@ -1,4 +1,7 @@
-- name: Verify that a CR exists {{ common_cr_test_id }}
+---
+- name: |
+    TEST Verify that the {{ item.kind }} {{ item.name }} CR exists
+    {{ common_cr_test_id }}
   ansible.builtin.command:
     cmd: |
       oc get {{ item.kind }} {{ item.name }}

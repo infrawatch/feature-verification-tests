@@ -5,7 +5,7 @@
   register: fstats
 
 - name: |
-    Verify the file {{ item }} exists
+    TEST Verify the file {{ item }} exists
     {{ common_file_test_id }}
   ansible.builtin.assert:
     that:
