@@ -1,6 +1,6 @@
 ---
 - name: |
-    Get journals {{ item }}
+    TEST Get journals {{ item }}
     {{ journal_test_id }}
   become: true
   ansible.builtin.shell:

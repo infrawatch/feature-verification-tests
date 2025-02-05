@@ -1,6 +1,6 @@
 ---
 - name: |
-    Verify that the {{ item.kind }} {{ item.name }} CR exists
+    TEST Verify that the {{ item.kind }} {{ item.name }} CR exists
     {{ common_cr_test_id }}
   ansible.builtin.command:
     cmd: |
@@ -19,7 +19,7 @@
     condition_type: "{{ item.condition_type if item.condition_type is defined else '' }}"
 
 - name: |
-    Verify that the {{ item.kind }} {{ item.name }} CR is {{ condition_type }}
+    {{ 'TEST' if condition_type | length > 0 }} Verify that the {{ item.kind }} {{ item.name }} CR is {{ condition_type }}
     {{ common_cr_ready_test_id if condition_type | length > 0 }}
   ansible.builtin.command:
     cmd: |

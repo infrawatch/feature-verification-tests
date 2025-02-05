@@ -59,6 +59,30 @@
   register: busy_process
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
+- name: Show ceilometer_cpu metrics from Prometheus
+  when: metrics_backend == "prometheus"
+  block:
+    - name: Register autoscaling query results
+      shell: |
+        export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
+        {{ openstack_cmd }} metric query '(rate(ceilometer_cpu{server_group=~"$STACK_ID"}[150s]))/10000000'
+      ignore_errors: true
+      register: result
+
+    - name: Show the query result
+      ansible.builtin.debug:
+        var: result
+
+    - name: Register ceilometer_cpu metrics
+      shell: |
+        {{ openstack_cmd }} metric show ceilometer_cpu --disable-rbac
+      ignore_errors: true
+      register: result
+
+    - name: Show the ceilometer_cpu metrics
+      ansible.builtin.debug:
+        var: result
+
 - name: |
     TEST Verify cpu high alarm has been triggered
     RHOSO-12660
