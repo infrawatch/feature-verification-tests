@@ -72,6 +72,7 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-metric-verification-test.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
