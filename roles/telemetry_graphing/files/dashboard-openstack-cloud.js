@@ -37,7 +37,6 @@ describe('OpenShift Console Dashboard Test', () => {
       { url: '/grafana-dashboard-openstack-node', screenshot: 'openstack-node' },
       { url: '/grafana-dashboard-openstack-vm', screenshot: 'openstack-vms' },
       { url: '/grafana-dashboard-openstack-network-traffic', screenshot: 'openstack-network-traffic'},
-      { url: '/grafana-dashboard-openstack-kepler', screenshot: 'openstack-kepler' },
       { url: '/grafana-dashboard-openstack-ceilometer-ipmi', screenshot: 'openstack-ceilometer-ipmi' }
     ];
     
