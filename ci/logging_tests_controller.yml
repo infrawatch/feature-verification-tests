@@ -7,7 +7,7 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    common_pod_test_id: "RHOS0-12672"
+    common_pod_test_id: "RHOSO-12672"
     common_pod_status_str: "Running"
     common_pod_nspace: openstack-operators
     common_pod_list:
@@ -42,12 +42,17 @@
       - [neutron,network,public]
       - [neutron,network,internal]
 
+
+    common_manifest_test_id: "RHOSO-12677"
+    common_manifest_list:
+      - "loki-operator 2"
+      - "loki-helm-operator 1"
+
     common_node_test_id: "RHOSO-12671"
     common_node_list:
       - edpm-compute-0
       - edpm-compute-1
       - crc
-
 
     common_service_test_id: "RHOSO-12675"
     common_service_nspace: openshift-logging
@@ -68,13 +73,7 @@
       - logging-loki-query-frontend-grpc
       - logging-loki-query-frontend-http
       - openstack-logging
-    common_file_test_id: "RHOSO-12754"
-    common_file_list:
-      - /etc/rsyslog.d/10-telemetry.conf
-    common_manifest_test_id: "RHOSO-12677"
-    common_manifest_list:
-      - "loki-operator 2"
-      - "loki-helm-operator 1"
+
   tasks:
     - name: "Verify logging infrastructure components"
       ansible.builtin.import_role:

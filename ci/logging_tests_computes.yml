@@ -11,12 +11,19 @@
     journal_list:
       - ceilometer_agent_compute
       - nova_compute
+    common_file_test_id: "RHOSO-12754"
+    common_file_list:
+      - /etc/rsyslog.d/10-telemetry.conf
   tasks:
     - name: "Run Telemetry Logging tests"
       ansible.builtin.import_role:
         name: telemetry_logging
 
-- name: "Verify ctlplane logging containers and files"
+   - name: "Run the tests from the common role"
+      ansible.builtin.import_role:
+        name: common
+
+- name: "Verify ctlplane logging containers"
   hosts: computes
   gather_facts: no
   ignore_errors: true
@@ -30,11 +37,7 @@
       - ceilometer_agent_ipmi
       - node_exporter
 
-    common_file_test_id: "RHOSO-12754"
-    common_file_list:
-      - /etc/rsyslog.d/10-telemetry.conf
   tasks:
     - name: "Run file and container tests"
       ansible.builtin.import_role:
         name: common
-

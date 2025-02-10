@@ -13,7 +13,9 @@
   register: pack_name
   changed_when: false
 
-- name: Get packagemanifest "{{ common_manifest_test_id }}"
+- name: |
+    TEST Get {{ item }} packagemanifest
+    {{ common_manifest_test_id }}
   ansible.builtin.shell:
     cmd: |
       oc get packagemanifests | grep "{{ pack_name.stdout }}" | wc -l
