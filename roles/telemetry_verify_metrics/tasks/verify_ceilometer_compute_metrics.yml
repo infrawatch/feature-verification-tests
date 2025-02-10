@@ -52,7 +52,7 @@
       failed_when: result.rc >= 1
 
     - name: |
-        TEST Use openstack observabilityclient to verify ceilometer compute metrics are stored in prometheus
+        TEST Use openstack observabilityclient to verify ceilometer_cpu compute metrics are stored in prometheus
         RHOSO-1213
       ansible.builtin.shell: |
         {{ openstack_cmd }} metric show ceilometer_cpu
@@ -60,6 +60,17 @@
       delay: 30
       retries: 10
       until: result.rc == 0 and "ceilometer_cpu" in result.stdout
+      changed_when: false
+
+    #todo: Create Test Id in Polarian
+    - name: |
+        TEST Use openstack observabilityclient to verify ceilometer_power_state compute metrics are stored in prometheus
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} metric show ceilometer_power_state
+      register: result
+      delay: 30
+      retries: 10
+      until: result.rc == 0 and "ceilometer_power_state" in result.stdout
       changed_when: false
 
   always:
