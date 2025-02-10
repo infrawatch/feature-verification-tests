@@ -6,6 +6,8 @@
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/osp18_env.yml
   vars:
     common_pod_test_id: "RHOSO-12672"
     common_pod_status_str: "Running"
