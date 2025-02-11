@@ -58,7 +58,26 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-    irrelevant-files: *irrelevant_files
+    irrelevant-files:
+      # *irrelevant_files
+      - .github/.*
+      - ci/github/.*
+      - callback_plugins/.*
+      - README*
+      - .*/*.md
+      - roles/client_side_tests/.*
+      - roles/test_alerts/.*
+      - roles/test_collectd/.*
+      - roles/test_metrics_retention/.*
+      - roles/test_observability_strategy/.*
+      - roles/test_qdr/.*
+      - roles/test_sensubility/.*
+      - roles/test_snmp_traps/.*
+      - roles/test_verify_email/.*
+      #    
+      - roles/telemetry_graphing
+      - roles/telemetry_autoscaling
+      - roles/telemetry_verify_metrics
 
 - job:
     name: functional-metric-verification-tests-osp18
@@ -76,7 +95,25 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-    irrelevant-files: *irrelevant_files
+    irrelevant-files: 
+      # *irrelevant_files
+      - .github/.*
+      - ci/github/.*
+      - callback_plugins/.*
+      - README*
+      - .*/*.md
+      - roles/client_side_tests/.*
+      - roles/test_alerts/.*
+      - roles/test_collectd/.*
+      - roles/test_metrics_retention/.*
+      - roles/test_observability_strategy/.*
+      - roles/test_qdr/.*
+      - roles/test_sensubility/.*
+      - roles/test_snmp_traps/.*
+      - roles/test_verify_email/.*
+      #
+      - roles/telemetry_graphing
+      - roles/telemetry_logging
 
 - job:
     name: feature-verification-tests-noop
@@ -102,8 +139,25 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-    irrelevant-files: *irrelevant_files
-      
+    irrelevant-files:
+      # *irrelevant_files
+      - .github/.*
+      - ci/github/.*
+      - callback_plugins/.*
+      - README*
+      - .*/*.md
+      - roles/client_side_tests/.*
+      - roles/test_alerts/.*
+      - roles/test_collectd/.*
+      - roles/test_metrics_retention/.*
+      - roles/test_observability_strategy/.*
+      - roles/test_qdr/.*
+      - roles/test_sensubility/.*
+      - roles/test_snmp_traps/.*
+      - roles/test_verify_email/.*
+      #
+      - roles/telemetry_logging
+      - roles/telemetry_verify_metrics
 
 - project:
     name: infrawatch/feature-verification-tests
