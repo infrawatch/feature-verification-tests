@@ -1,5 +1,5 @@
 ---
-  # The containers are run by root, so need to become true
+# The containers are run by root, so need to become true
 - name: Get container status
   become: true
   ansible.builtin.shell:
@@ -7,6 +7,19 @@
       podman ps -a --format "{{ '{{.Names}} {{.Status}}' }}" | grep {{ container_name }}
   changed_when: false
   register: container_status
+
+- when: container_status.stdout | length == 0
+  block:
+  - name: Show the containers
+    ansible.builtin.shell:
+      cmd: |
+        podman ps -a --format "{{ '{{.Names}} {{.Status}}' }}"
+    changed_when: false
+    register: debug_output
+
+  - name: Show the output of container list
+    ansible.builtin.debug:
+      var: debug_output.stdout_lines
 
   # NOTE: leaving the existing fail message to get the status and see if it is okay
 - name: |
