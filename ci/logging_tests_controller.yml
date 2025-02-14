@@ -172,6 +172,13 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
+    common_service_test_id: "RHOSO-12749"
+    common_service_nspace: openstack
+    common_service_list:
+      - nova-internal
+      - nova-metadata-internal
+      - nova-novncproxy-cell1-public
+      - nova-public
     common_crd_test_id: "RHOSO-12670"
     common_crd_list:
       - alertingrules.loki.grafana.com
@@ -179,6 +186,6 @@
       - recordingrules.loki.grafana.com
       - rulerconfigs.loki.grafana.com
   tasks:
-    - name: "Run the crds tests"
+    - name: "Run Services and CRD tests"
       ansible.builtin.import_role:
         name: common
