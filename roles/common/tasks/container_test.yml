@@ -1,12 +1,14 @@
 ---
-# The containers are run by root, so need to become true
 - name: Get container status
-  become: true
   ansible.builtin.shell:
     cmd: |
       podman ps -a --format "{{ '{{.Names}} {{.Status}}' }}" | grep {{ container_name }}
   changed_when: false
   register: container_status
+
+- name:  Show the container name and status
+  ansible.builtin.debug:
+    var: container_status.stdout
 
 - when: container_status.stdout | length == 0
   block:
@@ -34,4 +36,3 @@
       Container does not meet the required conditions:
       {%- if container_status.stdout | length == 0 %}Container name did not match any existing containers;{% endif %}
       {%- if "unhealthy" in container_status.stdout %}Container status is unhealthy;{% endif %}
-      Container '{{ container_name }}' is not in 'healthy' status. Current status: {{ container_status.stdout }}
