@@ -28,3 +28,11 @@
   register: stat
   changed_when: false
   failed_when: stat.stdout_lines|length == 0
+
+- name: TEST Check the collectd memory limit is set to 512Mb
+  ansible.builtin.shell: |
+    {{ container_bin }} inspect {{ collectd_container_name }} | grep 512 -c
+  register: memory
+  changed_when: false
+  failed_when: memory.stdout_lines|length == 0
+
