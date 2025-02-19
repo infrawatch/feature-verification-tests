@@ -1,8 +1,4 @@
 ---
-- community.general.make:
-      chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
-      target: edpm_deploy_instance
-
 - name: "Verify url for graphing test"
   ansible.builtin.include_tasks: 
     file: verify_url.yml
