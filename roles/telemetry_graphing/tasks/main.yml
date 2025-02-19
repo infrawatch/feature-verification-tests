@@ -1,6 +1,5 @@
 ---
-- name: "Create workload to verify the dashboards"
-  community.general.make:
+- community.general.make:
       chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
       target: edpm_deploy_instance
 
