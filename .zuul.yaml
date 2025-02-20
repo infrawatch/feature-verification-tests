@@ -15,9 +15,9 @@
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: &required_projects
       - name: github.com/infrawatch/service-telemetry-operator
-      - name: openstack-k8s-operators/ci-framework
+      - name: github.com/openstack-k8s-operators/ci-framework
         override-checkout: main
-      - name: openstack-k8s-operators/install_yamls
+      - name: github.com/openstack-k8s-operators/install_yamls
         override-checkout: main
       - name: github.com/openstack-k8s-operators/dataplane-operator
         override-checkout: main
