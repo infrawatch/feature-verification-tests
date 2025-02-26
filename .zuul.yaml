@@ -44,6 +44,14 @@
       - roles/test_sensubility/.*
       - roles/test_snmp_traps/.*
       - roles/test_verify_email/.*
+    files:
+      - roles/telemetry_autoscaling/.*
+      #- .zuul.yaml
+      - ci/vars-functional-test.yml
+      - ci/run_autoscaling_osp18.yml
+      - ci/vars-use-master-containers.yml
+      - ci/use-master-containers.yml
+      - ci/patch-openstack-version.yaml
 
 - job:
     name: functional-logging-tests-osp18
