@@ -157,6 +157,7 @@ can be set at the play level.
                 - ceilometer_agent_ipmi
                 - node_exporter
                 - kepler
+                - openstack_network_exporter
 
       - name: "Verify Endpoint"
         ansible.builtin.import_role:
@@ -176,7 +177,7 @@ can be set at the play level.
           common_project_list:
             - openshift-openstack-infra
             - openshift
-    
+
       - name: "Verify services"
         ansible.builtin.import_role:
           name: common
