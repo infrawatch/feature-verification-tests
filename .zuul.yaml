@@ -34,6 +34,7 @@
       - ci/github/.*
       - callback_plugins/.*
       - README*
+      - OWNERS*
       - .*/*.md
       - roles/client_side_tests/.*
       - roles/test_alerts/.*
