@@ -15,10 +15,10 @@
       - kind: ceilometer
         name: ceilometer
         condition_type: Ready
-      - kind: rabbitmq
+      - kind: rabbitmqclusters
         name: rabbitmq
         condition_type: ReconcileSuccess
-      - kind: rabbitmq
+      - kind: rabbitmqclusters
         name: rabbitmq-cell1
         condition_type: ReconcileSuccess
   tags: precheck
