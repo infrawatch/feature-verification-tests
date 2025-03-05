@@ -9,7 +9,7 @@
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-openstack-network-exporter-tls
 
-- name: Verify node exporter container is up
+- name: Verify openstack network exporter container is up
   ansible.builtin.include_tasks:
     file: check_compute_node_containers.yml
   vars:
