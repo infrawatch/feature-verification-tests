@@ -1,6 +1,6 @@
 ---
 - job:
-    name: functional-tests-on-osp18
+    name: functional-tests-on-osp18 ## Testing
     parent: telemetry-operator-multinode-autoscaling
     description: |
       Run the autoscaling functional test on osp18+patched version of aodh and heat.
