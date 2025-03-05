@@ -1,6 +1,6 @@
 ---
 - job:
-    name: functional-tests-on-osp18 ## Testing
+    name: functional-tests-on-osp18
     parent: telemetry-operator-multinode-autoscaling
     description: |
       Run the autoscaling functional test on osp18+patched version of aodh and heat.
@@ -30,7 +30,7 @@
       - name: github.com/openstack-k8s-operators/telemetry-operator
         override-checkout: main
     irrelevant-files: &irrelevant_files
-      - .github/.*
+#      - .github/.*
       - ci/github/.*
       - callback_plugins/.*
       - README*
