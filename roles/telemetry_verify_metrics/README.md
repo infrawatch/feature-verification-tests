@@ -28,7 +28,7 @@ Tests:
 - Verify NodeExporter metrics are being exposed and stored
     - Use openstack observabilityclient to verify NodeExporter metrics are stored in Prometheus
 - Verfiy OpenstackNetworkExporter metrics are being exposed and stored
-    - Use openstack observabilityclietnt to verify OpenstackNetworkExporter metrics are stored in Prometheus
+    - Use openstack observabilityclient to verify OpenstackNetworkExporter metrics are stored in Prometheus
 - Verify Kepler metrics are being exposed and stored
     - Use openstack observabilityclient to verify Kepler metrics are stored in Prometheus
 
