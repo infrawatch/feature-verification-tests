@@ -7,7 +7,7 @@
   register: output
 
 - name: |
-    Verify {{ item }} service is running
+    TEST Verify {{ item }} service is running in {{ common_service_nspace }} namespace
     {{ common_service_test_id }}
   ansible.builtin.assert:
     that:
