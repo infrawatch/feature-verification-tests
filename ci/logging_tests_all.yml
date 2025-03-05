@@ -3,4 +3,3 @@
 
 - name: Run the controller tests
   ansible.builtin.import_playbook: logging_tests_controller.yml
-#
