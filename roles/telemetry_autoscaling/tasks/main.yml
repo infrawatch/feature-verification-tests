@@ -9,7 +9,7 @@
   ansible.builtin.include_tasks: 
     file: test_services.yml
   tags: precheck
-
+#
 - name: Check pre-reqs for autoscaling
   ansible.builtin.include_tasks: 
     file: verify_autoscaling.yml
