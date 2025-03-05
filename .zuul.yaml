@@ -30,7 +30,7 @@
       - name: github.com/openstack-k8s-operators/telemetry-operator
         override-checkout: main
     irrelevant-files: &irrelevant_files
-#      - .github/.*
+      - .github/.*
       - ci/github/.*
       - callback_plugins/.*
       - README*
