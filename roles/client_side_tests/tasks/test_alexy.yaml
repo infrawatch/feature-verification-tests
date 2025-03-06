@@ -1,0 +1,111 @@
+---
+- name: Get prom creds
+  ansible.builtin.include_tasks:
+    file: get_prom_info.yml
+
+- name: RHELOSP-37759 Query Prometheus for collectd_cpu_percent metrics and save the output into the file
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k {{ prom_auth_string }} \
+        -g https://{{ prom_url }}/api/v1/query? \
+        --data-urlencode 'query=collectd_cpu_percent {plugin_instance="0"}[1m]' \
+        --output /tmp/query_collectd_cpu_percent
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc !=0
+
+- name: RHELOSP-57528 Query Prometheus for ceph_ceph_bytes metrics and save the output into the file
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k {{ prom_auth_string }} \
+        -g https://{{ prom_url }}/api/v1/query? \
+        --data-urlencode 'query=collectd_ceph_ceph_bytes {plugin_instance="ceph-osd.1"}[1m]' \
+        --output /tmp/query_ceph_ceph_bytes
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc !=0
+
+- name: RHELOSP-57536 Query Prometheus for collectd_interface_if_packets_tx_total metrics and save the output into the file
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k {{ prom_auth_string }} \
+        -g https://{{ prom_url }}/api/v1/query? \
+        --data-urlencode 'query=collectd_interface_if_packets_tx_total {type_instance="base"}[1m]' \
+        --output /tmp/query_collectd_interface_tx_total
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc !=0
+
+- name: RHELOSP-37762 Query Prometheus for collectd_memory metrics and save the output into the file
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k {{ prom_auth_string }} \
+        -g https://{{ prom_url }}/api/v1/query? \
+        --data-urlencode 'query=collectd_memory {plugin_instance="base"}[1m]' \
+        --output /tmp/query_collectd_memory
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc !=0
+
+- name: RHELOSP-117539 Query Prometheus for collectd_load_longterm metrics and save the output into the file
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k {{ prom_auth_string }} \
+        -g https://{{ prom_url }}/api/v1/query? \
+        --data-urlencode 'query=collectd_load_longterm {plugin_instance="base"}[1m]' \
+        --output /tmp/query_load_longterm
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc !=0
+
+- name: RHELOSP-37757 Read content of query_ceph_ceph_bytes file and check that metrics are present
+  ansible.builtin.command:
+    cmd: >-
+       egrep 'ceph' /tmp/query_ceph_ceph_bytes
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc != 0
+
+- name: RHELOSP-37218 Read content of query_collectd_interface_tx_total file and check that metrics are present
+  ansible.builtin.shell:
+    cmd: >-
+       egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_interface_tx_total
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc != 0
+
+- name: RHELOSP-37636 Read contents of query_collectd_cpu_percent file and check that metrics are present
+  ansible.builtin.shell:
+    cmd: >-
+      egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_cpu_percent
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc != 0
+
+
+- name: RHELOSP-37670 Read content of query_collectd_memory file and check that metrics are present
+  ansible.builtin.shell:
+    cmd: >-
+      egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_collectd_memory
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc != 0
+
+
+- name: RHELOSP-37224 Read contents of query_load_longterm file and check that metrics are present
+  ansible.builtin.shell:
+    cmd: >-
+      egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_load_longterm
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc != 0
