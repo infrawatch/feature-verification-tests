@@ -1,7 +1,7 @@
 Test Alerts
 ===========
 
-Testing alerting functionality according to the docs in https://infrawatch.github.io/documentation/#alerts_assembly-advanced-features
+Testing alerting functionality according to the documentation in https://infrawatch.github.io/documentation/#alerts_assembly-advanced-features
 
 Requirements
 ------------
