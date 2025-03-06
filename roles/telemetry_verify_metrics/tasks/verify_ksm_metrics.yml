@@ -1,0 +1,29 @@
+- name: Verify KSM scrapeconfig exists
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-ksm
+
+- name: Verify kube-state-metrics agent is running
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack
+    common_pod_list:
+      - kube-state-metrics-0
+
+- name: |
+    TEST Use openstack observabilityclient to verify to verify health reporting related metrics from kube-state-metrics are stored in Prometheus
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show {{ item }}
+  register: result
+  delay: 30
+  retries: 10
+  until: result.rc == 0 and "{{ item }}" in result.stdout
+  changed_when: false
+  loop:
+    - kube_pod_status_phase
+    - kube_pod_status_ready

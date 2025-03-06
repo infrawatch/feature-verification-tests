@@ -30,3 +30,13 @@
   retries: 10
   changed_when: false
   until: result.rc == 0 and "node_exporter_build_info" in result.stdout
+
+- name: |
+    TEST Use openstack observabilityclient to verify health reporting related metric from systemd collector is stored in prometheus
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show --disable-rbac node_systemd_unit_state
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and "node_systemd_unit_state" in result.stdout
