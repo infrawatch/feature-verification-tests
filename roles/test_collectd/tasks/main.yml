@@ -31,7 +31,7 @@
 
 - name: TEST Check collectd memory limit
   ansible.builtin.shell: |
-    {{ container_bin }} inspect {{ collectd_container_name }} | grep 512 -c
+    {{ container_bin }} inspect {{ collectd_container_name }} | grep -i \"Memory\"
   register: memory
   changed_when: false
   failed_when: memory.stdout_lines != 536870912
