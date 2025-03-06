@@ -5,7 +5,7 @@
     tasks_from: get_prom_info.yml
   vars:
     prom_auth_method: token
-
+#
 - name: "Get the observability strategy and set the observability_api"
   ansible.builtin.include_tasks:
     file: get_observability_api.yml
