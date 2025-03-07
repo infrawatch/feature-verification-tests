@@ -23,7 +23,6 @@
     ansible.builtin.debug:
       var: debug_output.stdout_lines
 
-  # NOTE: leaving the existing fail message to get the status and see if it is okay
 - name: |
     TEST Verify {{ container_name }} container status
     {{ common_container_test_id }}
