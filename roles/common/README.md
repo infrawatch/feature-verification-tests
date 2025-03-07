@@ -2,7 +2,7 @@ common
 ======
 
 The tests in this role are not specific to any one functional area but are an
-aggregate of common tests that can be used in all OSP 18.0/OCP jobs.
+aggregate of common tests that can be used in all OSP 18.0/OCP jobs. #
 
 The available tasks tests are:
 
