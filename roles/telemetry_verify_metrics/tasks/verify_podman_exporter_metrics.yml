@@ -21,6 +21,7 @@
 
 - name: |
     TEST Use openstack observabilityclient to verify health reporting related metrics from podman exporter are stored in Prometheus
+    RHOSO-12345
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac {{ item }}
   register: result
