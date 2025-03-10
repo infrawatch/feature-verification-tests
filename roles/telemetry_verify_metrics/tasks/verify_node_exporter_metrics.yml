@@ -33,6 +33,7 @@
 
 - name: |
     TEST Use openstack observabilityclient to verify health reporting related metric from systemd collector is stored in prometheus
+    RHOSO-7890
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac node_systemd_unit_state
   register: result
