@@ -22,3 +22,21 @@
     - name: "Run the tests from the common role"
       ansible.builtin.import_role:
         name: common
+
+- name: "Run container tests which require root on compute nodes"
+  hosts: computes
+  gather_facts: true
+  become: true
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars:
+    common_container_test_id: "RHOSO-12753"
+    common_container_list:
+      - ceilometer_agent_compute
+      - node_exporter
+  tasks:
+    - name: "Run the tests from the common role"
+      ansible.builtin.import_role:
+        name: common

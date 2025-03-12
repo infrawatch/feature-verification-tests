@@ -6,11 +6,32 @@
   changed_when: false
   register: container_status
 
+- name:  Show the container name and status
+  ansible.builtin.debug:
+    var: container_status.stdout
+
+- when: container_status.stdout | length == 0
+  block:
+  - name: Show the containers
+    ansible.builtin.shell:
+      cmd: |
+        podman ps -a --format "{{ '{{.Names}} {{.Status}}' }}"
+    changed_when: false
+    register: debug_output
+
+  - name: Show the output of container list
+    ansible.builtin.debug:
+      var: debug_output.stdout_lines
+
 - name: |
     TEST Verify {{ container_name }} container status
     {{ common_container_test_id }}
   ansible.builtin.assert:
     that:
+      - "container_status.stdout | length != 0"
       - "'unhealthy' not in container_status.stdout"
     success_msg: "Container '{{ container_name }}' is in 'healthy' status."
-    fail_msg: "Container '{{ container_name }}' is not in 'healthy' status. Current status: {{ container_status.stdout }}"
+    fail_msg: |
+      Container does not meet the required conditions:
+      {%- if container_status.stdout | length == 0 %}Container name did not match any existing containers;{% endif %}
+      {%- if "unhealthy" in container_status.stdout %}Container status is unhealthy;{% endif %}

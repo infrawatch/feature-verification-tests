@@ -58,7 +58,8 @@ For endpoint_tests.yml tasks:
       - polarion ID number for each test.
     common_endpoint_list
       - list of endpoints to validate
-
+    openstack_cmd
+      - The command used to run openstack
 
 For project_tests.yml tasks:
 
@@ -156,6 +157,7 @@ can be set at the play level.
                 - ceilometer_agent_ipmi
                 - node_exporter
                 - kepler
+                - openstack_network_exporter
 
       - name: "Verify Endpoint"
         ansible.builtin.import_role:
@@ -175,7 +177,7 @@ can be set at the play level.
           common_project_list:
             - openshift-openstack-infra
             - openshift
-    
+
       - name: "Verify services"
         ansible.builtin.import_role:
           name: common
