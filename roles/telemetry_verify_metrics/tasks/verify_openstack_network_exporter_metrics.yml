@@ -1,0 +1,32 @@
+- name: Verify openstack network exporter scrapeconfigs exist
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_test_id: RHOSO-1222
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-openstack-network-exporter
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-openstack-network-exporter-tls
+
+- name: Verify openstack network exporter container is up
+  ansible.builtin.include_tasks:
+    file: check_compute_node_containers.yml
+  vars:
+    common_container_test_id: RHOSO-1231
+    common_container_list:
+      - openstack_network_exporter
+  loop: "{{ groups['computes'] }}"
+  loop_control:
+    loop_var: compute_node
+
+- name: |
+    TEST Use openstack observabilityclient to verify Openstack Network Exporter metrics are stored in prometheus
+    RHOSO-1214
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show --disable-rbac ovs_build_info
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and "ovs_build_info" in result.stdout
