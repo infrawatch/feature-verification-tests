@@ -52,7 +52,6 @@
       - ci/vars-use-master-containers.yml
       - ci/use-master-containers.yml
       - ci/patch-openstack-version.yaml
-      - scenarios/centos-9/multinode-ci.yml
 
 - job:
     name: functional-logging-tests-osp18
@@ -67,7 +66,6 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-<<<<<<< HEAD
     irrelevant-files: *irrelevant_files
     files:
       - roles/telemetry_logging/.*
