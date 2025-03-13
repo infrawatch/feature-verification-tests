@@ -110,7 +110,7 @@
     github-check:
       jobs:
         - feature-verification-tests-noop:
-          files: *irrelevant_files
+            files: *irrelevant_files
         - openstack-k8s-operators-content-provider:
             override-checkout: main
             irrelevant-files: *irrelevant_files
