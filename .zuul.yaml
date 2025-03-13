@@ -45,14 +45,6 @@
       - roles/test_sensubility/.*
       - roles/test_snmp_traps/.*
       - roles/test_verify_email/.*
-    files:
-      - roles/telemetry_autoscaling/.*
-      - .zuul.yaml
-      - ci/vars-functional-test.yml
-      - ci/run_autoscaling_osp18.yml
-      - ci/vars-use-master-containers.yml
-      - ci/use-master-containers.yml
-      - ci/patch-openstack-version.yaml
 
 - job:
     name: functional-logging-tests-osp18
@@ -67,14 +59,7 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-    irrelevant-files: *irrelevant_files
-    files:
-      - roles/telemetry_logging/.*
-      - .zuul.yaml
-      - ci/vars-logging-test.yml
-      - ci/logging_tests_all.yml
-      - ci/logging_tests_computes.yml
-      - ci/logging_tests_controller.yml
+
 
 - job:
     name: functional-metric-verification-tests-osp18
@@ -92,12 +77,7 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-    irrelevant-files:  *irrelevant_files
-    files:
-      - roles/telemetry_verify_metrics/.*
-      - .zuul.yaml
-      - ci/vars-metric-verification-test.yml
-      - ci/run_verify_metrics_osp18.yml
+
 
 - job:
     name: feature-verification-tests-noop
@@ -107,7 +87,6 @@
       need full zuul to run but still need to report a pass.
     run:
       - ci/noop.yml
-    files: *irrelevant_files
 
 - job:
     name: functional-graphing-tests-osp18
@@ -124,23 +103,46 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-    irrelevant-files: *irrelevant_files
-    files:
-      - roles/telemetry_graphing/.*
-      - .zuul.yaml
-      - ci/vars-graphing-test.yml
-      - ci/run_graphing_test.yml
+
 
 - project:
     name: infrawatch/feature-verification-tests
     github-check:
       jobs:
-        - feature-verification-tests-noop
+        - feature-verification-tests-noop:
+            files: *irrelevant_files
         - openstack-k8s-operators-content-provider:
             override-checkout: main
             irrelevant-files: *irrelevant_files
         - functional-tests-on-osp18:
-            voting: true
-        - functional-logging-tests-osp18
-        - functional-graphing-tests-osp18
-        - functional-metric-verification-tests-osp18
+            files:
+              - roles/telemetry_autoscaling/.*
+              - .zuul.yaml
+              - ci/vars-functional-test.yml
+              - ci/run_autoscaling_osp18.yml
+              - ci/vars-use-master-containers.yml
+              - ci/use-master-containers.yml
+              - ci/patch-openstack-version.yaml
+        - functional-logging-tests-osp18:
+            irrelevant-files: *irrelevant_files
+            files:
+              - roles/telemetry_logging/.*
+              - .zuul.yaml
+              - ci/vars-logging-test.yml
+              - ci/logging_tests_all.yml
+              - ci/logging_tests_computes.yml
+              - ci/logging_tests_controller.yml
+        - functional-graphing-tests-osp18:
+            irrelevant-files: *irrelevant_files
+            files:
+              - roles/telemetry_graphing/.*
+              - .zuul.yaml
+              - ci/vars-graphing-test.yml
+              - ci/run_graphing_test.yml
+        - functional-metric-verification-tests-osp18:
+            irrelevant-files:  *irrelevant_files
+            files:
+              - roles/telemetry_verify_metrics/.*
+              - .zuul.yaml
+              - ci/vars-metric-verification-test.yml
+              - ci/run_verify_metrics_osp18.yml
