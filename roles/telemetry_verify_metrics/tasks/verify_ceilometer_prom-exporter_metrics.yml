@@ -1,0 +1,17 @@
+- name: Verify ceilometer prom exporter scrapeconfigs exist
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-ceilometer-prom-exporter
+
+- name: Verify ceilometer_agent_compute container is up
+  ansible.builtin.include_tasks:
+    file: check_compute_node_containers.yml
+  vars:
+    common_container_list:
+      - ceilometer_agent_compute
+  loop: "{{ groups['computes'] }}"
+  loop_control:
+    loop_var: compute_node
