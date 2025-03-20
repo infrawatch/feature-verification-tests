@@ -78,3 +78,9 @@
     file: verify_openstack_network_exporter_metrics.yml
   tags: test
   when: '"openstack_network_exporter" in telemetry_verify_metrics_metric_sources_to_test'
+
+- name: Verify Ceilometer Prom Exporter metrics are being exposed and stored
+  ansible.builtin.include_tasks:
+    file: verify_ceilometer_prom_exporter_metrics.yml
+  tags: test
+  when: '"ceilometer_prom_exporter" in telemetry_verify_metrics_metric_sources_to_test'
