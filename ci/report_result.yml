@@ -19,7 +19,7 @@
   vars_files:
     - vars/common.yml
   tasks:
-    - name: "Find the XML file"
+    - name: "Find the XML file(s)"
       ansible.builtin.shell:
         cmd: |
           find ~/.ansible.log/ -name *.xml
@@ -31,6 +31,7 @@
         var: xml_file_list.stdout_lines
       ignore_errors: true
 
+      # Actually, they are all on the controller
     - name: "Collect the XML files, renaming them for the host that they are collected from"
       delegate_to: controller
       ansible.builtin.copy:
@@ -54,28 +55,72 @@
         src: "{{ ansible_env.HOME }}/summary_results.log"
         dest: "{{ logs_dir }}/summary_result.log"
 
-- name: "Check the results files for failed tasks"
-  hosts: controller
+#- name: "Check the results files for failed tasks"
+#  hosts: controller
+#  gather_facts: true
+#  vars_files:
+#    - vars/common.yml
+#  tasks:
+#    - name: Grep the number of failed tasks
+#      ansible.builtin.shell:
+#        cmd: |
+#          grep "failed" {{ logs_dir }}/test_run_result.out
+#      register: tasks_failed
+#      # The RC from grep is 1 when there is no string matched (i.e. when there are no failures)
+#      ignore_errors: yes
+#
+#      # The RC from grep is 0 if the string is matched
+#    - name: Determine success or failure based on the number of failed tasks
+#      ansible.builtin.fail:
+#        msg: "The log file(s) contain failed task."
+#      when: tasks_failed.stdout_lines | length > 0 and tasks_failed.rc == 0
+#
+#      # The RC from grep is 2 if an error occurred.
+#    - name: Fail if the file was not found (or other grep error)
+#      ansible.builtin.fail:
+#        msg: "{{ tasks_failed.stderr if tasks_failed.stderr | length > 0 else 'There was an error with grep.' }}"
+#      when: tasks_failed.rc > 1
+
+- name: Check the XML file for failed tasks
+  hosts: localhost
   gather_facts: true
-  vars_files:
-    - vars/common.yml
   tasks:
-    - name: Grep the number of failed tasks
+    - name: "(temp) Get the matching lines in the results files"
+      command:
+       cmd: |
+         grep -r "<testsuites .*>$" {{ logs_dir }}/
+      register: verbose_matches
+
+    - name: "(temp) Show the matching files/lines"
+      ansible.builtin.debug:
+        var: verbose_matches.stdout_lines
+
+    - name: "Find the XML files"
       ansible.builtin.shell:
         cmd: |
-          grep "failed" {{ logs_dir }}/test_run_result.out
-      register: tasks_failed
-      # The RC from grep is 1 when there is no string matched (i.e. when there are no failures)
-      ignore_errors: yes
+          find {{ logs_dir }}/ -name '*.xml'
+      register: xml_file_list
+      ignore_errors: true
 
-      # The RC from grep is 0 if the string is matched
-    - name: Determine success or failure based on the number of failed tasks
-      ansible.builtin.fail:
-        msg: "The log file(s) contain failed task."
-      when: tasks_failed.stdout_lines | length > 0 and tasks_failed.rc == 0
+    - name: "Show the list of XML files in the log dir"
+      ansible.builtin.debug:
+       var: xml_file_list
 
-      # The RC from grep is 2 if an error occurred.
-    - name: Fail if the file was not found (or other grep error)
+    - name: "Search in the XML files for the failed tasks"
+      ansible.builtin.shell:
+        cmd: |
+          sed -nE 's/^<testsuite\w.*failures=\"([0-9]*)\".*>$/\1/p' {{ xml_file_list.stdout_lines | join(" ") }}
+      register: fails
+
+    - name: "(temp) Show the list with the number of failures from each file"
+      ansible.builtin.debug:
+        var: fails.stdout_lines
+
+    - name: "Show the number of failures"
+      debug:
+        msg: "There were {{ fails.stdout_lines | map('int') | sum }} failed testcases."
+
+    - name: "Fail when there are failed TCs"
       ansible.builtin.fail:
-        msg: "{{ tasks_failed.stderr if tasks_failed.stderr | length > 0 else 'There was an error with grep.' }}"
-      when: tasks_failed.rc > 1
+        msg: "There were {{ fails.stdout_lines | map('int') | sum }} failed testcases."
+      when: fails.stdout_lines | map('int') | sum > 0
