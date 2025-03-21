@@ -16,7 +16,7 @@
 
 - name: Create mariadb pod list
   ansible.builtin.set_fact:
-    common_pod_list: "{{ common_pod_list | default([]) + [item + '-server-0'] }}"
+    common_pod_list: "{{ common_pod_list | default([]) + [item + '-galera-0'] }}"
   loop: "{{ cr_names.stdout_lines }}"
 
 - name: Verify mariadb pods are running
