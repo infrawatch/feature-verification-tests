@@ -131,6 +131,7 @@
               - ci/vars-use-master-containers.yml
               - ci/use-master-containers.yml
               - ci/patch-openstack-version.yaml
+              - ci/report_result.yml
         - functional-logging-tests-osp18:
             irrelevant-files: *irrelevant_files
             files:
@@ -140,6 +141,7 @@
               - ci/logging_tests_all.yml
               - ci/logging_tests_computes.yml
               - ci/logging_tests_controller.yml
+              - ci/report_result.yml
         - functional-graphing-tests-osp18:
             voting:
               false
@@ -149,6 +151,7 @@
               - .zuul.yaml
               - ci/vars-graphing-test.yml
               - ci/run_graphing_test.yml
+              - ci/report_result.yml
         - functional-metric-verification-tests-osp18:
             irrelevant-files:  *irrelevant_files
             files:
@@ -156,3 +159,4 @@
               - .zuul.yaml
               - ci/vars-metric-verification-test.yml
               - ci/run_verify_metrics_osp18.yml
+              - ci/report_result.yml
