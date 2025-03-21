@@ -5,21 +5,21 @@
     common_cr_test_id: RHOSO-xxxx
     common_cr_list:
       - kind: scrapeconfigs.monitoring.rhobs
-        name: telemetry-mariadb
+        name: telemetry-mysqld-exporter
 
-- name: Get mariadb CR names
+- name: Get galera CR names
   ansible.builtin.shell: |
-    oc get mariadb -o custom-columns=NAME:.metadata.name --no-headers
+    oc get galeras -o custom-columns=NAME:.metadata.name --no-headers
   register: cr_names
   changed_when: false
   failed_when: cr_names.rc >= 1 or cr_names.stdout == ""
 
 - name: Create mariadb pod list
   ansible.builtin.set_fact:
-    common_pod_list: "{{ common_pod_list | default([]) + [item + '-galera-0'] }}"
+    common_pod_list: "{{ common_pod_list | default([]) + [item + '-galera-0' + '-mysqld-exporter-0'] }}"
   loop: "{{ cr_names.stdout_lines }}"
 
-- name: Verify mariadb pods are running
+- name: Verify galera pods are running
   ansible.builtin.include_role:
     name: common
   vars:
@@ -29,7 +29,7 @@
 
 - name: Check mariadb metric endpoints
   ansible.builtin.shell: |
-    oc rsh openstackclient curl https://{{ item }}.openstack.svc:9104/metrics
+    oc rsh openstackclient curl https://mysqld-exporter.openstack.svc:9104/probe?{{ item }}.openstack.svc.3306&auth_module=client.{{ item }}.openstack.svc
   register: result
   changed_when: false
   failed_when: result.rc >= 1
