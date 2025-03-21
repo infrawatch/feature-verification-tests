@@ -84,6 +84,8 @@
 - name: Check the XML file for failed tasks
   hosts: localhost
   gather_facts: true
+  vars_files:
+    - vars/common.yml
   tasks:
     - name: "(temp) Get the matching lines in the results files"
       command:
