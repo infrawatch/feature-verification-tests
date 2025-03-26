@@ -82,7 +82,7 @@
 #      when: tasks_failed.rc > 1
 
 - name: Check the XML file for failed tasks
-  hosts: localhost
+  hosts: controller
   gather_facts: true
   vars_files:
     - vars/common.yml
