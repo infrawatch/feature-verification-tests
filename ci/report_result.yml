@@ -97,12 +97,22 @@
       ansible.builtin.debug:
         var: verbose_matches.stdout_lines
 
-    - name: "Find the XML files"
+    - name: "Find the XML files using find"
       ansible.builtin.shell:
         cmd: |
           find {{ logs_dir }}/ -name '*.xml'
       register: xml_file_list
       ignore_errors: true
+
+    - name: "Show the list of XML files in the log dir"
+      ansible.builtin.debug:
+       var: xml_file_list
+
+    - name: "(temp) Get a list of the files with matching lines"
+      command:
+       cmd: |
+         grep -lr "<testsuites .*>$" {{ logs_dir }}/
+      register: xml_file_list
 
     - name: "Show the list of XML files in the log dir"
       ansible.builtin.debug:
