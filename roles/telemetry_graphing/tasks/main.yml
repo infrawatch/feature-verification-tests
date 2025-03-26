@@ -1,4 +1,8 @@
 ---
+- name: "TEST temp: Check that the test reports a fail without test ID"
+  ansible.builtin.fail:
+    msg: "I failed deliberately to see if it would get reported"
+
 - name: "Verify url for graphing test"
   ansible.builtin.include_tasks: 
     file: verify_url.yml
