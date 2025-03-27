@@ -20,7 +20,7 @@
   loop: "{{ cr_names.stdout_lines }}"
  
 - name: List galera pod names
-  debug:
+  ansible.builtin.debug:
     msg: "galaria pod name ... {{ item }}"
   loop: "{{ galera_pod_list }}"
 
