@@ -14,18 +14,19 @@
   changed_when: false
   failed_when: cr_names.rc >= 1 or cr_names.stdout == ""
 
-- name: Create mariadb pod list
+- name: Create galera pod list
   ansible.builtin.set_fact:
-    common_pod_list: "{{ common_pod_list | default([]) + [item + '-galera-0' + '-mysqld-exporter-0'] }}"
+    galera_pod_list: "{{ [item + '-galera-0'] }}"
   loop: "{{ cr_names.stdout_lines }}"
 
-- name: Verify galera pods are running
+- name: Verify galera and mysqld-exporter pods are running
   ansible.builtin.include_role:
     name: common
   vars:
     common_pod_test_id: RHOSO-xxxx
     common_pod_status_str: "Running"
     common_pod_nspace: openstack
+    common_pod_list: galera_pod_list + ['mysqld-exporter-0']
 
 - name: Check mariadb metric endpoints
   ansible.builtin.shell: |
