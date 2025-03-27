@@ -20,11 +20,9 @@
   loop: "{{ cr_names.stdout_lines }}"
  
 - name: List galera pod names
-  ansible.builtin.set_fact:
-    common_pod_list: galera_pod_list + ['mysqld-exporter-0']
   debug:
-    msg: "galaria pod name => {{ item }}"
-  loop: "{{ common_pod_list }}"
+    msg: "galaria pod name ... {{ item }}"
+  loop: "{{ galera_pod_list }}"
 
 - name: Verify galera and mysqld-exporter pods are running
   ansible.builtin.include_role:
