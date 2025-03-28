@@ -25,8 +25,9 @@
     RHOSO-12665
   ansible.builtin.shell: |
     # source ~/overcloudrc;
-    {{ openstack_cmd }} server list --long | grep -i 'metering.server_group' | wc -l
+    {{ openstack_cmd }} server list --long | grep -i 'metering.server_group'
   register: instance_count1
+  failed_when: instance_count1.stdout_lines | length != 1
 
 - shell: |
     cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
@@ -37,7 +38,7 @@
   ansible.builtin.lineinfile:
     dest: '{{ ansible_env.HOME }}/.ssh/known_hosts'
     state: absent
-    regexp: "{{ item |trim }}"
+    regexp: "{{ item | trim }}"
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
 - shell: |
@@ -102,11 +103,11 @@
     RHOSO-12661
   ansible.builtin.shell: |
     # source ~/overcloudrc;
-    {{ openstack_cmd }} server list --long|grep -i metering.server_group | wc -l
+    {{ openstack_cmd }} server list --long | grep -i metering.server_group
   retries: 100
   delay: 5
   register: instance_count2
-  until: instance_count2.stdout == "3"
+  until: instance_count2.stdout_lines | length == 3
 
 - name: Stop the busy process
   ansible.builtin.shell: |
@@ -114,6 +115,7 @@
   register: kill_busy_process
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
+  # Does this pause need to be here if there's a repeated check in the following task?
 - name: Test automatic scaling down of instances
   ansible.builtin.pause:
     minutes: 5
@@ -138,8 +140,8 @@
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
-    {{ openstack_cmd }} server list --long|grep -i metering.server_group=\'$STACK_ID\' |wc -l
+    {{ openstack_cmd }} server list --long|grep -i metering.server_group=\'$STACK_ID\'
   retries: 100
   delay: 5
   register: instance_count3
-  until: instance_count3.stdout == "1"
+  until: instance_count3.stdout_lines | length == 1
