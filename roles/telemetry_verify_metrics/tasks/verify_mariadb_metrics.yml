@@ -31,7 +31,7 @@
     common_pod_test_id: RHOSO-xxxx
     common_pod_status_str: "Running"
     common_pod_nspace: openstack
-    common_pod_list: {{ galera_pod_list + ['mysqld-exporter-0'] }}
+    common_pod_list: "{{ galera_pod_list + ['mysqld-exporter-0'] }}"
 
 - name: Check mariadb metric endpoints
   ansible.builtin.shell: |
