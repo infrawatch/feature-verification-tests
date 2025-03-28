@@ -7,9 +7,20 @@
     cmd: |
       tstamp=$(date -d '30 minute ago' "+%Y-%m-%d %H:%M:%S")
       journalctl -t "{{ item }}" --no-pager -S "${tstamp}"
-  register: journal_wc
+  register: journalctl
   changed_when: false
-  failed_when:  
-    - journal_wc.stdout_lines | length <= 1
-    - '"-- No entries --" in journal_wc.stdout'
-    - journal_wc.stderr_lines | length > 0
+
+- name: |
+    TEST Get journals {{ item }}
+    {{ journal_test_id }}
+  ansible.builtin.assert:
+    that:
+     - 'journalctl.stdout_lines | length > 1'
+     - 'not "-- No entries --" in journalctl.stdout'
+     - 'journalctl.stderr_lines | length == 0'
+    fail_msg: |
+      Journal entry {{ item }} check failed for the following reasons:
+      {%- if journalctl.stdout_lines | length <= 1 %} journalctl output is too short.{% endif %}
+      {%- if  "-- No entries --" in journalctl.stdout %} journalctl output contains "-- No entries --".{% endif %}
+      {%- if journalctl.stdout_lines | length > 0 %} journalctl has an error message.{% endif %}
+    success_msg: "The test passed!"
