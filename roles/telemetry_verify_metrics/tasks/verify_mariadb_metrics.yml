@@ -16,7 +16,7 @@
 
 - name: Create galera pod list
   ansible.builtin.set_fact:
-    galera_pod_list: "{{ [item + '-galera-0'] }}"
+    galera_pod_list: "{{ galera_pod_list | default([]) + [item + '-galera-0'] }}"
   loop: "{{ cr_names.stdout_lines }}"
  
 - name: List galera pod names
@@ -31,7 +31,7 @@
     common_pod_test_id: RHOSO-xxxx
     common_pod_status_str: "Running"
     common_pod_nspace: openstack
-    common_pod_list: galera_pod_list + ['mysqld-exporter-0']
+    common_pod_list: {{ galera_pod_list + ['mysqld-exporter-0'] }}
 
 - name: Check mariadb metric endpoints
   ansible.builtin.shell: |
@@ -45,10 +45,11 @@
     TEST Use openstack observabilityclient to verify mariadb metrics are stored in prometheus
     RHOSO-xxxx
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric query mariadb_identity_info{instance=\'{{ item }}.openstack.svc:15691\'}
+    {{ openstack_cmd }} metric query --disable-rbac mysql_version_info{instance=\'{{ item }}.openstack.svc:3306\'}
+  # {{ openstack_cmd }} metric query mariadb_identity_info{instance=\'{{ item }}.openstack.svc:15691\'}
   register: result
   delay: 30
   retries: 10
   changed_when: false
-  until: result.rc == 0 and "mariadb_identity_info" in result.stdout
+  until: result.rc == 0 and "mysql_version_info" in result.stdout
   loop: "{{ cr_names.stdout_lines }}"
