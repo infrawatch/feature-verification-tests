@@ -147,3 +147,5 @@
               - .zuul.yaml
               - ci/vars-metric-verification-test.yml
               - ci/run_verify_metrics_osp18.yml
+              - ci/use-master-containers.yml
+              - ci/patch-openstack-version.yaml
