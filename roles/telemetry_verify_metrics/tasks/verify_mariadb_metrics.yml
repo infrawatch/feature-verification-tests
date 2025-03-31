@@ -21,7 +21,7 @@
  
 - name: List galera pod names
   ansible.builtin.debug:
-    msg: "galaria pod name ... {{ item }}"
+    msg: "galara pod name ... {{ item }}"
   loop: "{{ galera_pod_list }}"
 
 - name: Verify galera and mysqld-exporter pods are running
