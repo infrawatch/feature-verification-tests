@@ -1,0 +1,35 @@
+- name: Verify podman exporter scrapeconfigs exist
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-podman-exporter
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-podman-exporter-tls
+
+- name: Verify podman exporter container is up
+  ansible.builtin.include_tasks:
+    file: check_compute_node_containers.yml
+  vars:
+    common_container_test_id: RHOSO-1231
+    common_container_list:
+      - podman_exporter
+  loop: "{{ groups['computes'] }}"
+  loop_control:
+    loop_var: compute_node
+
+- name: |
+    TEST Use openstack observabilityclient to verify health reporting related metrics from podman exporter are stored in Prometheus
+    RHOSO-12345
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and "{{ item }}" in result.stdout
+  loop:
+    - podman_container_info
+    - podman_container_state
+    - podman_container_health
