@@ -46,7 +46,6 @@
     RHOSO-xxxx
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric query --disable-rbac mysql_version_info{instance=\'{{ item }}.openstack.svc:3306\'}
-  # {{ openstack_cmd }} metric query mariadb_identity_info{instance=\'{{ item }}.openstack.svc:15691\'}
   register: result
   delay: 30
   retries: 10
