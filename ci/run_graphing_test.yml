@@ -25,6 +25,11 @@
           until: output.stdout_lines | length == 1
           register: output
 
+        - name: "Create workLoad to verify metrics collection"
+          community.general.make:
+              chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
+              target: edpm_deploy_instance
+
         - name: "Run Graphing Console UI tests"
           ansible.builtin.import_role:
             name: telemetry_graphing
