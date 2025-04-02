@@ -121,7 +121,7 @@
     - name: "Search in the XML files for the failed tasks"
       ansible.builtin.shell:
         cmd: |
-          sed -nE 's/^<testsuite\w.*failures=\"([0-9]*)\".*>$/\1/p' {{ xml_file_list.stdout_lines | join(" ") }}
+          sed -nE 's/^<testsuite\w.*failures=\"([0-9]*)\".*>$/\1/p' $(find {{ logs_dir }}/ -name '*.xml')
       register: fails
 
     - name: "(temp) Show the list with the number of failures from each file"
