@@ -116,9 +116,15 @@
 
     - name: "Show the list of XML files in the log dir"
       ansible.builtin.debug:
-       var: xml_file_list
+        var: xml_file_list
+    - name: Get permissions of the files
+      ansible.builtin.shell:
+        cmd: |
+           ls -l {{ xml_file_list.stdout }}
+      ignore_errors: true
 
     - name: "Search in the XML files for the failed tasks"
+      become: true
       ansible.builtin.shell:
         cmd: |
           files=$(find {{ logs_dir }}/ -name '*.xml')
@@ -126,8 +132,10 @@
           sed -nE 's/^<testsuite\w.*failures=\"([0-9]*)\".*>$/\1/p' $files
           sed -nE 's/^<testsuite\w.*failures=\"([0-9]*)\".*>$/\1/p' {{ xml_file_list.stdout }}
       register: fails_debug
+      ignore_errors: true
 
     - name: "Search in the XML files for the failed tasks"
+      become: true
       ansible.builtin.shell:
         cmd: |
           files=$(find {{ logs_dir }}/ -name '*.xml')
