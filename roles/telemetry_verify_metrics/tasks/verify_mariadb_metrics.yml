@@ -33,7 +33,8 @@
     common_pod_nspace: openstack
     common_pod_list: "{{ galera_pod_list + ['mysqld-exporter-0'] }}"
 
-- name: Check mariadb metric endpoints
+- name: TEST Check mariadb metric endpoints
+  RHOSO-xxxx
   ansible.builtin.shell: |
     oc rsh openstackclient curl https://mysqld-exporter.openstack.svc:9104/probe?{{ item }}.openstack.svc.3306&auth_module=client.{{ item }}.openstack.svc
   register: result
