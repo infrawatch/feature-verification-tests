@@ -9,7 +9,7 @@
 
 - name: Get rabbitmq CR names
   ansible.builtin.shell: |
-    oc get rabbitmq -o custom-columns=NAME:.metadata.name --no-headers
+    oc get rabbitmqs -o custom-columns=NAME:.metadata.name --no-headers
   register: cr_names
   changed_when: false
   failed_when: cr_names.rc >= 1 or cr_names.stdout == ""

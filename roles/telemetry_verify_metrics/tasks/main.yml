@@ -15,12 +15,12 @@
       - kind: ceilometer
         name: ceilometer
         condition_type: Ready
-      - kind: rabbitmqclusters
+      - kind: rabbitmqs
         name: rabbitmq
-        condition_type: ReconcileSuccess
-      - kind: rabbitmqclusters
+        condition_type: Ready
+      - kind: rabbitmqs
         name: rabbitmq-cell1
-        condition_type: ReconcileSuccess
+        condition_type: Ready
   tags: precheck
 
 - name: Verify RabbitMQ metrics are being exposed and stored
