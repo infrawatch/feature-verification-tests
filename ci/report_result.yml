@@ -90,7 +90,7 @@
     - name: "(temp) Get the matching lines in the results files"
       command:
        cmd: |
-         grep -r "<testsuites .*>$" {{ logs_dir }}/
+         grep -r "<testsuites .*>$" {{ custom_xml_output_dir }}/
       register: verbose_matches
 
     - name: "(temp) Show the matching files/lines"
@@ -100,7 +100,7 @@
     - name: "Find the XML files using find"
       ansible.builtin.shell:
         cmd: |
-          find {{ logs_dir }}/ -name '*.xml'
+          find {{ custom_xml_output_dir }}/ -name '*.xml'
       register: xml_file_list
       ignore_errors: true
 
@@ -111,12 +111,13 @@
     - name: "(temp) Get a list of the files with matching lines"
       command:
        cmd: |
-         grep -lr "<testsuites .*>$" {{ logs_dir }}/
+         grep -lr "<testsuites .*>$" {{ custom_xml_output_dir }}/
       register: xml_file_list
 
     - name: "Show the list of XML files in the log dir"
       ansible.builtin.debug:
         var: xml_file_list
+
     - name: Get permissions of the files
       ansible.builtin.shell:
         cmd: |
@@ -138,7 +139,7 @@
       become: true
       ansible.builtin.shell:
         cmd: |
-          files=$(find {{ logs_dir }}/ -name '*.xml')
+          files=$(find {{ custom_xml_output_dir }}/ -name '*.xml')
           sed -nE 's/^<testsuite\w.*failures=\"([0-9]*)\".*>$/\1/p' $files
       register: fails
 
