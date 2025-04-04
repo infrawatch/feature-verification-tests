@@ -90,70 +90,29 @@
     custom_xml_output_dir: "~/.ansible.log/"
   tasks:
     - name: "(temp) Get the matching lines in the results files"
-      command:
+      ansible.builtin.command:
        cmd: |
          grep -r "<testsuites .*>$" {{ custom_xml_output_dir }}/
       register: verbose_matches
-
-    - name: "(temp) Show the matching files/lines"
-      ansible.builtin.debug:
-        var: verbose_matches.stdout_lines
-
-    - name: "Find the XML files using find"
-      ansible.builtin.shell:
-        cmd: |
-          find {{ custom_xml_output_dir }}/ -name '*.xml'
-      register: xml_file_list
       ignore_errors: true
 
-    - name: "Show the list of XML files in the log dir"
-      ansible.builtin.debug:
-       var: xml_file_list
+    - name: "Get the number of failed testcases"
+      ansible.builtin.set_fact:
+        tasks_failed: "{{ verbose_matches.stdout | regex_replace('.*failures=\"([0-9]*)\".*>', '\\1') | split('\n') | map('int') | sum }}"
 
-    - name: "(temp) Get a list of the files with matching lines"
-      command:
-       cmd: |
-         grep -lr "<testsuites .*>$" {{ custom_xml_output_dir }}/
-      register: xml_file_list
-
-    - name: "Show the list of XML files in the log dir"
-      ansible.builtin.debug:
-        var: xml_file_list
-
-    - name: Get permissions of the files
-      ansible.builtin.shell:
-        cmd: |
-           ls -l {{ xml_file_list.stdout }}
-      ignore_errors: true
-
-    - name: "Search in the XML files for the failed tasks"
-      become: true
-      ansible.builtin.shell:
-        cmd: |
-          files=$(find {{ logs_dir }}/ -name '*.xml')
-          echo $files
-          sed -nE 's/^<testsuite\w.*failures=\"([0-9]*)\".*>$/\1/p' $files
-          sed -nE 's/^<testsuite\w.*failures=\"([0-9]*)\".*>$/\1/p' {{ xml_file_list.stdout }}
-      register: fails_debug
-      ignore_errors: true
-
-    - name: "Search in the XML files for the failed tasks"
-      become: true
-      ansible.builtin.shell:
-        cmd: |
-          files=$(find {{ custom_xml_output_dir }}/ -name '*.xml')
-          sed -nE 's/^<testsuite\w.*failures=\"([0-9]*)\".*>$/\1/p' $files
-      register: fails
-
-    - name: "(temp) Show the list with the number of failures from each file"
-      ansible.builtin.debug:
-        var: fails.stdout_lines
-
-    - name: "Show the number of failures"
-      debug:
-        msg: "There were {{ fails.stdout_lines | map('int') | sum }} failed testcases."
-
-    - name: "Fail when there are failed TCs"
+      # The RC from grep is 0 if the string is matched
+    - name: Fail when there's a testcase failure
       ansible.builtin.fail:
-        msg: "There were {{ fails.stdout_lines | map('int') | sum }} failed testcases."
-      when: fails.stdout_lines | map('int') | sum > 0
+        msg: There were {{ tasks_failed }} failed testcases.
+      when: tasks_failed | int > 0 and verbose_matches.rc == 0
+
+    - name: Determine success or failure based on the number of failed tasks
+      ansible.builtin.fail:
+        msg: "The log file(s) contain failed task."
+      when: tasks_failed | int > 0 and verbose_matches.rc == 0
+
+      # The RC from grep is 2 if an error occurred.
+    - name: Fail if the file was not found (or other grep error)
+      ansible.builtin.fail:
+        msg: "{{ verbose_matches.stderr if verboase_matches.stderr | length > 0 else 'There was an error with grep.' }}"
+      when: verbose_matches.rc > 1
