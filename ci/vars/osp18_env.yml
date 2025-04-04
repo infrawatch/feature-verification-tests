@@ -6,3 +6,5 @@ stack_flavor: "m1.small"
 stack_network: "private"
 stack_external_network: "public"
 stack_name: "vnf"
+# kepler_test_vm should be created before executing the test suite
+kepler_test_vm: "kepler_test_vm"
