@@ -86,6 +86,8 @@
   gather_facts: true
   vars_files:
     - vars/common.yml
+  vars:
+    custom_xml_output_dir: "~/.ansible.log/"
   tasks:
     - name: "(temp) Get the matching lines in the results files"
       command:
