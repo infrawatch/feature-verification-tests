@@ -3,8 +3,8 @@ describe('OpenShift Console Dashboard Test', () => {
   const password = '12345678';
 
   before(() => {
-    // Visit the login page
-    cy.visit('https://console-openshift-console.apps-crc.testing/login');
+
+    cy.visit('https://console-openshift-console.apps-crc.testing');
     
     // Perform login
     // Handle authentication on the OAuth page
@@ -17,8 +17,7 @@ describe('OpenShift Console Dashboard Test', () => {
         cy.get('button[type="submit"]').click();
     });
 
-    cy.wait(5000);
-    // Ensure redirected back to the main console
+    cy.url({ timeout: 10000 }).should('include', '/dashboards');
 
     cy.get('body').then($body => {
       if ($body.find('button:contains("Skip tour")').length > 0) {
