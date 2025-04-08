@@ -133,6 +133,8 @@
               - ci/logging_tests_computes.yml
               - ci/logging_tests_controller.yml
         - functional-graphing-tests-osp18:
+            voting:
+              false
             irrelevant-files: *irrelevant_files
             files:
               - roles/telemetry_graphing/.*
