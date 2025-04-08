@@ -3,8 +3,6 @@ describe('OpenShift Console Dashboard Test', () => {
   const password = '12345678';
 
   before(() => {
-
-    cy.visit('https://console-openshift-console.apps-crc.testing');
     
     // Perform login
     // Handle authentication on the OAuth page
@@ -12,10 +10,15 @@ describe('OpenShift Console Dashboard Test', () => {
       'https://oauth-openshift.apps-crc.testing',
       { args: { username, password } }, // Pass variables explicitly
       ({ username, password }) => {
+        cy.visit('https://console-openshift-console.apps-crc.testing/login');
         cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
         cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
         cy.get('button[type="submit"]').click();
     });
+
+
+    // Now you're back in the Console origin, *after* login redirect
+    cy.visit('https://console-openshift-console.apps-crc.testing'); // re-visit just in case
 
     cy.url({ timeout: 10000 }).should('include', '/dashboards');
 
