@@ -7,7 +7,7 @@
       autoscaling and metrics functional.
     vars:
       patch_openstackversions: true
-      patch_observabilityclient: true ### metrics tests
+      patch_observabilityclient: true ### metrics tests ###
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
@@ -159,10 +159,3 @@
               - .zuul.yaml
               - ci/vars-graphing-test.yml
               - ci/run_graphing_test.yml
-#       - functional-metric-verification-tests-osp18:
-#           irrelevant-files:  *irrelevant_files
-#           files:
-#             - roles/telemetry_verify_metrics/.*
-#             - .zuul.yaml
-#             - ci/vars-metric-verification-test.yml
-#             - ci/run_verify_metrics_osp18.yml
