@@ -5,17 +5,18 @@ describe('OpenShift Console Dashboard Test', () => {
   before(() => {
     
     // Perform login
-    cy.origin(
-      'https://oauth-openshift.apps-crc.testing',
-      { args: { username, password } },
-      ({ username, password }) => {
-        cy.visit('https://console-openshift-console.apps-crc.testing/login');
-        cy.get('input[id="inputUsername"]').type(username);
-        cy.get('input[id="inputPassword"]').type(password);
-        cy.get('button[type="submit"]').click();
 
-    }
-    );
+    // Perform login
+    cy.visit('https://console-openshift-console.apps-crc.testing/login');
+
+    cy.get('form').screenshot('login-form-debug');
+
+    cy.get('input[id="inputUsername"]').type(username);
+    cy.get('input[id="inputPassword"]').type(password);
+    cy.get('button[type="submit"]').click();
+
+
+    cy.wait(5000);
 
     cy.visit('https://console-openshift-console.apps-crc.testing'); // safe to do this now
 
