@@ -3,13 +3,19 @@
     name: functional-autoscaling-tests-osp18
     parent: telemetry-operator-multinode-autoscaling
     description: |
-      Run the autoscaling functional test on osp18+patched version of aodh and heat.
+      Run job on osp18+patched version of aodh and heat for
+      autoscaling and metrics functional.
     vars:
       patch_openstackversions: true
+      patch_observabilityclient: true ### metrics tests
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-functional-test.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
+        #### metrics tests ####
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-metric-verification-test.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
@@ -131,6 +137,10 @@
               - ci/vars-use-master-containers.yml
               - ci/use-master-containers.yml
               - ci/patch-openstack-version.yaml
+              #### metrics files ####
+              - roles/telemetry_verify_metrics/.*
+              - ci/vars-metric-verification-test.yml
+              - ci/run_verify_metrics_osp18.yml              
         - functional-logging-tests-osp18:
             irrelevant-files: *irrelevant_files
             files:
@@ -149,10 +159,10 @@
               - .zuul.yaml
               - ci/vars-graphing-test.yml
               - ci/run_graphing_test.yml
-        - functional-metric-verification-tests-osp18:
-            irrelevant-files:  *irrelevant_files
-            files:
-              - roles/telemetry_verify_metrics/.*
-              - .zuul.yaml
-              - ci/vars-metric-verification-test.yml
-              - ci/run_verify_metrics_osp18.yml
+#       - functional-metric-verification-tests-osp18:
+#           irrelevant-files:  *irrelevant_files
+#           files:
+#             - roles/telemetry_verify_metrics/.*
+#             - .zuul.yaml
+#             - ci/vars-metric-verification-test.yml
+#             - ci/run_verify_metrics_osp18.yml
