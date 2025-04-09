@@ -5,20 +5,20 @@ describe('OpenShift Console Dashboard Test', () => {
   before(() => {
     
     // Perform login
-    cy.visit('https://console-openshift-console.apps-crc.testing');
-
     cy.origin(
       'https://oauth-openshift.apps-crc.testing',
       { args: { username, password } },
       ({ username, password }) => {
-      cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
-      cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
-      cy.get('button[type="submit"]').click();
+        cy.visit('https://console-openshift-console.apps-crc.testing/login');
+        cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
+        cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
+        cy.get('button[type="submit"]').click();
     }
     );
 
+    cy.visit('https://console-openshift-console.apps-crc.testing'); // safe to do this now
 
-    cy.wait(5000);
+    cy.url({ timeout: 10000 }).should('include', '/dashboards');
 
     cy.get('body').then($body => {
       if ($body.find('button:contains("Skip tour")').length > 0) {
