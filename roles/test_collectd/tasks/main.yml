@@ -34,5 +34,5 @@
     {{ container_bin }} inspect {{ collectd_container_name }} | grep -i \"Memory\"
   register: memory
   changed_when: false
-  failed_when: memory.stdout_lines != 536870912
+  failed_when: not "536870912" in memory.stdout
 
