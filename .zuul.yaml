@@ -1,13 +1,14 @@
 ---
 - job:
-    name: functional-autoscaling-tests-osp18
+    name: functional-autoscaling-metrics-tests-osp18
     parent: telemetry-operator-multinode-autoscaling
     description: |
       Run job on osp18+patched version of aodh and heat for
       autoscaling and metrics functional.
     vars:
       patch_openstackversions: true
-      patch_observabilityclient: true ### metrics tests ###
+      ### metrics tests ###
+      patch_observabilityclient: true
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
@@ -74,22 +75,22 @@
     required-projects: *required_projects
 
 
-- job:
-    name: functional-metric-verification-tests-osp18
-    parent: telemetry-operator-multinode-autoscaling
-    description: |
-      Run the metric verification functional test on osp18.
-    vars:
-      patch_observabilityclient: true
-      cifmw_extras:
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-metric-verification-test.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
-    roles:
-      - zuul: github.com/openstack-k8s-operators/ci-framework
-    required-projects: *required_projects
+#- job:
+#    name: functional-metric-verification-tests-osp18
+#    parent: telemetry-operator-multinode-autoscaling
+#    description: |
+#      Run the metric verification functional test on osp18.
+#    vars:
+#      patch_observabilityclient: true
+#      cifmw_extras:
+#        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
+#        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
+#        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-metric-verification-test.yml"
+#        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
+#        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
+#    roles:
+#      - zuul: github.com/openstack-k8s-operators/ci-framework
+#    required-projects: *required_projects
 
 
 - job:
@@ -127,7 +128,7 @@
         - openstack-k8s-operators-content-provider:
             override-checkout: main
             irrelevant-files: *irrelevant_files
-        - functional-autoscaling-tests-osp18:
+        - functional-autoscaling-metrics-tests-osp18:
             files:
               - roles/telemetry_autoscaling/.*
               - .zuul.yaml
