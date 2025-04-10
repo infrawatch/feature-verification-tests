@@ -1,24 +1,33 @@
 describe('OpenShift Console Dashboard Test', () => {
-  const username = 'developer';
-  const password = 'developer';
+  const username = 'kubeadmin';
+  const password = '12345678';
 
   before(() => {
-    // Visit the login page
-    cy.visit('https://console-openshift-console.apps-crc.testing/login');
     
     // Perform login
-    // Handle authentication on the OAuth page
-    cy.origin(
-      'https://oauth-openshift.apps-crc.testing',
-      { args: { username, password } }, // Pass variables explicitly
-      ({ username, password }) => {
-        cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
-        cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
-        cy.get('button[type="submit"]').click();
-    });
+
+    cy.visit('https://console-openshift-console.apps-crc.testing/login');
+
+
+    cy.get('input#inputUsername')
+      .should('be.visible')
+      .clear()
+      .type(username);
+
+    cy.get('input#inputPassword')
+      .should('be.visible')
+      .clear()
+      .type(password);
+
+    cy.get('button[type="submit"]').click();
+
+  //  cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
+  //  cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
+  //  cy.get('button[type="submit"]').click();
+
 
     cy.wait(5000);
-    // Ensure redirected back to the main console
+
 
     cy.get('body').then($body => {
       if ($body.find('button:contains("Skip tour")').length > 0) {
