@@ -6,12 +6,24 @@ describe('OpenShift Console Dashboard Test', () => {
     
     // Perform login
 
-    // Perform login
     cy.visit('https://console-openshift-console.apps-crc.testing/login');
 
-    cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
-    cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
+
+    cy.get('input#inputUsername')
+      .should('be.visible')
+      .clear()
+      .type(username);
+
+    cy.get('input#inputPassword')
+      .should('be.visible')
+      .clear()
+      .type(password);
+
     cy.get('button[type="submit"]').click();
+
+  //  cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
+  //  cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
+  //  cy.get('button[type="submit"]').click();
 
 
     cy.wait(5000);
