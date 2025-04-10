@@ -34,3 +34,8 @@
           ansible.builtin.import_role:
             name: telemetry_autoscaling
           ignore_errors: true
+
+        - name: "Run Telemetry Verify Metrics tests"
+          ansible.builtin.import_role:
+            name: telemetry_verify_metrics
+          ignore_errors: true
