@@ -1,6 +1,6 @@
 ---
 - job:
-    name: functional-autoscaling-metrics-tests-osp18
+    name: functional-autoscaling-tests-osp18
     parent: telemetry-operator-multinode-autoscaling
     description: |
       Run job on osp18+patched version of aodh and heat for
@@ -128,7 +128,7 @@
         - openstack-k8s-operators-content-provider:
             override-checkout: main
             irrelevant-files: *irrelevant_files
-        - functional-autoscaling-metrics-tests-osp18:
+        - functional-autoscaling-tests-osp18:
             files:
               - roles/telemetry_autoscaling/.*
               - .zuul.yaml
