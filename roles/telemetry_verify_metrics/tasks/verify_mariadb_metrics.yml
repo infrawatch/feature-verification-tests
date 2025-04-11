@@ -7,7 +7,9 @@
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-mysqld-exporter
 
-- name: Get galera CR names
+- name: |
+    TEST Get galera CR names
+    RHOSO-xxxx
   ansible.builtin.shell: |
     oc get galeras -o custom-columns=NAME:.metadata.name --no-headers
   register: cr_names
