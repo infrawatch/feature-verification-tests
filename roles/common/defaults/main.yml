@@ -1,2 +1,14 @@
 ---
 openstack_cmd: "openstack"
+
+common_crd_test_id: "RHOSO-XXXX"
+common_cr_test_id: "RHOSO-XXXX"
+common_cr_ready_test_id: "RHOSO-XXXX"
+common_container_test_id: "RHOSO-XXXX"
+common_endpoint_test_id: "RHOSO-XXXX"
+common_file_test_id: "RHOSO-XXXX"
+common_manifest_test_id: "RHOSO-XXXX"
+common_pod_test_id: "RHOSO-XXXX"
+common_project_test_id: "RHOSO-XXXX"
+common_service_test_id: "RHOSO-XXXX"
+common_subscription_test_id: "RHOSO-XXXX"
