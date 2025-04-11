@@ -19,10 +19,10 @@
   vars_files:
     - vars/common.yml
   tasks:
-    - name: "Find the XML file"
+    - name: "Find the XML file(s)"
       ansible.builtin.shell:
         cmd: |
-          find ~/.ansible.log/ -name *.xml
+          find {{ custom_xml_output_dir }} -name *.xml
       register: xml_file_list
       ignore_errors: true
 
@@ -54,28 +54,36 @@
         src: "{{ ansible_env.HOME }}/summary_results.log"
         dest: "{{ logs_dir }}/summary_result.log"
 
-- name: "Check the results files for failed tasks"
+- name: Check the XML file for failed tasks
   hosts: controller
   gather_facts: true
   vars_files:
     - vars/common.yml
   tasks:
-    - name: Grep the number of failed tasks
-      ansible.builtin.shell:
-        cmd: |
-          grep "failed" {{ logs_dir }}/test_run_result.out
-      register: tasks_failed
-      # The RC from grep is 1 when there is no string matched (i.e. when there are no failures)
-      ignore_errors: yes
+    - name: "Get the matching lines in the results files"
+      ansible.builtin.command:
+       cmd: |
+         grep -r "<testsuites .*>$" {{ custom_xml_output_dir }}/
+      register: verbose_matches
+      ignore_errors: true
+
+    - name: "Get the number of failed testcases"
+      ansible.builtin.set_fact:
+        tasks_failed: "{{ verbose_matches.stdout | regex_replace('.*failures=\"([0-9]*)\".*>', '\\1') | split('\n') | map('int') | sum }}"
 
       # The RC from grep is 0 if the string is matched
+    - name: Fail when there's a testcase failure
+      ansible.builtin.fail:
+        msg: There were {{ tasks_failed }} failed testcases.
+      when: tasks_failed | int > 0 and verbose_matches.rc == 0
+
     - name: Determine success or failure based on the number of failed tasks
       ansible.builtin.fail:
         msg: "The log file(s) contain failed task."
-      when: tasks_failed.stdout_lines | length > 0 and tasks_failed.rc == 0
+      when: tasks_failed | int > 0 and verbose_matches.rc == 0
 
       # The RC from grep is 2 if an error occurred.
     - name: Fail if the file was not found (or other grep error)
       ansible.builtin.fail:
-        msg: "{{ tasks_failed.stderr if tasks_failed.stderr | length > 0 else 'There was an error with grep.' }}"
-      when: tasks_failed.rc > 1
+        msg: "{{ verbose_matches.stderr if verbose_matches.stderr | length > 0 else 'There was an error with grep.' }}"
+      when: verbose_matches.rc > 1
