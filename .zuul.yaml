@@ -1,6 +1,6 @@
 ---
 - job:
-    name: functional-autoscaling-tests-osp18
+    name: functional-autoscaling-metrics-tests-osp18
     parent: telemetry-operator-multinode-autoscaling
     description: |
       Autoscaling and metrics functional tests.
@@ -57,9 +57,9 @@
 
 - job:
     name: functional-tests-on-osp18
-    parent: functional-autoscaling-tests-osp18
+    parent: functional-autoscaling-metrics-tests-osp18
     description: |
-      functional-tests-on-osp18 is an alias of functional-autoscaling-tests-osp18, 
+      functional-tests-on-osp18 is an alias of functional-autoscaling-metrics-tests-osp18, 
       temporary added until openstack-k8s-operators/telemetry-operator updates 
       references of functional-tests-on-osp18 jobs.
 
@@ -131,7 +131,7 @@
         - openstack-k8s-operators-content-provider:
             override-checkout: main
             irrelevant-files: *irrelevant_files
-        - functional-autoscaling-tests-osp18:
+        - functional-autoscaling-metrics-tests-osp18:
             files:
               - roles/telemetry_autoscaling/.*
               - .zuul.yaml
