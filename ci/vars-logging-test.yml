@@ -5,6 +5,7 @@ post_deploy_00_fvt_logging:
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
   type: playbook
 
+cifmw_run_tests: true
 # enable only the smoketests
 cifmw_test_operator_tempest_include_list: |
   ^tempest.*\[.*\bsmoke\b.*\]
