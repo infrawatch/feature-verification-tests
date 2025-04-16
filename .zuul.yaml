@@ -1,6 +1,6 @@
 ---
 - job:
-    name: functional-autoscaling-metrics-tests-osp18
+    name: functional-autoscaling-tests-osp18
     parent: telemetry-operator-multinode-autoscaling
     description: |
       Autoscaling and metrics functional tests.
@@ -163,11 +163,3 @@
               - ci/vars-graphing-test.yml
               - ci/run_graphing_test.yml
               - ci/report_result.yml
-#        - functional-metric-verification-tests-osp18:
-#            irrelevant-files:  *irrelevant_files
-#            files:
-#              - roles/telemetry_verify_metrics/.*
-#              - .zuul.yaml
-#              - ci/vars-metric-verification-test.yml
-#              - ci/run_verify_metrics_osp18.yml
-#              - ci/report_result.yml
