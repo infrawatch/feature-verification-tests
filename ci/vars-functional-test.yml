@@ -11,6 +11,9 @@ pre_tests_00_run_functional_test:
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
 
 cifmw_run_tests: true
+# redefine this to clear the skipped test
+# this should be done in the parent job IF the openstack versions are updated
+cifmw_test_operator_tempest_exclude_list: ""
 
 post_tests_99_collect_results:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
