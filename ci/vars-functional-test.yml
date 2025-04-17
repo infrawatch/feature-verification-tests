@@ -5,10 +5,16 @@
 # tests.
 # skip os-net-setup
 cifmw_os_net_setup_config: []
-post_deploy_00_run_functional_test:
+pre_tests_00_run_functional_test:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_autoscaling_osp18.yml"
   type: playbook
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
-post_deploy_99_collect_results:
+
+cifmw_run_tests: true
+# redefine this to clear the skipped test
+# this should be done in the parent job IF the openstack versions are updated
+cifmw_test_operator_tempest_exclude_list: ""
+
+post_tests_99_collect_results:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
   type: playbook
