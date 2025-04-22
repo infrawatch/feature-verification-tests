@@ -145,7 +145,7 @@
               - roles/telemetry_autoscaling/.*
               - .zuul.yaml
               - ci/vars-functional-test.yml
-              - ci/run_autoscaling_metrics_osp18.yml
+              - ci/run_autoscaling_osp18.yml
               - ci/vars-use-master-containers.yml
               - ci/use-master-containers.yml
               - ci/patch-openstack-version.yaml
