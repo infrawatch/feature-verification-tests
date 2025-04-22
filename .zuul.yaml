@@ -49,14 +49,6 @@
       - roles/test_verify_email/.*
 
 - job:
-    name: functional-tests-on-osp18
-    parent: functional-autoscaling-tests-osp18
-    description: |
-      functional-tests-on-osp18 is an alias of functional-autoscaling-tests-osp18, 
-      temporary added until openstack-k8s-operators/telemetry-operator updates 
-      references of functional-tests-on-osp18 jobs.
-
-- job:
     name: functional-logging-tests-osp18
     parent: telemetry-operator-multinode-logging
     description: |
