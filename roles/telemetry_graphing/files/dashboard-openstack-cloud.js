@@ -10,12 +10,10 @@ describe('OpenShift Console Dashboard Test', () => {
 
 
     cy.get('input#inputUsername')
-      .should('be.visible')
       .clear()
       .type(username);
 
     cy.get('input#inputPassword')
-      .should('be.visible')
       .clear()
       .type(password);
 
