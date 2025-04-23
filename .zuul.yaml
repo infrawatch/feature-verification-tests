@@ -65,7 +65,7 @@
       references of functional-tests-on-osp18 jobs.
 
 - job:
-    name: functional-logging-tests-osp18 ## to be removed later
+    name: functional-logging-tests-osp18
     parent: telemetry-operator-multinode-logging
     description: |
       Run the logging functional tests and tempest smoketests on osp18
