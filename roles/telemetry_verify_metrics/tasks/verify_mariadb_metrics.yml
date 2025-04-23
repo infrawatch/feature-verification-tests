@@ -7,8 +7,7 @@
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-mysqld-exporter
 
-- name: |
-    Get galera CR names
+- name: Get galera CR names
   ansible.builtin.shell: |
     oc get galeras -o custom-columns=NAME:.metadata.name --no-headers
   register: cr_names
@@ -35,7 +34,7 @@
     common_pod_list: "{{ galera_pod_list + ['mysqld-exporter-0'] }}"
 
 - name:  |
-    Check mariadb metric endpoints
+    TEST Check mariadb metric endpoints
     RHOSO-xxxx
   ansible.builtin.shell: |
     oc rsh openstackclient curl https://mysqld-exporter.openstack.svc:9104/probe?{{ item }}.openstack.svc.3306&auth_module=client.{{ item }}.openstack.svc
@@ -45,7 +44,7 @@
   loop: "{{ cr_names.stdout_lines }}"
 
 - name: |
-    Use openstack observabilityclient to verify mariadb metrics are stored in prometheus
+    TEST Use openstack observabilityclient to verify mariadb metrics are stored in prometheus
     RHOSO-xxxx
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric query --disable-rbac mysql_version_info{instance=\'{{ item }}.openstack.svc:3306\'}
