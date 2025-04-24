@@ -9,19 +9,19 @@ describe('OpenShift Console Dashboard Test', () => {
     cy.visit('https://console-openshift-console.apps-crc.testing/login');
 
 
-    cy.get('input#inputUsername')
+    cy.get('#inputUsername')
       .clear()
-      .type(username);
+      .type(username, { delay: 50 });
 
-    cy.get('input#inputPassword')
+    cy.get('#inputPassword')
       .clear()
-      .type(password);
+      .type(password, { delay: 50 });
 
     cy.get('button[type="submit"]').click();
 
-  //  cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
-  //  cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
-  //  cy.get('button[type="submit"]').click();
+    cy.get('input[name="username"]').invoke('val', username).trigger('input');
+    cy.get('input[name="password"]').invoke('val', password).trigger('input');
+    cy.get('button[type="submit"]').click();
 
 
     cy.wait(5000);
