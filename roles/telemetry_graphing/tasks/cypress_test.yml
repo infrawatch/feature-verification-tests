@@ -55,7 +55,7 @@
   changed_when: false
 
 - name: Install Cypress as a dev dependency
-  ansible.builtin.command: npm install cypress@11  --save-dev
+  ansible.builtin.command: npm install cypress@12  --save-dev
   args:
     chdir: "{{ cypress_tests_dir }}"
   changed_when: false
