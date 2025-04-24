@@ -3,7 +3,8 @@
     name: functional-autoscaling-tests-osp18
     parent: telemetry-operator-multinode-autoscaling
     description: |
-      Run autoscaling funtional and tempest tests and the metrics functional tests.
+      Run the autoscaling functional tests and tempest tests and the metrics
+      functional tests on osp18+patched versions of aodh and heat.
     vars:
       patch_observabilityclient: true
       cifmw_extras:
