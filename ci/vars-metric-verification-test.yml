@@ -9,4 +9,3 @@ cifmw_test_operator_tempest_include_list: |
 post_tests_99_collect_results:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
   type: playbook
-  
