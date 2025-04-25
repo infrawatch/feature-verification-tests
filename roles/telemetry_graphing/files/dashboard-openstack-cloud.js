@@ -5,18 +5,21 @@ describe('OpenShift Console Dashboard Test', () => {
   before(() => {
     
     cy.session([username, password], () => {
-      cy.visit('/'); // Visits baseUrl, will redirect to OAuth
-
+      // Run the entire login flow *inside* cy.origin BEFORE visiting the app
       cy.origin(
         'https://oauth-openshift.apps-crc.testing',
         { args: { username, password } },
         ({ username, password }) => {
+          cy.visit('/login'); // This resolves to https://oauth-openshift.apps-crc.testing/login
           cy.get('input#inputUsername').type(username);
           cy.get('input#inputPassword').type(password);
           cy.get('button[type="submit"]').click();
         }
       );
     });
+
+    // Once session is established, visit your app
+    cy.visit('/');
 
     cy.wait(5000);
     // Ensure redirected back to the main console
