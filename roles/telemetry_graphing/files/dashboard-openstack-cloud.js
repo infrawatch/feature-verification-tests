@@ -4,14 +4,17 @@ describe('OpenShift Console Dashboard Test', () => {
 
   before(() => {
     
+    cy.visit('/');
     // Perform login
     // Handle authentication on the OAuth page
     cy.origin(
       'https://oauth-openshift.apps-crc.testing',
       { args: { username, password } },
       ({ username, password }) => {
-        cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
-        cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
+      //  cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
+      //  cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
+        cy.get('input#inputUsername').type(username);
+        cy.get('input#inputPassword').type(password);
         cy.get('button[type="submit"]').click();
     });
 
