@@ -26,11 +26,16 @@
               oc exec openstackclient -- python3 -m ensurepip --upgrade
               oc exec openstackclient -- python3 -m pip install --upgrade aodhclient
               oc exec openstackclient -- python3 -m pip install --upgrade python-observabilityclient
-          when: "{{ patch_openstackversions | bool }}"
+          when: "{{ patch_observabilityclient | bool }}"
           tags:
             - setup
 
         - name: "Run Telemetry Autoscaling tests"
           ansible.builtin.import_role:
             name: telemetry_autoscaling
+          ignore_errors: true
+
+        - name: "Run Telemetry Verify Metrics tests"
+          ansible.builtin.import_role:
+            name: telemetry_verify_metrics
           ignore_errors: true
