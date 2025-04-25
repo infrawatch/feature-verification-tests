@@ -2,15 +2,16 @@ describe('OpenShift Console Dashboard Test', () => {
   const username = 'developer';
   const password = 'developer';
 
+
   before(() => {
     
     cy.session([username, password], () => {
-      // Run the entire login flow *inside* cy.origin BEFORE visiting the app
+
       cy.origin(
         'https://oauth-openshift.apps-crc.testing',
         { args: { username, password } },
         ({ username, password }) => {
-          cy.visit('/login'); // This resolves to https://oauth-openshift.apps-crc.testing/login
+          cy.visit('https://console-openshift-console.apps-crc.testing');
           cy.get('input#inputUsername').type(username);
           cy.get('input#inputPassword').type(password);
           cy.get('button[type="submit"]').click();
