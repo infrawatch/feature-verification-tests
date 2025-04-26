@@ -4,18 +4,25 @@ describe('OpenShift Console Dashboard Test', () => {
 
 
   before(() => {
-    
-      cy.origin(
-        'https://oauth-openshift.apps-crc.testing',
-        { args: { username, password } },
-        ({ username, password }) => {
-          cy.visit('/');
-          cy.get('input#inputUsername').type(username);
-          cy.get('input#inputPassword').type(password);
-          cy.get('button[type="submit"]').click();
-        }
-      );
 
+
+    Cypress.Commands.add('loginWithRequest', () => {
+      cy.request({
+        method: 'POST',
+        url: 'https://oauth-openshift.apps-crc.testing/oauth/token', // or authorize, depending on your setup
+        form: true,
+        body: {
+          grant_type: 'password',
+          username: 'developer',
+          password: 'developer',
+          client_id: 'openshift-challenging-client', // standard OpenShift client
+        },
+      }).then((response) => {
+        expect(response.status).to.eq(200);
+        const accessToken = response.body.access_token;
+        cy.setCookie('access_token', accessToken); // depends if Console uses cookie or localStorage
+      });
+    });
 
     cy.wait(5000);
     // Ensure redirected back to the main console
