@@ -5,7 +5,6 @@ describe('OpenShift Console Dashboard Test', () => {
 
   before(() => {
 
-
     Cypress.Commands.add('loginWithRequest', () => {
       cy.request({
         method: 'POST',
@@ -33,6 +32,7 @@ describe('OpenShift Console Dashboard Test', () => {
       }
     });
     
+    cy.visit('https://console-openshift-console.apps-crc.testing');
 
   });
 
