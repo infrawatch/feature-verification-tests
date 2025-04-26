@@ -5,13 +5,11 @@ describe('OpenShift Console Dashboard Test', () => {
 
   before(() => {
     
-
-      cy.visit('https://oauth-openshift.apps-crc.testing/login');
-
       cy.origin(
         'https://oauth-openshift.apps-crc.testing',
         { args: { username, password } },
         ({ username, password }) => {
+          cy.visit('/');
           cy.get('input#inputUsername').type(username);
           cy.get('input#inputPassword').type(password);
           cy.get('button[type="submit"]').click();
