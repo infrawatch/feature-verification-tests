@@ -5,7 +5,7 @@ describe('OpenShift Console Dashboard Test', () => {
 
   before(() => {
     
-    cy.session([username, password], () => {
+
       cy.visit('https://oauth-openshift.apps-crc.testing/login');
 
       cy.origin(
@@ -17,7 +17,7 @@ describe('OpenShift Console Dashboard Test', () => {
           cy.get('button[type="submit"]').click();
         }
       );
-    });
+
 
     cy.wait(5000);
     // Ensure redirected back to the main console
