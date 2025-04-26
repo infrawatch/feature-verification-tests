@@ -6,6 +6,8 @@ describe('OpenShift Console Dashboard Test', () => {
   before(() => {
     
     cy.session([username, password], () => {
+      cy.visit('https://oauth-openshift.apps-crc.testing/login');
+
       cy.origin(
         'https://oauth-openshift.apps-crc.testing',
         { args: { username, password } },
