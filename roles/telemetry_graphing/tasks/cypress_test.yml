@@ -1,6 +1,10 @@
 - name: Install cypress and the dependencies
   block:
-    - name: Install Node.js
+    - name: Enable Node.js 16 module
+      ansible.builtin.command: dnf module enable -y nodejs:16
+      become: true
+
+    - name: Install Node.js 16
       ansible.builtin.dnf:
         name: nodejs
         state: present
@@ -55,7 +59,7 @@
   changed_when: false
 
 - name: Install Cypress as a dev dependency
-  ansible.builtin.command: npm install cypress@12 --save-dev
+  ansible.builtin.command: npm install cypress@12.17.4 --save-dev
   args:
     chdir: "{{ cypress_tests_dir }}"
   changed_when: false

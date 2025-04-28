@@ -1,30 +1,17 @@
 describe('OpenShift Console Dashboard Test', () => {
-  const username = 'developer';
-  const password = 'developer';
+  const username = 'kubeadmin';
+  const password = '12345678';
 
 
   before(() => {
 
-    Cypress.Commands.add('loginWithRequest', () => {
-      cy.request({
-        method: 'POST',
-        url: 'https://oauth-openshift.apps-crc.testing/oauth/token', // or authorize, depending on your setup
-        form: true,
-        body: {
-          grant_type: 'password',
-          username: 'developer',
-          password: 'developer',
-          client_id: 'openshift-challenging-client', // standard OpenShift client
-        },
-      }).then((response) => {
-        expect(response.status).to.eq(200);
-        const accessToken = response.body.access_token;
-        cy.setCookie('access_token', accessToken); // depends if Console uses cookie or localStorage
-      });
-    });
+    cy.visit('https://console-openshift-console.apps-crc.testing/login');
+
+    cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
+    cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
+    cy.get('button[type="submit"]').click();
 
     cy.wait(5000);
-    // Ensure redirected back to the main console
 
     cy.get('body').then($body => {
       if ($body.find('button:contains("Skip tour")').length > 0) {
@@ -32,7 +19,6 @@ describe('OpenShift Console Dashboard Test', () => {
       }
     });
     
-    cy.visit('https://console-openshift-console.apps-crc.testing');
 
   });
 
