@@ -3,28 +3,26 @@ describe('OpenShift Console Dashboard Test', () => {
   const password = '12345678';
 
 
-  Cypress.Commands.add('loginWithRequest', () => {
-    cy.request({
-      method: 'POST',
-      url: 'https://oauth-openshift.apps-crc.testing/oauth/token', // or authorize, depending on your setup
-      form: true,
-      body: {
-        grant_type: 'password',
-        username: 'kubeadmin',
-        password: '12345678',
-        client_id: 'openshift-challenging-client', // standard OpenShift client
-      },
-    }).then((response) => {
-      expect(response.status).to.eq(200);
-      const accessToken = response.body.access_token;
-      cy.setCookie('access_token', accessToken); // depends if Console uses cookie or localStorage
-    });
-  });
-
 
   before(() => {
 
-    cy.loginWithRequest();
+    Cypress.Commands.add('loginWithRequest', () => {
+      cy.request({
+        method: 'POST',
+        url: 'https://oauth-openshift.apps-crc.testing/oauth/token', // or authorize, depending on your setup
+        form: true,
+        body: {
+          grant_type: 'password',
+          username: 'kubeadmin',
+          password: '12345678',
+          client_id: 'openshift-challenging-client', // standard OpenShift client
+        },
+      }).then((response) => {
+        expect(response.status).to.eq(200);
+        const accessToken = response.body.access_token;
+        cy.setCookie('access_token', accessToken); // depends if Console uses cookie or localStorage
+      });
+    });
     cy.visit('https://console-openshift-console.apps-crc.testing/login');
 
     cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
