@@ -8,6 +8,8 @@ describe('OpenShift Console Dashboard Test', () => {
 
     cy.visit('https://console-openshift-console.apps-crc.testing/login');
 
+    cy.wait(5000);
+
     cy.origin(
       'https://oauth-openshift.apps-crc.testing',
       { args: { username, password } }, // Pass variables explicitly
