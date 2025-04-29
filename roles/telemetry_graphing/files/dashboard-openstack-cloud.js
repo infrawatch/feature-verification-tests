@@ -10,14 +10,11 @@ describe('OpenShift Console Dashboard Test', () => {
 
     cy.wait(5000);
 
-    cy.origin(
-      'https://oauth-openshift.apps-crc.testing',
-      { args: { username, password } }, // Pass variables explicitly
-      ({ username, password }) => {
-        cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
-        cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
-        cy.get('button[type="submit"]').click();
-    });
+
+    cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
+    cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
+    cy.get('button[type="submit"]').click();
+
 
     cy.wait(5000);
 
