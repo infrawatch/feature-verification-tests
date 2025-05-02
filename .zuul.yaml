@@ -14,7 +14,6 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-functional-test.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
-        
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: &required_projects
@@ -75,27 +74,12 @@
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
 
-
 - job:
     name: functional-metric-verification-tests-osp18
-    parent: telemetry-operator-multinode-autoscaling
+    parent: functional-autoscaling-tests-osp18
     description: |
-      Run the metric verification functional test and tempest smoketests on osp18.
-    vars:
-      patch_observabilityclient: true
-      cifmw_extras:
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
-          # Use the tempest config we have for autoscaling tests
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
-          # tempest enabled tests list is overwritten in the metrics-verification-tests, so needs to be added after the autoscaling-tempest, so that we only run the smoke-tests
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-metric-verification-test.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
-    roles:
-      - zuul: github.com/openstack-k8s-operators/ci-framework
-    required-projects: *required_projects
-
+      Run the autoscaling functional tests, tempest tests and metrics
+      functional tests on osp18+patched versions of adoh and heat.
 
 - job:
     name: feature-verification-tests-noop
