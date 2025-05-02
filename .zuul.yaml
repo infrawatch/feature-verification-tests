@@ -49,11 +49,6 @@
       - roles/test_sensubility/.*
       - roles/test_snmp_traps/.*
       - roles/test_verify_email/.*
-    files:
-      - roles/telemetry_verify_metrics/.*
-      - .zuul.yaml
-      - ci/vars-metric-verification-test.yml
-      - ci/report_result.yml
 
 - job:
     name: functional-tests-on-osp18
