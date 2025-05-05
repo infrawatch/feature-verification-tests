@@ -4,13 +4,14 @@
   vars:
     common_cr_list:
       - kind: scrapeconfigs.monitoring.rhobs
-        name: telemetry-ceilometer-prom-exporter
+        name: telemetry-ceilometer-compute-prom-exporter
 
-- name: |
-   Verify prometheus target doesn't have error
+- name: Verify prometheus target
   ansible.builtin.shell: |
     oc exec -it prometheus-metric-storage-0 -c prometheus -- curl -k 'https://metric-storage-prometheus:9090/api/v1/targets' | jq | grep 9101
   register: result
+  changed_when: false
+  failed_when: "'9101' not in result.stdout"
 
 - name: Print the result
   ansible.builtin.debug:
