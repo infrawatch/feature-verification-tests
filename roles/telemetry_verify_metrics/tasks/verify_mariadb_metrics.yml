@@ -1,0 +1,50 @@
+- name: Verify mariadb scrapeconfig exists
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-mysqld-exporter
+
+- name: TEST Get galera CR names
+  ansible.builtin.shell: |
+    oc get galeras -o custom-columns=NAME:.metadata.name --no-headers
+  register: cr_names
+  changed_when: false
+  failed_when: cr_names.rc >= 1 or cr_names.stdout == ""
+
+- name: Create galera pod list
+  ansible.builtin.set_fact:
+    galera_pod_list: "{{ galera_pod_list | default([]) + [item + '-galera-0'] }}"
+  loop: "{{ cr_names.stdout_lines }}"
+ 
+- name: List galera pod names
+  ansible.builtin.debug:
+    msg: "galara pod name ... {{ item }}"
+  loop: "{{ galera_pod_list }}"
+
+- name: Verify galera and mysqld-exporter pods are running
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack
+    common_pod_list: "{{ galera_pod_list + ['mysqld-exporter-0'] }}"
+
+- name: TEST Check mariadb metric endpoints
+  ansible.builtin.shell: |
+    oc rsh openstackclient curl https://mysqld-exporter.openstack.svc:9104/probe?{{ item }}.openstack.svc.3306&auth_module=client.{{ item }}.openstack.svc
+  register: result
+  changed_when: false
+  failed_when: result.rc >= 1
+  loop: "{{ cr_names.stdout_lines }}"
+
+- name: TEST Use openstack observabilityclient to verify mariadb metrics are stored in prometheus
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric query --disable-rbac mysql_version_info{instance=\'{{ item }}.openstack.svc:3306\'}
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and "mysql_version_info" in result.stdout
+  loop: "{{ cr_names.stdout_lines }}"

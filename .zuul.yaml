@@ -1,14 +1,17 @@
 ---
 - job:
-    name: functional-tests-on-osp18
+    name: functional-autoscaling-tests-osp18
     parent: telemetry-operator-multinode-autoscaling
     description: |
-      Run the autoscaling functional test on osp18+patched version of aodh and heat.
+      Run autoscaling functional tests, tempest tests and metrics
+      functional tests on osp18+patched versions of aodh and heat.
     vars:
-      patch_openstackversions: true
+      patch_observabilityclient: true
       cifmw_extras:
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-functional-test.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
     roles:
@@ -47,37 +50,36 @@
       - roles/test_verify_email/.*
 
 - job:
+    name: functional-tests-on-osp18
+    parent: functional-autoscaling-tests-osp18
+    description: |
+      functional-tests-on-osp18 is an alias of functional-autoscaling-tests-osp18, 
+      temporary added until openstack-k8s-operators/telemetry-operator updates 
+      references of functional-tests-on-osp18 jobs.
+
+- job:
     name: functional-logging-tests-osp18
     parent: telemetry-operator-multinode-logging
     description: |
-      Run the logging functional tests on osp18
+      Run the logging functional tests and tempest smoketests on osp18
     vars:
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-logging.yml"
+          # Use the tempest config we have for autoscaling tests
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
+          # There's an override in here to modify the enabled tests to include only the smoke tests
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-logging-test.yml"
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
 
-
 - job:
     name: functional-metric-verification-tests-osp18
-    parent: telemetry-operator-multinode-autoscaling
+    parent: functional-autoscaling-tests-osp18
     description: |
-      Run the metric verification functional test on osp18.
-    vars:
-      patch_observabilityclient: true
-      cifmw_extras:
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-metric-verification-test.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
-    roles:
-      - zuul: github.com/openstack-k8s-operators/ci-framework
-    required-projects: *required_projects
-
+      Run the autoscaling functional tests, tempest tests and metrics
+      functional tests on osp18+patched versions of adoh and heat.
 
 - job:
     name: feature-verification-tests-noop
@@ -92,13 +94,15 @@
     name: functional-graphing-tests-osp18
     parent: telemetry-operator-multinode-autoscaling
     description: |
-      Run the UI Graphing test on osp18.
+      Run the UI Graphing test and tempest smoketests on osp18.
     vars:
-      cifmw_run_tests: false
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
+          # Use the tempest config we have for autoscaling tests
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
+          # Currently, this runs tempest smoketests after the dashboards have been disabled again
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-graphing-test.yml"
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
@@ -114,15 +118,18 @@
         - openstack-k8s-operators-content-provider:
             override-checkout: main
             irrelevant-files: *irrelevant_files
-        - functional-tests-on-osp18:
+        - functional-autoscaling-tests-osp18:
             files:
               - roles/telemetry_autoscaling/.*
               - .zuul.yaml
               - ci/vars-functional-test.yml
-              - ci/run_autoscaling_osp18.yml
+              - ci/run_cloudops_tests_osp18.yml
               - ci/vars-use-master-containers.yml
               - ci/use-master-containers.yml
               - ci/patch-openstack-version.yaml
+              - ci/report_result.yml
+              - roles/telemetry_verify_metrics/.*
+              - ci/vars-metric-verification-test.yml
         - functional-logging-tests-osp18:
             irrelevant-files: *irrelevant_files
             files:
@@ -132,17 +139,14 @@
               - ci/logging_tests_all.yml
               - ci/logging_tests_computes.yml
               - ci/logging_tests_controller.yml
+              - ci/report_result.yml
         - functional-graphing-tests-osp18:
+            voting:
+              false
             irrelevant-files: *irrelevant_files
             files:
               - roles/telemetry_graphing/.*
               - .zuul.yaml
               - ci/vars-graphing-test.yml
               - ci/run_graphing_test.yml
-        - functional-metric-verification-tests-osp18:
-            irrelevant-files:  *irrelevant_files
-            files:
-              - roles/telemetry_verify_metrics/.*
-              - .zuul.yaml
-              - ci/vars-metric-verification-test.yml
-              - ci/run_verify_metrics_osp18.yml
+              - ci/report_result.yml

@@ -9,5 +9,6 @@ telemetry_verify_metrics_metric_sources_to_test:
   - kepler
   - openstack_network_exporter
   - ceilometer_prom_exporter
+  - mariadb
   # NOTE: IPMI metrics can only be verified when compute nodes are baremetal
   # - ceilometer_ipmi_agent
