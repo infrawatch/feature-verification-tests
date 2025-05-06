@@ -7,15 +7,15 @@
         name: telemetry-ceilometer-compute-prom-exporter
 
 
-- name: Verify prometheus target
+- name: Verify scrapeconfig target
   ansible.builtin.shell: |
      oc get scrapeconfig
-  register: scrape-config-result
+  register: scraperesult
   changed_when: false
 
 - name: Print the result
   ansible.builtin.debug:
-    var: scrape-config-result.stdout_lines
+    var: scraperesult.stdout_lines
 
 - name: Verify prometheus target
   ansible.builtin.shell: |
