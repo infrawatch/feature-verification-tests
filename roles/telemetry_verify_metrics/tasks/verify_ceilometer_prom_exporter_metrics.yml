@@ -6,6 +6,17 @@
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-ceilometer-compute-prom-exporter
 
+
+- name: Verify prometheus target
+  ansible.builtin.shell: |
+     oc get scrapeconfig
+  register: scrape-config-result
+  changed_when: false
+
+- name: Print the result
+  ansible.builtin.debug:
+    var: scrape-config-result.stdout_lines
+
 - name: Verify prometheus target
   ansible.builtin.shell: |
     oc exec -it prometheus-metric-storage-0 -c prometheus -- curl -k 'https://metric-storage-prometheus:9090/api/v1/targets' | jq | grep 9101
