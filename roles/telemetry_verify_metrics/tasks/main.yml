@@ -79,6 +79,12 @@
   tags: test
   when: '"openstack_network_exporter" in telemetry_verify_metrics_metric_sources_to_test'
 
+- name: Verify Ceilometer Prom Exporter metrics are being exposed and stored
+  ansible.builtin.include_tasks:
+    file: verify_ceilometer_prom_exporter_metrics.yml
+  tags: test
+  when: '"ceilometer_prom_exporter" in telemetry_verify_metrics_metric_sources_to_test'
+
 - name: Verify MariaDB metrics are being exposed and stored
   ansible.builtin.include_tasks:
     file: verify_mariadb_metrics.yml
@@ -102,3 +108,4 @@
   when: '"kepler_vm" in telemetry_verify_metrics_metric_sources_to_test and "ACTIVE" in kepler_vm_status.stdout'
   vars:
     metrics_cmd_prefix: "{{ openstack_cmd }} metric show --disable-rbac -c value -f value"
+
