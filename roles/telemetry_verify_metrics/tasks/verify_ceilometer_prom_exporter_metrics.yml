@@ -1,13 +1,3 @@
-- name: Read remote file
-  ansible.builtin.slurp:
-    src: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/telemetry-operator"].src_dir }}/api/v1beta1/telemetry_consts.go'
-  register: file_content
-
-- name: Decode and print content
-  ansible.builtin.debug:
-    msg: "{{ file_content.content | b64decode }}"
-
-
 - name: Verify ceilometer prom exporter scrapeconfigs exist
   ansible.builtin.include_role:
     name: common
@@ -16,27 +6,12 @@
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-ceilometer-compute-prom-exporter
 
-
-- name: Verify scrapeconfig target
-  ansible.builtin.shell: |
-     oc get scrapeconfig
-  register: scraperesult
-  changed_when: false
-
-- name: Print the result
-  ansible.builtin.debug:
-    var: scraperesult.stdout_lines
-
 - name: Verify prometheus target
   ansible.builtin.shell: |
     oc exec -it prometheus-metric-storage-0 -c prometheus -- curl -k 'https://metric-storage-prometheus:9090/api/v1/targets' | jq | grep 9101
   register: result
   changed_when: false
   failed_when: "'9101' not in result.stdout"
-
-- name: Print the result
-  ansible.builtin.debug:
-    var: result.stdout_lines
 
 - name: Verify ceilometer_agent_compute container is up
   ansible.builtin.include_tasks:
