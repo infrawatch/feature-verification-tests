@@ -9,7 +9,11 @@ pre_tests_00_run_functional_test:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_cloudops_tests_osp18.yml"
   type: playbook
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
-
+pre_tests_01_copy_results:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
+  type: playbook
+  extra_vars:
+    check_failures: false
 cifmw_run_tests: true
 # redefine this to clear the skipped test
 # this should be done in the parent job IF the openstack versions are updated
