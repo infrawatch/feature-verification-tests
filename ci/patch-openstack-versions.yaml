@@ -6,6 +6,6 @@ spec:
     aodhNotifierImage: quay.io/podified-master-centos9/openstack-aodh-notifier:current-podified
     ceilometerCentralImage: quay.io/podified-master-centos9/openstack-ceilometer-central:current-podified
     ceilometerComputeImage: quay.io/podified-master-centos9/openstack-ceilometer-compute:current-podified
-    heatAPIImage: quay.io/podified-master-centos9/openstack-heat-api:current-podified
-    heatCfnapiImage: quay.io/podified-master-centos9/openstack-heat-api-cfn:current-podified
-    heatEngineImage: quay.io/podified-master-centos9/openstack-heat-engine:current-podified
+    heatAPIImage: quay.rdoproject.org/podified-master-centos10/openstack-heat-api:current
+    heatCfnapiImage: quay.rdoproject.org/podified-master-centos10/openstack-heat-api-cfn:current
+    heatEngineImage: quay.rdoproject.org/podified-master-centos10/openstack-heat-engine:current
