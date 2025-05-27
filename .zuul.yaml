@@ -126,7 +126,7 @@
               - ci/run_cloudops_tests_osp18.yml
               - ci/vars-use-master-containers.yml
               - ci/use-master-containers.yml
-              - ci/patch-openstack-version.yaml
+              - ci/patch-openstack-versions.yaml
               - ci/report_result.yml
               - roles/telemetry_verify_metrics/.*
               - ci/vars-metric-verification-test.yml
