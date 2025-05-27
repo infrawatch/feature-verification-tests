@@ -1,24 +1,22 @@
-- name: Verify ceilometer prom exporter scrapeconfigs exist
+
+- name: Verify ceilometer compute-prom-exporter scrapeconfigs exist
   ansible.builtin.include_role:
     name: common
   vars:
     common_cr_list:
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-ceilometer-compute-prom-exporter
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-ceilometer-ipmi-prom-exporter
 
-- name: Verify prometheus target
+- name: Verify prometheus target for exporter {{ exporter.name }}
   ansible.builtin.shell: |
-    oc exec -it prometheus-metric-storage-0 -c prometheus -- curl -k 'https://metric-storage-prometheus:9090/api/v1/targets' | jq | grep 9101
+    oc exec -it prometheus-metric-storage-0 -c prometheus -- curl -k 'https://metric-storage-prometheus:9090/api/v1/targets' | jq | grep {{ exporter_port }}
   register: result
   changed_when: false
-  failed_when: "'9101' not in result.stdout"
-
-- name: Verify ceilometer_agent_compute container is up
-  ansible.builtin.include_tasks:
-    file: check_compute_node_containers.yml
-  vars:
-    common_container_list:
-      - ceilometer_agent_compute
-  loop: "{{ groups['computes'] }}"
+  failed_when: "'{{ exporter_port }}' not in result.stdout"
+  loop:
+    -  port: 9101
+    -  port: 9102
   loop_control:
-    loop_var: compute_node
+    loop_var: exporter_port
