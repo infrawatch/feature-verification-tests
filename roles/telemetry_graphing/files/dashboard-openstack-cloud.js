@@ -8,15 +8,21 @@ describe('OpenShift Console Dashboard Test', () => {
 
     cy.visit('https://console-openshift-console.apps-crc.testing/login');
 
-    cy.wait(5000);
+    // Wait for redirect to OAuth page, then handle login there
+    cy.url().should('include', 'oauth-openshift.apps-crc.testing');
+
+    cy.origin(
+      'https://oauth-openshift.apps-crc.testing',
+      { args: { username, password } },
+      ({ username, password }) => {
+        cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
+        cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
+        cy.get('button[type="submit"]').click();
+      }
+    );
 
 
-    cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
-    cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
-    cy.get('button[type="submit"]').click();
-
-
-    cy.wait(5000);
+    cy.url().should('include', 'console-openshift-console.apps-crc.testing');
 
     cy.get('body').then($body => {
       if ($body.find('button:contains("Skip tour")').length > 0) {

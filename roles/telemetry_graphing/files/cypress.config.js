@@ -5,5 +5,6 @@ module.exports = defineConfig({
     specPattern: 'cypress/integration/**/*.{js,jsx,ts,tsx}',
     supportFile: false,
     chromeWebSecurity: false,
+    experimentalSessionAndOrigin: true,
   },
 })
