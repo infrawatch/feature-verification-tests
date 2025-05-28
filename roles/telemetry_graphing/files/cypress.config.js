@@ -6,5 +6,7 @@ module.exports = defineConfig({
     supportFile: false,
     chromeWebSecurity: false,
     experimentalSessionAndOrigin: true,
+    defaultCommandTimeout: 10000,
+    pageLoadTimeout: 30000,
   },
 })
