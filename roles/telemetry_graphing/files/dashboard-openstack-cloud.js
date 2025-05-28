@@ -15,9 +15,16 @@ describe('OpenShift Console Dashboard Test', () => {
       'https://oauth-openshift.apps-crc.testing',
       { args: { username, password } },
       ({ username, password }) => {
-        cy.get('input[id="inputUsername"]').should('be.visible').type(username);
-        cy.get('input[id="inputPassword"]').should('be.visible').type(password);
-        cy.get('button[type="submit"]').click();
+        cy.get('input[name="username"]', { timeout: 10000 }).should('be.visible');
+
+        // Clear and type username (in case it's pre-filled)
+        cy.get('input[name="username"]').clear().type(username);
+
+        // Type password
+        cy.get('input[name="password"]').type(password);
+
+        // Click the Log in button
+        cy.contains('button', 'Log in').click();
       }
     );
 
