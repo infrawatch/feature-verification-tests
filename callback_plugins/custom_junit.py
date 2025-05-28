@@ -11,7 +11,10 @@ DOCUMENTATION = '''
     type: notification
     short_description: TODO
     description:
-      TODO
+      custom_junit generates an XML files that Polarion can read.
+      Only the tasks marked with $test_case_prefix are reported.
+      The first line of the task name (excluding the prefix_ is converted
+      to snake_case, and this becomes the testcase name in the results file.
     options:
       test_case_prefix:
         description: todo
@@ -31,6 +34,15 @@ DOCUMENTATION = '''
           - name: CUSTOM_JUNIT_CLASSNAME
         default: "openstack-observability"
         type: string
+      output_dir:
+        description: the direcory which the output files are saved to
+        ini:
+          - section: custom_junit
+            key: output_dir
+        env:
+          - name: JUNIT_OUTPUT_DIR
+        default: "~/ci-framework-data/tests/feature-verification-tests/"
+        type: path
 '''
 
 class CallbackModule(JunitCallbackModule):
@@ -45,7 +57,7 @@ class CallbackModule(JunitCallbackModule):
         self.set_options()
 
         # Update this to parse these values from the config file, as well as the env.
-        self._output_dir = os.path.expanduser("~/ci-framework-data/tests/feature-verification-tests/")
+        self._output_dir = self.get_option("output_dir")
         self._test_case_prefix = self.get_option("test_case_prefix")
         self._classname = self.get_option("classname")
 
