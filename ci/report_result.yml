@@ -59,6 +59,11 @@
   gather_facts: true
   vars_files:
     - vars/common.yml
+  pre_tasks:
+    - name: Stop play early if we do not want to check the failures
+      when:
+        - not (check_failures | default(true) | bool)
+      ansible.builtin.meta: end_play
   tasks:
     - name: "Get the matching lines in the results files"
       ansible.builtin.command:
