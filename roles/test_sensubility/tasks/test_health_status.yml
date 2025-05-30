@@ -13,7 +13,6 @@
   failed_when: container_nodes.stdout_lines|length != 1
 
 
-
 - name: RHELOSP-176012 Stop logrotate_crond container on ceph-0
   ansible.builtin.shell:
     cmd: |
