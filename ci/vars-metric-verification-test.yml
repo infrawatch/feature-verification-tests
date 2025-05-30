@@ -1,9 +1,9 @@
 ---
-post_deploy_00_fvt_verify_metrics:
+pre_tests_00_fvt_verify_metrics:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_verify_metrics_osp18.yml"
   type: playbook
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
-post_deploy_01_copy_results:
+pre_tests_01_copy_results:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
   type: playbook
   extra_vars:
