@@ -8,6 +8,30 @@
   vars_files:
     - vars/common.yml
     - vars/osp18_env.yml
+  pre_tasks:
+    - name: "Get OpenStackControlPlane autoscaling status"
+      ansible.builtin.command: >
+        oc get oscp -n openstack -o jsonpath='{.items[0].spec.telemetry.template.autoscaling.enabled}'
+      register: autoscaling_status
+      changed_when: false
+
+    - name: "Set fact if autoscaling is enabled"
+      ansible.builtin.set_fact:
+        autoscaling_enabled: "{{ autoscaling_status.stdout | trim | lower == 'true' }}"
+    
+    - name: Display conditional variable values
+      ansible.builtin.debug:
+        msg: "autoscaling_enabled: {{ autoscaling_enabled }}, play_autoscaling_test: {{ play_autoscaling_test }}"
+
+    - name: "Notify if autoscaling test is skipped"
+      ansible.builtin.debug:
+        msg: "Skipping the autoscaling test because OpenStackControlPlane telemetry autoscaling is disabled or play_autoscaling_test extra_vars is set to false."
+      when: (not autoscaling_enabled | bool) or (not play_autoscaling_test | bool)
+
+    - name: "Skip autoscaling test"
+      ansible.builtin.meta: end_play
+      when: (not autoscaling_enabled | bool) or (not play_autoscaling_test | bool)
+
   tasks:
     - block:
         - name: Include vars from the extra_vars files
