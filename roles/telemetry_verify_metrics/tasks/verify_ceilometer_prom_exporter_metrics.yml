@@ -9,7 +9,7 @@
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-ceilometer-ipmi-prom-exporter
 
-- name: Verify prometheus target for exporter {{ exporter.name }}
+- name: Verify prometheus target for exporters
   ansible.builtin.shell: |
     oc exec -it prometheus-metric-storage-0 -c prometheus -- curl -k 'https://metric-storage-prometheus:9090/api/v1/targets' | jq | grep {{ exporter_port }}
   register: result
