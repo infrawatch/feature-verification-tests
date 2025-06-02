@@ -11,12 +11,12 @@
 
 - name: Verify prometheus target for exporters
   ansible.builtin.shell: |
-    oc exec -it prometheus-metric-storage-0 -c prometheus -- curl -k 'https://metric-storage-prometheus:9090/api/v1/targets' | jq | grep {{ exporter_port }}
+    oc exec -i prometheus-metric-storage-0 -c prometheus -- curl -k 'https://metric-storage-prometheus:9090/api/v1/targets' | jq | grep {{ exporter.port }}
   register: result
   changed_when: false
-  failed_when: "'{{ exporter_port }}' not in result.stdout"
+  failed_when: "'{{ exporter.port }}' not in result.stdout"
   loop:
-    -  port: 9101
-    -  port: 9102
+    -  port: 9101 
+    -  port: 9102 
   loop_control:
-    loop_var: exporter_port
+    loop_var: exporter
