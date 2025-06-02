@@ -11,10 +11,20 @@ describe('OpenShift Console Dashboard Test', () => {
     // Wait for redirect to OAuth page, then handle login there
     cy.url().should('include', 'oauth-openshift.apps-crc.testing');
 
+    cy.screenshot('before-login');
     cy.origin(
       'https://oauth-openshift.apps-crc.testing',
       { args: { username, password } },
       ({ username, password }) => {
+
+        // Debug: Log what we can see
+        cy.get('body').then($body => {
+          console.log('OAuth page loaded');
+          console.log('Username input exists:', $body.find('input[name="username"]').length > 0);
+          console.log('Password input exists:', $body.find('input[name="password"]').length > 0);
+          console.log('Submit button exists:', $body.find('button[type="submit"]').length > 0);
+        });
+
         cy.get('input[name="username"]', { timeout: 10000 }).should('be.visible');
 
         // Clear and type username (in case it's pre-filled)
@@ -28,6 +38,7 @@ describe('OpenShift Console Dashboard Test', () => {
       }
     );
 
+    cy.screenshot('after-login');
 
     cy.url().should('include', 'console-openshift-console.apps-crc.testing');
 
