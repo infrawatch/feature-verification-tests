@@ -6,7 +6,7 @@ describe('OpenShift Console Dashboard Test', () => {
 
   before(() => {
 
-    before(() => {
+
       // Configure Cypress for cross-origin handling
       Cypress.config('chromeWebSecurity', false);
 
@@ -52,7 +52,7 @@ describe('OpenShift Console Dashboard Test', () => {
         }
       });
     
-    });
+
 
   });
 
