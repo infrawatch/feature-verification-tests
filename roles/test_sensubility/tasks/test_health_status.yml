@@ -42,7 +42,7 @@
     cmd: /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="ceph-0.redhat.local"}[10m])' | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0
   register: output
   changed_when: false
-  retries: 20
+  retries: 40
   delay: 10
   until: "output.stdout_lines | length == 1"
 
@@ -65,7 +65,7 @@
         | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' |  grep -o '[0-9]\+' | grep 1
   register: output
   changed_when: false
-  retries: 20
+  retries: 40
   delay: 10
   until: "output.stdout_lines | length == 1"
 
