@@ -76,7 +76,6 @@
       delay: 10
       until: "'Sending SNMP trap' in cmd_output.stdout"
 
-
   rescue:
     - name: "Show the snmp traps logs"
       ansible.builtin.debug:
