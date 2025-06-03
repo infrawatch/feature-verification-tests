@@ -1,58 +1,33 @@
 describe('OpenShift Console Dashboard Test', () => {
-  const username = 'kubeadmin';
-  const password = '12345678';
-
-
+  const username = 'developer';
+  const password = 'developer';
 
   before(() => {
+    // Visit the login page
+    cy.visit('https://console-openshift-console.apps-crc.testing/login');
 
+    // Perform login
+    // Handle authentication on the OAuth page
+    cy.url().should('include', 'oauth-openshift.apps-crc.testing');
+    cy.screenshot("before-login");
+    cy.origin(
+      'https://oauth-openshift.apps-crc.testing',
+      { args: { username, password } }, // Pass variables explicitly
+      ({ username, password }) => {
+        cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
+        cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
+        cy.get('button[type="submit"]').click();
+       });
 
-      // Configure Cypress for cross-origin handling
-      Cypress.config('chromeWebSecurity', false);
+    cy.visit('https://console-openshift-console.apps-crc.testing');
+    cy.screenshot("after-login");
 
-      // Visit the console login page
-      cy.visit('https://console-openshift-console.apps-crc.testing/login');
-
-      // Wait for redirect to OAuth page
-      cy.url({ timeout: 15000 }).should('include', 'oauth-openshift.apps-crc.testing');
-
-      // Handle OAuth login using cy.origin for Cypress 14.4.0
-      cy.origin('https://oauth-openshift.apps-crc.testing', { args: { username, password } }, ({ username, password }) => {
-        // Wait for the login form to load
-        cy.get('.pf-c-login__main', { timeout: 15000 }).should('be.visible');
-        cy.screenshot("before-login");
-        // Fill username field (clear first as it may be pre-filled)
-        cy.get('input[type="text"]')
-          .should('be.visible')
-          .clear()
-          .type(username);
-
-        // Fill password field
-        cy.get('input[type="password"]')
-          .should('be.visible')
-          .type(password);
-
-        // Click login button
-        cy.contains('button', 'Log in')
-          .should('be.visible')
-          .click();
-      });
-
-      // Wait for successful redirect back to console
-      cy.url({ timeout: 30000 }).should('include', 'console-openshift-console.apps-crc.testing');
-
-      // Wait for console page to load
-      cy.get('body', { timeout: 15000 }).should('be.visible');
-      cy.screenshot("after-login");
-      // Handle "Skip tour" modal if it appears
-      cy.get('body').then(($body) => {
-        if ($body.find('button:contains("Skip tour")').length > 0) {
-          cy.contains('button', 'Skip tour').click();
-          cy.wait(2000);
-        }
-      });
+    cy.get('body').then($body => {
+      if ($body.find('button:contains("Skip tour")').length > 0) {
+        cy.contains('button', 'Skip tour').click(); // Only click if the button is found
+      }
+    });
     
-
 
   });
 
