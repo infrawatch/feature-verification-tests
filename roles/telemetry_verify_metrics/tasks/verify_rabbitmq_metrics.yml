@@ -39,7 +39,7 @@
     TEST Use openstack observabilityclient to verify rabbitmq metrics are stored in prometheus
     RHOSO-1215
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric query rabbitmq_identity_info{instance=\'{{ item }}.openstack.svc:15691\'}
+    {{ openstack_cmd }} metric query rabbitmq_identity_info{instance=\'{{ item }}.openstack.svc:15691\'} --disable-rbac
   register: result
   delay: 30
   retries: 10

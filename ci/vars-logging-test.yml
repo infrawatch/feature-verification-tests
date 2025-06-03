@@ -4,7 +4,11 @@ post_deploy_00_fvt_logging:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/logging_tests_all.yml"
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
   type: playbook
-
+post_deploy_01_copy_results:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
+  type: playbook
+  extra_vars:
+    check_failures: false
 cifmw_run_tests: true
 # enable only the smoketests
 cifmw_test_operator_tempest_include_list: |
