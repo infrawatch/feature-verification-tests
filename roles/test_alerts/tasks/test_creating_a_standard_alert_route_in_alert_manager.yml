@@ -66,10 +66,6 @@
       register: cmd_output
       failed_when: cmd_output.rc != 0
 
-    - name: Add a check here to make sure the alert is created
-      ansible.builtin.debug:
-        msg: TODO add in a check to make sure the alert is created, since it might take a little while to propogate
-
     - name: "RHELOSP-148697 Interrupt metrics flow by preventing the QDR from running"
       ansible.builtin.shell:
         cmd: |
