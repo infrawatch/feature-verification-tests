@@ -20,3 +20,14 @@
     -  port: 9102 
   loop_control:
     loop_var: exporter
+
+- name: Get prometheus scrapeconfig
+  ansible.builtin.shell: |
+    oc get scrapeconfig telemetry-ceilometer-compute-prom-exporter -o yaml
+  register: result
+  changed_when: false
+
+- name: print the scrapeconfig
+  debug:
+    var: result.stdout
+
