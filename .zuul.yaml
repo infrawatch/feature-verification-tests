@@ -35,6 +35,7 @@
         override-checkout: main
       - name: github.com/openstack-k8s-operators/telemetry-operator
         override-checkout: main
+    timeout: 18000  # 5 hours
     irrelevant-files: &irrelevant_files
       - .github/.*
       - ci/github/.*
