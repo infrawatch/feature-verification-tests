@@ -3,6 +3,7 @@
     - name: Enable Node.js 16 module
       ansible.builtin.command: dnf module enable -y nodejs:16
       become: true
+      changed_when: false
 
     - name: Install Node.js 16
       ansible.builtin.dnf:

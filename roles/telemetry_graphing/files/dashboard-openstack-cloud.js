@@ -23,17 +23,8 @@ describe('OpenShift Console Login', () => {
       }
     });
 
-    // Fill in username
-    cy.get('input[id="inputUsername"]', { timeout: 10000 })
-      .should('be.visible')
-      .clear()
-      .type(username);
-
-    // Fill in password
-    cy.get('input[id="inputPassword"]')
-      .should('be.visible')
-      .clear()
-      .type(password);
+    cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
+    cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
 
     // Submit the login form
     cy.get('button[type="submit"]').click();
