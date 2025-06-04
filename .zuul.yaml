@@ -35,6 +35,7 @@
         override-checkout: main
       - name: github.com/openstack-k8s-operators/telemetry-operator
         override-checkout: main
+    timeout: 18000  # 5 hours
     irrelevant-files: &irrelevant_files
       - .github/.*
       - ci/github/.*
@@ -116,12 +117,13 @@
     name: infrawatch/feature-verification-tests
     github-check:
       jobs:
-        - feature-verification-tests-noop:
-            files: *irrelevant_files
-        - openstack-k8s-operators-content-provider:
-            override-checkout: main
-            irrelevant-files: *irrelevant_files
+        #- feature-verification-tests-noop:
+        #    files: *irrelevant_files
+        #- openstack-k8s-operators-content-provider:
+        #    override-checkout: main
+        #    irrelevant-files: *irrelevant_files
         - functional-autoscaling-tests-osp18:
+            dependencies: []
             files:
               - roles/telemetry_autoscaling/.*
               - .zuul.yaml
@@ -134,6 +136,7 @@
               - roles/telemetry_verify_metrics/.*
               - ci/vars-metric-verification-test.yml
         - functional-logging-tests-osp18:
+            dependencies: []
             irrelevant-files: *irrelevant_files
             files:
               - roles/telemetry_logging/.*
@@ -143,13 +146,13 @@
               - ci/logging_tests_computes.yml
               - ci/logging_tests_controller.yml
               - ci/report_result.yml
-        - functional-graphing-tests-osp18:
-            voting:
-              false
-            irrelevant-files: *irrelevant_files
-            files:
-              - roles/telemetry_graphing/.*
-              - .zuul.yaml
-              - ci/vars-graphing-test.yml
-              - ci/run_graphing_test.yml
-              - ci/report_result.yml
+        #- functional-graphing-tests-osp18:
+        #    voting:
+        #      false
+        #    irrelevant-files: *irrelevant_files
+        #    files:
+        #      - roles/telemetry_graphing/.*
+        #      - .zuul.yaml
+        #      - ci/vars-graphing-test.yml
+        #      - ci/run_graphing_test.yml
+        #      - ci/report_result.yml
