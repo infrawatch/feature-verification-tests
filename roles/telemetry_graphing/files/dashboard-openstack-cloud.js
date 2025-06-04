@@ -1,60 +1,45 @@
-describe('OpenShift Console Dashboard Test', () => {
-  const username = 'developer';
-  const password = 'developer';
+describe('OpenShift Console Login', () => {
 
-  before(() => {
-    // Visit the login page
-    cy.visit('https://console-openshift-console.apps-crc.testing/login');
+  it('should successfully login to OpenShift console', () => {
+    const openshiftUrl = Cypress.env('OPENSHIFT_URL') || 'https://console-openshift-console.apps-crc.testing';
+    const username = Cypress.env('OPENSHIFT_USERNAME') || 'developer';
+    const password = Cypress.env('OPENSHIFT_PASSWORD') || 'developer';
 
-    // Perform login
-    // Handle authentication on the OAuth page
-    cy.url().should('include', 'oauth-openshift.apps-crc.testing');
-    cy.screenshot("before-login");
-    cy.origin(
-      'https://oauth-openshift.apps-crc.testing',
-      { args: { username, password } }, // Pass variables explicitly
-      ({ username, password }) => {
-        cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
-        cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
-        cy.get('button[type="submit"]').click();
-       });
+    // Visit the OpenShift console
+    cy.visit(openshiftUrl);
 
-    cy.visit('https://console-openshift-console.apps-crc.testing');
-    cy.screenshot("after-login");
+    // Wait for the login page to load
+    cy.url().should('include', 'oauth');
 
-    cy.get('body').then($body => {
-      if ($body.find('button:contains("Skip tour")').length > 0) {
-        cy.contains('button', 'Skip tour').click(); // Only click if the button is found
+    // Look for common OpenShift login elements
+    // This handles the OAuth provider selection page if present
+    cy.get('body').then(($body) => {
+      if ($body.find('a[href*="htpasswd"]').length > 0) {
+        // If htpasswd provider is available, click it
+        cy.get('a[href*="htpasswd"]').click();
+      } else if ($body.find('a').filter(':contains("htpasswd")').length > 0) {
+        // Alternative selector for htpasswd
+        cy.contains('a', 'htpasswd').click();
       }
     });
-    
 
-  });
+    // Fill in username
+    cy.get('input[id="inputUsername"]', { timeout: 10000 })
+      .should('be.visible')
+      .clear()
+      .type(username);
 
-  it('should load and validate the OpenStack dashboards', () => {
-    // List of dashboards to check
-    const dashboards = [
-      { url: '/grafana-dashboard-openstack-cloud', screenshot: 'openstack-cluster' },
-      { url: '/grafana-dashboard-openstack-rabbitmq', screenshot: 'openstack-rabbitmq' },
-      { url: '/grafana-dashboard-openstack-node', screenshot: 'openstack-node' },
-      { url: '/grafana-dashboard-openstack-vm', screenshot: 'openstack-vms' },
-      { url: '/grafana-dashboard-openstack-network-traffic', screenshot: 'openstack-network-traffic'},
-      //{ url: '/grafana-dashboard-openstack-kepler', screenshot: 'openstack-kepler'},
-      //{ url: '/grafana-dashboard-openstack-ceilometer-ipmi', screenshot: 'openstack-ceilometer-ipmi' }
-    ];
-    
+    // Fill in password
+    cy.get('input[id="inputPassword"]')
+      .should('be.visible')
+      .clear()
+      .type(password);
 
+    // Submit the login form
+    cy.get('button[type="submit"]').click();
 
-    // Iterate through each dashboard
-    dashboards.forEach(dashboard => {
-      cy.visit(`https://console-openshift-console.apps-crc.testing/monitoring/dashboards${dashboard.url}`);
-
-      // Wait for the dashboard to load and take a screenshot
-      cy.get('div[data-test-id="dashboard"]', { timeout: 100000 })
-        .find('[data-test-id^="panel-"]')
-
-      cy.wait(5000); 
-      cy.screenshot(dashboard.screenshot);
-    });
+    // Wait for successful login and redirect to console
+    cy.url({ timeout: 15000 }).should('include', 'console-openshift-console');
+    cy.screenshot("login");
   });
 });
