@@ -7,18 +7,17 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars:
-    journal_list:
-      - ceilometer_agent_compute
-      - nova_compute
+    telemetry_logging_journal_test_id: "RHOSO-12681"
+    telemetry_logging_journal_list:
+      - { name: ceilometer_agent_compute, test_id: "{{ telemetry_logging_journal_test_id }}" }
+      - { name: nova_compute, test_id: "{{ telemetry_logging_journal_test_id }}" }
+
+    common_file_test_id: "RHOSO-12754"
     common_file_list:
       - { name: "/etc/rsyslog.d/10-telemetry.conf", test_id: "{{ common_file_test_id }}"}
-    #telemetry_logging_journal_test_id: "RHOSO-12681"
-    telemetry_logging_journal_list:
-      - { name: ceilometer_agent_compute, test_id: "RHOSO-12681" }
-      - { name: nova_compute, test_id: "RHOSO-12681" }
   tasks:
     - name: "Run Telemetry Logging tests"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: telemetry_logging
 
     - name: "Run the tests from the common role"
