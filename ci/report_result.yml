@@ -11,6 +11,12 @@
         state: directory
         mode: "0755"
 
+    - name: Create log dir
+      ansible.builtin.file:
+        path: "{{ old_logs_dir }}"
+        state: directory
+        mode: "0755"
+
 - name: "Run the log file collection"
   hosts:
     - controller
@@ -30,6 +36,15 @@
       ansible.builtin.debug:
         var: xml_file_list.stdout_lines
       ignore_errors: true
+
+    - name: "Copy the the XML files to the old logs dir"
+      delegate_to: controller
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ item }}"
+        dest: "{{ old_logs_dir }}/{{ item | basename }}"
+      with_items: "{{ xml_file_list.stdout_lines }}"
+      when: xml_file_list.stdout_lines | length != 0
 
     - name: "Collect the XML files, renaming them for the host that they are collected from"
       delegate_to: controller
