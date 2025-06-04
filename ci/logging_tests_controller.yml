@@ -68,7 +68,7 @@
       - { name: openstack-logging, nspace: openshift-logging, test_id: "RHOSO-13760"}
   tasks:
     - name: "Verify logging infrastructure components"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: common
 
 - name: "Verify logging pods are running in openstack"
@@ -83,10 +83,10 @@
     # common_pod_status_str: "Running"
     # common_pod_nspace: openstack
     common_pod_list:
-      - { name: openstackclient, status_str: "Running", nspace: "openstack", test_id: "RHOSO-12752"} 
+      - { name: openstackclient, status_str: "Running", nspace: "openstack", test_id: "RHOSO-12752"}
   tasks:
     - name: "Verify Running Pods"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: common
 
 
@@ -105,7 +105,7 @@
       - { name: loki-operator-controller-manager, nspace: openshift-operators-redhat, status_str: "Running", test_id: "RHOSO-12673"}
   tasks:
     - name: "Verify Pods running"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: common
 
 - name: "Verify logging pods are running in openshift-logging"
@@ -134,7 +134,7 @@
   ### see JIRA LOG-5431 if pods not running
   tasks:
     - name: "Verify Pods running"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: common
 
 - name: "Verify logging pods are running in minio-dev"
@@ -152,7 +152,7 @@
       - { name: minio, nspace: minio-dev, status_str: "Running", test_id: "RHOSO-12674" }
   tasks:
     - name: "Run pod running tests"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: common
 
 
@@ -187,7 +187,7 @@
       - { name: logging-edpm-deployment-openstack-edpm-ipam, nspace: openstack, status_str: "Completed", test_id: "RHOSO-12679"}
   tasks:
     - name: "Run pods completed tests"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: common
 
 - name: "Verify the crds exist"
