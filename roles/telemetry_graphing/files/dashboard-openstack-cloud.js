@@ -2,8 +2,8 @@ describe('OpenShift Console Login', () => {
 
   it('should successfully login to OpenShift console', () => {
     const openshiftUrl = Cypress.env('OPENSHIFT_URL') || 'https://console-openshift-console.apps-crc.testing';
-    const username = Cypress.env('OPENSHIFT_USERNAME') || 'developer';
-    const password = Cypress.env('OPENSHIFT_PASSWORD') || 'developer';
+    const username = Cypress.env('OPENSHIFT_USERNAME') || 'kubeadmin';
+    const password = Cypress.env('OPENSHIFT_PASSWORD') || '12345678';
 
     // Visit the OpenShift console
     cy.visit(openshiftUrl);
@@ -11,20 +11,17 @@ describe('OpenShift Console Login', () => {
     // Wait for the login page to load
     cy.url().should('include', 'oauth');
 
-    // Look for common OpenShift login elements
-    // This handles the OAuth provider selection page if present
-    cy.get('body').then(($body) => {
-      if ($body.find('a[href*="htpasswd"]').length > 0) {
-        // If htpasswd provider is available, click it
-        cy.get('a[href*="htpasswd"]').click();
-      } else if ($body.find('a').filter(':contains("htpasswd")').length > 0) {
-        // Alternative selector for htpasswd
-        cy.contains('a', 'htpasswd').click();
-      }
-    });
-
     cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
     cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
+    cy.get('input[id="inputUsername"]').should('be.visible').type(username, { delay: 50 , force: true });
+    cy.get('input[id="inputPassword"]').should('be.visible').type(password, { delay: 50, force: true });
+
+    cy.get('#inputUsername').then($input => {
+      const input = $input[0];
+      input.value = username;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
 
     // Submit the login form
     cy.get('button[type="submit"]').click();
