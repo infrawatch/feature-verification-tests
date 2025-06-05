@@ -62,7 +62,6 @@
       until: result.rc == 0 and "ceilometer_cpu" in result.stdout
       changed_when: false
 
-    #todo: Create Test Id in Polarian
     - name: |
         TEST Use openstack observabilityclient to verify ceilometer_power_state compute metrics are stored in prometheus
       ansible.builtin.shell: |
