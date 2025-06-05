@@ -64,7 +64,6 @@
 
     - name: |
         TEST Use openstack observabilityclient to verify ceilometer_power_state compute metrics are stored in prometheus
-        RHOSO-14297
       ansible.builtin.shell: |
         {{ openstack_cmd }} metric show ceilometer_power_state
       register: result
