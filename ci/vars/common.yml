@@ -1,4 +1,0 @@
----
-fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
-logs_dir: "{{ ansible_env.HOME }}/ci-framework-data/logs/feature-verification-tests"
-custom_xml_output_dir: "~/.ansible.log/"

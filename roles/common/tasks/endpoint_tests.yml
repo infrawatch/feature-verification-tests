@@ -8,7 +8,6 @@
 
 - name: |
     TEST Check that {{ item[0] }} {{ item[2] }} endpoint exists
-    {{ common_endpoint_test_id }}
   ansible.builtin.assert:
     that:
       - output.stdout != ""
