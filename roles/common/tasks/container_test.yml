@@ -24,8 +24,7 @@
       var: debug_output.stdout_lines
 
 - name: |
-    TEST Verify {{ container_name }} container status
-    {{ common_container_test_id }}
+    {{ common_container_test_id }} Verify {{ container_name }} container status
   ansible.builtin.assert:
     that:
       - "container_status.stdout | length != 0"
