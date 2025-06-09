@@ -14,7 +14,7 @@
       - fstats.stat.size | int > 300
       - fstats.stat.isreg
     fail_msg: |
-      File {{ item }} does not meet the required conditions:
+      File {{ file.name }} does not meet the required conditions:
       {%- if not fstats.stat.exists %} file does not exist.{% endif %}
       {%- if fstats.stat.exists and fstats.stat.pw_name != "root" %} file owner must be root (got {{ fstats.stat.pw_name }});{% endif %}
       {%- if fstats.stat.exists and fstats.stat.size | int < 300 %} file must be larger than 300 bytes (got {{ fstats.stat.size }} bytes);{% endif %}
