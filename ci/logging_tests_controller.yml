@@ -201,10 +201,10 @@
     common_service_test_id: "RHOSO-12749"
     common_service_nspace: openstack
     common_service_list:
-      - nova-internal
-      - nova-metadata-internal
-      - nova-novncproxy-cell1-public
-      - nova-public
+      - { name: nova-internal, nspace: openstack, test_id: "{{ common_service_test_id }}" }
+      - { name: nova-metadata-internal, nspace: openstack, test_id: "{{ common_service_test_id }}" }
+      - { name: nova-novncproxy-cell1-public, nspace: openstack, test_id: "{{ common_service_test_id }}" }
+      - { name: nova-public, nspace: openstack, test_id: "{{ common_service_test_id }}" }
     #common_crd_test_id: "RHOSO-12670"
     common_crd_list:
       - { name: alertingrules.loki.grafana.com, test_id: "RHOSO-12670"}
