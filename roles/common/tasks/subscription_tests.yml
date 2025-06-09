@@ -7,8 +7,7 @@
   register: output
 
 - name: |
-    TEST Check that {{ item }} subscription exists in {{ common_subscription_nspace }} namespace
-    {{ common_subscription_test_id }}
+    {{ common_subscription_test_id }} Check that {{ item }} subscription exists in {{ common_subscription_nspace }} namespace
   ansible.builtin.assert:
     that:
       - "'NotFound' not in output.stderr"
