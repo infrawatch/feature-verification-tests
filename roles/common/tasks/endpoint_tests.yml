@@ -7,8 +7,7 @@
   register: output
 
 - name: |
-    TEST Check that {{ item[0] }} {{ item[2] }} endpoint exists
-    {{ common_endpoint_test_id }}
+    {{ common_endpoint_test_id }} Check that {{ item[0] }} {{ item[2] }} endpoint exists
   ansible.builtin.assert:
     that:
       - output.stdout != ""
