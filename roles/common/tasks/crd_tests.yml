@@ -8,7 +8,6 @@
 
 - name: |
     TEST Verify CRD {{ item }} is found
-    {{ common_crd_test_id }}
   ansible.builtin.assert:
     that:
       - "'NotFound' not in output.stderr"
