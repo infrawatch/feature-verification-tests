@@ -21,11 +21,12 @@ describe('OpenShift Console Login', () => {
             cy.contains(provider).should('be.visible').click();
           }
         });
+        cy.wait(5000);
         cy.get('#inputUsername').type(username);
+        cy.wait(5000);
         cy.get('#inputPassword').type(password);
         cy.get('button[type=submit]').click();
 
-        cy.wait(5000);
         cy.screenshot("login");
       },
     );
