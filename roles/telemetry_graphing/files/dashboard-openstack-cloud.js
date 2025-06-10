@@ -25,7 +25,6 @@ describe('OpenShift Console Login', () => {
         cy.get('#inputUsername').type(username);
         cy.wait(5000);
         cy.get('#inputPassword').type(password);
-        cy.wait(5000);
         cy.get('button[type=submit]').click();
       },
     );
@@ -33,8 +32,32 @@ describe('OpenShift Console Login', () => {
 
     cy.visit(Cypress.config('baseUrl'));
     // Wait for successful login and redirect to console
-
+    cy.wait(5000);
     cy.screenshot("login");
+    const dashboards = [
+      { url: '/grafana-dashboard-openstack-cloud', screenshot: 'openstack-cluster' },
+      { url: '/grafana-dashboard-openstack-rabbitmq', screenshot: 'openstack-rabbitmq' },
+      { url: '/grafana-dashboard-openstack-node', screenshot: 'openstack-node' },
+      { url: '/grafana-dashboard-openstack-vm', screenshot: 'openstack-vms' },
+      { url: '/grafana-dashboard-openstack-network-traffic', screenshot: 'openstack-network-traffic'},
+      //{ url: '/grafana-dashboard-openstack-kepler', screenshot: 'openstack-kepler'},
+      //{ url: '/grafana-dashboard-openstack-ceilometer-ipmi', screenshot: 'openstack-ceilometer-ipmi' }
+    ];
+
+
+
+    // Iterate through each dashboard
+    dashboards.forEach(dashboard => {
+      cy.visit(`https://console-openshift-console.apps-crc.testing/monitoring/dashboards${dashboard.url}`);
+
+      // Wait for the dashboard to load and take a screenshot
+      cy.get('div[data-test-id="dashboard"]', { timeout: 100000 })
+        .find('[data-test-id^="panel-"]')
+
+      cy.wait(5000);
+      cy.screenshot(dashboard.screenshot);
+    });
+
 
   });
 });
