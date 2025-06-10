@@ -21,19 +21,16 @@ describe('OpenShift Console Login', () => {
             cy.contains(provider).should('be.visible').click();
           }
         });
-        cy.wait(5000);
         cy.get('#inputUsername').type(username);
-        cy.wait(5000);
         cy.get('#inputPassword').type(password);
         cy.get('button[type=submit]').click();
+
+        cy.wait(5000);
+        cy.screenshot("login");
       },
     );
 
 
-    cy.visit(Cypress.config('baseUrl'));
-    // Wait for successful login and redirect to console
-    cy.wait(5000);
-    cy.screenshot("login");
     const dashboards = [
       { url: '/grafana-dashboard-openstack-cloud', screenshot: 'openstack-cluster' },
       { url: '/grafana-dashboard-openstack-rabbitmq', screenshot: 'openstack-rabbitmq' },
