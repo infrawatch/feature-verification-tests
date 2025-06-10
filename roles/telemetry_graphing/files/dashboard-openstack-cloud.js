@@ -15,15 +15,17 @@ describe('OpenShift Console Login', () => {
       { args: { provider, username, password } },
       // eslint-disable-next-line @typescript-eslint/no-shadow
       ({ provider, username, password }) => {
-        cy.task('log', `  Logging in as ${username}`);
         cy.get('[data-test-id="login"]').should('be.visible');
         cy.get('body').then(($body) => {
           if ($body.text().includes(provider)) {
             cy.contains(provider).should('be.visible').click();
           }
         });
+        cy.wait(5000);
         cy.get('#inputUsername').type(username);
+        cy.wait(5000);
         cy.get('#inputPassword').type(password);
+        cy.wait(5000);
         cy.get('button[type=submit]').click();
       },
     );
