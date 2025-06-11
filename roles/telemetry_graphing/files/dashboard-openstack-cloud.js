@@ -1,37 +1,37 @@
-describe('OpenShift Console Login', () => {
+describe('OpenShift Console Dashboard Test', () => {
+  const username = 'kubeadmin';
+  const password = '12345678';
 
-  it('should successfully login to OpenShift console', () => {;
-    const username = Cypress.env('OPENSHIFT_USERNAME') || 'kubeadmin';
-    const password = Cypress.env('OPENSHIFT_PASSWORD') || '12345678';
-    const provider = 'kube:admin';
+  before(() => {
+    // Visit the login page
+    cy.visit('https://console-openshift-console.apps-crc.testing/login');
 
-    // Visit the OpenShift console
-    cy.visit(Cypress.config('baseUrl'));
 
     cy.url().should('include', 'oauth-openshift.apps-crc.testing');
 
     cy.origin(
-      'oauth-openshift.apps-crc.testing',
-      { args: { provider, username, password } },
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      ({ provider, username, password }) => {
-        cy.get('[data-test-id="login"]').should('be.visible');
-        cy.get('body').then(($body) => {
-          if ($body.text().includes(provider)) {
-            cy.contains(provider).should('be.visible').click();
-          }
-        });
-        cy.wait(5000);
-        cy.get('#inputUsername').type(username);
-        cy.wait(5000);
-        cy.get('#inputPassword').type(password);
-        cy.get('button[type=submit]').click();
+      'https://oauth-openshift.apps-crc.testing',
+      { args: { username, password } }, // Pass variables explicitly
+      ({ username, password }) => {
+        cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
+        cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
+        cy.get('button[type="submit"]').click();
+    });
 
-        cy.screenshot("login");
-      },
-    );
+    cy.wait(5000);
+    // Ensure redirected back to the main console
+
+    cy.get('body').then($body => {
+      if ($body.find('button:contains("Skip tour")').length > 0) {
+        cy.contains('button', 'Skip tour').click(); // Only click if the button is found
+      }
+    });
 
 
+  });
+
+  it('should load and validate the OpenStack dashboards', () => {
+    // List of dashboards to check
     const dashboards = [
       { url: '/grafana-dashboard-openstack-cloud', screenshot: 'openstack-cluster' },
       { url: '/grafana-dashboard-openstack-rabbitmq', screenshot: 'openstack-rabbitmq' },
@@ -55,7 +55,5 @@ describe('OpenShift Console Login', () => {
       cy.wait(5000);
       cy.screenshot(dashboard.screenshot);
     });
-
-
   });
 });
