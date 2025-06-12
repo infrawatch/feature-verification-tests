@@ -15,12 +15,12 @@
 
 - name: Create galera pod list
   ansible.builtin.set_fact:
-    galera_pod_list: "{{ galera_pod_list | default([]) + [item + '-galera-0'] }}"
+    galera_pod_list: "{{ galera_pod_list | default([]) + ['name': item + '-galera-0', 'nspace': 'openstack', test_id: 'RHOSO-xxx'] }}"
   loop: "{{ cr_names.stdout_lines }}"
- 
+
 - name: List galera pod names
   ansible.builtin.debug:
-    msg: "galara pod name ... {{ item }}"
+    msg: "galara pod name ... {{ item.name }}"
   loop: "{{ galera_pod_list }}"
 
 - name: Verify galera and mysqld-exporter pods are running
@@ -29,7 +29,7 @@
   vars:
     common_pod_status_str: "Running"
     common_pod_nspace: openstack
-    common_pod_list: "{{ galera_pod_list + ['mysqld-exporter-0'] }}"
+    common_pod_list: "{{ galera_pod_list + ['name': 'mysqld-exporter-0', 'nspace': common_pod_nspace, 'test_id': common_pod_test_id, 'status_str': common_pod_status_str ] }}"
 
 - name: TEST Check mariadb metric endpoints
   ansible.builtin.shell: |
