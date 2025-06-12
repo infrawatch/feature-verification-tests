@@ -15,7 +15,7 @@
 
 - name: Create rabbitmq pod list
   ansible.builtin.set_fact:
-    common_pod_list: "{{ common_pod_list | default([]) + [item + '-server-0'] }}"
+    common_pod_list: "{{ common_pod_list | default([]) + [{ 'name': item + '-server-0', 'status_str': 'Running', 'napace': 'openstack', 'test_id': 'RHOSO-1241' ] }}"
   loop: "{{ cr_names.stdout_lines }}"
 
 - name: Verify rabbitmq pods are running
