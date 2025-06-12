@@ -18,7 +18,7 @@ class CallbackModule(JunitCallbackModule):
 
         # Custom environment variable handling
         # Update this to parse these values from the config file, as well as the env.
-        self._output_dir = os.path.expanduser("~/.ansible.log")
+        self._output_dir = os.path.expanduser("~/ci-framework-data/tests/feature-verification-tests/")
         self._test_case_prefix = os.getenv('JUNIT_TEST_CASE_PREFIX', 'TEST')
         self._fail_on_ignore = 'true'  # this is needed because we use "ignore_errors" on the playbooks so that all the tests are run
         self._include_setup_tasks_in_report = os.getenv('JUNIT_INCLUDE_SETUP_TASKS_IN_REPORT', 'False').lower()
