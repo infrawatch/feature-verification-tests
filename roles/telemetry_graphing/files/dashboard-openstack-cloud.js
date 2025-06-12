@@ -1,6 +1,6 @@
 describe('OpenShift Console Dashboard Test', () => {
   const username = 'kubeadmin';
-  const password = 'developer';
+  const password = '12345678';
 
   before(() => {
     // Visit the login page
@@ -15,7 +15,9 @@ describe('OpenShift Console Dashboard Test', () => {
       ({ username, password }) => {
         cy.wait(5000);
         cy.get('input[id="inputUsername"]').invoke('val', username).trigger('input');
+        cy.wait(5000);
         cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
+        cy.wait(5000);
         cy.get('button[type="submit"]').click();
         cy.screenshot("login");
     });
