@@ -1,11 +1,11 @@
 describe('OpenShift Console Dashboard Test', () => {
-  const username = 'developer';
-  const password = 'developer';
+  const username = 'kubeadmin';
+  const password = '12345678';
 
   before(() => {
     // Visit the login page
     cy.visit('https://console-openshift-console.apps-crc.testing/login');
-    
+
     // Perform login
     // Handle authentication on the OAuth page
     cy.origin(
@@ -17,15 +17,17 @@ describe('OpenShift Console Dashboard Test', () => {
         cy.get('button[type="submit"]').click();
     });
 
-    cy.wait(5000);
-    // Ensure redirected back to the main console
+    cy.wait(10000);
+
 
     cy.get('body').then($body => {
       if ($body.find('button:contains("Skip tour")').length > 0) {
         cy.contains('button', 'Skip tour').click(); // Only click if the button is found
       }
     });
-    
+
+     // Ensure redirected back to the main console
+    cy.visit('https://console-openshift-console.apps-crc.testing');
 
   });
 
@@ -40,7 +42,7 @@ describe('OpenShift Console Dashboard Test', () => {
       //{ url: '/grafana-dashboard-openstack-kepler', screenshot: 'openstack-kepler'},
       //{ url: '/grafana-dashboard-openstack-ceilometer-ipmi', screenshot: 'openstack-ceilometer-ipmi' }
     ];
-    
+
 
 
     // Iterate through each dashboard
@@ -51,7 +53,7 @@ describe('OpenShift Console Dashboard Test', () => {
       cy.get('div[data-test-id="dashboard"]', { timeout: 100000 })
         .find('[data-test-id^="panel-"]')
 
-      cy.wait(5000); 
+      cy.wait(5000);
       cy.screenshot(dashboard.screenshot);
     });
   });

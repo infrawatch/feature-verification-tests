@@ -78,6 +78,12 @@
     dest: "{{ screenshots_dir }}"
     mode: '0644'
 
+- name: Collect the videos
+  ansible.builtin.copy:
+    src: "{{ cypress_tests_dir }}/cypress/videos/"
+    dest: "{{ screenshots_dir }}"
+    mode: '0644'
+
 - name: Show Cypress test output
   ansible.builtin.debug:
     var: cypress_run.stdout_lines
