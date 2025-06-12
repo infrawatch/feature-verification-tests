@@ -23,6 +23,18 @@
     var: oc_login.stdout_lines
 
 - name: |
+    list users with oc
+  ansible.builtin.shell:
+    cmd: |
+       oc get users
+  register: oc_users
+  changed_when: false
+
+- name: Show oc users output
+  ansible.builtin.debug:
+    var: oc_users.stdout_lines
+
+- name: |
     TEST Check OpenShift Console is accessible
     RHOSO-13626
   ansible.builtin.shell:
