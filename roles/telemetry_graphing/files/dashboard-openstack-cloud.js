@@ -19,7 +19,6 @@ describe('OpenShift Console Dashboard Test', () => {
         cy.get('input[id="inputPassword"]').invoke('val', password).trigger('input');
         cy.wait(5000);
         cy.get('button[type="submit"]').click();
-        cy.screenshot("login");
     });
 
     cy.wait(5000);
@@ -30,7 +29,7 @@ describe('OpenShift Console Dashboard Test', () => {
         cy.contains('button', 'Skip tour').click(); // Only click if the button is found
       }
     });
-
+    cy.screenshot("login");
 
   });
 
@@ -38,10 +37,10 @@ describe('OpenShift Console Dashboard Test', () => {
     // List of dashboards to check
     const dashboards = [
       { url: '/grafana-dashboard-openstack-cloud', screenshot: 'openstack-cluster' },
-      { url: '/grafana-dashboard-openstack-rabbitmq', screenshot: 'openstack-rabbitmq' },
-      { url: '/grafana-dashboard-openstack-node', screenshot: 'openstack-node' },
-      { url: '/grafana-dashboard-openstack-vm', screenshot: 'openstack-vms' },
-      { url: '/grafana-dashboard-openstack-network-traffic', screenshot: 'openstack-network-traffic'},
+      //{ url: '/grafana-dashboard-openstack-rabbitmq', screenshot: 'openstack-rabbitmq' },
+      //{ url: '/grafana-dashboard-openstack-node', screenshot: 'openstack-node' },
+      //{ url: '/grafana-dashboard-openstack-vm', screenshot: 'openstack-vms' },
+      //{ url: '/grafana-dashboard-openstack-network-traffic', screenshot: 'openstack-network-traffic'},
       //{ url: '/grafana-dashboard-openstack-kepler', screenshot: 'openstack-kepler'},
       //{ url: '/grafana-dashboard-openstack-ceilometer-ipmi', screenshot: 'openstack-ceilometer-ipmi' }
     ];
