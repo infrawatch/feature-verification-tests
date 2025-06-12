@@ -1,6 +1,6 @@
 describe('OpenShift Console Dashboard Test', () => {
   const username = 'kubeadmin';
-  const password = '12345678';
+  const password = '123456789';
 
   before(() => {
     // Visit the login page
