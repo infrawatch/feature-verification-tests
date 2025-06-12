@@ -1,5 +1,5 @@
 describe('OpenShift Console Dashboard Test', () => {
-  const username = 'developer';
+  const username = 'kubeadmin';
   const password = 'developer';
 
   before(() => {

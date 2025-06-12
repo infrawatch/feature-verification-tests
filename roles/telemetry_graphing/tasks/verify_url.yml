@@ -23,16 +23,28 @@
     var: oc_login.stdout_lines
 
 - name: |
-    list users with oc
+    Show kubeadmin-password
   ansible.builtin.shell:
     cmd: |
-       oc get users
-  register: oc_users
+       cat {{ ansible_user_dir }}/.crc/machines/crc/kubeadmin-password
+  register: kubeadmin-password
   changed_when: false
 
 - name: Show oc users output
   ansible.builtin.debug:
-    var: oc_users.stdout_lines
+    var: kubeadmin-password.stdout_lines
+
+- name: |
+    Crc credinteials
+  ansible.builtin.shell:
+    cmd: |
+      crc console --credentials
+  register: crc_login
+  changed_when: false
+
+- name: Show oc login output
+  ansible.builtin.debug:
+    var: crc_login.stdout_lines
 
 - name: |
     TEST Check OpenShift Console is accessible
