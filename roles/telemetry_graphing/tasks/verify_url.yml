@@ -11,6 +11,18 @@
     openshift_console_url: "https://{{ console_url.stdout }}"
 
 - name: |
+    Login with oc
+  ansible.builtin.shell:
+    cmd: |
+      oc login -u kubeadmin -p 12345678 https://api.crc.testing:6443
+  register: oc_login
+  changed_when: false
+
+- name: Show oc login output
+  ansible.builtin.debug:
+    var: oc_login.stdout_lines
+
+- name: |
     TEST Check OpenShift Console is accessible
     RHOSO-13626
   ansible.builtin.shell:
