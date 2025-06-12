@@ -50,7 +50,7 @@
     Login with oc
   ansible.builtin.shell:
     cmd: |
-       oc login -u kubeadmin -p 12345678 https://api.crc.testing:6443
+       oc login -u kubeadmin -p 123456789 https://api.crc.testing:6443
   register: oc_login
   changed_when: false
 
