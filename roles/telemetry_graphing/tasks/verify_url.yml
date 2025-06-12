@@ -27,12 +27,12 @@
   ansible.builtin.shell:
     cmd: |
        cat {{ ansible_user_dir }}/.crc/machines/crc/kubeadmin-password
-  register: kubeadmin-password
+  register: kubeadmin
   changed_when: false
 
 - name: Show oc users output
   ansible.builtin.debug:
-    var: kubeadmin-password.stdout_lines
+    var: kubeadmin.stdout_lines
 
 - name: |
     Crc credinteials
