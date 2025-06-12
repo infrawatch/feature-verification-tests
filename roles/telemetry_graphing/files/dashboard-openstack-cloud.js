@@ -1,13 +1,12 @@
 describe('OpenShift Console Dashboard Test', () => {
   const username = 'kubeadmin';
-  const password = '12345678';
+  const password = '123456789';
 
   before(() => {
     // Visit the login page
     cy.visit('https://console-openshift-console.apps-crc.testing/login');
 
-    // Perform login
-    // Handle authentication on the OAuth page
+    cy.url().should('include', 'oauth-openshift.apps-crc.testing');
     cy.origin(
       'https://oauth-openshift.apps-crc.testing',
       { args: { username, password } }, // Pass variables explicitly
