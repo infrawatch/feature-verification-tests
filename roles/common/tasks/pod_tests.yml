@@ -7,7 +7,9 @@
       status_str: "{{ item.status_str if \"status_str\" in item else common_pod_status_str }}"
       test_id: "{{ item.test_id if \"test_id\" in item else common_pod_test_id | default(omit) }}"
 
-- debug: var=pod
+- name: Show the pod details for this test
+  ansible.builtin.debug:
+    var: pod
 
 - block:
       # expects that one line will be returned
