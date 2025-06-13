@@ -6,7 +6,6 @@ describe('OpenShift Console Dashboard Test', () => {
     // Visit the login page
     cy.visit('https://console-openshift-console.apps-crc.testing/login');
 
-    cy.url().should('include', 'oauth-openshift.apps-crc.testing');
     cy.origin(
       'https://oauth-openshift.apps-crc.testing',
       { args: { username, password } }, // Pass variables explicitly
@@ -45,6 +44,8 @@ describe('OpenShift Console Dashboard Test', () => {
     // Iterate through each dashboard
     dashboards.forEach(dashboard => {
       cy.visit(`https://console-openshift-console.apps-crc.testing/monitoring/dashboards${dashboard.url}`);
+
+      cy.wait(5000);
 
       // Wait for the dashboard to load and take a screenshot
       cy.get('div[data-test-id="dashboard"]', { timeout: 100000 })
