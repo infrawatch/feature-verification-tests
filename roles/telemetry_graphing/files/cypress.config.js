@@ -5,7 +5,6 @@ module.exports = defineConfig({
     specPattern: 'cypress/integration/**/*.{js,jsx,ts,tsx}',
     supportFile: false,
     chromeWebSecurity: false,
-    experimentalSessionAndOrigin: true,
     defaultCommandTimeout: 10000,
     pageLoadTimeout: 30000,
     viewportWidth: 1280,
