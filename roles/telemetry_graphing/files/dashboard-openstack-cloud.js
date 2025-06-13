@@ -16,8 +16,7 @@ describe('OpenShift Console Dashboard Test', () => {
         cy.get('button[type="submit"]').click();
     });
 
-    cy.wait(10000);
-
+    cy.wait(5000);
 
     cy.get('body').then($body => {
       if ($body.find('button:contains("Skip tour")').length > 0) {
@@ -25,8 +24,7 @@ describe('OpenShift Console Dashboard Test', () => {
       }
     });
 
-     // Ensure redirected back to the main console
-    cy.visit('https://console-openshift-console.apps-crc.testing');
+    cy.wait(5000);
 
   });
 
