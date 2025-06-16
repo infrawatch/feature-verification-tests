@@ -19,6 +19,12 @@ describe('OpenShift Console Dashboard Test', () => {
   });
 
   it('should load and validate the OpenStack dashboards', () => {
+
+    cy.visit(`https://console-openshift-console.apps-crc.testing/monitoring/dashboards/grafana-dashboard-openstack-cloud`);
+    cy.get('div[data-test-id="dashboard"]', { timeout: 20000 }).should('exist');
+    cy.wait(1000);
+    cy.screenshot(screenshot);
+    
     const dashboards = [
       { url: '/grafana-dashboard-openstack-cloud', screenshot: 'openstack-cluster' },
       { url: '/grafana-dashboard-openstack-rabbitmq', screenshot: 'openstack-rabbitmq' },
