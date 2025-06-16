@@ -10,10 +10,5 @@ module.exports = defineConfig({
     viewportWidth: 1280,
     viewportHeight: 720,
     video: true,
-    retries: {
-      runMode: 2,      // Retry 2 times when running in CI
-      openMode: 0      // Don't retry in interactive mode
-    },
-    screenshotOnRunFailure: true,
   },
 })
