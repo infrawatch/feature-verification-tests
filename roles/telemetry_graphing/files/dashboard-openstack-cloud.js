@@ -35,7 +35,7 @@ describe('OpenShift Console Dashboard Test', () => {
 
     dashboards.forEach(({ url, screenshot }) => {
       cy.visit(`https://console-openshift-console.apps-crc.testing/monitoring/dashboards${url}`);
-      cy.get('div[data-test-id="dashboard"]', { timeout: 20000 }).should('exist');
+      cy.get('div[data-test-id="dashboard"]', { timeout: 20000 }).find('[data-test-id^="panel-"]')
       cy.wait(1000);
       cy.screenshot(screenshot);
     });
