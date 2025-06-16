@@ -23,7 +23,7 @@ describe('OpenShift Console Dashboard Test', () => {
     cy.visit(`https://console-openshift-console.apps-crc.testing/monitoring/dashboards/grafana-dashboard-openstack-cloud`);
     cy.get('div[data-test-id="dashboard"]', { timeout: 20000 }).should('exist');
     cy.wait(1000);
-    cy.screenshot(screenshot);
+    cy.screenshot("openshift-dashboard");
     
     const dashboards = [
       { url: '/grafana-dashboard-openstack-cloud', screenshot: 'openstack-cluster' },
