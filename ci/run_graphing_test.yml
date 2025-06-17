@@ -5,6 +5,7 @@
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
+    CRC: "{{ cifmw_rhol_crc_binary }}"
   vars_files:
     - vars/common.yml
   tasks:
@@ -24,6 +25,13 @@
           timeout: 5
           until: output.stdout_lines | length == 1
           register: output
+
+        - name: "Enable crc monitoring"
+          ansible.builtin.shell:
+            cmd: |
+              $CRC config set enable-cluster-monitoring true
+          register:  crc_monitoring
+          changed_when: false
 
         - name: "Run Graphing Console UI tests"
           ansible.builtin.import_role:
