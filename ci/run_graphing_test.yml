@@ -5,7 +5,6 @@
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
-    CRC: "{{ cifmw_rhol_crc_binary }}"
   vars_files:
     - vars/common.yml
   tasks:
@@ -29,7 +28,7 @@
         - name: "Enable crc monitoring"
           ansible.builtin.shell:
             cmd: |
-              $CRC config set enable-cluster-monitoring true
+              /usr/local/bin/crc config set enable-cluster-monitoring true
           register:  crc_monitoring
           changed_when: false
 
