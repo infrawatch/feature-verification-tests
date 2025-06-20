@@ -26,8 +26,6 @@ Variable required for all tasks to run
 
 For pod_tests.yml tasks:
 
-    common_pod_test_id
-      - polarion ID number for each test.
     common_pod_list
       - list of pods to validate
     common_pod_status_str
@@ -38,8 +36,6 @@ For pod_tests.yml tasks:
 
 For subscription_tests.yml tasks:
 
-    common_subscription_test_id
-      - polarion ID number for each test
     common_subscription_nspace
       - namespace
     common_subscription_list
@@ -47,15 +43,11 @@ For subscription_tests.yml tasks:
 
 For crd_tests.yml tasks:
 
-    common_crd_test_id
-      - polarion ID number for each test.
     common_crd_list
       - list of crd to validate
 
 For endpoint_tests.yml tasks:
 
-    common_endpoint_test_id
-      - polarion ID number for each test.
     common_endpoint_list
       - list of endpoints to validate
     openstack_cmd
@@ -63,15 +55,11 @@ For endpoint_tests.yml tasks:
 
 For project_tests.yml tasks:
 
-    common_project_test_id
-      - polarion ID number for each test
     common_project_list
       - list of projects to validate
 
 For service_tests.yml tasks:
 
-    common_service_test_id
-      - polarion ID number for each test
     common_service_nspace
       - namespace
     common_service_list
@@ -79,22 +67,16 @@ For service_tests.yml tasks:
 
 For file_tests.yml tasks:
 
-    common_file_test_id
-      - polarion ID number for each test
     common_file_list
       - list of files to validate
 
 For manifest_tests.yml tasks:
 
-     manifest_test_id
-       - polarion ID number for each test
      manifest_list
        - list of package manifests to validate
 
 For cr\_tests.yml tasks:
 
-    common\_cr\_test\_id is defined
-       - polarion ID number for each test that a CR exists
     common\_cr\_list is defined
        - list of CRs to check
         Each dict should include the following keys: kind, name
@@ -103,8 +85,6 @@ For cr\_tests.yml tasks:
            kind: metricstorage
            name: metric-storage
            condition\_type: Ready
-    common\_cr\_ready\_test\_id is optionally defined
-       - polarion ID number for each test of readiness of the CR
 
 
 
@@ -132,7 +112,6 @@ can be set at the play level.
         ansible.builtin.import_role:
           name: common
         vars:
-          common_pod_test_id: "RHOSO-12752"
           common_pod_status_str: "Running"
           common_pod_nspace: openstack
           common_pod_list:
@@ -142,7 +121,6 @@ can be set at the play level.
         ansible.builtin.import_role:
           name: common
         vars:
-          common_subscription_test_id: "RHOSO-12678"
           common_subscription_nspace: openshift-operators-redhat
           common_subscription_l :
             - loki-operator
@@ -151,7 +129,6 @@ can be set at the play level.
         ansible.builtin.include_role:
           name: common
         vars:
-            common_container_test_id: "RHOSO-12753"
             common_container_list:
                 - ceilometer_agent_compute
                 - ceilometer_agent_ipmi
@@ -163,7 +140,6 @@ can be set at the play level.
         ansible.builtin.import_role:
           name: common
         vars:
-          common_endpoint_test_id: "RHOSO-12682"
           common_endpoint_list:
             - [nova,compute,public]
             - [nova,compute,internal]
@@ -173,7 +149,6 @@ can be set at the play level.
         ansible.builtin.import_role:
           name: common
         vars:
-          common_project_test_id: "RHOSO-12668"
           common_project_list:
             - openshift-openstack-infra
             - openshift
@@ -182,7 +157,6 @@ can be set at the play level.
         ansible.builtin.import_role:
           name: common
         vars:
-          common_service_test_id: "RHOSO-12675"
           common_service_nspace: openshift-logging
           common_service_list:
             - cluster-logging-operator-metrics
@@ -207,7 +181,6 @@ can be set at the play level.
         ansible.builtin.import_role:
           name: common
         vars:
-          common_file_test_id: "RHOSO-12754"
           common_file_list:
             - /etc/rsyslog.d/10-telemetry.conf
 
@@ -215,7 +188,6 @@ can be set at the play level.
         ansible.builtin.import_role:
           name: common
         vars:
-          common_crd_test_id : "crd_test_id"
           common_crd_list:
             - list of crd to validate
 

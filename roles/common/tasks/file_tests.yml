@@ -6,7 +6,6 @@
 
 - name: |
     TEST Verify the file {{ item }} exists
-    {{ common_file_test_id }}
   ansible.builtin.assert:
     that:
       - fstats.stat.exists
