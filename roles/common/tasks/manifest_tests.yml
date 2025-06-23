@@ -15,7 +15,6 @@
 
 - name: |
     TEST Get {{ item }} packagemanifest
-    {{ common_manifest_test_id }}
   ansible.builtin.shell:
     cmd: |
       oc get packagemanifests | grep "{{ pack_name.stdout }}" | wc -l

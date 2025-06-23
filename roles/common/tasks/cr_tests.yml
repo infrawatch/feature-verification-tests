@@ -1,7 +1,6 @@
 ---
 - name: |
     TEST Verify that the {{ item.kind }} {{ item.name }} CR exists
-    {{ common_cr_test_id }}
   ansible.builtin.command:
     cmd: |
       oc get {{ item.kind }} {{ item.name }}
@@ -10,7 +9,7 @@
   failed_when:
     - result.rc != 0
 
-- name: Verify that a CR is ready {{ common_cr_ready_test_id }}
+- name: Verify that a CR is ready
   ansible.builtin.command:
     cmd: |
       oc get {{ item.kind }} {{ item.name }} -o jsonpath='{.status.conditions[?(@.type=="{{ item.condition_type }}")].status}{"\n"}'
@@ -19,5 +18,4 @@
   failed_when:
     - result.stdout != "True"
   when:
-    - common_cr_ready_test_id is defined
     - item.condition_type is defined

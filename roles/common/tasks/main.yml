@@ -1,7 +1,6 @@
 ---
 - name: "Run pod tests"
   when:
-    - common_pod_test_id is defined
     - common_pod_list is defined
     - common_pod_nspace is defined
     - common_pod_status_str is defined
@@ -23,14 +22,12 @@
 
 - name: "Run project tests"
   when:
-    - common_project_test_id is defined
     - common_project_list is defined
   ansible.builtin.include_tasks: "project_tests.yml"
   loop: "{{ common_project_list }}"
 
 - name: "Run service tests"
   when:
-    - common_service_test_id is defined
     - common_service_nspace is defined
     - common_service_list is defined
   ansible.builtin.include_tasks: "service_tests.yml"
@@ -38,28 +35,24 @@
 
 - name: "Run file tests"
   when:
-    - common_file_test_id is defined
     - common_file_list is defined
   ansible.builtin.include_tasks: "file_tests.yml"
   loop: "{{ common_file_list }}"
   
 - name: "Run manifest tests"
   when:
-    - common_manifest_test_id is defined
     - common_manifest_list is defined
   ansible.builtin.include_tasks: "manifest_tests.yml"
   loop: "{{ common_manifest_list }}"
 
 - name: "Run crd tests"
   when:
-    - common_crd_test_id is defined
     - common_crd_list is defined
   ansible.builtin.include_tasks: "crd_tests.yml"
   loop: "{{ common_crd_list }}"
 
 - name: "Run CR tests"
   when:
-    - common_cr_test_id is defined
     - common_cr_list is defined
   ansible.builtin.include_tasks: "cr_tests.yml"
   loop: "{{ common_cr_list }}"
@@ -67,7 +60,6 @@
 - name: "Verify container tests"
   when:
     - common_container_list is defined
-    - common_container_test_id is defined
   ansible.builtin.include_tasks: "container_test.yml"
   loop: "{{ common_container_list }}"
   loop_control:
