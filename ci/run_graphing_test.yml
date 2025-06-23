@@ -25,13 +25,6 @@
           until: output.stdout_lines | length == 1
           register: output
 
-        - name: "Enable crc monitoring"
-          ansible.builtin.shell:
-            cmd: |
-              /usr/local/bin/crc config set enable-cluster-monitoring true
-          register:  crc_monitoring
-          changed_when: false
-
         - name: "Run Graphing Console UI tests"
           ansible.builtin.import_role:
             name: telemetry_graphing
