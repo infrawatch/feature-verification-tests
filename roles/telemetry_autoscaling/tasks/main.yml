@@ -4,7 +4,6 @@
   # i.e. networks, flavor, image, security group
 - name: |
     TEST Verify services running
-    RHOSO-12666
   when: metrics_backend == "prometheus"
   ansible.builtin.include_tasks: 
     file: test_services.yml
