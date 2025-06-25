@@ -23,6 +23,10 @@
         condition_type: Ready
   tags: precheck
 
+- name: Verify kube-rbac-proxy
+  ansible.builtin.include_tasks:
+    file: verify_rbac.yml
+
 - name: Verify RabbitMQ metrics are being exposed and stored
   ansible.builtin.include_tasks:
     file: verify_rabbitmq_metrics.yml
