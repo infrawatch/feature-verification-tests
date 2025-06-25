@@ -1,0 +1,11 @@
+spec:
+  customContainerImages:
+    aodhAPIImage: {{ registry }}/openstack-aodh-api:{{ tag }}
+    aodhEvaluatorImage: {{ registry }}/openstack-aodh-evaluator:{{ tag }}
+    aodhListenerImage: {{ registry }}/openstack-aodh-listener:{{ tag }}
+    aodhNotifierImage: {{ registry }}/openstack-aodh-notifier:{{ tag }}
+    ceilometerCentralImage: {{ registry }}/openstack-ceilometer-central:{{ tag }}
+    ceilometerComputeImage: {{ registry }}/openstack-ceilometer-compute:{{ tag }}
+    heatAPIImage: {{ registry }}/openstack-heat-api:{{ tag }}
+    heatCfnapiImage: {{ registry }}/openstack-heat-api-cfn:{{ tag }}
+    heatEngineImage: {{ registry }}/openstack-heat-engine:{{ tag }}
