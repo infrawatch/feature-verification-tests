@@ -1,6 +1,6 @@
 describe('OpenShift Console Dashboard Test', () => {
-  const username = 'kubeadmin';
-  const password = '123456789';
+  const username = "{{ USERNAME }}";
+  const password = "{{ PASSWORD }}";
 
   beforeEach(() => {
     cy.session('login', () => {
@@ -15,15 +15,19 @@ describe('OpenShift Console Dashboard Test', () => {
         }
       );
       cy.url().should('include', 'console-openshift-console');
+
+      cy.wait(5000);
+      // Ensure redirected back to the main console
+
+      cy.get('body').then($body => {
+        if ($body.find('button:contains("Skip tour")').length > 0) {
+          cy.contains('button', 'Skip tour').click(); // Only click if the button is found
+        }
+      });
     });
   });
 
   it('should load and validate the OpenStack dashboards', () => {
-
-    cy.visit(`https://console-openshift-console.apps-crc.testing/monitoring/dashboards/grafana-dashboard-openstack-cloud`);
-    cy.get('div[data-test-id="dashboard"]', { timeout: 20000 }).should('exist');
-    cy.wait(1000);
-    cy.screenshot("openshift-dashboard");
     
     const dashboards = [
       { url: '/grafana-dashboard-openstack-cloud', screenshot: 'openstack-cluster' },
