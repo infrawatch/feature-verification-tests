@@ -5,6 +5,9 @@
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
+  vars:
+    USERNAME: "{{ cifmw_openshift_user }}"
+    PASSWORD: "{{ cifmw_openshift_password }}"
   vars_files:
     - vars/common.yml
   tasks:
