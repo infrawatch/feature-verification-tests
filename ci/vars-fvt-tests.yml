@@ -1,0 +1,21 @@
+---
+pre_tests_00_run_fvt_tests:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_fvt_tests.yml"
+  config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
+  type: playbook
+  extra_vars:
+    play_autoscaling_test: true
+    play_graphing_test: true
+pre_tests_01_copy_results:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
+  type: playbook
+  extra_vars:
+    check_failures: false
+
+cifmw_run_tests: true
+# run only smoke tests
+cifmw_test_operator_tempest_include_list: |
+  ^tempest.*\[.*\bsmoke\b.*\]
+post_tests_99_collect_results:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
+  type: playbook
