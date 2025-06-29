@@ -1,0 +1,76 @@
+- name: Verify the container exist in the prometheus-metric-storage-0
+  ansible.builtin.shell: |
+    oc describe pod prometheus-metric-storage-0
+  register: result
+  changed_when: false
+
+- name: Verify kube-rbac-proxy is up and running
+  ansible.builtin.shell: |
+    oc logs prometheus-metric-storage-0 -c kube-rbac-proxy
+  register: result
+  changed_when: false
+
+- name: Create Service Account to Test
+  ansible.builtin.shell: |
+    oc apply -f - <<EOF
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: proxy-test
+      namespace: openstack
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      name: metrics
+    rules:
+    - nonResourceURLs:
+      - /metrics
+      verbs:
+      - get
+    - apiGroups: [""]
+      resources: ["pods", "pods/metrics"]
+      verbs: ["get", "list", "watch"]
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: metrics
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: metrics
+    subjects:
+    - kind: ServiceAccount
+      name: proxy-test
+      namespace: openstack
+    EOF
+  changed_when: false
+
+- name: Verify metrics through proxy
+  ansible.builtin.shell: |
+    oc exec -it openstackclient -- curl -v -k   -H "Authorization: Bearer $(oc create token proxy-test)"  https://metric-storage-prometheus:8443/metrics
+  register: result
+  changed_when: false
+
+
+- name: Verify clusterrolebinding
+  ansible.builtin.shell: |
+    oc get clusterrolebinding telemetry-operator-proxy-rolebinding
+  register: result
+  changed_when: false
+
+
+- name: Verify clusterrole
+  ansible.builtin.shell: |
+    oc get clusterrole openstack-operator-proxy-role
+  register: result
+  changed_when: false
+
+
+- name: Verify clusterrole telemetry-operator
+  ansible.builtin.shell: |
+    oc get clusterrole telemetry-operator-proxy-role
+  register: result
+  changed_when: false
+
