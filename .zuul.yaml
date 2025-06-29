@@ -93,6 +93,7 @@
 - job:
     name: functional-graphing-tests-osp18
     parent: telemetry-operator-multinode-autoscaling
+    nodeset: centos-9-medium-2x-centos-9-crc-extracted-2-39-0-xxl
     description: |
       Run the UI Graphing test and tempest smoketests on osp18.
     vars:
