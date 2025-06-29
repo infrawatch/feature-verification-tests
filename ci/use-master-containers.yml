@@ -8,10 +8,17 @@
     - vars/common.yml
     - vars/osp18_env.yml
   tasks:
+    - name: Generate container update template file
+      vars:
+        registry: "{{ content_provider_os_registry_url }}"
+        tag: watcher_latest
+      ansible.builtin.template:
+        src: "patch-openstack-versions.yaml.j2"
+        dest: "/tmp/patch-openstack-versions.yaml"
     - name: Patch the openstackversions to use the master containers for aodh, heat and ceilometer
       ansible.builtin.shell:
         cmd: |
-          oc patch openstackversions controlplane --type merge --patch-file ci/patch-openstack-versions.yaml
+          oc patch openstackversions controlplane --type merge --patch-file /tmp/patch-openstack-versions.yaml
         chdir: "{{ fvt_dir }}"
       tags:
         - setup
