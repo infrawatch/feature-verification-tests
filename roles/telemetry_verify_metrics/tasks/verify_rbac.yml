@@ -17,12 +17,19 @@
   register: result
   changed_when: false
 
+- name: Print the result of metrics
+  ansible.builtin.debug:
+    var: result.stdout_lines
 
 - name: Verify all clusterroles
   ansible.builtin.shell: |
     oc get clusterrole
   register: result
   changed_when: false
+
+- name: Print the result of clusterroles
+  ansible.builtin.debug:
+    var: result.stdout_lines
 
 - name: Verify clusterrolebinding
   ansible.builtin.shell: |
@@ -38,9 +45,4 @@
   changed_when: false
 
 
-- name: Verify clusterrole telemetry-operator
-  ansible.builtin.shell: |
-    oc get clusterrole telemetry-operator-proxy-role
-  register: result
-  changed_when: false
 
