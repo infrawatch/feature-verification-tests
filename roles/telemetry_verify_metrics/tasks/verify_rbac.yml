@@ -4,11 +4,20 @@
   register: result
   changed_when: false
 
+- name: Print the result of rometheus-metric-storage-0
+  ansible.builtin.debug:
+    var: result.stdout_lines
+
+
 - name: Verify kube-rbac-proxy is up and running
   ansible.builtin.shell: |
     oc logs prometheus-metric-storage-0 -c kube-rbac-proxy
   register: result
   changed_when: false
+
+- name: Print the result of metrics
+  ansible.builtin.debug:
+    var: result.stdout_lines
 
 - name: Create Service Account to Test
   ansible.builtin.shell: |
@@ -44,6 +53,16 @@
   ansible.builtin.debug:
     var: result.stdout_lines
 
+- name: Print kube-rbac-proxy logs
+  ansible.builtin.shell: |
+    oc logs prometheus-metric-storage-0 -c kube-rbac-proxy
+  register: result
+  changed_when: false
+
+- name: Print the result of metrics
+  ansible.builtin.debug:
+    var: result.stdout_lines
+
 - name: Verify all clusterroles
   ansible.builtin.shell: |
     oc get clusterrole
@@ -54,18 +73,6 @@
   ansible.builtin.debug:
     var: result.stdout_lines
 
-- name: Verify clusterrolebinding
-  ansible.builtin.shell: |
-    oc get clusterrolebinding telemetry-operator-proxy-rolebinding
-  register: result
-  changed_when: false
-
-
-- name: Verify clusterrole
-  ansible.builtin.shell: |
-    oc get clusterrole openstack-operator-proxy-role
-  register: result
-  changed_when: false
 
 
 
