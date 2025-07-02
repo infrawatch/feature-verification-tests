@@ -37,10 +37,10 @@
         mode: '0644' 
 
     - name: Add dashboard-openstack-cloud test
-      ansible.builtin.copy:
-        src: "{{ role_path }}/files/dashboard-openstack-cloud.js"  
+      ansible.builtin.template:
+        src: "{{ role_path }}/files/dashboard-openstack-cloud.js.j2"
         dest: "{{ cypress_integration_dir }}/dashboard-openstack-cloud.js"
-        mode: '0644' 
+        mode: '0755'
       
     - name: Create screenshot logs dir
       ansible.builtin.file:
@@ -75,6 +75,12 @@
 - name: Collect the screenshots
   ansible.builtin.copy:
     src: "{{ cypress_tests_dir }}/cypress/screenshots/dashboard-openstack-cloud.js/"
+    dest: "{{ screenshots_dir }}"
+    mode: '0644'
+
+- name: Collect the videos
+  ansible.builtin.copy:
+    src: "{{ cypress_tests_dir }}/cypress/videos/"
     dest: "{{ screenshots_dir }}"
     mode: '0644'
 

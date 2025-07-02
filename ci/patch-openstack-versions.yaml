@@ -1,11 +1,11 @@
 spec:
   customContainerImages:
-    aodhAPIImage: quay.io/podified-master-centos9/openstack-aodh-api:current-podified
-    aodhEvaluatorImage: quay.io/podified-master-centos9/openstack-aodh-evaluator:current-podified
-    aodhListenerImage: quay.io/podified-master-centos9/openstack-aodh-listener:current-podified
-    aodhNotifierImage: quay.io/podified-master-centos9/openstack-aodh-notifier:current-podified
-    ceilometerCentralImage: quay.io/podified-master-centos9/openstack-ceilometer-central:current-podified
-    ceilometerComputeImage: quay.io/podified-master-centos9/openstack-ceilometer-compute:current-podified
-    heatAPIImage: quay.io/podified-master-centos9/openstack-heat-api:current-podified
-    heatCfnapiImage: quay.io/podified-master-centos9/openstack-heat-api-cfn:current-podified
-    heatEngineImage: quay.io/podified-master-centos9/openstack-heat-engine:current-podified
+    aodhAPIImage: quay.rdoproject.org/podified-master-centos10/openstack-aodh-api:current-tested
+    aodhEvaluatorImage: quay.rdoproject.org/podified-master-centos10/openstack-aodh-evaluator:current-tested
+    aodhListenerImage: quay.rdoproject.org/podified-master-centos10/openstack-aodh-listener:current-tested
+    aodhNotifierImage: quay.rdoproject.org/podified-master-centos10/openstack-aodh-notifier:current-tested
+    ceilometerCentralImage: quay.rdoproject.org/podified-master-centos10/openstack-ceilometer-central:current
+    ceilometerComputeImage: quay.rdoproject.org/podified-master-centos10/openstack-ceilometer-compute:current
+    heatAPIImage: quay.rdoproject.org/podified-master-centos10/openstack-heat-api:current-tested
+    heatCfnapiImage: quay.rdoproject.org/podified-master-centos10/openstack-heat-api-cfn:current-tested
+    heatEngineImage: quay.rdoproject.org/podified-master-centos10/openstack-heat-engine:current-tested
