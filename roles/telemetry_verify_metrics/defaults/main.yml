@@ -12,3 +12,5 @@ telemetry_verify_metrics_metric_sources_to_test:
   - mariadb
   # NOTE: IPMI metrics can only be verified when compute nodes are baremetal
   # - ceilometer_ipmi_agent
+  # NOTE: volume pool metrics can only be verified when a pool with a correct backend is configured
+  # - volume_pool
