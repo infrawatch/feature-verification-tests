@@ -1,12 +1,17 @@
 ---
 - job:
-    name: functional-autoscaling-tests-osp18
+    name: functional-tests-osp18
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
     parent: telemetry-operator-multinode-autoscaling
     description: |
+<<<<<<< HEAD
       Run autoscaling functional tests, tempest tests, metrics
       functional tests and logging functional tests on
       osp18+patched versions of aodh and heat.
+=======
+      Run autoscaling and graphing functional tests, tempest tests and metrics
+      functional tests on osp18+patched versions of aodh and heat.
+>>>>>>> 7c54221 ([ci] Create functional-autoscaling-graphing-tests-osp18 job)
     extra-vars: &functional_autoscaling_extra_vars
       # Override zuul meta content provider provided content_provider_dlrn_md5_hash
       # var. As returned dlrn md5 hash comes from master release but job is using
@@ -15,6 +20,7 @@
     vars:
       patch_observabilityclient: true
       cifmw_update_containers: false
+      crc_enable_monitoring: true
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
@@ -61,12 +67,28 @@
 
 - job:
     name: functional-tests-on-osp18
-    parent: functional-autoscaling-tests-osp18
+    parent: functional-tests-osp18
     extra-vars: *functional_autoscaling_extra_vars
     description: |
-      functional-tests-on-osp18 is an alias of functional-autoscaling-tests-osp18, 
+      functional-tests-on-osp18 is an alias of functional-tests-osp18, 
       temporary added until openstack-k8s-operators/telemetry-operator updates 
       references of functional-tests-on-osp18 jobs.
+
+- job:
+    name: functional-autoscaling-tests-osp18
+    parent: functional-tests-osp18
+    description: |
+      functional-autoscaling-tests-osp18 is an alias of functional-tests-osp18, 
+      temporary added until openstack-k8s-operators/telemetry-operator updates 
+      references of functional-tests-osp18.
+
+- job:
+    name: functional-graphing-tests-osp18
+    parent: functional-tests-osp18
+    description: |
+      functional-graphing-tests-osp18 is an alias of functional-tests-osp18, 
+      temporary added until openstack-k8s-operators/telemetry-operator updates 
+      references of functional-tests-osp18.
 
 - job:
     name: functional-logging-tests-osp18
@@ -90,7 +112,7 @@
 
 - job:
     name: functional-metric-verification-tests-osp18
-    parent: functional-autoscaling-tests-osp18
+    parent: functional-tests-osp18
     extra-vars: *functional_autoscaling_extra_vars
     description: |
       Run the autoscaling functional tests, tempest tests and metrics
@@ -105,6 +127,7 @@
     run:
       - ci/noop.yml
 
+<<<<<<< HEAD
 - job:
     name: functional-graphing-tests-osp18
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
@@ -156,6 +179,8 @@
     irrelevant-files: *irrelevant_files
     required-projects: *required_projects
 
+=======
+>>>>>>> f80f001 ([ci] Create functional-autoscaling-graphing-tests-osp18 job)
 - project:
     name: infrawatch/feature-verification-tests
     periodic:
@@ -172,6 +197,7 @@
         - functional-autoscaling-tests-osp18:
             files:
               - roles/telemetry_autoscaling/.*
+              - roles/telemetry_graphing/.*
               - roles/common/*
               - .zuul.yaml
               - ci/vars-functional-test.yml
@@ -179,9 +205,11 @@
               - ci/vars-use-master-containers.yml
               - ci/use-master-containers.yml
               - ci/patch-openstack-version.yaml
-              - ci/report_result.yml
               - roles/telemetry_verify_metrics/.*
               - ci/vars-metric-verification-test.yml
+              - ci/vars-graphing-test.yml
+              - ci/run_graphing_test.yml
+              - ci/report_result.yml
         - functional-logging-tests-osp18:
             irrelevant-files: *irrelevant_files
             files:
@@ -196,10 +224,18 @@
         - functional-graphing-tests-osp18:
             voting:
               false
-            irrelevant-files: *irrelevant_files
             files:
+              - roles/telemetry_autoscaling/.*
               - roles/telemetry_graphing/.*
+              - roles/common/*
               - .zuul.yaml
+              - ci/vars-functional-test.yml
+              - ci/run_cloudops_tests_osp18.yml
+              - ci/vars-use-master-containers.yml
+              - ci/use-master-containers.yml
+              - ci/patch-openstack-version.yaml
+              - roles/telemetry_verify_metrics/.*
+              - ci/vars-metric-verification-test.yml
               - ci/vars-graphing-test.yml
               - ci/run_graphing_test.yml
               - ci/report_result.yml
