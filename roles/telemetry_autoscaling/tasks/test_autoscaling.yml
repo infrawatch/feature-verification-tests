@@ -112,11 +112,6 @@
   register: kill_busy_process
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
-  # Does this pause need to be here if there's a repeated check in the following task?
-- name: Test automatic scaling down of instances
-  ansible.builtin.pause:
-    minutes: 5
-
 - name: |
     TEST Verify cpu low alarm has been triggered
   ansible.builtin.shell: |
@@ -125,7 +120,7 @@
         grep -i "cpu_alarm_low" | \
         grep -i "{{ stack_name }}" | \
         awk '{print $2}'
-  retries: 100
+  retries: 160
   delay: 5
   register: result
   until: result.stdout == "alarm"
