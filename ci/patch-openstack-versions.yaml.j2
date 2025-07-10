@@ -1,0 +1,14 @@
+---
+# telemetry_registry value should be quay.rdoproject.org/podified-master-centos10
+# telemetry_tag value should be current-tested.
+spec:
+  customContainerImages:
+    aodhAPIImage: {{ telemetry_registry }}/openstack-aodh-api:{{ telemetry_tag }}
+    aodhEvaluatorImage: {{ telemetry_registry }}/openstack-aodh-evaluator:{{ telemetry_tag }}
+    aodhListenerImage: {{ telemetry_registry }}/openstack-aodh-listener:{{ telemetry_tag }}
+    aodhNotifierImage: {{ telemetry_registry }}/openstack-aodh-notifier:{{ telemetry_tag }}
+    ceilometerCentralImage: {{ telemetry_registry }}/openstack-ceilometer-central:{{ telemetry_tag }}
+    ceilometerComputeImage: {{ telemetry_registry }}/openstack-ceilometer-compute:{{ telemetry_tag }}
+    heatAPIImage: {{ telemetry_registry }}/openstack-heat-api:{{ telemetry_tag }}
+    heatCfnapiImage: {{ telemetry_registry }}/openstack-heat-api-cfn:{{ telemetry_tag }}
+    heatEngineImage: {{ telemetry_registry }}/openstack-heat-engine:{{ telemetry_tag }}
