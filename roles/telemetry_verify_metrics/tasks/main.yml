@@ -3,8 +3,6 @@
   ansible.builtin.include_role:
     name: common
   vars:
-    common_cr_test_id: RHOSO-1258
-    common_cr_ready_test_id: RHOSO-1259
     common_cr_list:
       - kind: telemetry
         name: telemetry
