@@ -3,11 +3,6 @@ pre_tests_00_fvt_verify_metrics:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_verify_metrics_osp18.yml"
   type: playbook
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
-pre_tests_01_copy_results:
-  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
-  type: playbook
-  extra_vars:
-    check_failures: false
 
 cifmw_run_tests: true
 cifmw_test_operator_tempest_include_list: |
