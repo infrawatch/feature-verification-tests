@@ -2,7 +2,6 @@
   ansible.builtin.include_role:
     name: common
   vars:
-    common_cr_test_id: RHOSO-1222
     common_cr_list:
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-kepler
@@ -11,7 +10,6 @@
   ansible.builtin.include_tasks:
     file: check_compute_node_containers.yml
   vars:
-    common_container_test_id: RHOSO-1231
     common_container_list:
       - kepler
   loop: "{{ groups['computes'] }}"
@@ -20,7 +18,6 @@
 
 - name: |
     TEST Use openstack observabilityclient to verify kepler metrics are stored in prometheus
-    RHOSO-1216
   vars:
     kepler_metrics:
       - kepler_vm_platform_joules_total
