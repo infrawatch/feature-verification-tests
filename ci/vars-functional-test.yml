@@ -6,7 +6,7 @@
 # skip os-net-setup
 cifmw_os_net_setup_config: []
 pre_tests_00_run_functional_test:
-  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_cloudops_tests_osp18.yml"
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_autoscaling_tests.yml"
   type: playbook
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
 cifmw_run_tests: true

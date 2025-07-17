@@ -1,5 +1,5 @@
 - name: Run Autoscaling test
-  ansible.builtin.import_playbook: run_cloudops_tests_osp18.yml
+  ansible.builtin.import_playbook: run_autoscaling_tests.yml
 
 - name: Run Graphing Console UI test
   ansible.builtin.import_playbook: run_graphing_test.yml
