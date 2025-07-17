@@ -6,8 +6,11 @@
 # skip os-net-setup
 cifmw_os_net_setup_config: []
 pre_tests_00_run_functional_test:
-  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_autoscaling_tests.yml"
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_functional_tests.yml"
   type: playbook
+  extra_vars:
+    play_autoscaling_test: true
+    play_graphing_test: true
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
 cifmw_run_tests: true
 # redefine this to clear the skipped test

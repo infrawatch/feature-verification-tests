@@ -4,14 +4,9 @@
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
     parent: telemetry-operator-multinode-autoscaling
     description: |
-<<<<<<< HEAD
       Run autoscaling functional tests, tempest tests, metrics
-      functional tests and logging functional tests on
+      functional tests, graphing tests and logging functional tests on
       osp18+patched versions of aodh and heat.
-=======
-      Run autoscaling and graphing functional tests, tempest tests and metrics
-      functional tests on osp18+patched versions of aodh and heat.
->>>>>>> 7c54221 ([ci] Create functional-autoscaling-graphing-tests-osp18 job)
     extra-vars: &functional_autoscaling_extra_vars
       # Override zuul meta content provider provided content_provider_dlrn_md5_hash
       # var. As returned dlrn md5 hash comes from master release but job is using
@@ -28,7 +23,7 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-logging-test.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-fvt-tests.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-functional-test.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
@@ -127,26 +122,6 @@
     run:
       - ci/noop.yml
 
-<<<<<<< HEAD
-- job:
-    name: functional-graphing-tests-osp18
-    dependencies: ["telemetry-openstack-meta-content-provider-master"]
-    parent: telemetry-operator-multinode-autoscaling
-    description: |
-      Run the UI Graphing test and tempest smoketests on osp18.
-    vars:
-      cifmw_update_containers: false
-      crc_enable_monitoring: true
-      cifmw_extras:
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-fvt-tests.yml"
-    roles:
-      - zuul: github.com/openstack-k8s-operators/ci-framework
-    required-projects: *required_projects
-    extra-vars: *functional_autoscaling_extra_vars
-
 - job:
     name: functional-periodic-telemetry-with-ceph
     parent: podified-multinode-hci-deployment-crc-1comp-backends
@@ -157,6 +132,7 @@
     vars:
       patch_observabilityclient: true
       cifmw_update_containers: false
+      crc_enable_monitoring: true
       telemetry_verify_metrics_metric_sources_to_test:
         - ceilometer_compute_agent
         - ceilometer_central_agent
@@ -179,8 +155,6 @@
     irrelevant-files: *irrelevant_files
     required-projects: *required_projects
 
-=======
->>>>>>> f80f001 ([ci] Create functional-autoscaling-graphing-tests-osp18 job)
 - project:
     name: infrawatch/feature-verification-tests
     periodic:
@@ -201,13 +175,12 @@
               - roles/common/*
               - .zuul.yaml
               - ci/vars-functional-test.yml
-              - ci/run_cloudops_tests_osp18.yml
+              - ci/run_autoscaling_tests.yml
               - ci/vars-use-master-containers.yml
               - ci/use-master-containers.yml
               - ci/patch-openstack-version.yaml
               - roles/telemetry_verify_metrics/.*
               - ci/vars-metric-verification-test.yml
-              - ci/vars-graphing-test.yml
               - ci/run_graphing_test.yml
               - ci/report_result.yml
         - functional-logging-tests-osp18:
@@ -230,13 +203,12 @@
               - roles/common/*
               - .zuul.yaml
               - ci/vars-functional-test.yml
-              - ci/run_cloudops_tests_osp18.yml
+              - ci/run_autoscaling_tests.yml
               - ci/vars-use-master-containers.yml
               - ci/use-master-containers.yml
               - ci/patch-openstack-version.yaml
               - roles/telemetry_verify_metrics/.*
               - ci/vars-metric-verification-test.yml
-              - ci/vars-graphing-test.yml
               - ci/run_graphing_test.yml
               - ci/report_result.yml
         - functional-periodic-telemetry-with-ceph:
