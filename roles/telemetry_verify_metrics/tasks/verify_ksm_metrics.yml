@@ -17,7 +17,6 @@
 
 - name: |
     TEST Use openstack observabilityclient to verify to verify health reporting related metrics from kube-state-metrics are stored in Prometheus
-    RHOSO-5678
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac {{ item }}
   register: result
