@@ -1,8 +1,8 @@
 - name: Run Logging test on DataPlane Nodes
-  ansible.builtin.import_playbook: logging_tests_computes.yml
+  ansible.builtin.import_playbook: run_logging_tests_computes.yml
 
 - name: Run Logging test on ControlPlane Nodes
-  ansible.builtin.import_playbook: logging_tests_controller.yml
+  ansible.builtin.import_playbook: run_logging_tests_controller.yml
 
 - name: Run Autoscaling test
   ansible.builtin.import_playbook: run_autoscaling_tests.yml
