@@ -5,7 +5,7 @@
 
 - name: "Do the test procedure"
   block:
-    - name: "RHELOSP-144965 Create the alert"
+    - name: "TEST Create the alert"
       ansible.builtin.shell:
         cmd: |
           oc apply -f - <<EOF
@@ -29,7 +29,7 @@
       register: cmd_output
       failed_when: cmd_output.rc != 0
 
-    - name: "RHELOSP-144480 Check that the alert was created"
+    - name: "TEST Check that the alert was created"
       ansible.builtin.command:
         cmd: |
           curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules

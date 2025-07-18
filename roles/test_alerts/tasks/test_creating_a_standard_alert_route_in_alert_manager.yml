@@ -42,7 +42,7 @@
       ansible.builtin.debug:
         var: alertmanager_secret
 
-    - name: "RHELOSP-144965 Create the alert"
+    - name: "TEST Create the alert"
       ansible.builtin.shell:
         cmd: |
           oc apply -f - <<EOF
@@ -66,13 +66,13 @@
       register: cmd_output
       failed_when: cmd_output.rc != 0
 
-    - name: "RHELOSP-148697 Interrupt metrics flow by preventing the QDR from running"
+    - name: "TEST Interrupt metrics flow by preventing the QDR from running"
       ansible.builtin.shell:
         cmd: |
           for i in {1..30}; do oc delete po -l application=default-interconnect; sleep 1; done
       changed_when: false
 
-    - name: "RHELOSP-148698 Verify that the alert is active in Alertmanager"
+    - name: "TEST Verify that the alert is active in Alertmanager"
       ansible.builtin.shell:
         cmd: >-
           oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c 'curl -k -H \
@@ -84,7 +84,7 @@
       changed_when: false
       until: '"FVT_TESTING Collectd metrics receive rate is zero" in cmd_output.stdout'
 
-    - name: "RHELOSP-148699 Verify that the alert is firing in Prometheus"
+    - name: "TEST Verify that the alert is firing in Prometheus"
       ansible.builtin.shell:
         cmd: >-
           curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/alerts | jq '.data.alerts | select (.[].state == "firing") | .[].labels.alertname'
@@ -126,7 +126,7 @@
       until: output.stdout_lines | length == expected_pods.stdout_lines | length
       changed_when: false
 
-    - name: "RHELOSP-176039 Remove alertmanagerConfigManifest from the ServiceTelemetry object"
+    - name: "TEST Remove alertmanagerConfigManifest from the ServiceTelemetry object"
       ansible.builtin.shell:
         cmd: |
           oc patch stf/default --type='json' -p '[{"op": "remove", "path": "/spec/alertmanagerConfigManifest"}]'
