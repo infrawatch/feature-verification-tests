@@ -27,7 +27,7 @@
 
 - name: "Do the test procedure"
   block:
-    - name: "RHELOSP-144987 Set the alerting.alertmanager.receivers.snmpTraps parameters"
+    - name: "TEST Set the alerting.alertmanager.receivers.snmpTraps parameters"
       ansible.builtin.shell:
         cmd: |
           oc patch stf/default --type merge -p '{"spec": {"alerting": {"alertmanager": {"receivers": {"snmpTraps": {"enabled": true, "target": "10.10.10.10" }}}}}}'
@@ -60,13 +60,13 @@
           EOF
       changed_when: true
 
-    - name: "RHELOSP-144966 Interrupt metrics flow by preventing the QDR from running"
+    - name: "TEST Interrupt metrics flow by preventing the QDR from running"
       ansible.builtin.shell:
         cmd: |
           for i in {1..30}; do oc delete po -l application=default-interconnect; sleep 1; done
       changed_when: false
 
-    - name: "RHELOSP-144481 Check for snmpTraps logs"
+    - name: "TEST Check for snmpTraps logs"
       ansible.builtin.shell:
         cmd: |
           oc logs -l "app=default-snmp-webhook"

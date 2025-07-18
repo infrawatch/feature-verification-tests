@@ -1,7 +1,7 @@
   #In this test we choose one container (logrotate_crond),checking that it is running 
   #and then stopping the container and starting it again and checking that its health status changes accordingly.
 
-- name: RHELOSP-176011 Check that logrotate_crond container is running on ceph-0
+- name: TEST Check that logrotate_crond container is running on ceph-0
   delegate_to: ceph-0
   become: true
   delegate_facts: True
@@ -13,7 +13,7 @@
   failed_when: container_nodes.stdout_lines|length != 1
 
 
-- name: RHELOSP-176012 Stop logrotate_crond container on ceph-0
+- name: TEST Stop logrotate_crond container on ceph-0
   ansible.builtin.shell:
     cmd: |
        systemctl stop tripleo_logrotate_crond
@@ -22,7 +22,7 @@
   register: output
   changed_when: false
 
-- name: RHELOSP-176037 Check that logrotate_crond container has stopped
+- name: TEST Check that logrotate_crond container has stopped
   ansible.builtin.shell: |
     {{ container_bin }} ps | grep logrotate_crond 
   delegate_to: ceph-0
@@ -37,7 +37,7 @@
       curl -k {{ prom_auth_string }} -g https://${prom_url}/api/v1/label/__name__/values | jq | grep sensubility
   changed_when: false
 
-- name: RHELOSP-176036 Check that health status of container changed to 0
+- name: TEST Check that health status of container changed to 0
   ansible.builtin.shell:
     cmd: /usr/bin/curl -k {{ prom_auth_string }} -g https://{{ prom_url }}/api/v1/query? --data-urlencode 'query=last_over_time(sensubility_container_health_status{process="logrotate_crond",host="ceph-0.redhat.local"}[10m])' | grep -oP '(?<="value":).*' | awk -F, '{ print $2 }' | grep -o '[0-9]\+' | grep 0
   register: output
@@ -46,7 +46,7 @@
   delay: 10
   until: "output.stdout_lines | length == 1"
 
-- name: RHELOSP-176035 Start logrotate_crond container
+- name: TEST Start logrotate_crond container
   ansible.builtin.shell:
     cmd: |
        systemctl start tripleo_logrotate_crond
@@ -56,7 +56,7 @@
   changed_when: false
 
 
-- name: RHELOSP-176038 Check that health status of container changed to 1
+- name: TEST Check that health status of container changed to 1
   ansible.builtin.shell:
     cmd: >-
       /usr/bin/curl -k {{ prom_auth_string }} \

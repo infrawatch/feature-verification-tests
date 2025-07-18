@@ -1,5 +1,5 @@
 ---
-- name: RHELOSP-60406 Check whether collectd container is running
+- name: TEST Check whether collectd container is running
   ansible.builtin.shell: |
     set -o pipefail
     {{ container_bin }} ps | grep {{ collectd_container_name }}
@@ -7,7 +7,7 @@
   changed_when: false
   failed_when: container_nodes.stdout_lines|length != 1
 
-- name: RHELOSP-60411 Check for a non-zero number of metrics from collectd
+- name: TEST Check for a non-zero number of metrics from collectd
   ansible.builtin.command: |
     {{ container_bin }} exec {{ collectd_container_name }} collectdctl -s /var/run/collectd-socket listval
   register: metrics
@@ -22,7 +22,7 @@
   ansible.builtin.debug:
     var: metrics.stdout_lines[-20]
 
-- name: RHELOSP-69331 Get the value of some metric from collectd
+- name: TEST Get the value of some metric from collectd
   ansible.builtin.command: |
     {{ container_bin }} exec {{ collectd_container_name }} collectdctl -s /var/run/collectd-socket getval {{ metrics.stdout_lines[-20] }}
   register: stat
