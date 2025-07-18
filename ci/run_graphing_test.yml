@@ -11,14 +11,14 @@
   vars_files:
     - vars/common.yml
   pre_tasks:
-    - name: "Notify if graphing test is skipped by play_graphing_test false"
+    - name: "Notify if graphing test is skipped by run_graphing_test false"
       ansible.builtin.debug:
-        msg: "Skipping the graphing test because play_graphing_test extra_vars is set to false"
-      when: not play_graphing_test | bool
+        msg: "Skipping the graphing test because run_graphing_test extra_vars is set to false"
+      when: not run_graphing_test | default(true) | bool
 
-    - name: "Skip graphing test by play_graphing_test false"
+    - name: "Skip graphing test by run_graphing_test false"
       ansible.builtin.meta: end_play
-      when: not play_graphing_test | bool
+      when: not run_graphing_test | default(true) | bool
 
     - name: "Get OpenStackControlPlane telemetry dashboardsEnabled status"
       ansible.builtin.command: >

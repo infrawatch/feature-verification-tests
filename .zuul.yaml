@@ -5,7 +5,7 @@
     parent: telemetry-operator-multinode-autoscaling
     description: |
       Run autoscaling functional tests, tempest tests, metrics
-      functional tests, graphing tests and logging functional tests on
+      functional tests, graphing functional tests and logging functional tests on
       osp18+patched versions of aodh and heat.
     extra-vars: &functional_autoscaling_extra_vars
       # Override zuul meta content provider provided content_provider_dlrn_md5_hash
@@ -115,11 +115,15 @@
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
     description: |
       Deploy OpenStack with Telemetry and Ceph. Run metric-verification with volume pool metric tests
-    extra-vars: *functional_autoscaling_extra_vars
+    extra-vars: 
+      # Override zuul meta content provider provided content_provider_dlrn_md5_hash
+      # var. As returned dlrn md5 hash comes from master release but job is using
+      # antelope content.
+      content_provider_dlrn_md5_hash: ''
+      run_graphing_test: false
     vars:
       patch_observabilityclient: true
       cifmw_update_containers: false
-      crc_enable_monitoring: true
       telemetry_verify_metrics_metric_sources_to_test:
         - ceilometer_compute_agent
         - ceilometer_central_agent
@@ -154,26 +158,7 @@
             override-checkout: main
         - feature-verification-tests-noop:
             files: *irrelevant_files
-        - functional-autoscaling-tests-osp18:
-            files:
-              - roles/telemetry_autoscaling/.*
-              - roles/telemetry_graphing/.*
-              - roles/telemetry_logging/.*
-              - roles/common/*
-              - roles/telemetry_verify_metrics/.*
-              - .zuul.yaml
-        - functional-logging-tests-osp18:
-            irrelevant-files: *irrelevant_files
-            files:
-              - roles/telemetry_autoscaling/.*
-              - roles/telemetry_graphing/.*
-              - roles/telemetry_logging/.*
-              - roles/common/*
-              - roles/telemetry_verify_metrics/.*
-              - .zuul.yaml
-        - functional-graphing-tests-osp18:
-            voting:
-              false
+        - functional-tests-osp18:
             files:
               - roles/telemetry_autoscaling/.*
               - roles/telemetry_graphing/.*

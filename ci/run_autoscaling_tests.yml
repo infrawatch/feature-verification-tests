@@ -9,14 +9,14 @@
     - vars/common.yml
     - vars/osp18_env.yml
   pre_tasks:
-    - name: "Notify if autoscaling test is skipped by play_autoscaling_test false"
+    - name: "Notify if autoscaling test is skipped by run_autoscaling_test false"
       ansible.builtin.debug:
-        msg: "Skipping the autoscaling test because play_autoscaling_test extra_vars is set to false"
-      when: not play_autoscaling_test | bool
+        msg: "Skipping the autoscaling test because run_autoscaling_test extra_vars is set to false"
+      when: not run_autoscaling_test | default(true) | bool
 
-    - name: "Skip autoscaling test by play_autoscaling_test false"
+    - name: "Skip autoscaling test by run_autoscaling_test false"
       ansible.builtin.meta: end_play
-      when: not play_autoscaling_test | bool
+      when: not run_autoscaling_test | default(true) | bool
 
     - name: "Get OpenStackControlPlane autoscaling status"
       ansible.builtin.command: >
@@ -31,11 +31,11 @@
     - name: "Notify if autoscaling test is skipped by autoscaling status"
       ansible.builtin.debug:
         msg: "Skipping the autoscaling test because OpenStackControlPlane telemetry autoscaling is disabled"
-      when: not autoscaling_enabled
+      when: not autoscaling_enabled | bool
 
     - name: "Skip autoscaling test by autoscaling disabled"
       ansible.builtin.meta: end_play
-      when: not autoscaling_enabled
+      when: not autoscaling_enabled | bool
 
   tasks:
     - block:
