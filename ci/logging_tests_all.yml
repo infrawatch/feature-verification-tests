@@ -1,5 +1,0 @@
-- name: Run the compute node tests
-  ansible.builtin.import_playbook: logging_tests_computes.yml
-
-- name: Run the controller tests
-  ansible.builtin.import_playbook: logging_tests_controller.yml

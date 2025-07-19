@@ -1,0 +1,11 @@
+- name: Run Logging test on DataPlane Nodes
+  ansible.builtin.import_playbook: run_logging_tests_computes.yml
+
+- name: Run Logging test on ControlPlane Nodes
+  ansible.builtin.import_playbook: run_logging_tests_controller.yml
+
+- name: Run Autoscaling test
+  ansible.builtin.import_playbook: run_autoscaling_tests.yml
+
+- name: Run Graphing Console UI test
+  ansible.builtin.import_playbook: run_graphing_test.yml
