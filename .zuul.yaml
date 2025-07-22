@@ -163,7 +163,7 @@
     name: infrawatch/feature-verification-tests
     periodic:
       jobs:
-        - telemetry-openstack-meta-content-provider-master:
+        - openstack-k8s-operators-content-provider:
             override-checkout: main
         - functional-periodic-telemetry-with-ceph
     github-check:
