@@ -10,6 +10,34 @@
     PASSWORD: "{{ cifmw_openshift_password }}"
   vars_files:
     - vars/common.yml
+  pre_tasks:
+    - name: "Notify if graphing test is skipped by run_graphing_test false"
+      ansible.builtin.debug:
+        msg: "Skipping the graphing test because run_graphing_test extra_vars is set to false"
+      when: not run_graphing_test | default(true) | bool
+
+    - name: "Skip graphing test by run_graphing_test false"
+      ansible.builtin.meta: end_play
+      when: not run_graphing_test | default(true) | bool
+
+    - name: "Get OpenStackControlPlane telemetry dashboardsEnabled status"
+      ansible.builtin.command: >
+        oc get oscp -n openstack -o jsonpath='{.items[0].spec.telemetry.template.metricStorage.dashboardsEnabled}'
+      register: dashboard_status
+      changed_when: false
+
+    - name: "Set fact if dashboards are enabled"
+      ansible.builtin.set_fact:
+        dashboards_enabled: "{{ dashboard_status.stdout | trim | lower == 'true' }}"
+
+    - name: "Notify if graphing test is skipped by dashboardsEnabled status"
+      ansible.builtin.debug:
+        msg: "Skipping the graphing test because OpenStackControlPlane telemetry dashboards are disabled"
+      when: not dashboards_enabled | bool
+
+    - name: "Skip graphing test by dashboardsEnabled disabled"
+      ansible.builtin.meta: end_play
+      when: not dashboards_enabled | bool
   tasks:
     - block:
         - name: "Run Graphing Console UI tests"
