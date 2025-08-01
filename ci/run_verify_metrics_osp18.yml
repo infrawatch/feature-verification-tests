@@ -10,6 +10,7 @@
     - vars/osp18_env.yml
   tasks:
     - name: Include vars from the extra_vars files
+      when: cifmw_basedir is defined
       ansible.builtin.include_vars:
         dir: "{{ cifmw_basedir }}/artifacts/parameters"
 
@@ -25,5 +26,5 @@
 
     - name: "Run Telemetry Verify Metrics tests"
       ansible.builtin.import_role:
-        name: telemetry_verify_metrics
+        name: infrawatch.fvt.telemetry_verify_metrics
       ignore_errors: true
