@@ -69,30 +69,6 @@
       references of functional-tests-on-osp18 jobs.
 
 - job:
-    name: functional-autoscaling-tests-osp18
-    parent: functional-tests-osp18
-    description: |
-      functional-autoscaling-tests-osp18 is an alias of functional-tests-osp18, 
-      temporary added until openstack-k8s-operators/telemetry-operator updates 
-      references of functional-tests-osp18.
-
-- job:
-    name: functional-graphing-tests-osp18
-    parent: functional-tests-osp18
-    description: |
-      functional-graphing-tests-osp18 is an alias of functional-tests-osp18, 
-      temporary added until openstack-k8s-operators/telemetry-operator updates 
-      references of functional-tests-osp18.
-
-- job:
-    name: functional-logging-tests-osp18
-    parent: functional-tests-osp18
-    description: |
-      functional-logging-tests-osp18 is an alias of functional-tests-osp18, 
-      temporary added until openstack-k8s-operators/telemetry-operator updates 
-      references of functional-tests-osp18.
-
-- job:
     name: functional-metric-verification-tests-osp18
     parent: functional-tests-osp18
     extra-vars: *functional_autoscaling_extra_vars
