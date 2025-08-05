@@ -31,7 +31,7 @@
       - ceilometer_volume_provider_pool_capacity_free
       - ceilometer_volume_provider_pool_capacity_total
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show {{ item }}
+    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
   register: result
   delay: 30
   retries: 10
