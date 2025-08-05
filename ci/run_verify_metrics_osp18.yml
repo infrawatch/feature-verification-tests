@@ -8,6 +8,13 @@
   vars_files:
     - vars/common.yml
     - vars/osp18_env.yml
+  pre_tasks:
+    - name: Install oc
+      ansible.builtin.include_role:
+        name: cifmw.general.ci_setup
+        tasks_from: packages
+      vars:
+        cifmw_ci_setup_packages: []
   tasks:
     - name: Include vars from the extra_vars files
       when: cifmw_basedir is defined
