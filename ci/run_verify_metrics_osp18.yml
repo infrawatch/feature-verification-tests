@@ -9,16 +9,26 @@
     - vars/common.yml
     - vars/osp18_env.yml
   tasks:
+    - name: Include vars from the extra_vars files
+      when: cifmw_basedir is defined
+      ansible.builtin.include_vars:
+        dir: "{{ cifmw_basedir }}/artifacts/parameters"
+
     - name: Install oc
       ansible.builtin.include_role:
         name: cifmw.general.ci_setup
         tasks_from: packages
       vars:
         cifmw_ci_setup_packages: []
-    - name: Include vars from the extra_vars files
-      when: cifmw_basedir is defined
-      ansible.builtin.include_vars:
-        dir: "{{ cifmw_basedir }}/artifacts/parameters"
+
+    - name: Log into openshift
+      ansible.builtin.shell:
+        cmd: |
+          oc login -u {{ cifmw_openshift_user }} -p {{ cifmw_openshift_password }} {{ cifmw_openshift_api }}
+      vars:
+        cifmw_openshift_api: api.crc.testing:6443
+        cifmw_openshift_password: '123456789'
+        cifmw_openshift_user: kubeadmin
 
     - name: Patch observabilityclient into openstackclient
       ansible.builtin.shell:
