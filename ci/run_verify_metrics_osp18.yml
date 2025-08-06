@@ -4,7 +4,7 @@
   gather_facts: true
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
+    PATH: "{{ cifmw_path }}:/var/lib/ansible/bin"
   vars_files:
     - vars/common.yml
     - vars/osp18_env.yml
@@ -34,5 +34,3 @@
       ansible.builtin.import_role:
         name: infrawatch.fvt.telemetry_verify_metrics
       ignore_errors: true
-      environment:
-        PATH: "{{ cifmw_path }}"
