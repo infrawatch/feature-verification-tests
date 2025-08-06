@@ -34,3 +34,5 @@
       ansible.builtin.import_role:
         name: infrawatch.fvt.telemetry_verify_metrics
       ignore_errors: true
+      environment:
+        PATH: "{{ cifmw_path }}"
