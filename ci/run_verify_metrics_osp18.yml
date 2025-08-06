@@ -24,11 +24,7 @@
     - name: Log into openshift
       ansible.builtin.shell:
         cmd: |
-          oc login -u {{ cifmw_openshift_user }} -p {{ cifmw_openshift_password }} {{ cifmw_openshift_api }}
-      vars:
-        cifmw_openshift_api: api.crc.testing:6443
-        cifmw_openshift_password: '123456789'
-        cifmw_openshift_user: kubeadmin
+          oc login -u {{ cifmw_openshift_user }} -p {{ cifmw_openshift_password }} --insecure-skip-tls-verify {{ cifmw_openshift_api }}
 
     - name: Patch observabilityclient into openstackclient
       ansible.builtin.shell:
