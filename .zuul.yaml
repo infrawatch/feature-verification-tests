@@ -182,6 +182,7 @@
               - ci/logging_tests_controller.yml
               - ci/report_result.yml
               - .zuul.yaml
+              - ci/vars-metric-verification-test.yml
         - functional-periodic-telemetry-with-ceph:
             files:
               # Run this job for changes to the volume_pool_metrics test changes as this is
