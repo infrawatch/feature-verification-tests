@@ -1,0 +1,147 @@
+apiVersion: test.openstack.org/v1beta1
+kind: AnsibleTest
+metadata:
+  name: ansible-fvt
+  namespace: openstack
+spec:
+  #ansibleGitRepo: 'http://github.com/infrawatch/feature-verification-tests'
+  #ansibleGitRepo: 'http://github.com/elfiesmelfie/feature-verification-tests" -b "test_operator_changes'
+  # I pushed test_operator_changes to master
+  ansibleGitRepo: 'http://github.com/elfiesmelfie/feature-verification-tests'
+  debug: true
+  containerImage: quay.io/podified-antelope-centos9/openstack-ansible-tests:current-podified
+  #ansiblePlaybookPath: ci/run_verify_metrics_osp18.yml
+  storageClass: crc-csi-hostpath-provisioner
+  computeSSHKeySecretName: dataplane-ansible-ssh-private-key-secret
+  workloadSSHKeySecretName: dataplane-ansible-ssh-private-key-secret
+    # ansibleExtraVars: "ANSIBLE_ROLES_PATH=roles"
+  ansibleVarFiles: |
+    cifmw_openshift_kubeconfig: ~/.kube.config
+    cifmw_path: "{{ ansible_env.PATH }}:/var/lib/ansible/bin"
+    cifmw_openshift_api: api.crc.testing:6443
+    cifmw_openshift_password: '12345678'
+    cifmw_openshift_user: kubeadmin
+    openstack_cmd: "oc -n openstack rsh openstackclient openstack" 
+    telemetry_verify_metrics_metric_sources_to_test:
+      #- ceilometer_compute_agent
+      #- ceilometer_central_agent
+      #- ksm
+      - node_exporter
+      - podman_exporter
+      #- rabbitmq
+      #- kepler
+      #- openstack_network_exporter
+      #- ceilometer_prom_exporter
+      #- mariadb
+  #ansibleCollections: "git+https://github.com/infrawatch/feature-verification-tests.git,master"
+  #ansibleCollections: 'git+https://github.com/elfiesmelfie/feature-verification-tests.git,test_operator_changes" "git+https://github.com/openstack-k8s-operators/ci-framework'
+  #ansibleCollections: 'git+https://github.com/elfiesmelfie/feature-verification-tests.git,test_operator_changes'
+  ansibleCollections: 'git+https://github.com/elfiesmelfie/feature-verification-tests.git,master'
+  # allow privilige escalation so ci_setup/tasks/packages can be run, even if we don't install any packages. 
+  privileged: true
+  extraMounts:
+    - extraVol:
+        - mounts:
+            - name: test-operator-logs
+              mountPath: /var/lib/ansible/ci-framework-data/tests/feature-verification-tests
+          volumes: []
+  ansibleInventory: |
+    localhost ansible_connection=local ansible_python_interpreter=python3
+    compute-0 ansible_host=192.168.122.100 ansible_user=root ansible_ssh_private_key_file=/var/lib/ansible/.ssh/compute_id
+    compute-1 ansible_host=192.168.122.101 ansible_user=root ansible_ssh_private_key_file=/var/lib/ansible/.ssh/compute_id
+    [compute]
+    compute-0
+    compute-1
+    [controller]
+    localhost
+    [local]
+    localhost
+  workflow:
+    - stepName: verify-metrics
+      ansiblePlaybookPath: ci/run_verify_metrics_osp18.yml
+    - stepName: report-results
+      ansiblePlaybookPath: ci/report_result.yml
+  #FIELDS:
+  #  SELinuxLevel	<string>
+  #    A SELinuxLevel that should be used for test pods spawned by the test
+  #    operator.
+  #
+  #  ansibleCollections	<string>
+  #    AnsibleCollections - extra ansible collections to instal in additionn to the
+  #    ones exist in the requirements.yaml
+  #
+  #  ansibleExtraVars	<string>
+  #    AnsibleExtraVars - string to pass parameters to ansible using
+  #
+  #  ansibleGitRepo	<string> -required-
+  #    AnsibleGitRepo - git repo to clone into container
+  #  ansibleInventory	<string>
+  #    AnsibleInventory - string that contains the inventory file content
+  #
+  #  ansiblePlaybookPath	<string> -required-
+  #    AnsiblePlaybookPath - path to ansible playbook
+  #
+  #  ansibleVarFiles	<string>
+  #    AnsibleVarFiles - interface to create ansible var files Those get added to
+  #    the
+  #
+  #  backoffLimit	<integer>
+  #    BackoffLimit allows to define the maximum number of retried executions
+  #    (defaults to 0).
+  #
+  #  computeSSHKeySecretName	<string>
+  #    ComputeSSHKeySecretName is the name of the k8s secret that contains an ssh
+  #    key for computes.
+  #    The key is mounted to ~/.ssh/id_ecdsa in the ansible pod
+  #  containerImage	<string>
+  #    A URL of a container image that should be used by the test-operator for
+  #    tests execution.
+  #
+  #  debug	<boolean>
+  #    Run ansible playbook with -vvvv
+  #  extraConfigmapsMounts	<[]Object>
+  #    Extra configmaps for mounting inside the pod
+  #
+  #  extraMounts	<[]Object>
+  #    ExtraMounts containing conf files, credentials and storage volumes
+  #
+  #  nodeSelector	<map[string]string>
+  #    This value contains a nodeSelector value that is applied to test pods
+  #    spawned by the test operator.
+  #
+  #  openStackConfigMap	<string>
+  #    OpenStackConfigMap is the name of the ConfigMap containing the clouds.yaml
+  #
+  #  openStackConfigSecret	<string>
+  #    OpenStackConfigSecret is the name of the Secret containing the secure.yaml
+  #
+  #  privileged	<boolean>
+  #    Use with caution! This parameter specifies whether test-operator should
+  #    spawn
+  #    test pods with allowedPrivilegedEscalation: true, readOnlyRootFilesystem:
+  #    false,
+  #    runAsNonRoot: false, automountServiceAccountToken: true, and the default
+  #    capabilities on top of capabilities that are usually needed by the test
+  #    pods (NET_ADMIN, NET_RAW). This parameter is deemed insecure but it is
+  #    needed for certain test-operator functionalities to work properly (e.g.:
+  #    extraRPMs in Tempest CR, or certain set of tobiko tests).
+  #
+  #  resources	<Object>
+  #    The desired amount of resources that should be assigned to each test pod
+  #    spawned using the AnsibleTest CR.
+  #    https://pkg.go.dev/k8s.io/api/core/v1#ResourceRequirements
+  #
+  #  storageClass	<string>
+  #    StorageClass used to create any test-operator related PVCs.
+  #
+  #  tolerations	<[]Object>
+  #    This value contains a toleration that is applied to pods spawned by the
+  #    test pods that are spawned by the test-operator.
+  #
+  #  workflow	<[]Object>
+  #    A parameter that contains a workflow definition.
+  #
+  #  workloadSSHKeySecretName	<string>
+  #    WorkloadSSHKeySecretName is the name of the k8s secret that contains an ssh
+  #    key for the ansible workload.
+  #    The key is mounted to ~/test_keypair.key in the ansible pod
