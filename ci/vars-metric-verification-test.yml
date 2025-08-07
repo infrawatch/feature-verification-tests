@@ -1,12 +1,17 @@
 ---
+#pre_tests_00_fvt_verify_metrics:
+#  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_verify_metrics_osp18.yml"
+#  type: playbook
+#  config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
+
 pre_tests_00_fvt_verify_metrics:
-  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_verify_metrics_osp18.yml"
-  type: playbook
-  config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible-tests-fvt.yaml"
+  type: cr
+  state: present
 
 cifmw_run_tests: true
 cifmw_test_operator_tempest_include_list: |
   ^tempest.*\[.*\bsmoke\b.*\]
-post_tests_99_collect_results:
-  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
-  type: playbook
+  #post_tests_99_collect_results:
+  #  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
+  #  type: playbook
