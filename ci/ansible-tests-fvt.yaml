@@ -57,8 +57,10 @@ spec:
     [local]
     localhost
   workflow:
-    - stepName: verify-metrics
-      ansiblePlaybookPath: ci/run_verify_metrics_osp18.yml
+    #- stepName: verify-metrics
+    #  ansiblePlaybookPath: ci/run_verify_metrics_osp18.yml
+    - stepName: logging
+      ansiblePlaybookPath: ci/logging_tests_all.yml
     - stepName: report-results
       ansiblePlaybookPath: ci/report_result.yml
   #FIELDS:
