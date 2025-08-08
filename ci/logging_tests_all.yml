@@ -1,3 +1,7 @@
+- name: Run pre-test steps
+  ansible.builtin.import_playbook: pre-test-steps.yml
+
+
 - name: Run the compute node tests
   ansible.builtin.import_playbook: logging_tests_computes.yml
 

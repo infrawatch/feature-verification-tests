@@ -68,6 +68,8 @@ spec:
   #    A SELinuxLevel that should be used for test pods spawned by the test
   #    operator.
   #
+  # TODO: check this option in test-operator, since it only seems to support a sigle extra collection at the moment
+  # TODO: Correct this to requirements.yml instead of requirements.yaml (or support both)
   #  ansibleCollections	<string>
   #    AnsibleCollections - extra ansible collections to instal in additionn to the
   #    ones exist in the requirements.yaml
@@ -83,6 +85,7 @@ spec:
   #  ansiblePlaybookPath	<string> -required-
   #    AnsiblePlaybookPath - path to ansible playbook
   #
+  # TODO: If the repos from the hosts are copied into the extraMounts, we can skip using the ansibleVarFiles interface, and use ansibleExtraVars: @<file> instead.
   #  ansibleVarFiles	<string>
   #    AnsibleVarFiles - interface to create ansible var files Those get added to
   #    the
@@ -103,6 +106,9 @@ spec:
   #    Run ansible playbook with -vvvv
   #  extraConfigmapsMounts	<[]Object>
   #    Extra configmaps for mounting inside the pod
+  # TODO: Investigate preparing a PV and populating it with the git repos from the host.
+  # This would removed the need to install from galaxy and push to elfie/master in order to run a playbook.
+  # The git repos could then be cloned from the local copy of the repo.
   #
   #  extraMounts	<[]Object>
   #    ExtraMounts containing conf files, credentials and storage volumes
@@ -116,6 +122,7 @@ spec:
   #
   #  openStackConfigSecret	<string>
   #    OpenStackConfigSecret is the name of the Secret containing the secure.yaml
+  # TODO: add openstack config secrets, then skip running openstack commands in openstackclient. This also means that the version of promclient, observabilityclient and apdh client can be updated without patching the containers.
   #
   #  privileged	<boolean>
   #    Use with caution! This parameter specifies whether test-operator should

@@ -14,22 +14,6 @@
       ansible.builtin.include_vars:
         dir: "{{ cifmw_basedir }}/artifacts/parameters"
 
-    - name: Install oc
-      ansible.builtin.include_role:
-        name: cifmw.general.ci_setup
-        tasks_from: packages
-      vars:
-        cifmw_ci_setup_packages: []
-
-    - name: Log into openshift
-      ansible.builtin.shell:
-        cmd: |
-          oc login -u {{ cifmw_openshift_user }} -p {{ cifmw_openshift_password }} --insecure-skip-tls-verify {{ cifmw_openshift_api }}
-      register: cmd
-      retries: 10
-      delay: 10
-      until: cmd.rc == 0
-
     - name: Patch observabilityclient into openstackclient
       ansible.builtin.shell:
         cmd: |

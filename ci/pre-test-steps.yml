@@ -1,0 +1,31 @@
+- name: Run pre-test steps
+  ansible.builtin.import_playbook: pre-test-steps.yml
+
+- name: Run telemetry tests to verify metrics on osp18
+  hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
+  gather_facts: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}:/var/lib/ansible/bin"
+  vars_files:
+    - vars/common.yml
+    - vars/osp18_env.yml
+  tasks: 
+      #TODO: Add this as a common playbook so it can be added to the other tests as well.
+    - name: Install oc
+      ansible.builtin.include_role:
+        name: cifmw.general.ci_setup
+        tasks_from: packages
+      vars:
+        cifmw_ci_setup_packages: []
+
+    - name: Log into openshift
+      ansible.builtin.shell:
+        cmd: |
+          oc login -u {{ cifmw_openshift_user }} -p {{ cifmw_openshift_password }} --insecure-skip-tls-verify {{ cifmw_openshift_api }}
+      register: cmd
+      retries: 10
+      delay: 10
+      until: cmd.rc == 0
+
+
