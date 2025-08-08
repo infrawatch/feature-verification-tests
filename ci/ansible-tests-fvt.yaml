@@ -10,11 +10,15 @@ spec:
   ansibleGitRepo: 'http://github.com/elfiesmelfie/feature-verification-tests'
   debug: true
   containerImage: quay.io/podified-antelope-centos9/openstack-ansible-tests:current-podified
+  # TODO: try an absolute path for the playbook. 
   #ansiblePlaybookPath: ci/run_verify_metrics_osp18.yml
   storageClass: crc-csi-hostpath-provisioner
   computeSSHKeySecretName: dataplane-ansible-ssh-private-key-secret
   workloadSSHKeySecretName: dataplane-ansible-ssh-private-key-secret
     # ansibleExtraVars: "ANSIBLE_ROLES_PATH=roles"
+  # need to check where the collection ends up living...
+  # or indeed, just the ansible playbook.
+  # /var/lib/ansible/ansible/ci/"
   ansibleVarFiles: |
     cifmw_openshift_kubeconfig: ~/.kube.config
     cifmw_path: "{{ ansible_env.PATH }}:/var/lib/ansible/bin"
@@ -57,10 +61,14 @@ spec:
     [local]
     localhost
   workflow:
-    #- stepName: verify-metrics
-    #  ansiblePlaybookPath: ci/run_verify_metrics_osp18.yml
+    - stepName: verify-metrics
+      ansiblePlaybookPath: ci/run_verify_metrics_osp18.yml
     - stepName: logging
       ansiblePlaybookPath: ci/logging_tests_all.yml
+    - stepName: autoscaling
+      ansiblePlaybookPath: ci/run_autoscaling_tests.yml
+    - stepName: graphing
+      ansblePlaybookPath: ci/run_graphing_test.yml
     - stepName: report-results
       ansiblePlaybookPath: ci/report_result.yml
   #FIELDS:
