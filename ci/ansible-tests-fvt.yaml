@@ -23,7 +23,7 @@ spec:
     cifmw_openshift_kubeconfig: ~/.kube.config
     cifmw_path: "{{ ansible_env.PATH }}:/var/lib/ansible/bin"
     cifmw_openshift_api: api.crc.testing:6443
-    cifmw_openshift_password: '123456789'
+    cifmw_openshift_password: '12345678'
     cifmw_openshift_user: kubeadmin
     openstack_cmd: "oc -n openstack rsh openstackclient openstack" 
     telemetry_verify_metrics_metric_sources_to_test:
