@@ -1,6 +1,0 @@
----
-collections:
-  - name: https://github.com/openstack-k8s-operators/ci-framework.git
-    version: main
-    type: git
-
