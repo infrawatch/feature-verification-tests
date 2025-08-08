@@ -42,6 +42,8 @@ spec:
   #ansibleCollections: 'git+https://github.com/elfiesmelfie/feature-verification-tests.git,test_operator_changes'
   ansibleCollections: 'git+https://github.com/elfiesmelfie/feature-verification-tests.git,master'
   # allow privilige escalation so ci_setup/tasks/packages can be run, even if we don't install any packages. 
+  # Since the oc install tasks are in the pre-tasks playbook, and don't use the ci_setup role, this can be removed.
+  # TODO: Consider updating cifmw ci_setup role to have a separate get_oc_client task.
   privileged: true
   extraMounts:
     - extraVol:
@@ -131,7 +133,10 @@ spec:
   #  openStackConfigSecret	<string>
   #    OpenStackConfigSecret is the name of the Secret containing the secure.yaml
   # TODO: add openstack config secrets, then skip running openstack commands in openstackclient. This also means that the version of promclient, observabilityclient and apdh client can be updated without patching the containers.
-  #
+  # clouds.yaml is included by default. Need to check the cloudname.
+  # The OS_CLOUD_NAME can be set in the env to select the cloud.
+  # clouds.yaml is mounted at /etc/openstack/clouds.yaml
+  # The cloud is called default.
   #  privileged	<boolean>
   #    Use with caution! This parameter specifies whether test-operator should
   #    spawn
