@@ -23,11 +23,11 @@ spec:
     cifmw_openshift_user: kubeadmin
     openstack_cmd: "oc -n openstack rsh openstackclient openstack" 
     telemetry_verify_metrics_metric_sources_to_test:
-      #- ceilometer_compute_agent
-      #- ceilometer_central_agent
+      - ceilometer_compute_agent
+      - ceilometer_central_agent
       #- ksm
       - node_exporter
-      - podman_exporter
+      #- podman_exporter
       #- rabbitmq
       #- kepler
       #- openstack_network_exporter
