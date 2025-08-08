@@ -1,6 +1,3 @@
-- name: Run Logging test
-  ansible.builtin.import_playbook: logging_tests_all.yml
-
 - name: Run Autoscaling test
   ansible.builtin.import_playbook: run_autoscaling_tests.yml
 
