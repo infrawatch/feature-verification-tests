@@ -12,7 +12,6 @@
   ansible.builtin.include_tasks:
     file: check_compute_node_containers.yml
   vars:
-    common_container_test_id: RHOSO-1231
     common_container_list:
       - podman_exporter
   loop: "{{ groups['computes'] }}"
@@ -21,7 +20,6 @@
 
 - name: |
     TEST Use openstack observabilityclient to verify health reporting related metrics from podman exporter are stored in Prometheus
-    RHOSO-12345
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac {{ item }}
   register: result

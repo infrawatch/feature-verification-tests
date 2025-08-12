@@ -1,6 +1,5 @@
 - name: |
     TEST Check that kepler shows idle power consumption metric for VM and it is not zero
-    RHOSO-13583
   ansible.builtin.shell: |
     set -euxo pipefail
     {{ metrics_cmd_prefix }} "kepler_vm_package_joules_total{'vm_id'='{{ kepler_test_vm }}', 'mode'='idle'}"
@@ -10,7 +9,6 @@
 
 - name: |
     TEST Check that kepler shows dynamic metrics for VM and they are increasing
-    RHOSO-13952
     Step 1 Get an initial value of VM dynamic metrics and check that it's not zero
   ansible.builtin.shell: |
     set -euxo pipefail
@@ -21,7 +19,6 @@
 
 - name: |
     TEST Check that kepler shows dynamic metrics for VM and they are increasing
-    RHOSO-13952
     Step 2 Get a new value of VM dynamic metrics and compare with the initial value
   ansible.builtin.shell: |
     set -euxo pipefail

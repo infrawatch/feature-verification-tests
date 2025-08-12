@@ -2,7 +2,6 @@
   ansible.builtin.include_role:
     name: common
   vars:
-    common_cr_test_id: RHOSO-1221
     common_cr_list:
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-ceilometer
@@ -11,7 +10,6 @@
   ansible.builtin.include_tasks:
     file: check_compute_node_containers.yml
   vars:
-    common_container_test_id: RHOSO-1230
     common_container_list:
       - ceilometer_agent_compute
   loop: "{{ groups['computes'] }}"
@@ -22,7 +20,6 @@
   ansible.builtin.include_role:
     name: common
   vars:
-    common_pod_test_id: RHOSO-1242
     common_pod_status_str: "Running"
     common_pod_nspace: openstack
     common_pod_list:
@@ -53,7 +50,6 @@
 
     - name: |
         TEST Use openstack observabilityclient to verify ceilometer_cpu compute metrics are stored in prometheus
-        RHOSO-1213
       ansible.builtin.shell: |
         {{ openstack_cmd }} metric show ceilometer_cpu
       register: result
@@ -62,7 +58,6 @@
       until: result.rc == 0 and "ceilometer_cpu" in result.stdout
       changed_when: false
 
-    #todo: Create Test Id in Polarian
     - name: |
         TEST Use openstack observabilityclient to verify ceilometer_power_state compute metrics are stored in prometheus
       ansible.builtin.shell: |

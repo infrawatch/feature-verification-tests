@@ -1,5 +1,5 @@
 ---
-post_deploy_00_run_graphing_test:
+pre_tests_00_run_graphing_test:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_graphing_test.yml"
   config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
   type: playbook

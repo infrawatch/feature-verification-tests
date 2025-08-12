@@ -1,4 +1,35 @@
 ---
 fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
-logs_dir: "{{ ansible_env.HOME }}/ci-framework-data/logs/feature-verification-tests"
-custom_xml_output_dir: "~/.ansible.log/"
+logs_dir: "{{ ansible_env.HOME }}/ci-framework-data/tests/feature-verification-tests"
+
+#
+# vars for setting container registry while working with meta content provider
+#
+
+#
+# We use telemetry_registry and telemetry_tag in ci/patch-openstack-versions.yaml.j2
+# file to use telemetry specific containers from content provider or other registry.
+#
+#
+# When there is a Depends-On: <Opendev Change> on github pull request description
+# then zuul meta content provider will return content_provider_os_registry_url with value
+# <content_provider_ip:port/registry_namespace>.
+#
+# When there is no Depends-On: <Opendev Change> then
+# then zuul meta content provider will return content_provider_os_registry_url with value
+# null string.
+#
+
+telemetry_registry: >-
+  {%- if content_provider_os_registry_url is defined and content_provider_os_registry_url != 'null' -%}
+  {{ content_provider_os_registry_url  }}
+  {%- else -%}
+  quay.rdoproject.org/podified-master-centos10
+  {%- endif -%}
+
+telemetry_tag: >-
+  {%- if content_provider_os_registry_url is defined and content_provider_os_registry_url != 'null' -%}
+  telemetry_latest
+  {%- else -%}
+  current-tested
+  {%- endif -%}

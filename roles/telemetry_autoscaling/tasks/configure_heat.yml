@@ -29,14 +29,12 @@
   # into the template.yaml file, they weren't passed to the instance initially.
 - name: |
     TEST configure heat template automatically scaling instances
-    RHOSO-12657
   ansible.builtin.template:
     src: instance.yaml.j2
     dest: ~/templates/autoscaling/vnf/instance.yaml
 
 - name: |
     TEST Create resource reference in the heat template
-    RHOSO-12658
   ansible.builtin.copy:
     dest: ~/templates/autoscaling/vnf/resources.yaml
     content: |
@@ -45,7 +43,6 @@
 
 - name: |
     TEST Create template heat control instances
-    RHOSO-12659
   ansible.builtin.template:
     dest: ~/templates/autoscaling/vnf/template.yaml
     src: template.yaml.j2

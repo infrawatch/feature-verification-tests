@@ -1,4 +1,4 @@
 ---
 cypress_tests_dir: "{{ ansible_env.HOME }}/cypress-tests" 
 cypress_integration_dir: "{{ cypress_tests_dir }}/cypress/integration"
-screenshots_dir: "{{ ansible_env.HOME }}/ci-framework-data/logs/feature-verification-tests/screenshots"
+screenshots_dir: "{{ ansible_env.HOME }}/ci-framework-data/tests/feature-verification-tests/screenshots"

@@ -1,0 +1,22 @@
+
+- name: Verify ceilometer compute-prom-exporter scrapeconfigs exist
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-ceilometer-compute-prom-exporter
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-ceilometer-ipmi-prom-exporter
+
+- name: Verify prometheus target for exporters
+  ansible.builtin.shell: |
+    oc exec -i prometheus-metric-storage-0 -c prometheus -- curl -k 'https://metric-storage-prometheus:9090/api/v1/targets' | jq | grep {{ exporter.port }}
+  register: result
+  changed_when: false
+  failed_when: "'{{ exporter.port }}' not in result.stdout"
+  loop:
+    -  port: 9101 
+    -  port: 9102 
+  loop_control:
+    loop_var: exporter

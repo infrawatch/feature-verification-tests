@@ -22,7 +22,6 @@
 
 - name: |
     TEST Verify number instances before scaling
-    RHOSO-12665
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} server list --long | grep -i 'metering.server_group'
@@ -86,7 +85,6 @@
 
 - name: |
     TEST Verify cpu high alarm has been triggered
-    RHOSO-12660
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list -c state -c name -f value| \
@@ -100,7 +98,6 @@
 
 - name: |
     TEST Verify orchestration scaled up instances
-    RHOSO-12661
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} server list --long | grep -i metering.server_group
@@ -115,28 +112,21 @@
   register: kill_busy_process
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
-  # Does this pause need to be here if there's a repeated check in the following task?
-- name: Test automatic scaling down of instances
-  ansible.builtin.pause:
-    minutes: 5
-
 - name: |
     TEST Verify cpu low alarm has been triggered
-    RHOSO-12664
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list -c state -c name -f value| \
         grep -i "cpu_alarm_low" | \
         grep -i "{{ stack_name }}" | \
         awk '{print $2}'
-  retries: 100
+  retries: 160
   delay: 5
   register: result
   until: result.stdout == "alarm"
 
 - name: |
     TEST Verify Orchestration scaled down instances
-    RHOSO-12663
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
