@@ -2,7 +2,7 @@
     TEST Check that kepler shows idle power consumption metric for VM and it is not zero
   ansible.builtin.shell: |
     set -euxo pipefail
-    {{ metrics_cmd_prefix }} "kepler_vm_package_joules_total{'vm_id'='{{ kepler_test_vm }}', 'mode'='idle'}"
+    {{ metrics_cmd_prefix }} "kepler_vm_cpu_joules_total{'vm_id'='{{ test_vm_id }}', 'zone'='package'}"
   register: result
   changed_when: false
   failed_when: result.rc != 0 or result.stdout|float == 0
@@ -12,7 +12,7 @@
     Step 1 Get an initial value of VM dynamic metrics and check that it's not zero
   ansible.builtin.shell: |
     set -euxo pipefail
-    {{ metrics_cmd_prefix }} "kepler_vm_package_joules_total{'vm_id'='{{ kepler_test_vm }}', 'mode'='dynamic'}"
+    {{ metrics_cmd_prefix }} "kepler_vm_cpu_joules_total{'vm_id'='{{ test_vm_id }}', 'zone'='package'}"
   register: value1
   changed_when: false
   failed_when: value1.rc != 0 or value1.stdout|float == 0
@@ -22,9 +22,45 @@
     Step 2 Get a new value of VM dynamic metrics and compare with the initial value
   ansible.builtin.shell: |
     set -euxo pipefail
-    {{ metrics_cmd_prefix }} "kepler_vm_package_joules_total{'vm_id'='{{ kepler_test_vm }}', 'mode'='dynamic'}"
+    {{ metrics_cmd_prefix }} "kepler_vm_cpu_joules_total{'vm_id'='{{ test_vm_id }}', 'zone'='package'}"
   register: value2
   delay: 10
   retries: 3
   changed_when: false
   until: value2.rc == 0 and (value2.stdout|float > value1.stdout|float)
+
+- name: |
+    TEST Check kepler metrics dynamics when test VM is under load for some time
+    Step 1 Get initial value of VM power consumption in watts
+  ansible.builtin.shell: |
+    set -euxo pipefail
+    {{ metrics_cmd_prefix }} "kepler_vm_cpu_watts{'vm_id'='{{ test_vm_id }}','zone'='package'}"
+  register: value1
+  changed_when: false
+  failed_when: value1.rc != 0
+
+- name: |
+    TEST Check kepler metrics dynamics when test VM is under load for some time
+    Step 2 Run process that creates high CPU load on the test VM and get new power consumption metrics
+  ansible.builtin.shell: |
+    set -euxo pipefail
+    port_id=$({{ openstack_cmd }} port list --device-id='{{ test_vm_id }}' --network '{{ kepler_test_vm_network }}' -c id -f value)
+    floating_ip=$({{ openstack_cmd }} floating ip list --port $port_id -c 'Floating IP Address' -f value)
+    ssh_options='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ssh -i '{{ kepler_test_vm_key }}' $ssh_options  '{{kepler_test_vm_user}}'@$floating_ip 'nohup timeout 30 openssl speed -multi $(grep -ci processor /proc/cpuinfo)  > /dev/null 2>&1   &'
+    sleep 20
+    {{ metrics_cmd_prefix }} "kepler_vm_cpu_watts{'vm_id'='{{ test_vm_id }}','zone'='package'}"
+  register: value2
+  changed_when: false
+  failed_when: value2.rc != 0 or (value2.stdout|float <= value1.stdout|float + 5.0)
+
+- name: |
+    TEST Check kepler metrics dynamics when test VM is under load for some time
+    Step 3 Check that VM power consumption decreased back after removing load
+  ansible.builtin.shell: |
+    set -euxo pipefail
+    sleep 20
+    {{ metrics_cmd_prefix }} "kepler_vm_cpu_watts{'vm_id'='{{ test_vm_id }}','zone'='package'}"
+  register: value3
+  changed_when: false
+  failed_when: value3.rc != 0 or (value3.stdout|float - value1.stdout|float)|abs > 0.1
