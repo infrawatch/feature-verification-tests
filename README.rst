@@ -1,107 +1,17 @@
-These are the functional tests for stf client-side. They check that OpenStack is running.
+Feature-verification-tests are made up of two parts: tests and callback plugins.
 
-The deployment templates are in infrared, and have the following names:
-
-* ``stf-connectors-osp13``
-* ``stf-connectors-osp16-edge``
-* ``enable-stf``
-
-The tags for the ansible playbook correspond to these templates and run the appropriate tests for each deployment.
-
-The current set of functional tests are:
-
-* Check collectd is running
-  This checks that the collectd container has been deployed and is generating ANY metrics
-  The test currently runs when the ``collectd-*`` tags are passed.
-
-* Check QDR is running
-  This checks that the ``metrics_qdr`` container has been deployed and is receiving ANY metrics
-  This test runs when the ``*-write-qdr-*`` tags are passed.
+The callback plugins output the test results in different ways.
+The custom_logger plugin takes a test-id from the task names and reports the results of the tests in a file, where each line contains a test ID and a result (pass/fail).
+The custom_junit plugin extends the standard ansible junit plugin and report in XML format that Polarion expects.
 
 
-Running tests locally
----------------------
+The tests are STF and for telemetry services in RHOSO.
 
-If you have deployed client-side STF and want to test it locally, you can run the following command::
+STF tests
+These are the functional tests for stf. They check that OpenStack components are running and connected to STF and that the system works end-to-end.
+They are based on an infrared depoyment.
 
-    ansible-playbook -i `infrared workspace inventory` stf_functional_tests.yml
-
-OR::
-
-    ansible-playbook -i `infrared workspace inventory` stf_functional_tests.yml --tags "<one of the tags from above>"
-
-To get a summarised output of the tests at the end, use the provided logging callback::
-
-    ANSIBLE_CALLBACK_WHITELIST=custom_logger ansible-playbook -i `infrared workspace inventory` stf_functional_tests.yml
-
-The logging callback will summarise the tests run on each node and whether they passed or failed.
-The callback will only report on the status of tasks that have a name beginning with ``[Test]``.
-
-.. note::
-    If you haven't deployed using infrared, you can still run the tests if you create your own inventory file, containing one group of hosts called ``overcloud_nodes``.
-    Alternatively, you can create your own playbook that imports the tasks in ``tasks/*.yml``
-
-Adding new tests
-----------------
-
-Adding a new test for existing deployment templates requires no changes in
-Jenkins.
-Adding tests for new deployment templates requires that the template is in
-Infrared and deployed in Jenkins.
-
-The changes required in this repo for tests is to add additional tasks under
-``tasks/test_<your_test_name>.yml``::
-
-     - name: "[Test] My test name"
-       shell: |
-           my_test_command
-       register: command_output
-       failed_when: command_output.stdout == some_value
-
-Most of the functional tests are a series of shell commands that one would run
-when verifying that particular features were deployed correctly, and can be
-adapted from any manual testing that is done.
+RHOSO telemetry tests
+These tests cover telemetry features in RHOSO-18. These tests check that the telemetry-operator has deployed and configured the required services as expected.
 
 
-The task can then be imported in ``stf_functional_tests.yml`` like so::
-
-    - name: Collectd checks
-      hosts: overcloud_nodes
-      become: true
-      roles:
-        - "{{ playbook_dir }}"
-      tags:
-        - enable-stf
-        - stf-connectors-osp13
-        - some-other-template-name
-      tasks:
-        - import_tasks: tasks/test_<your_test_name>
-
-
-
-Configuration
--------------
-The following vars can be passed to change the behaviour.
-
-* **collectd_container_name**
-
-  The name of the container where collectd is running, e.g. ``collectd-test``
-
-  default: ``collectd``
-
-* **qdr_container_name**
-
-  The name of the container where qdr is running, e.g. ``metrics_qdr``, ``qdr-test``
-
-  default: ``metrics_qdr`
-
-
-
-
-Running e2e tests against existing STF
---------------------------------------
-
-E2E tests are currently running  against predeployed STF that installed  on top of OpenShift deployed in QuickLab insfrastracture.
-There is an inventory file called stf.inf that should be included in the ansible-playbook command along side with the Infrared inventory file.
-
-      ANSIBLE_CALLBACK_WHITELIST=custom_logger ansible-playbook -i `ir workspace inventory` -i stf.inv  playbooks/stf_functional_tests.yml --tags <TAGS>
