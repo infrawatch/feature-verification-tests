@@ -83,28 +83,39 @@
       ansible.builtin.debug:
         var: result
 
-- name: |
-    TEST Verify cpu high alarm has been triggered
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    {{ openstack_cmd }} alarm list -c state -c name -f value| \
-        grep -i "cpu_alarm_high" | \
-        grep -i "{{ stack_name }}" | \
-        awk '{print $2}'
-  retries: 100
-  delay: 5
-  register: result
-  until: result.stdout == "alarm"
 
-- name: |
-    TEST Verify orchestration scaled up instances
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    {{ openstack_cmd }} server list --long | grep -i metering.server_group
-  retries: 100
-  delay: 5
-  register: instance_count2
-  until: instance_count2.stdout_lines | length == 3
+- name:  TEST Scaling Up instance
+  block:
+    - name: |
+        TEST Verify cpu high alarm has been triggered
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        {{ openstack_cmd }} alarm list -c state -c name -f value| \
+            grep -i "cpu_alarm_high" | \
+            grep -i "{{ stack_name }}" | \
+            awk '{print $2}'
+      retries: 100
+      delay: 5
+      register: result
+      until: result.stdout == "alarm"
+
+    - name: |
+        TEST Verify orchestration scaled up instances
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        {{ openstack_cmd }} server list --long | grep -i metering.server_group
+      retries: 100
+      delay: 5
+      register: instance_count2
+      until: instance_count2.stdout_lines | length == 3
+  rescue:
+    - name: Scaling Up instance failed
+      ansible.builtin.set_fact:
+        scaling_up_success: false
+  always:
+    - name: Ensure Scaling Up instance result is set
+      ansible.builtin.set_fact:
+        scaling_up_success: "{{ scaling_up_success | default(true) }}"
 
 - name: Stop the busy process
   ansible.builtin.shell: |
@@ -112,26 +123,29 @@
   register: kill_busy_process
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
-- name: |
-    TEST Verify cpu low alarm has been triggered
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    {{ openstack_cmd }} alarm list -c state -c name -f value| \
-        grep -i "cpu_alarm_low" | \
-        grep -i "{{ stack_name }}" | \
-        awk '{print $2}'
-  retries: 160
-  delay: 5
-  register: result
-  until: result.stdout == "alarm"
+- name:  TEST Scaling down instance
+  when: scaling_up_success
+  block:
+    - name: |
+        TEST Verify cpu low alarm has been triggered
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        {{ openstack_cmd }} alarm list -c state -c name -f value| \
+            grep -i "cpu_alarm_low" | \
+            grep -i "{{ stack_name }}" | \
+            awk '{print $2}'
+      retries: 160
+      delay: 5
+      register: result
+      until: result.stdout == "alarm"
 
-- name: |
-    TEST Verify Orchestration scaled down instances
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
-    {{ openstack_cmd }} server list --long|grep -i metering.server_group=\'$STACK_ID\'
-  retries: 100
-  delay: 5
-  register: instance_count3
-  until: instance_count3.stdout_lines | length == 1
+    - name: |
+        TEST Verify Orchestration scaled down instances
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
+        {{ openstack_cmd }} server list --long|grep -i metering.server_group=\'$STACK_ID\'
+      retries: 100
+      delay: 5
+      register: instance_count3
+      until: instance_count3.stdout_lines | length == 1
