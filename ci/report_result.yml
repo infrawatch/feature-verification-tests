@@ -1,15 +1,15 @@
 ---
-- name: "Create the output directory"
-  hosts:
-     - controller
-  vars_files:
-    - vars/common.yml
-  tasks:
-    - name: Create log dir
-      ansible.builtin.file:
-        path: "{{ logs_dir }}"
-        state: directory
-        mode: "0755"
+#- name: "Create the output directory"
+#  hosts:
+#     - controller
+#  vars_files:
+#    - vars/common.yml
+#  tasks:
+#    - name: Create log dir
+#      ansible.builtin.file:
+#        path: "{{ logs_dir }}"
+#        state: directory
+#        mode: "0755"
 
 - name: Check the XML file for failed tasks
   hosts: controller
