@@ -108,14 +108,11 @@
       delay: 5
       register: instance_count2
       until: instance_count2.stdout_lines | length == 3
-  rescue:
-    - name: Scaling Up instance failed
-      ansible.builtin.set_fact:
-        scaling_up_success: false
-  always:
+      
     - name: Ensure Scaling Up instance result is set
       ansible.builtin.set_fact:
-        scaling_up_success: "{{ scaling_up_success | default(true) }}"
+        scaling_up_success: "{{ instance_count2.stdout_lines | length == 3 | bool }}"
+
 
 - name: Stop the busy process
   ansible.builtin.shell: |
