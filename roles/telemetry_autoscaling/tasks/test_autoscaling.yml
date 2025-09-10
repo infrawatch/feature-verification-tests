@@ -111,7 +111,11 @@
       
     - name: Ensure Scaling Up instance result is set
       ansible.builtin.set_fact:
-        scaling_up_success: "{{ instance_count2.stdout_lines | length == 3 | bool }}"
+        scaling_up_success: "{{ instance_count2.stdout_lines | length == 3 }}"
+
+    - name: Debug scaling_up_success
+      ansible.builtin.debug:
+        var: scaling_up_success
 
 
 - name: Stop the busy process
@@ -121,7 +125,7 @@
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
 - name:  TEST Scaling down instance
-  when: scaling_up_success
+  when: scaling_up_success | bool
   block:
     - name: |
         TEST Verify cpu low alarm has been triggered
