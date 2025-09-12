@@ -13,6 +13,7 @@
     - vars/osp18_env.yml
   tasks:
     - block:
+        # TODO: consider mounting these dirs into the pod
         #- name: Include vars from the extra_vars files
         #    ansible.builtin.include_vars:
         #      dir: "{{ cifmw_basedir }}/artifacts/parameters"
@@ -27,3 +28,20 @@
           ansible.builtin.shell:
             cmd: |
               {{ openstack_cmd }} rating module list
+              export SERVICE_NAME=test_service_instance
+              export GROUP_NAME=test_group_instance_uptime_flavor_id
+              export FIELD_NAME="flavor_id"
+              
+              {{ openstack_cmd }} rating hashmap group create $GROUP_NAME || true
+              export GROUP_ID=$({{ openstack_cmd }} rating hashmap group list -f value -c Name -c 'Group ID' | grep $GROUP_NAME| awk '{ print $2}')
+              
+              {{ openstack_cmd }} rating  hashmap service create $SERVICE_NAME || true
+              export SERVICE_ID=$({{ openstack_cmd }} rating hashmap service list -f value -c Name -c 'Service ID' | grep $SERVICE_NAME | awk '{ print $2 }')
+              
+              {{ openstack_cmd }} rating hashmap field create $SERVICE_ID $FIELD_NAME || true
+              export FLAVOR_FIELD_ID=$({{ openstack_cmd }} rating hashmap field list $SERVICE_ID -f value -c Name -c 'Field ID' | grep $FIELD_NAME | awk '{ print $2}')
+              
+              export FLAVOR_NAME=m1.small
+              export FLAVOR_ID=$({{ openstack_cmd }} flavor list -f value -c Name -c ID | grep $FLAVOR_NAME | awk '{print $2}')
+              
+              {{ openstack_cmd }} rating hashmap mapping create 0.01  --field-id $FLAVOR_FIELD_ID  --value $FLAVOR_ID  -g $GROUP_ID  -t flat
