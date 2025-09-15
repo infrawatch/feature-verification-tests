@@ -24,6 +24,21 @@
               oc exec -n openstack openstackclient -- python3 -m ensurepip --upgrade
               oc exec -n openstack openstackclient -- python3 -m pip install --upgrade git+https://github.com/openstack/python-cloudkittyclient@master
 
+        - name: Check what rating modules are available
+          ansible.builtin.shell:
+            cmd: |
+              {{ openstack_cmd }} rating module list
+
+        - name: Enable the hashmap rating module
+          ansible.builtin.shell:
+            cmd: |
+              {{ openstack_cmd }} rating module enable hashmap 
+
+        - name: Set priority on hashmap rating
+          ansible.builtin.shell:
+            cmd: |
+              {{ openstack_cmd }} rating module set priority hashmap 100
+
         - name: Check that the API is available
           ansible.builtin.shell:
             cmd: |
