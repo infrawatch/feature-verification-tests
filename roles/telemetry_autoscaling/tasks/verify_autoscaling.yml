@@ -26,6 +26,7 @@
   # need selection criteria to decide when to run these.
   # Need alternative for OSP18.
 - name: Verify that the services are running on the overcloud
+  when: metrics_backend == "gnocchi"
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     sudo podman ps --filter=name='heat|gnocchi|ceilometer|aodh';

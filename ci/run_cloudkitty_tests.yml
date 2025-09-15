@@ -1,0 +1,76 @@
+---
+- name: Run pre-test steps
+  ansible.builtin.import_playbook: pre-test-steps.yml
+
+- name: Run cloudkitty tests on osp18
+  hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
+  gather_facts: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+    - vars/osp18_env.yml
+  tasks:
+    - block:
+        # TODO: consider mounting these dirs into the pod
+        #- name: Include vars from the extra_vars files
+        #    ansible.builtin.include_vars:
+        #      dir: "{{ cifmw_basedir }}/artifacts/parameters"
+
+        - name: Patch cloudkittyclient into openstackclient
+          ansible.builtin.shell:
+            cmd: |
+              oc exec -n openstack openstackclient -- python3 -m ensurepip --upgrade
+              oc exec -n openstack openstackclient -- python3 -m pip install --upgrade git+https://github.com/openstack/python-cloudkittyclient@master
+
+        - name: Check what rating modules are available
+          ansible.builtin.shell:
+            cmd: |
+              {{ openstack_cmd }} rating module list
+
+        - name: Enable the hashmap rating module
+          ansible.builtin.shell:
+            cmd: |
+              {{ openstack_cmd }} rating module enable hashmap 
+
+        - name: Set priority on hashmap rating
+          ansible.builtin.shell:
+            cmd: |
+              {{ openstack_cmd }} rating module set priority hashmap 100
+
+        - name: Check that the API is available
+          ansible.builtin.shell:
+            cmd: |
+              {{ openstack_cmd }} rating module list
+              export GROUP_NAME=test_group_instance_uptime_flavor_id
+              export SERVICE_NAME=test_service_instance
+              export FIELD_NAME="flavor_id"
+              
+              {{ openstack_cmd }} rating hashmap group create $GROUP_NAME || true
+              export GROUP_ID=$({{ openstack_cmd }} rating hashmap group list -f value -c Name -c 'Group ID' | grep $GROUP_NAME| awk '{ print $2}')
+              
+              {{ openstack_cmd }} rating  hashmap service create $SERVICE_NAME || true
+              export SERVICE_ID=$({{ openstack_cmd }} rating hashmap service list -f value -c Name -c 'Service ID' | grep $SERVICE_NAME | awk '{ print $2 }')
+              
+              {{ openstack_cmd }} rating hashmap field create $SERVICE_ID $FIELD_NAME || true
+              export FLAVOR_FIELD_ID=$({{ openstack_cmd }} rating hashmap field list $SERVICE_ID -f value -c Name -c 'Field ID' | grep $FIELD_NAME | awk '{ print $2}')
+              
+              export FLAVOR_NAME=m1.small
+              export FLAVOR_ID=$({{ openstack_cmd }} flavor list -f value -c Name -c ID | grep $FLAVOR_NAME | awk '{print $2}')
+              
+              {{ openstack_cmd }} rating hashmap mapping create 0.01  --field-id $FLAVOR_FIELD_ID  --value $FLAVOR_ID  -g $GROUP_ID  -t flat
+          ignore_errors: true
+
+        - name: Delete the created resources
+          ansible.builtin.shell:
+            cmd: |
+              export GROUP_NAME=test_group_instance_uptime_flavor_id
+              export SERVICE_NAME=test_service_instance
+ 
+              export GROUP_ID=$({{ openstack_cmd }} rating hashmap group list -f value -c Name -c 'Group ID' | grep $GROUP_NAME| awk '{ print $2}')
+              export SERVICE_ID=$({{ openstack_cmd }} rating hashmap service list -f value -c Name -c 'Service ID' | grep $SERVICE_NAME | awk '{ print $2 }')
+              {{ openstack_cmd }} rating hashmap group delete $GROUP_ID
+              {{ openstack_cmd }} rating hashmap service delete $SERVICE_ID
+
+

@@ -1,9 +1,10 @@
 ---
+# TODO: Consider using a var for openstack namespace; this would make testing multi-openstack deployments possible.
 - name: Copy the templates to openstackclient pod
   ansible.builtin.shell: |
-    oc cp $HOME/templates/autoscaling/vnf/template.yaml openstackclient:/tmp
-    oc cp $HOME/templates/autoscaling/vnf/resources.yaml openstackclient:/tmp
-    oc cp $HOME/templates/autoscaling/vnf/instance.yaml openstackclient:/tmp
+    oc cp -n openstack $HOME/templates/autoscaling/vnf/template.yaml openstackclient:/tmp
+    oc cp -n openstack $HOME/templates/autoscaling/vnf/resources.yaml openstackclient:/tmp
+    oc cp -n openstack $HOME/templates/autoscaling/vnf/instance.yaml openstackclient:/tmp
 
   # template location was $HOME/templates/autoscaling/vnf/
 - name: "[temp] Set the location to copy the template to"

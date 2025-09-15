@@ -68,6 +68,15 @@
       - logging-loki-query-frontend-grpc
       - logging-loki-query-frontend-http
       - openstack-logging
+  pre_tasks:
+    - name: "Skip logging test by run_logging_test false"
+      ansible.builtin.meta: end_play
+      when: not run_logging_test | default(true) | bool
+
+    - name: "Skip logging test by logging disabled"
+      ansible.builtin.meta: end_play
+      when: not logging_enabled | bool
+ 
   tasks:
     - name: "Verify logging infrastructure components"
       ansible.builtin.import_role:
@@ -105,6 +114,15 @@
     common_pod_nspace: openshift-operators-redhat
     common_pod_list:
       - loki-operator-controller-manager
+  pre_tasks:
+    - name: "Skip logging test by run_logging_test false"
+      ansible.builtin.meta: end_play
+      when: not run_logging_test | default(true) | bool
+
+    - name: "Skip logging test by logging disabled"
+      ansible.builtin.meta: end_play
+      when: not logging_enabled | bool
+ 
   tasks:
     - name: "Verify Pods running"
       ansible.builtin.import_role:
@@ -131,7 +149,15 @@
       - logging-loki-querier
       - logging-loki-query-frontend
       - collector
+  pre_tasks:
+    - name: "Skip logging test by run_logging_test false"
+      ansible.builtin.meta: end_play
+      when: not run_logging_test | default(true) | bool
 
+    - name: "Skip logging test by logging disabled"
+      ansible.builtin.meta: end_play
+      when: not logging_enabled | bool
+ 
   ### see JIRA LOG-5431 if pods not running
   tasks:
     - name: "Verify Pods running"
@@ -151,6 +177,15 @@
     common_pod_nspace: minio-dev
     common_pod_list:
       - minio
+  pre_tasks:
+    - name: "Skip logging test by run_logging_test false"
+      ansible.builtin.meta: end_play
+      when: not run_logging_test | default(true) | bool
+
+    - name: "Skip logging test by logging disabled"
+      ansible.builtin.meta: end_play
+      when: not logging_enabled | bool
+ 
   tasks:
     - name: "Run pod running tests"
       ansible.builtin.import_role:
@@ -183,7 +218,17 @@
       - ssh-known-hosts-edpm-deployment
       - telemetry-edpm-deployment-openstack-edpm-ipam
       - validate-network-edpm-deployment-openstack-edpm-ipam
+  pre_tasks:
+    - name: "Skip logging test by run_logging_test false"
+      ansible.builtin.meta: end_play
+      when: not run_logging_test | default(true) | bool
+
+    - name: "Skip logging test by logging disabled"
+      ansible.builtin.meta: end_play
+      when: not logging_enabled | bool
+ 
   tasks:
+
     - name: "Run pods completed tests"
       ansible.builtin.import_role:
         name: common
@@ -209,6 +254,15 @@
       - lokistacks.loki.grafana.com
       - recordingrules.loki.grafana.com
       - rulerconfigs.loki.grafana.com
+  pre_tasks:
+    - name: "Skip logging test by run_logging_test false"
+      ansible.builtin.meta: end_play
+      when: not run_logging_test | default(true) | bool
+
+    - name: "Skip logging test by logging disabled"
+      ansible.builtin.meta: end_play
+      when: not logging_enabled | bool
+ 
   tasks:
     - name: "Run Services and CRD tests"
       ansible.builtin.import_role:

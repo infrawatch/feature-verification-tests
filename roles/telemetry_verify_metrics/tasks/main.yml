@@ -3,6 +3,7 @@
   ansible.builtin.include_role:
     name: common
   vars:
+    # TODO: add in the namespace for the CRs
     common_cr_list:
       - kind: telemetry
         name: telemetry

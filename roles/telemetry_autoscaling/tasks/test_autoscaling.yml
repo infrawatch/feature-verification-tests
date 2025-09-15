@@ -28,22 +28,22 @@
   register: instance_count1
   failed_when: instance_count1.stdout_lines | length != 1
 
-- shell: |
-    cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
-  with_items: "{{ vnf_instance_ip.stdout_lines }}"
-  ignore_errors: true
-
-- name: Remove the existing hostkey, if there is one for the target IP
-  ansible.builtin.lineinfile:
-    dest: '{{ ansible_env.HOME }}/.ssh/known_hosts'
-    state: absent
-    regexp: "{{ item | trim }}"
-  with_items: "{{ vnf_instance_ip.stdout_lines }}"
-
-- shell: |
-    cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
-  with_items: "{{ vnf_instance_ip.stdout_lines }}"
-  ignore_errors: true
+    #- shell: |
+    #    cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
+    #  with_items: "{{ vnf_instance_ip.stdout_lines }}"
+    #  ignore_errors: true
+    #
+    #- name: Remove the existing hostkey, if there is one for the target IP
+    #  ansible.builtin.lineinfile:
+    #    dest: '{{ ansible_env.HOME }}/.ssh/known_hosts'
+    #    state: absent
+    #    regexp: "{{ item | trim }}"
+    #  with_items: "{{ vnf_instance_ip.stdout_lines }}"
+    #
+    #- shell: |
+    #    cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
+    #  with_items: "{{ vnf_instance_ip.stdout_lines }}"
+    #  ignore_errors: true
 
   # NOTE: Disabling strict host key checking so that ssh doesn't give an error
   # when the host key changes i.e. if a new VM has been assigned a
@@ -55,8 +55,14 @@
   # The key removal should move to some pre/pre-run stage.
 - name: Test automatic scaling up of instances
   ansible.builtin.shell: |
-    sshpass -p gocubsgo ssh -o StrictHostKeyChecking=False cirros@{{ item | trim }} "sudo yes > /dev/null &"
+    sshpass -p gocubsgo ssh -o StrictHostKeyChecking=no cirros@{{ item | trim }} "sudo yes > /dev/null &"
   register: busy_process
+  with_items: "{{ vnf_instance_ip.stdout_lines }}"
+
+
+- name: Check that the busy process is active
+  ansible.builtin.shell: |
+    sshpass -p gocubsgo ssh -o StrictHostKeyChecking=no cirros@{{ item | trim }} "sudo ps aux | grep yes"
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
 - name: Show ceilometer_cpu metrics from Prometheus
@@ -83,55 +89,82 @@
       ansible.builtin.debug:
         var: result
 
-- name: |
-    TEST Verify cpu high alarm has been triggered
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    {{ openstack_cmd }} alarm list -c state -c name -f value| \
-        grep -i "cpu_alarm_high" | \
-        grep -i "{{ stack_name }}" | \
-        awk '{print $2}'
-  retries: 100
-  delay: 5
-  register: result
-  until: result.stdout == "alarm"
 
-- name: |
-    TEST Verify orchestration scaled up instances
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    {{ openstack_cmd }} server list --long | grep -i metering.server_group
-  retries: 100
-  delay: 5
-  register: instance_count2
-  until: instance_count2.stdout_lines | length == 3
+- name:  TEST Scaling Up instance
+  block:
+    - name: |
+        TEST Verify cpu high alarm has been triggered
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        {{ openstack_cmd }} alarm list -c state -c name -f value| \
+            grep -i "cpu_alarm_high" | \
+            grep -i "{{ stack_name }}" | \
+            awk '{print $2}'
+      retries: 100
+      delay: 5
+      register: result
+      until: result.stdout == "alarm"
+
+    - name: |
+        TEST Verify orchestration scaled up instances
+      when: result is succeeded
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        {{ openstack_cmd }} server list --long | grep -i metering.server_group
+      retries: 100
+      delay: 5
+      register: instance_count2
+      until: instance_count2.stdout_lines | length == 3
+      
+    - name: Ensure Scaling Up instance result is set
+      ansible.builtin.set_fact:
+        scaling_up_success: "{{ instance_count2 is succeeded and instance_count2 is not skipped }}"
+
+    - name: Check the scaling_up_success var
+      debug:
+        msg: |
+          scaling_up_success: {{ scaling_up_success | bool }}
+
+    - name: Check the scaling_up_success var
+      debug:
+        msg: |
+          scaling up succeed? {{ instance_count2 is succeeded }}
+
+    - name: Check the task output
+      debug:
+        msg: |
+          {{ instance_count2 }}
 
 - name: Stop the busy process
   ansible.builtin.shell: |
-    sshpass -p gocubsgo ssh cirros@{{ item | trim }} "sudo killall yes"
+    sshpass -p gocubsgo ssh -o StrictHostKeyChecking=no cirros@{{ item | trim }} sudo killall yes
   register: kill_busy_process
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
-- name: |
-    TEST Verify cpu low alarm has been triggered
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    {{ openstack_cmd }} alarm list -c state -c name -f value| \
-        grep -i "cpu_alarm_low" | \
-        grep -i "{{ stack_name }}" | \
-        awk '{print $2}'
-  retries: 160
-  delay: 5
-  register: result
-  until: result.stdout == "alarm"
+- name: TEST Scaling down instance
+  when: scaling_up_success | bool
+  block:
+    - name: |
+        TEST Verify cpu low alarm has been triggered
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        {{ openstack_cmd }} alarm list -c state -c name -f value| \
+            grep -i "cpu_alarm_low" | \
+            grep -i "{{ stack_name }}" | \
+            awk '{print $2}'
+      retries: 160
+      delay: 5
+      register: result
+      until: result.stdout == "alarm"
 
-- name: |
-    TEST Verify Orchestration scaled down instances
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
-    {{ openstack_cmd }} server list --long|grep -i metering.server_group=\'$STACK_ID\'
-  retries: 100
-  delay: 5
-  register: instance_count3
-  until: instance_count3.stdout_lines | length == 1
+    - name: |
+        TEST Verify Orchestration scaled down instances
+      when: result.stdout == "alarm"
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
+        {{ openstack_cmd }} server list --long|grep -i metering.server_group=\'$STACK_ID\'
+      retries: 100
+      delay: 5
+      register: instance_count3
+      until: instance_count3.stdout_lines | length == 1

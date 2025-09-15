@@ -8,7 +8,7 @@
 
 - name: TEST Get galera CR names
   ansible.builtin.shell: |
-    oc get galeras -o custom-columns=NAME:.metadata.name --no-headers
+    oc get -n openstack galeras -o custom-columns=NAME:.metadata.name --no-headers
   register: cr_names
   changed_when: false
   failed_when: cr_names.rc >= 1 or cr_names.stdout == ""
@@ -33,7 +33,7 @@
 
 - name: TEST Check mariadb metric endpoints
   ansible.builtin.shell: |
-    oc rsh openstackclient curl https://mysqld-exporter.openstack.svc:9104/probe?{{ item }}.openstack.svc.3306&auth_module=client.{{ item }}.openstack.svc
+    oc rsh -n openstack openstackclient curl https://mysqld-exporter.openstack.svc:9104/probe?{{ item }}.openstack.svc.3306&auth_module=client.{{ item }}.openstack.svc
   register: result
   changed_when: false
   failed_when: result.rc >= 1

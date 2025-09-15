@@ -1,9 +1,12 @@
 ---
+- set_fact:
+    namespace: "{{ item.namespace | default('openstack') }}"
+
 - name: |
     TEST Verify that the {{ item.kind }} {{ item.name }} CR exists
   ansible.builtin.command:
     cmd: |
-      oc get {{ item.kind }} {{ item.name }}
+      oc get -n {{ namespace }} {{ item.kind }} {{ item.name }}
   register: result
   changed_when: false
   failed_when:
@@ -12,7 +15,7 @@
 - name: Verify that a CR is ready
   ansible.builtin.command:
     cmd: |
-      oc get {{ item.kind }} {{ item.name }} -o jsonpath='{.status.conditions[?(@.type=="{{ item.condition_type }}")].status}{"\n"}'
+      oc get -n {{ namespace }} {{ item.kind }} {{ item.name }} -o jsonpath='{.status.conditions[?(@.type=="{{ item.condition_type }}")].status}{"\n"}'
   register: result
   changed_when: false
   failed_when:

@@ -2,19 +2,20 @@
 - name: Check that the stack exists
   ansible.builtin.command:
     cmd: |
-      oc rsh openstackclient openstack stack show {{ stack_name }}
+      {{ openstack_cmd }} stack show {{ stack_name }}
   ignore_errors: true
   register: output
 
 - name: Remove the stack if it exists
   ansible.builtin.command:
     cmd: |
-      oc rsh openstackclient openstack stack delete {{ stack_name }}
+      {{ openstack_cmd }} stack delete {{ stack_name }}
   when: output.rc == 0
 
 - name: Wait until the stack is deleted
   ansible.builtin.shell:
-    cmd: oc rsh openstackclient openstack stack list | grep {{ stack_name }} | wc -l
+    cmd: |
+      {{ openstack_cmd }} stack list | grep {{ stack_name }} | wc -l
   register: output
   until: output.stdout == '0'
   ignore_errors: true

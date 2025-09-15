@@ -19,6 +19,13 @@
     file: configure_heat.yml
   tags: setup
 
+    # TODO: moave this elsewhere later
+- name: Install sshpass
+  become: true
+  ansible.builtin.dnf:
+    name: sshpass
+    state: present
+
 - name: Launch the stack
   ansible.builtin.include_tasks: 
     file: creating_stack.yml
