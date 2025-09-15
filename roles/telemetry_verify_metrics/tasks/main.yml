@@ -23,7 +23,7 @@
 
 - name: Verify Prometheus secret exists and has correct values
   ansible.builtin.include_tasks:
-    file: verrify_prometheus_secret.yml
+    file: verify_prometheus_secret.yml
   tags: test
 
 - name: Verify RabbitMQ metrics are being exposed and stored
