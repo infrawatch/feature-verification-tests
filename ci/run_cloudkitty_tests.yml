@@ -43,8 +43,8 @@
           ansible.builtin.shell:
             cmd: |
               {{ openstack_cmd }} rating module list
-              export SERVICE_NAME=test_service_instance
               export GROUP_NAME=test_group_instance_uptime_flavor_id
+              export SERVICE_NAME=test_service_instance
               export FIELD_NAME="flavor_id"
               
               {{ openstack_cmd }} rating hashmap group create $GROUP_NAME || true
@@ -60,3 +60,17 @@
               export FLAVOR_ID=$({{ openstack_cmd }} flavor list -f value -c Name -c ID | grep $FLAVOR_NAME | awk '{print $2}')
               
               {{ openstack_cmd }} rating hashmap mapping create 0.01  --field-id $FLAVOR_FIELD_ID  --value $FLAVOR_ID  -g $GROUP_ID  -t flat
+          ignore_errors: true
+
+        - name: Delete the created resources
+          ansible.builtin.shell:
+            cmd: |
+              export GROUP_NAME=test_group_instance_uptime_flavor_id
+              export SERVICE_NAME=test_service_instance
+ 
+              export GROUP_ID=$({{ openstack_cmd }} rating hashmap group list -f value -c Name -c 'Group ID' | grep $GROUP_NAME| awk '{ print $2}')
+              export SERVICE_ID=$({{ openstack_cmd }} rating hashmap service list -f value -c Name -c 'Service ID' | grep $SERVICE_NAME | awk '{ print $2 }')
+              {{ openstack_cmd }} rating hashmap group delete $GROUP_ID
+              {{ openstack_cmd }} rating hashmap service delete $SERVICE_ID
+
+
