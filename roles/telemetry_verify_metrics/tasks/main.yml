@@ -112,3 +112,9 @@
     file: verify_ceilometer_volume_pool_metrics.yml
   tags: test
   when: '"volume_pool" in telemetry_verify_metrics_metric_sources_to_test'
+
+- name: Verify OVN metrics are being exposed and stored
+  ansible.builtin.include_tasks:
+    file: verify_ovn_metrics.yml
+  tags: test
+  when: '"ovn" in telemetry_verify_metrics_metric_sources_to_test'
