@@ -31,11 +31,13 @@ Tests:
     - Use openstack observabilityclient to verify OpenstackNetworkExporter metrics are stored in Prometheus
 - Verify Kepler metrics are being exposed and stored
     - Use openstack observabilityclient to verify Kepler metrics are stored in Prometheus
+- Verify OVN metrics are being exposed and stored
+    - Use openstack observabilityclient to verify OVN metrics are stored in Prometheus
 
 Role Variables
 --------------
 openstack\_cmd - command to access openstack cli. For example: "oc rsh openstackclient openstack"
-telemetry\_verify\_metrics\_metric\_sources\_to\_test - List of sources to test. Current set of possible sources: ceilometer\_compute\_agent, ceilometer\_central\_agent, ceilometer\_ipmi_\_agent, node\_exporter, rabbitmq, kepler, openstack\_network\_exporter, volume\_pool
+telemetry\_verify\_metrics\_metric\_sources\_to\_test - List of sources to test. Current set of possible sources: ceilometer\_compute\_agent, ceilometer\_central\_agent, ceilometer\_ipmi_\_agent, node\_exporter, rabbitmq, kepler, openstack\_network\_exporter, volume\_pool, ovn
 
 Example Playbook
 ----------------
