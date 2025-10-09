@@ -3,3 +3,4 @@
 openstack_cmd: "openstack"
 stack_name: vnf
 metrics_backend: gnocchi
+telemetry_autoscaling_cleanup: true

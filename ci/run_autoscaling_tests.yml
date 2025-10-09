@@ -62,9 +62,17 @@
         - name: "Run Telemetry Autoscaling tests"
           ansible.builtin.import_role:
             name: telemetry_autoscaling
+          vars:
+            telemetry_autoscaling_cleanup: false
           ignore_errors: true
 
         - name: "Run Telemetry Verify Metrics tests"
           ansible.builtin.import_role:
             name: telemetry_verify_metrics
           ignore_errors: true
+
+      always:
+        - name: "Run Telemetry Autoscaling cleanup"
+          ansible.builtin.include_role:
+            name: telemetry_autoscaling
+            tasks_from: post_teardown

@@ -12,6 +12,13 @@ The following resources are required in the OpenStack cloud
 * a flavor called m1.small
 * an image called cirros
 
+Role Variables
+--------------
+* `telemetry_autoscaling_cleanup` (default: `true`) - Controls whether the autoscaling stack
+  cleanup task runs at the end of the role. Set to `false` to skip cleanup during the main role
+  execution, allowing cleanup to be deferred to a later task (e.g., in a block's `always`
+  section to ensure cleanup runs even on failure).
+
 Tests:
 ------
 * Verify overcloud deployment for autoscaling
