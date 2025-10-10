@@ -76,3 +76,8 @@
           ansible.builtin.include_role:
             name: telemetry_autoscaling
             tasks_from: post_teardown
+
+        - name: Delete test_0 VM
+          ansible.builtin.shell:
+            cmd: |
+              {{ openstack_cmd }} server delete test_0
