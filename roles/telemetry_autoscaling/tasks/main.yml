@@ -30,6 +30,7 @@
   tags: test
 
 - name: Run the cleanup task
-  ansible.builtin.include_tasks: 
+  ansible.builtin.include_tasks:
     file: post_teardown.yml
+  when: telemetry_autoscaling_cleanup | bool
   tags: cleanup
