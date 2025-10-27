@@ -51,15 +51,13 @@
 - name: |
     TEST Use openstack observabilityclient to verify ovn controller metrics are stored in prometheus
   vars:
-    ovn_controller_metrics:
+    ovn_controller_base_metrics:
       - ovnc_rconn_queued
       - ovnc_txn_incomplete
       - ovnc_bridge_mappings
       - ovnc_encap_ip
       - ovnc_encap_type
       - ovnc_sb_connection_method
-      - ovnc_router_port_traffic_pkts
-      - ovnc_router_port_traffic_bytes
       - ovs_build_info
       - ovs_dpdk_initialized
       - ovs_bridge_flow_count
@@ -72,6 +70,14 @@
       - ovs_memory_ports_total
       - ovs_memory_revalidators_total
       - ovs_memory_rules_total
+    ovn_controller_traffic_metrics:
+      - ovnc_router_port_traffic_pkts
+      - ovnc_router_port_traffic_bytes
+    ovn_controller_metrics: >-
+      {{
+        ovn_controller_base_metrics +
+        (ovn_controller_traffic_metrics if test_ovn_router_traffic_metrics | default(false) else [])
+      }}
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac {{ item }}
   register: result
