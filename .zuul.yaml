@@ -156,6 +156,12 @@
     irrelevant-files: *irrelevant_files
     required-projects: *required_projects
 
+- job:
+    name: functional-chargeback-tests-osp18
+    parent: telemetry-operator-multinode-cloudkitty
+    description: |
+      Alias of telemetry-operator-multinode-cloudkitty for testing
+
 - project:
     name: infrawatch/feature-verification-tests
     periodic:
@@ -167,6 +173,9 @@
       jobs:
         - telemetry-openstack-meta-content-provider-master:
             override-checkout: main
+        - functional-chargeback-tests-osp18:
+            dependencies:
+              - telemetry-openstack-meta-content-provider-master
         - feature-verification-tests-noop:
             files: *irrelevant_files
         - functional-tests-osp18
