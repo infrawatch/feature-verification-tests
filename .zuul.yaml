@@ -161,6 +161,21 @@
     parent: telemetry-operator-multinode-cloudkitty
     description: |
       Alias of telemetry-operator-multinode-cloudkitty for testing
+    irrelevant-files: []
+    roles:
+      - zuul: github.com/openstack-k8s-operators/ci-framework
+      - zuul: github.com/infrawatch/feature-verification-tests
+    required-projects:
+      - name: github.com/openstack-k8s-operators/telemetry-operator
+        override-checkout: main
+      - name: github.com/infrawatch/feature-verification-tests
+    vars:
+      cifmw_extras:
+       - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
+       # Need a config for CK
+       - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-cloudkitty-tempest.yml"
+       - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
+       - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-cloudkitty-fvt.yml"
 
 - project:
     name: infrawatch/feature-verification-tests
@@ -174,6 +189,7 @@
         - telemetry-openstack-meta-content-provider-master:
             override-checkout: main
         - functional-chargeback-tests-osp18:
+            override-checkout: main
             dependencies:
               - telemetry-openstack-meta-content-provider-master
         - feature-verification-tests-noop:
