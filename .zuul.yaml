@@ -169,13 +169,7 @@
             override-checkout: main
         - feature-verification-tests-noop:
             files: *irrelevant_files
-        - functional-tests-osp18:
-            files:
-              - roles/telemetry_autoscaling/.*
-              - roles/telemetry_graphing/.*
-              - roles/telemetry_logging/.*
-              - roles/common/*
-              - roles/telemetry_verify_metrics/.*
+        - functional-tests-osp18
         - functional-logging-tests-osp18:
             irrelevant-files: *irrelevant_files
             files:
