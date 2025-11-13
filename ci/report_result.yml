@@ -5,7 +5,13 @@
   vars_files:
     - vars/common.yml
   tasks:
+    - name: Check whether the log dir exists
+      ansible.builtin.stat:
+        path: "{{ logs_dir }}"
+      register: stat_out
+
     - name: Create log dir
+      when: not stat_out.stat.exists
       ansible.builtin.file:
         path: "{{ logs_dir }}"
         state: directory
