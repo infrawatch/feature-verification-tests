@@ -22,11 +22,21 @@
       ansible.builtin.meta: end_play
       when: not run_autoscaling_test | default(true) | bool
 
-    - name: "Get OpenStackControlPlane autoscaling status"
-      ansible.builtin.command: >
-        oc get oscp -n openstack -o jsonpath='{.items[0].spec.telemetry.template.autoscaling.enabled}'
-      register: autoscaling_status
-      changed_when: false
+      # This won't run if you're using a custom telemetry resource.
+      # Using a custom telemetry resource is a reasonable usecase during
+      # development, and being able to run autoscaling tests in expected in
+      # this scenario.
+      # The options for this are:
+      #   Check that there is an autoscaling resource
+      #   check that there is a telemetry resource with autoscaling enabled
+   # - name: "Get OpenStackControlPlane autoscaling status"
+   #   ansible.builtin.command: >
+   #     oc get oscp -n openstack -o jsonpath='{.items[0].spec.telemetry.template.autoscaling.enabled}'
+   #   register: autoscaling_status
+   #   changed_when: false
+    - ansible.builtin.set_fact:
+        autoscaling_status:
+          stdout: true
 
     - name: "Set fact if autoscaling is enabled"
       ansible.builtin.set_fact:
