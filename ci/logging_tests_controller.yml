@@ -86,29 +86,32 @@
     common_pod_nspace: openstack
     common_pod_list:
       - openstackclient
+      - name: loki-operator-controller-manager
+        nspace: openshift-operators-redhat
+        test_id: "RHOSO-12673"
   tasks:
     - name: "Verify Running Pods"
       ansible.builtin.import_role:
         name: common
 
 
-- name: "Verify logging pods are running in openshift-operators-redhat"
-  hosts: controller
-  gather_facts: no
-  ignore_errors: true
-  environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
-  vars:
-    common_pod_test_id: "RHOSO-12673"
-    common_pod_status_str: "Running"
-    common_pod_nspace: openshift-operators-redhat
-    common_pod_list:
-      - loki-operator-controller-manager
-  tasks:
-    - name: "Verify Pods running"
-      ansible.builtin.import_role:
-        name: common
+#- name: "Verify logging pods are running in openshift-operators-redhat"
+#  hosts: controller
+#  gather_facts: no
+#  ignore_errors: true
+#  environment:
+#    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+#    PATH: "{{ cifmw_path }}"
+#  vars:
+#    common_pod_test_id: "RHOSO-12673"
+#    common_pod_status_str: "Running"
+#    common_pod_nspace: openshift-operators-redhat
+#    common_pod_list:
+#      - loki-operator-controller-manager
+#  tasks:
+#    - name: "Verify Pods running"
+#      ansible.builtin.import_role:
+#        name: common
 
 - name: "Verify logging pods are running in openshift-logging"
   hosts: controller
@@ -131,6 +134,73 @@
       - logging-loki-querier
       - logging-loki-query-frontend
       - collector
+      - name: minio
+        nspace: minio-dev
+        test_id: "RHOSO-12674"
+      - name: bootstrap-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: configure-network-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: configure-os-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: download-cache-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: install-certs-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: install-os-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: libvirt-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: logging-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: neutron-metadata-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: nova-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: ovn-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: reboot-os-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: run-os-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: ssh-known-hosts-edpm-deployment
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: telemetry-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
+      - name: validate-network-edpm-deployment-openstack-edpm-ipam
+        nspace: openstack
+        status_str: "Completed"
+        test_id: "RHOSO-12679"
 
   ### see JIRA LOG-5431 if pods not running
   tasks:
@@ -138,55 +208,57 @@
       ansible.builtin.import_role:
         name: common
 
-- name: "Verify logging pods are running in minio-dev"
-  hosts: controller
-  gather_facts: no
-  ignore_errors: true
-  environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
-  vars:
-    common_pod_test_id: "RHOSO-12674"
-    common_pod_status_str: "Running"
-    common_pod_nspace: minio-dev
-    common_pod_list:
-      - minio
-  tasks:
-    - name: "Run pod running tests"
-      ansible.builtin.import_role:
-        name: common
+#- name: "Verify logging pods are running in minio-dev"
+#  hosts: controller
+#  gather_facts: no
+#  ignore_errors: true
+#  environment:
+#    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+#    PATH: "{{ cifmw_path }}"
+#  vars:
+#    common_pod_test_id: "RHOSO-12674"
+#    common_pod_status_str: "Running"
+#    common_pod_nspace: minio-dev
+#    common_pod_list:
+#      - minio
+#  tasks:
+#    - name: "Run pod running tests"
+#      ansible.builtin.import_role:
+#        name: common
 
 
-- name: "Verify logging pods have complete status in openstack"
-  hosts: controller
-  gather_facts: no
-  ignore_errors: true
-  environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
-  vars:
-    common_pod_test_id: "RHOSO-12679"
-    common_pod_nspace: openstack
-    common_pod_status_str: "Completed"
-    common_pod_list:
-      - bootstrap-edpm-deployment-openstack-edpm-ipam
-      - configure-network-edpm-deployment-openstack-edpm-ipam
-      - configure-os-edpm-deployment-openstack-edpm-ipam
-      - install-certs-edpm-deployment-openstack-edpm-ipam
-      - install-os-edpm-deployment-openstack-edpm-ipam
-      - libvirt-edpm-deployment-openstack-edpm-ipam
-      - logging-edpm-deployment-openstack-edpm-ipam
-      - neutron-metadata-edpm-deployment-openstack-edpm-ipam
-      - ovn-edpm-deployment-openstack-edpm-ipam
-      - reboot-os-edpm-deployment-openstack-edpm-ipam
-      - run-os-edpm-deployment-openstack-edpm-ipam
-      - ssh-known-hosts-edpm-deployment
-      - telemetry-edpm-deployment-openstack-edpm-ipam
-      - validate-network-edpm-deployment-openstack-edpm-ipam
-  tasks:
-    - name: "Run pods completed tests"
-      ansible.builtin.import_role:
-        name: common
+#- name: "Verify logging pods have complete status in openstack"
+#  hosts: controller
+#  gather_facts: no
+#  ignore_errors: true
+#  environment:
+#    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+#    PATH: "{{ cifmw_path }}"
+#  vars:
+#    common_pod_test_id: "RHOSO-12679"
+#    common_pod_nspace: openstack
+#    common_pod_status_str: "Completed"
+#    common_pod_list:
+#      - name: bootstrap-edpm-deployment-openstack-edpm-ipam
+#      - name: configure-network-edpm-deployment-openstack-edpm-ipam
+#      - name: configure-os-edpm-deployment-openstack-edpm-ipam
+#      - name: download-cache-edpm-deployment-openstack-edpm-ipam
+#      - name: install-certs-edpm-deployment-openstack-edpm-ipam
+#      - name: install-os-edpm-deployment-openstack-edpm-ipam
+#      - name: libvirt-edpm-deployment-openstack-edpm-ipam
+#      - name: logging-edpm-deployment-openstack-edpm-ipam
+#      - name: neutron-metadata-edpm-deployment-openstack-edpm-ipam
+#      - name: nova-edpm-deployment-openstack-edpm-ipam
+#      - name: ovn-edpm-deployment-openstack-edpm-ipam
+#      - name: reboot-os-edpm-deployment-openstack-edpm-ipam
+#      - name: run-os-edpm-deployment-openstack-edpm-ipam
+#      - name: ssh-known-hosts-edpm-deployment
+#      - name: telemetry-edpm-deployment-openstack-edpm-ipam
+#      - name: validate-network-edpm-deployment-openstack-edpm-ipam
+#  tasks:
+#    - name: "Run pods completed tests"
+#      ansible.builtin.import_role:
+#        name: common
 
 - name: "Verify the crds exist"
   hosts: controller
