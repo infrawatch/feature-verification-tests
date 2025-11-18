@@ -1,0 +1,5 @@
+---
+pre_tests_01_run_chargeback_tests:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/chargeback_tests.yml"
+  type: playbook
+  config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
