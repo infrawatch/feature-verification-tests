@@ -1,2 +1,10 @@
 ---
 openstack_cmd: "openstack"
+
+ck_synth_script: "{{ role_path }}/files/gen_synth_loki_data.py"
+ck_data_template: "{{ role_path }}/files/loki_data_templ.j2"
+ck_data_config: "{{ role_path }}/files/test_static.yml"
+ck_output_file_local: "{{ role_path }}/files/loki_synth_data.json"
+
+# Output directory for test artifacts
+logs_dir: "/home/zuul/ci-framework-data/tests/feature-verification-tests" 

@@ -1,0 +1,32 @@
+{"streams": [{ "stream": { "service": "{{ loki_stream.service }}" }, "values": [
+{%- for item in log_data %}
+{%- set outer_idx = loop.index0 %}
+{%- set is_last_outer = loop.last %}
+{%- for log_type_name in log_type_names %}
+{%- set entry_data = all_log_entries[outer_idx][log_type_name] -%}
+{%- set entry = {
+    "start": item.start_time,
+    "end": item.end_time,
+    "type": entry_data.type,
+    "unit": entry_data.unit,
+    "description": entry_data.description,
+    "qty": entry_data.qty,
+    "price": entry_data.price,
+    "groupby": entry_data.groupby,
+    "metadata": entry_data.metadata
+} -%}
+{%- if loop.first %}
+[
+"{{ item.nanoseconds }}",
+{{ entry | tojson | tojson }}
+]
+{%- else %}
+[
+{{ entry | tojson | tojson }}
+]
+{%- endif %}
+{%- if not (loop.last and is_last_outer) %},
+{% endif -%}
+{%- endfor %}
+{%- endfor %}
+]}]}
