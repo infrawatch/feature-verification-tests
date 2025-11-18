@@ -2,7 +2,6 @@
 - name: "Run functional test playbooks"
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
-  debug: true
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
