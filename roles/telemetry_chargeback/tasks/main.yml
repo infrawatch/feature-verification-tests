@@ -1,3 +1,6 @@
 ---
 - name: "Validate Chargeback Feature"
   ansible.builtin.include_tasks: "chargeback_tests.yml"
+
+- name: "Generate Synthetic Data"
+  ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
