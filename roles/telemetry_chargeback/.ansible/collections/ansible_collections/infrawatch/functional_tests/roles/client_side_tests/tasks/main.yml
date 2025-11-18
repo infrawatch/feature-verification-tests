@@ -1,0 +1,5 @@
+---
+- name: "Check that the collectd metrics are getting to prom"
+  ansible.builtin.include_tasks:
+    file: test_e2e.yml
+

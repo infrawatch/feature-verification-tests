@@ -1,0 +1,30 @@
+{
+ "collection_info": {
+  "namespace": "infrawatch",
+  "name": "functional_tests",
+  "version": "0.0.1",
+  "authors": [
+   "Red Hat CloudOps team"
+  ],
+  "readme": "README.rst",
+  "tags": [],
+  "description": "Tests for STF components",
+  "license": [
+   "Apache-2.0"
+  ],
+  "license_file": null,
+  "dependencies": {},
+  "repository": "http://github.com/infrawatch/functional-tests",
+  "documentation": null,
+  "homepage": null,
+  "issues": null
+ },
+ "file_manifest_file": {
+  "name": "FILES.json",
+  "ftype": "file",
+  "chksum_type": "sha256",
+  "chksum_sha256": "08905cff1f682cd89362a6929bbe987ac3ae9c070ab8e673d040bf9a9d0ecf18",
+  "format": 1
+ },
+ "format": 1
+}

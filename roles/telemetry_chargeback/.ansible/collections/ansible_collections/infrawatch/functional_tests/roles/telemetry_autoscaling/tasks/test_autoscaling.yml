@@ -1,0 +1,152 @@
+---
+  # NOTE: The format of the output appears to have changed; There are now 2
+  # IP addresses, and the second one is the one associated with the floating IP
+- name: Register instance IP
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
+    {{ openstack_cmd }} server list --long -c Networks -c 'Properties' | \
+        grep -i $STACK_ID | \
+        awk -F'=' '{print $2}' | \
+        awk -F'|' '{print $1}' | \
+        awk -F',' '{print $2}'
+  register: vnf_instance_ip
+
+- name: Show the IP
+  ansible.builtin.debug:
+    var: vnf_instance_ip
+
+- when: vnf_instance_ip.stdout | length == 0
+  fail:
+    msg: "bad vnf_instance_ip"
+
+- name: |
+    TEST Verify number instances before scaling
+  ansible.builtin.shell: |
+    # source ~/overcloudrc;
+    {{ openstack_cmd }} server list --long | grep -i 'metering.server_group'
+  register: instance_count1
+  failed_when: instance_count1.stdout_lines | length != 1
+
+- shell: |
+    cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
+  with_items: "{{ vnf_instance_ip.stdout_lines }}"
+  ignore_errors: true
+
+- name: Remove the existing hostkey, if there is one for the target IP
+  ansible.builtin.lineinfile:
+    dest: '{{ ansible_env.HOME }}/.ssh/known_hosts'
+    state: absent
+    regexp: "{{ item | trim }}"
+  with_items: "{{ vnf_instance_ip.stdout_lines }}"
+
+- shell: |
+    cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
+  with_items: "{{ vnf_instance_ip.stdout_lines }}"
+  ignore_errors: true
+
+  # NOTE: Disabling strict host key checking so that ssh doesn't give an error
+  # when the host key changes i.e. if a new VM has been assigned a
+  # previously-used IP address, which will happen during local testing but not
+  # in CI
+  # NOTE: the with_items is because I was capturing both IPs initially, and
+  # using both in case the order was not consistent.
+  # Disabling hostkey checking didn't work. I need to remove the key from the known_hosts file before trying to tun this.
+  # The key removal should move to some pre/pre-run stage.
+- name: Test automatic scaling up of instances
+  ansible.builtin.shell: |
+    sshpass -p gocubsgo ssh -o StrictHostKeyChecking=False cirros@{{ item | trim }} "sudo yes > /dev/null &"
+  register: busy_process
+  with_items: "{{ vnf_instance_ip.stdout_lines }}"
+
+- name: Show ceilometer_cpu metrics from Prometheus
+  when: metrics_backend == "prometheus"
+  block:
+    - name: Register autoscaling query results
+      shell: |
+        export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
+        {{ openstack_cmd }} metric query '(rate(ceilometer_cpu{server_group=~"$STACK_ID"}[150s]))/10000000'
+      ignore_errors: true
+      register: result
+
+    - name: Show the query result
+      ansible.builtin.debug:
+        var: result
+
+    - name: Register ceilometer_cpu metrics
+      shell: |
+        {{ openstack_cmd }} metric show ceilometer_cpu --disable-rbac
+      ignore_errors: true
+      register: result
+
+    - name: Show the ceilometer_cpu metrics
+      ansible.builtin.debug:
+        var: result
+
+
+- name:  TEST Scaling Up instance
+  block:
+    - name: |
+        TEST Verify cpu high alarm has been triggered
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        {{ openstack_cmd }} alarm list -c state -c name -f value| \
+            grep -i "cpu_alarm_high" | \
+            grep -i "{{ stack_name }}" | \
+            awk '{print $2}'
+      retries: 100
+      delay: 5
+      register: result
+      until: result.stdout == "alarm"
+
+    - name: |
+        TEST Verify orchestration scaled up instances
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        {{ openstack_cmd }} server list --long | grep -i metering.server_group
+      retries: 100
+      delay: 5
+      register: instance_count2
+      until: instance_count2.stdout_lines | length == 3
+      
+    - name: Ensure Scaling Up instance result is set
+      ansible.builtin.set_fact:
+        scaling_up_success: "{{ instance_count2.stdout_lines | length == 3 }}"
+
+    - name: Debug scaling_up_success
+      ansible.builtin.debug:
+        var: scaling_up_success
+
+
+- name: Stop the busy process
+  ansible.builtin.shell: |
+    sshpass -p gocubsgo ssh cirros@{{ item | trim }} "sudo killall yes"
+  register: kill_busy_process
+  with_items: "{{ vnf_instance_ip.stdout_lines }}"
+
+- name:  TEST Scaling down instance
+  when: scaling_up_success | bool
+  block:
+    - name: |
+        TEST Verify cpu low alarm has been triggered
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        {{ openstack_cmd }} alarm list -c state -c name -f value| \
+            grep -i "cpu_alarm_low" | \
+            grep -i "{{ stack_name }}" | \
+            awk '{print $2}'
+      retries: 160
+      delay: 5
+      register: result
+      until: result.stdout == "alarm"
+
+    - name: |
+        TEST Verify Orchestration scaled down instances
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
+        {{ openstack_cmd }} server list --long|grep -i metering.server_group=\'$STACK_ID\'
+      retries: 100
+      delay: 5
+      register: instance_count3
+      until: instance_count3.stdout_lines | length == 1

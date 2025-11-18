@@ -1,2 +1,10 @@
 ---
 openstack_cmd: "openstack"
+
+# Feature verification tests directory (where the repo is checked out)
+# Can be overridden by vars/common.yml
+fvt_dir: "{{ lookup('env', 'HOME') }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
+
+# Output directory for generated files
+# Can be overridden by vars/common.yml
+logs_dir: "{{ lookup('env', 'HOME') }}/ci-framework-data/tests/feature-verification-tests"

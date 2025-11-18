@@ -1,0 +1,12 @@
+---
+- name: "Get the observability strategy"
+  ansible.builtin.shell:
+    cmd: |
+      oc get stf default -ojsonpath='{.spec.observabilityStrategy}'
+  changed_when: false
+  register: observability_strategy
+
+- name: "Set the observability api based on the observability strategy"
+  ansible.builtin.set_fact:
+    observability_api: "{{ 'monitoring.rhobs' if observability_strategy.stdout == 'use_redhat' else 'monitoring.coreos.com' }}"
+

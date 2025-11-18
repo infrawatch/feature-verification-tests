@@ -1,0 +1,15 @@
+---
+- name: Verify subscription "{{ item }}"
+  ansible.builtin.shell:
+    cmd: |
+      oc get subscriptions -n "{{ common_subscription_nspace }}" "{{ item }}"
+  changed_when: false
+  register: output
+
+- name: |
+    TEST Check that {{ item }} subscription exists in {{ common_subscription_nspace }} namespace
+  ansible.builtin.assert:
+    that:
+      - "'NotFound' not in output.stderr"
+    success_msg: "subscription {{ item }} is found."
+    fail_msg: "subscription {{ item }} not found. Error: {{ output.stderr }}"

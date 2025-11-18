@@ -1,0 +1,5 @@
+---
+- name: "Verify journal entries"
+  when: journal_list is defined
+  ansible.builtin.include_tasks: "journal_tests.yml"
+  loop: "{{ journal_list }}"

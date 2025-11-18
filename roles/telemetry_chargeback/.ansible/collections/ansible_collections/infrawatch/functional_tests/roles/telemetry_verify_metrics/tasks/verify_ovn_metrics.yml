@@ -1,0 +1,135 @@
+- name: Get ovn-northd metric services
+  ansible.builtin.shell: |
+    oc get svc -l service=ovn-northd,metrics=enabled -o name -n openstack
+  register: ovn_northd_metric
+  changed_when: false
+
+- name: Verify ovn-northd scrapeconfig exists
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-ovn-northd
+  when: ovn_northd_metric.stdout != ""
+
+- name: |
+    TEST Use openstack observabilityclient to verify ovn-northd metrics are stored in prometheus
+  vars:
+    ovn_northd_metrics:
+      - ovn_northd_status
+      - ovn_northd_pstream_open_total
+      - ovn_northd_stream_open_total
+      - ovn_northd_txn_incomplete_total
+      - ovn_northd_txn_success_total
+      - ovn_northd_txn_unchanged_total
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and item in result.stdout
+  loop: "{{ ovn_northd_metrics }}"
+  when: ovn_northd_metric.stdout != ""
+
+- name: Get ovn-controller metric services
+  ansible.builtin.shell: |
+    oc get svc -l service=ovn-controller-metrics,metrics=enabled -o name -n openstack
+  register: ovn_controller_metric
+  changed_when: false
+
+- name: Verify ovn-controller scrapeconfig exists
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-ovn-controller
+  when: ovn_controller_metric.stdout != ""
+
+- name: |
+    TEST Use openstack observabilityclient to verify ovn controller metrics are stored in prometheus
+  vars:
+    ovn_controller_base_metrics:
+      - ovnc_rconn_queued
+      - ovnc_txn_incomplete
+      - ovnc_bridge_mappings
+      - ovnc_encap_ip
+      - ovnc_encap_type
+      - ovnc_sb_connection_method
+      - ovs_build_info
+      - ovs_dpdk_initialized
+      - ovs_bridge_flow_count
+      - ovs_bridge_port_count
+      - ovs_datapath_flows_total
+      - ovs_datapath_lookup_hits_total
+      - ovs_datapath_lookup_missed_total
+      - ovs_datapath_lookup_lost_total
+      - ovs_memory_handlers_total
+      - ovs_memory_ports_total
+      - ovs_memory_revalidators_total
+      - ovs_memory_rules_total
+    ovn_controller_traffic_metrics:
+      - ovnc_router_port_traffic_pkts
+      - ovnc_router_port_traffic_bytes
+    ovn_controller_metrics: >-
+      {{
+        ovn_controller_base_metrics +
+        (ovn_controller_traffic_metrics if test_ovn_router_traffic_metrics | default(false) else [])
+      }}
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and item in result.stdout and ":1981" in result.stdout
+  loop: "{{ ovn_controller_metrics }}"
+  when: ovn_controller_metric.stdout != ""
+
+- name: Get RAFT metric services
+  ansible.builtin.shell: |
+    oc get svc -n openstack -o name \
+      -l 'service in (ovsdbserver-nb, ovsdbserver-sb)',metrics=enabled
+  register: ovn_raft_metric
+  changed_when: false
+
+- name: Verify RAFT scrapeconfig exists
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-ovsdbserver-nb
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-ovsdbserver-sb
+  when: ovn_raft_metric.stdout != ""
+
+- name: |
+    TEST Use openstack observabilityclient to verify RAFT metrics are stored in prometheus
+  vars:
+    ovn_raft_metrics:
+      - ovn_raft_cluster_election_timer
+      - ovn_raft_cluster_id
+      - ovn_raft_cluster_server_id
+      - ovn_raft_cluster_server_role
+      - ovn_raft_cluster_server_status
+      - ovn_raft_cluster_server_vote
+      - ovn_raft_cluster_term
+      - ovn_raft_cluster_leader
+      - ovn_raft_cluster_inbound_connections_total
+      - ovn_raft_cluster_outbound_connections_total
+      - ovn_raft_log_entry_index
+      - ovn_raft_cluster_log_index_next
+      - ovn_raft_cluster_log_not_committed
+      - ovn_raft_cluster_log_not_applied
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and item in result.stdout and ":1981" in result.stdout
+  loop: "{{ ovn_raft_metrics }}"
+  when: ovn_raft_metric.stdout != ""
