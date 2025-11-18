@@ -1,0 +1,23 @@
+- name: Check for preexisting output file
+  ansible.builtin.stat:
+    path: "{{ output_file }}"
+  register: file_preexists
+
+- name: Generate Synthetic Data 
+  ansible.builtin.command: python3 {{ py_script }} --template {{ data_template }} -o {{ output_file }} --days {{ days }} --step {{ step }}
+  register: script_output
+  when: file_preexists.stat.exists is false
+  changed_when: script_output.rc == 0
+  failed_when: script_output.rc != 0
+
+- name: TEST Validate output file was generated
+  ansible.builtin.stat:
+    path: "{{ output_file }}"
+  register: json_file_stat
+  when:
+    - file_preexists.stat.exists is false
+    - script_output.rc == 0
+  changed_when: false
+  failed_when: 
+    - (json_file_stat.stat.exists is false or json_file_stat.stat.size | int < 20)
+    - file_preexists.stat.exists is false

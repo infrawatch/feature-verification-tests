@@ -1,3 +1,14 @@
 ---
 - name: "Validate Chargeback Feature"
   ansible.builtin.include_tasks: "chargeback_tests.yml"
+
+- name: "Define Synthetic Data Variables"
+  ansible.builtin.set_fact:
+    py_script: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/files/gen_synth_loki_data.py"
+    data_template: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/files/loki_data_templ.j2"
+    output_file: "{{ cifmw_basedir|default(ansible_user_dir ~ '/ci-framework-data') }}/tests/feature-verification-tests/loki_synth_data.json"
+    days: 30
+    step: 300
+
+- name: "Generate Synthetic Data"
+  ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
