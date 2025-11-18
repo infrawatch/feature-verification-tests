@@ -59,6 +59,7 @@
   args:
     chdir: "{{ cypress_tests_dir }}"
   changed_when: false
+  become: true
 
 - name: |
     TEST Run Cypress tests
@@ -70,6 +71,7 @@
     chdir: "{{ cypress_tests_dir }}"
   register: cypress_run
   changed_when: false
+  become: true
 
 - name: Collect the screenshots
   ansible.builtin.copy:
