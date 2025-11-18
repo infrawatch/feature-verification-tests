@@ -1,0 +1,43 @@
+- name: Define Synthetic Data Variables
+  ansible.builtin.set_fact:
+    output_file_remote: "{{ logs_dir }}/gen_loki_synth_data.log"
+
+- name: Check for preexisting output file
+  ansible.builtin.stat:
+    path: "{{ output_file_local }}"
+  register: file_preexists
+
+- name: TEST Generate Synthetic Data
+  ansible.builtin.command:
+    cmd: >
+      python3 "{{ ck_py_script_path }}"
+      --template "{{ ck_data_template_path }}"
+      -o "{{ output_file_local }}"
+      --days "{{ ck_days }}"
+      --step "{{ ck_step }}"
+  register: script_output
+  when: not file_preexists.stat.exists | bool 
+  changed_when: script_output.rc == 0
+
+- name: Read the content of the file
+  ansible.builtin.slurp:
+    src: "{{ output_file_local }}"
+  register: slurped_file
+
+- name: TEST Validate JSON format of syntheticc data file
+  ansible.builtin.assert:
+    that:
+    # This filter will trigger a task failure if the string isn't valid JSON
+      - slurped_file.content | b64decode | from_json is defined
+    fail_msg: "The file does not contain valid JSON format."
+    success_msg: "JSON format validated successfully."
+
+- name: Print output_file_remote path
+  ansible.builtin.debug:
+    msg: "Sythetic data file: {{ output_file_remote }}"
+
+- name: Copy output file to remote host
+  ansible.builtin.copy:
+    src: "{{ output_file_local }}"
+    dest: "{{ output_file_remote }}"
+    mode: '0644'
