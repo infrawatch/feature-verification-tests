@@ -96,7 +96,15 @@
   ignore_errors: true
   changed_when: false
   when: '"kepler_vm" in telemetry_verify_metrics_metric_sources_to_test'
-  
+
+- name: Get kepler test VM uuid
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} server show {{ kepler_test_vm }} -c id -f value
+  register: kepler_test_vm_id
+  ignore_errors: true
+  changed_when: false
+  when: '"kepler_vm" in telemetry_verify_metrics_metric_sources_to_test'
+
 - name: Verify Kepler VM metrics are being exposed and stored
   ansible.builtin.include_tasks:
     file: verify_kepler_vm_metrics.yml
@@ -105,6 +113,7 @@
     - power_monitoring
   when: '"kepler_vm" in telemetry_verify_metrics_metric_sources_to_test and "ACTIVE" in kepler_vm_status.stdout'
   vars:
+    test_vm_id: "{{ kepler_test_vm_id.stdout }}"
     metrics_cmd_prefix: "{{ openstack_cmd }} metric show --disable-rbac -c value -f value"
 
 - name: Verify Ceilometer volume pool metrics are being exposed and stored

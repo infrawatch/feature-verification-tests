@@ -6,5 +6,12 @@ stack_flavor: "m1.small"
 stack_network: "private"
 stack_external_network: "public"
 stack_name: "vnf"
-# kepler_test_vm should be created before executing the test suite
+
+# For testing kepler_vm metrics a full-fledged Linux VM is required.
+# kepler_test_vm should be created before executing the test suite.
+# It's supposed that kepler_test_vm is connected to kepler_test_vm_network
+# and has a floating IP accessible from the host that executes the tests.
 kepler_test_vm: "kepler_test_vm"
+kepler_test_vm_network: "management_net"
+kepler_test_vm_user: "cloud-user"
+kepler_test_vm_key: "~/test_keypair.key"
