@@ -1,15 +1,19 @@
 ---
+- name: Run pre-test steps
+  ansible.builtin.import_playbook: pre-test-steps.yml
+
 - name: Run telemetry tests to verify metrics on osp18
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
+    PATH: "{{ cifmw_path }}:/var/lib/ansible/bin"
   vars_files:
     - vars/common.yml
     - vars/osp18_env.yml
   tasks:
     - name: Include vars from the extra_vars files
+      when: cifmw_basedir is defined
       ansible.builtin.include_vars:
         dir: "{{ cifmw_basedir }}/artifacts/parameters"
 
@@ -25,5 +29,5 @@
 
     - name: "Run Telemetry Verify Metrics tests"
       ansible.builtin.import_role:
-        name: telemetry_verify_metrics
+        name: infrawatch.fvt.telemetry_verify_metrics
       ignore_errors: true

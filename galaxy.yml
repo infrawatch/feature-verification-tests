@@ -1,8 +1,8 @@
 ---
 namespace: 'infrawatch'
-name: 'functional_tests'
+name: 'fvt'
 version: '0.0.1'
-repository: http://github.com/infrawatch/functional-tests
+repository: http://github.com/infrawatch/feature-verification-tests
 description: "Tests for STF components"
 license:
   - "Apache-2.0"
