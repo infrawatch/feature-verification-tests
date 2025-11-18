@@ -1,12 +1,13 @@
 ---
 - name: "Verify all the applicable projects, endpoints, pods & services for cloudkitty"
   hosts: "{{ cifmw_target_hook_host | default('localhost')  }}"
-  gather_facts: no
+  gather_facts: true
   ignore_errors: true
   environment:
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars_files:
+    - vars/common.yml
     - vars/osp18_env.yml
   vars:
     common_pod_status_str: "Running"
