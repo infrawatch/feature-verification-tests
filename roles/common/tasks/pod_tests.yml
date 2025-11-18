@@ -20,7 +20,7 @@
           oc get pods -n "{{ pod.nspace }}" | grep "{{ pod.name }}" | grep "{{ pod.status_str }}" | awk '{print $1;}'
       register: podinstance
       failed_when:
-        - podinstance.stdout_lines | length != 1
+        - podinstance.stdout_lines | length != 1 or podinstance.rc != 0
       changed_when: false
 
     - name: |
