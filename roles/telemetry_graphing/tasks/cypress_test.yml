@@ -6,6 +6,12 @@
         state: present
       become: true
 
+    - command: npm --version
+      register: npm_version
+
+    - debug:
+        msg: "npm_version: {{ npm_version }}"
+
     - name: Install dependencies
       ansible.builtin.dnf:
         name:
@@ -82,6 +88,11 @@
     src: "{{ cypress_tests_dir }}/cypress/videos/"
     dest: "{{ screenshots_dir }}"
     mode: '0644'
+
+- name: Copy the npm logs
+  ansible.builtin.copy:
+    src:  "/home/zuul/.npm/"
+    dest: "{{ cypress_test_dir }}"
 
 - name: Show Cypress test output
   ansible.builtin.debug:
