@@ -1,4 +1,4 @@
-- name: Install cypress and the dependencies
+- name: Install cypress and the dependencies and setup user groups
   block:
     - name: Install Node.js
       ansible.builtin.dnf:
@@ -14,6 +14,13 @@
           - nss
           - alsa-lib
         state: present
+      become: true
+
+    - name: Add existing user zuul to group video
+      ansible.builtin.user:
+        name: zuul
+        groups: video
+        append: true
       become: true
 
 - name: Create required dirs and files
