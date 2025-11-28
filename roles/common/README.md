@@ -72,8 +72,14 @@ For file_tests.yml tasks:
 
 For manifest_tests.yml tasks:
 
-     manifest_list
-       - list of package manifests to validate
+    common_manifest_list
+      - list of package manifests to validate
+      - Each dict should include the following keys: name
+      - A dict can optionally include an "expected_number" key (defaults to 1 if not specified)
+        Example:
+          - name: loki-operator
+            expected_number: 2
+          - name: loki-helm-operator
 
 For cr\_tests.yml tasks:
 
