@@ -44,7 +44,8 @@
     - common_manifest_list is defined
   block:
     - name: "Get the manifest list once"
-      command: oc get packagemanifests
+      ansible.builtin.command: oc get packagemanifests
+      changed_when: false
       register: _manifest_output
 
     - name: "Check that each package manifest is present"
