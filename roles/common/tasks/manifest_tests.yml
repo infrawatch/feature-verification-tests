@@ -1,9 +1,10 @@
 ---
 - name: |
     TEST Get {{ manifest[0] }} {{ manifest[1] }} packagemanifest
-  ansible.builtin.shell:
-    cmd: |
-      oc get packagemanifests | grep "{{ manifest[0] }}"
-  register: num_found
-  changed_when: false
-  failed_when: manifest[1] | int != num_found.stdout_lines | length
+  ansible.builtin.assert:
+    that:
+      - 'available_manifests | select("search", "^"+manifest[0] ) | length == ( manifest[1] | int)'
+    fail_msg: |
+      {{ available_manifests | select("search", "^"+manifest[0] ) | length }} is not equal to  {{  manifest[1] | int }}
+    success_msg: |
+      Expected {{ manifest[1] }} and found {{ manifest[1] }}
