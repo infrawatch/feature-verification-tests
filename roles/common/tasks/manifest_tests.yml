@@ -1,10 +1,15 @@
 ---
-- name: |
-    TEST Get {{ manifest[0] }} {{ manifest[1] }} packagemanifest
-  ansible.builtin.assert:
-    that:
-      - 'available_manifests | select("search", "^"+manifest[0] ) | length == ( manifest[1] | int)'
-    fail_msg: |
-      {{ available_manifests | select("search", "^"+manifest[0] ) | length }} is not equal to  {{  manifest[1] | int }}
-    success_msg: |
-      Expected {{ manifest[1] }} and found {{ manifest[1] }}
+- name: "Check manifest {{ manifest.name }}"
+  vars:
+    expected_count: "{{ manifest.expected_number | default(1) | int }}"
+    actual_count: "{{ available_manifests | select('search', '^'+manifest.name ) | length }}"
+  block:
+    - name: |
+        TEST Get {{ manifest.name }} {{ expected_count }} packagemanifest
+      ansible.builtin.assert:
+        that:
+          - 'actual_count == expected_count'
+        fail_msg: |
+          {{ actual_count }} is not equal to  {{ expected_count }}
+        success_msg: |
+          Expected {{ expected_count }} and found {{ expected_count }}
