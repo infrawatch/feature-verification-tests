@@ -43,6 +43,15 @@ DOCUMENTATION = '''
           - name: JUNIT_OUTPUT_DIR
         default: "~/ci-framework-data/tests/feature-verification-tests/"
         type: path
+      debug:
+        description: Whether or not to print extra debugging information
+        ini:
+          - section: custom_junit
+            key: debug
+        env:
+          - name: CUSTOM_JUNIT_DEBUG
+        default: false
+        type: boolean
 '''
 
 class CallbackModule(JunitCallbackModule):
@@ -61,15 +70,18 @@ class CallbackModule(JunitCallbackModule):
         self._test_case_prefix = self.get_option("test_case_prefix")
         self._classname = self.get_option("classname")
 
+        self._debug = self.get_option("debug")
         self._fail_on_ignore = 'true'  # this is needed because we use "ignore_errors" on the playbooks so that all the tests are run
         self._include_setup_tasks_in_report = os.getenv('JUNIT_INCLUDE_SETUP_TASKS_IN_REPORT', 'False').lower()
         self._hide_task_arguments = os.getenv('JUNIT_HIDE_TASK_ARGUMENTS', 'True').lower()
         self._task_class = False
 
-        print("The output_dir is: %s" % self._output_dir)
+        if self._debug:
+            print("The output_dir is: %s" % self._output_dir)
         # Ensure the output directory exists
         if not os.path.exists(self._output_dir):
-            print("Creating output dir: %s" % (self._output_dir))
+            if self._debug:
+                print("Creating output dir: %s" % (self._output_dir))
             os.makedirs(self._output_dir)
 
     def _finish_task(self, status, result):
@@ -100,16 +112,16 @@ class CallbackModule(JunitCallbackModule):
             task_data.add_host(HostData(host_uuid, host_name, status, result))
 
         # Debugging
-        if task_data.name.startswith(self._test_case_prefix):
+        if self._debug and task_data.name.startswith(self._test_case_prefix):
             print(f"This task ({task_data.name}) starts with the test_prefix({self._test_case_prefix})")
-        if self._test_case_prefix in task_data.name:
+        if self._debug and self._test_case_prefix in task_data.name:
             print(f"This task ({task_data.name}) should be reported because it contains test_prefix({self._test_case_prefix})")
-        if status == 'failed':
+        if self._debug and status == 'failed':
             print(f"This task ({task_data.name}) failed, but may not be reported")
 
     def mutate_task_name(self, task_name):
         # Debugging
-        if not self._test_case_prefix in task_name:
+        if self._debug and not self._test_case_prefix in task_name:
             print("task_name (%s) does not contain prefix (%s)" % (task_name, self._test_case_prefix))
         new_name = task_name
         new_name = new_name.split("\n")[0]  # only use the first line, so we can include IDs and additional description
@@ -133,12 +145,15 @@ class CallbackModule(JunitCallbackModule):
         """
         # Use the original task name to define the final name
 
-        print("%s\t(task_name, pre-_build_test_case)" % task_data.name)
+        if self._debug:
+            print("%s\t(task_name, pre-_build_test_case)" % task_data.name)
         tc = super()._build_test_case(task_data, host_data)
-        print("%s\t(tc.name, post-_build_test_case)" % tc.name)
+        if self._debug:
+            print("%s\t(tc.name, post-_build_test_case)" % tc.name)
         tc.name = self.mutate_task_name(tc.name)
 
-        print("%s\t(tc.name, post-mutate_task_name)" % tc.name)
+        if self._debug:
+            print("%s\t(tc.name, post-mutate_task_name)" % tc.name)
 
         # These can be able to omit with a config option
         # These two control whether testcases contain the system_out and
