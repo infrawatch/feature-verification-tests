@@ -1,0 +1,112 @@
+---
+- name: Set some vars
+  ansible.builtin.set_fact:
+    service_name: instance
+    group_name: instance_uptime_flavor_id
+    field_name: flavor_id
+    flavor_name: "test_flavor"
+
+- name: Create the expected flavor
+  ansible.builtin.shell:
+    cmd: |
+      {{ openstack_cmd }} flavor create --ram 128 --disk 20 --vcpus 1 {{ flavor_name }}
+  register: output
+  changed_when:
+    # the flavor already exists, so nothing has been changed
+    - not "Flavor with name {{ flavor_name }} already exists" in output.stderr
+  failed_when:
+    - output.rc != 0
+    # It's okay for this to be in the error, since that flavor already exists.
+    - not "Flavor with name {{ flavor_name }} already exists" in output.stderr
+
+- block:
+    - name: TEST Check that the API is available
+      ansible.builtin.shell:
+        cmd: |
+          {{ openstack_cmd }} rating module list
+          {{ openstack_cmd }} rating hashmap group create {{ group_name }}
+      ignore_errors: true
+
+    - name: Get the group ID
+      ansible.builtin.shell:
+        cmd: |
+          #export GROUP_ID=$( {{ openstack_cmd }} rating hashmap group list -f value -c Name -c 'Group ID' | grep {{ group_name }} | awk '{ print $2}')
+          {{ openstack_cmd }} rating hashmap group list -f value -c Name -c 'Group ID' | grep {{ group_name }} | awk '{ print $2}'
+      register: group_id
+      changed_when: false
+
+    - name: TEST Create the service
+      ansible.builtin.shell:
+        cmd: |
+          {{ openstack_cmd }} rating hashmap service create {{ service_name }}
+      register: output
+      failed_when: output.rc != 0 and "Service instance already exists" not in output.stderr
+      ignore_errors: true
+
+    - name: Get the service ID
+      ansible.builtin.shell:
+        cmd: |
+          # export SERVICE_ID=$({{ openstack_cmd }} rating hashmap service list -f value -c Name -c 'Service ID' | grep {{ service_name }} | awk '{ print $2 }')
+          {{ openstack_cmd }} rating hashmap service list -f value -c Name -c 'Service ID' | grep {{ service_name }} | awk '{ print $2 }'
+      register: service_id
+      failed_when: service_id.stdout_lines | length > 1
+
+    - name: TEST Create the field
+      ansible.builtin.shell:
+        cmd: |
+          {{ openstack_cmd }} rating hashmap field create {{ service_id.stdout }} {{ field_name }}
+      ignore_errors: true
+      register: output
+      changed_when: output.rc == 0
+
+    - name: Get the field ID
+      ansible.builtin.shell:
+        cmd: |
+          #export FLAVOR_FIELD_ID=$({{ openstack_cmd }} rating hashmap field list {{ service_id.stdout }} -f value -c Name -c 'Field ID' | grep {{ field_name }} | awk '{ print $2}')
+          {{ openstack_cmd }} rating hashmap field list {{ service_id.stdout }} -f value -c Name -c 'Field ID' | grep {{ field_name }} | awk '{ print $2}'
+      register: flavor_field_id
+      changed_when: false
+
+    - name: Get the flavor ID
+      ansible.builtin.shell:
+        cmd: |
+          # export FLAVOR_ID=$({{ openstack_cmd }} flavor list -f value -c Name -c ID | grep {{ flavor_name }} | awk '{print $2}')
+          {{ openstack_cmd }} flavor list -f value -c Name -c ID | grep {{ flavor_name }} | awk '{print $2}'
+      register: flavor_id
+      changed_when: false
+
+    - name: Show the Group and flavor ID
+      ansible.builtin.debug:
+        var: item
+      with_items:
+        - group_id
+        - flavor_id
+
+    - name: Create the mapping
+      ansible.builtin.shell:
+        cmd: |
+          {{ openstack_cmd }} rating hashmap mapping create 0.01 --field-id {{ flavor_field_id.stdout }} --value {{ flavor_id.stdout }} -g {{ group_id.stdout }} -t flat
+      register: output
+      changed_when: output.rc == 0
+
+  always:
+    # need to delete the service, field, mapping, etc
+    - name: Delete the service
+      ansible.builtin.command:
+        cmd: |
+          {{ openstack_cmd }} rating hashmap service delete {{ service_id.stdout }}
+      ignore_errors: true
+
+    # need to delete the service, field, mapping, etc
+    - name: Delete the group
+      ansible.builtin.command:
+        cmd: |
+          {{ openstack_cmd }} rating hashmap group delete {{ group_id.stdout }}
+      ignore_errors: true
+
+    - name: Delete the flavor
+      ansible.builtin.shell:
+        cmd: |
+          {{ openstack_cmd }} flavor delete test_flavor
+      register: output
+      changed_when: output.rc == 0
