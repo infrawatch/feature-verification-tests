@@ -1,0 +1,101 @@
+---
+# Assuming we've already logged in...
+# Following procedure on https://infrawatch.github.io/documentation/#configuring-observability-strategy_assembly-installing-the-core-components-of-stf
+# Assuming we're in teh right project already...
+
+- name: "RHELOSP-148696 Add observabilityStrategy to the STF object"
+  ansible.builtin.shell:
+    cmd: |
+      oc patch stf/default --type merge -p '{"spec":{"observabilityStrategy": "none"}}'
+  changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
+- name: "RHELOSP-148700 delete Grafana object"
+  ansible.builtin.shell:
+    cmd: |
+      oc delete grafana default && while oc get po -l app=grafana | grep grafana; do sleep 1; done;
+  changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
+- name: "RHELOSP-148701 Delete Prometheus object"
+  ansible.builtin.shell:
+    cmd: |
+      oc delete prometheus default && while oc get po -l app=prometheus | grep prometheus; do sleep 1; done;
+  changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
+- name: "RHELOSP-148702 Delete Alertmanager object"
+  ansible.builtin.shell:
+    cmd: |
+      oc delete alertmanager default && while oc get po -l app=alertmanager | grep alertmanager; do sleep 1; done;
+  changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
+- name: "RHELOSP-148703 Delete ElasticSearch  object"
+  ansible.builtin.shell:
+    cmd: |
+      oc delete elasticsearches.elasticsearch.k8s.elastic.co elasticsearch &&  while oc get po | grep elasticsearch; do sleep 1; done;
+  changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
+- name: "Wait 2 minutes before checking that pods didn't return"
+  ansible.builtin.pause:
+    minutes: 2
+
+- name: "RHELOSP-148704 Verify that there no events SG pods"
+  ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep event| wc -l
+  register: cmd_output
+  failed_when: "cmd_output.stdout|int !=0"
+  changed_when: false
+
+- name: "RHELOSP-148705 Verify that Grafana pod didn't respawn"
+  ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep grafana-deployment | wc -l
+  register: cmd_output
+  failed_when: "cmd_output.stdout|int !=0"
+  changed_when: false
+
+- name: "RHELOSP-148706 Verify that Prometheus pod didn't respawn"
+  ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep prometheus-default | wc -l
+  register: cmd_output
+  failed_when: "cmd_output.stdout|int !=0"
+  changed_when: false
+
+- name: "RHELOSP-148708 Verify that Alertmanager pod didn't respawn"
+  ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep alertmanager-default | wc -l
+  register: cmd_output
+  failed_when: "cmd_output.stdout|int !=0"
+  changed_when: false
+
+- name: "RHELOSP-148709 Verify that elasticsearch pod didn't respawn"
+  ansible.builtin.shell:
+    cmd: |
+      oc get pods | grep elasticsearch | wc -l
+  register: cmd_output
+  failed_when: "cmd_output.stdout|int !=0"
+  changed_when: false
+
+- name: "RHELOSP-176047 Remove obesrvabilityStrategy"
+  ansible.builtin.shell:
+     cmd: |
+       oc patch stf/default --type='json'  -p '[{"op": "remove", "path": "/spec/observabilityStrategy"}]'
+  changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
+- name: "Wait 2 minutes to make sure all destroyed pods are back"
+  ansible.builtin.pause:
+    minutes: 2 
+  changed_when: false

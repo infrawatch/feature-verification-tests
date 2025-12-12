@@ -1,0 +1,24 @@
+---
+# Following procedure on https://infrawatch.github.io/documentation/#metrics-retention-time-period_assembly-advanced-features
+# Assuming we've already logged in.
+# Assuming we're in the right project already...
+
+
+- name: "RHELOSP-144988 Set metrics retention to 17d"
+  ansible.builtin.shell:
+    cmd: |
+      oc patch stf/default --type merge -p '{"spec": {"backends": {"metrics": {"prometheus": {"enabled": true, "scrapeInterval": "10s", "storage": {"retention": "17d", "strategy": "ephemeral"}}}}}}'
+  changed_when: false
+  register: cmd_output
+  failed_when: cmd_output.rc != 0
+
+
+- name: "RHELOSP-144484 Check that the retention was set"
+  ansible.builtin.shell:
+    cmd: |
+      oc describe pod prometheus-default-0  | grep -o 'storage.tsdb.retention.time=17d'
+  register: cmd_output
+  changed_when: false
+  retries: 12
+  delay: 10
+  until: "cmd_output.stdout_lines | length > 0"

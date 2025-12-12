@@ -1,0 +1,15 @@
+---
+- name: Verify Service - "{{ item }}"
+  ansible.builtin.shell:
+    cmd: |
+      oc get service -n "{{ common_service_nspace }}" "{{ item }}"
+  changed_when: false
+  register: output
+
+- name: |
+    TEST Verify {{ item }} service is running in {{ common_service_nspace }} namespace
+  ansible.builtin.assert:
+    that:
+      - "'NotFound' not in output.stderr"
+    success_msg: "service {{ item }} is running."
+    fail_msg: "service {{ item }} not running. Error: {{ output.stderr }}"

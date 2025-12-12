@@ -1,0 +1,19 @@
+- name: TEST Check for preexisting output file
+  ansible.builtin.stat:
+    path: "{{ ck_json_db_file_out }}"
+  register: file_preexists
+
+- name: TEST Generate Synthetic Data 
+  ansible.builtin.command: python3 {{ ck_py_script }} --template {{ ck_data_template }} -o {{ ck_json_db_file_out }} --days {{ ck_days }} --step {{ ck_step }}
+  register: script_output
+  when: file_preexists.stat.exists is false
+  changed_when: script_output.rc == 0
+  failed_when: script_output.rc != 0
+
+- name: TEST Validate that CK output file
+  ansible.builtin.stat:
+    path: "{{ ck_json_db_file_out }}"
+  register: json_file_gen
+  changed_when: false
+  failed_when: 
+    - (json_file_gen.stat.exists is false or json_file_gen.stat.size | int < 20)

@@ -1,0 +1,9 @@
+---
+- name: "Verify url for graphing test"
+  ansible.builtin.include_tasks: 
+    file: verify_url.yml
+
+- name: "Run cypress test"
+  ansible.builtin.include_tasks: 
+    file: cypress_test.yml
+

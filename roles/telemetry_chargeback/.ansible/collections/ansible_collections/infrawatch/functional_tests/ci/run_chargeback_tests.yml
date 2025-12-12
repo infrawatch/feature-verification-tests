@@ -7,7 +7,6 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars_files:
-    - vars/common.yml
     - vars/osp18_env.yml
   vars:
     common_pod_status_str: "Running"

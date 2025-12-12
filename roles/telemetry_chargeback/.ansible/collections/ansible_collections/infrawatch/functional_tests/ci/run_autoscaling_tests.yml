@@ -1,0 +1,83 @@
+---
+- name: Run telemetry autoscaling tests on osp18
+  hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
+  gather_facts: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+    - vars/osp18_env.yml
+  pre_tasks:
+    - name: "Notify if autoscaling test is skipped by run_autoscaling_test false"
+      ansible.builtin.debug:
+        msg: "Skipping the autoscaling test because run_autoscaling_test extra_vars is set to false"
+      when: not run_autoscaling_test | default(true) | bool
+
+    - name: "Skip autoscaling test by run_autoscaling_test false"
+      ansible.builtin.meta: end_play
+      when: not run_autoscaling_test | default(true) | bool
+
+    - name: "Get OpenStackControlPlane autoscaling status"
+      ansible.builtin.command: >
+        oc get oscp -n openstack -o jsonpath='{.items[0].spec.telemetry.template.autoscaling.enabled}'
+      register: autoscaling_status
+      changed_when: false
+
+    - name: "Set fact if autoscaling is enabled"
+      ansible.builtin.set_fact:
+        autoscaling_enabled: "{{ autoscaling_status.stdout | trim | lower == 'true' }}"
+
+    - name: "Notify if autoscaling test is skipped by autoscaling status"
+      ansible.builtin.debug:
+        msg: "Skipping the autoscaling test because OpenStackControlPlane telemetry autoscaling is disabled"
+      when: not autoscaling_enabled | bool
+
+    - name: "Skip autoscaling test by autoscaling disabled"
+      ansible.builtin.meta: end_play
+      when: not autoscaling_enabled | bool
+
+  tasks:
+    - block:
+        - name: Include vars from the extra_vars files
+          ansible.builtin.include_vars:
+            dir: "{{ cifmw_basedir }}/artifacts/parameters"
+
+        - community.general.make:
+            chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
+            target: edpm_deploy_instance
+          tags:
+            - setup
+
+        - name: Patch observabilityclient into openstackclient
+          ansible.builtin.shell:
+            cmd: |
+              oc exec -n openstack openstackclient -- python3 -m ensurepip --upgrade
+              oc exec -n openstack openstackclient -- python3 -m pip install --upgrade aodhclient
+              oc exec -n openstack openstackclient -- python3 -m pip install --upgrade python-observabilityclient
+          when: patch_observabilityclient | default(false) | bool
+          tags:
+            - setup
+
+        - name: "Run Telemetry Autoscaling tests"
+          ansible.builtin.import_role:
+            name: telemetry_autoscaling
+          vars:
+            telemetry_autoscaling_cleanup: false
+          ignore_errors: true
+
+        - name: "Run Telemetry Verify Metrics tests"
+          ansible.builtin.import_role:
+            name: telemetry_verify_metrics
+          ignore_errors: true
+
+      always:
+        - name: "Run Telemetry Autoscaling cleanup"
+          ansible.builtin.include_role:
+            name: telemetry_autoscaling
+            tasks_from: post_teardown
+
+        - name: Delete test_0 VM
+          ansible.builtin.shell:
+            cmd: |
+              {{ openstack_cmd }} server delete test_0

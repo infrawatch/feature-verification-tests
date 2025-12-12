@@ -30,10 +30,6 @@ This role has no direct hard dependencies on other Ansible roles.
 
 Example Playbook
 ----------------
-<<<<<<< HEAD
-=======
-
->>>>>>> c8e4d0a (Update roles/telemetry_chargeback/README.md)
 ```yaml
 - name: "Run chargeback tests"
   hosts: controllers

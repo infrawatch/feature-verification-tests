@@ -1,3 +1,14 @@
 ---
 - name: "Validate Chargeback Feature"
   ansible.builtin.include_tasks: "chargeback_tests.yml"
+
+- name: "Define Synthetic Data Variables"
+  ansible.builtin.set_fact:
+    ck_py_script: "{{ fvt_dir }}/roles/telemetry_chargeback/files/gen_synth_loki_data.py"
+    ck_data_template: "{{ fvt_dir }}/roles/telemetry_chargeback/files/loki_data_templ.j2"
+    ck_json_db_file_out: "{{ logs_dir }}/loki_synth_data.json"
+    ck_days: 30
+    ck_step: 300
+
+- name: "Generate Synthetic Data"
+  ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
