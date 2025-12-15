@@ -1,23 +1,15 @@
 ---
-- name: Get number of packages
-  ansible.builtin.shell:
-    cmd: |
-      echo "{{ item }}" | awk '{print $2;}'
-  register: num_expected
-  changed_when: false
-
-- name: Get package name
-  ansible.builtin.shell:
-    cmd: |
-      echo "{{ item }}" | awk '{print $1;}'
-  register: pack_name
-  changed_when: false
-
-- name: |
-    TEST Get {{ item }} packagemanifest
-  ansible.builtin.shell:
-    cmd: |
-      oc get packagemanifests | grep "{{ pack_name.stdout }}" | wc -l
-  register: num_found 
-  changed_when: false
-  failed_when: num_expected.stdout != num_found.stdout
+- name: "Check manifest {{ manifest.name }}"
+  vars:
+    expected_count: "{{ manifest.expected_number | default(1) | int }}"
+    actual_count: "{{ available_manifests | select('search', '^'+manifest.name ) | length }}"
+  block:
+    - name: |
+        TEST Get {{ manifest.name }} {{ expected_count }} packagemanifest
+      ansible.builtin.assert:
+        that:
+          - 'actual_count == expected_count'
+        fail_msg: |
+          {{ actual_count }} is not equal to  {{ expected_count }}
+        success_msg: |
+          Expected {{ expected_count }} and found {{ expected_count }}
