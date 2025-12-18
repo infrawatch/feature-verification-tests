@@ -192,3 +192,26 @@
             override-checkout: main
             dependencies:
               - telemetry-openstack-meta-content-provider-master
+        - feature-verification-tests-noop:
+            files: *irrelevant_files
+        - functional-tests-osp18
+        - functional-logging-tests-osp18:
+            irrelevant-files: *irrelevant_files
+            files:
+              - roles/telemetry_logging/.*
+              - roles/common/*
+              - .zuul.yaml
+              - ci/vars-logging-test.yml
+              - ci/logging_tests_all.yml
+              - ci/logging_tests_computes.yml
+              - ci/logging_tests_controller.yml
+              - ci/report_result.yml
+              - .zuul.yaml
+        - functional-periodic-telemetry-with-ceph:
+            files:
+              # Run this job for changes to the volume_pool_metrics test changes as this is
+              # the only job, where those tests get executed and for changes to zuul.yaml in
+              # case the job definition changes.
+              - roles/telemetry_verify_metrics/tasks/verify_ceilometer_volume_pool_metrics.yml
+              - .zuul.yaml
+
