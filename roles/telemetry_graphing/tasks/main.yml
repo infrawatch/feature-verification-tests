@@ -7,3 +7,6 @@
   ansible.builtin.include_tasks: 
     file: cypress_test.yml
 
+- name: "TEST adding some dummy TC to see if polarion accepts it"
+  ansible.builtin.debug:
+    msg: Ignore me
