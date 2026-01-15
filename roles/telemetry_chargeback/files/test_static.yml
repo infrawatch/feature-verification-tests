@@ -1,0 +1,61 @@
+# Scenario configuration for synthetic Loki log data generation
+
+# Time range configuration
+generation:
+  days: 5
+  step_seconds: 300
+
+# Log type definitions
+log_types:
+  - name: ceilometer_image_size
+    type: ceilometer_image_size
+    unit: MiB
+    description: null
+    qty: 20.6
+    price: 0.02
+    groupby:
+      id: cd65d30f-8b94-4fa3-95dc-e3b429f479b2
+      project_id: 0030775de80e4d84a4fd0d73e0a1b3a7
+      user_id: null
+    metadata:
+      container_format: bare
+      disk_format: qcow2
+
+  - name: instance
+    type: instance
+    unit: instance
+    description: null
+    qty: 1.0
+    price: 0.3
+    groupby:
+      id: de168c31-ed44-4a1a-a079-51bd238a91d6
+      project_id: 9cf5bcfc61a24682acc448af2d062ad2
+      user_id: c29ab6e886354bbd88ee9899e62d1d40
+    metadata:
+      flavor_name: m1.tiny
+      flavor_id: "1"
+      vcpus: ""
+
+# Required fields for validation (top-level fields only, not nested in groupby)
+required_fields:
+  - type
+  - unit
+  - qty
+  - price
+  - groupby
+  - metadata
+
+# Date field names to add to groupby
+date_fields:
+  - week_of_the_year
+  - day_of_the_year
+  - month
+  - year
+
+# Loki stream configuration
+loki_stream:
+  service: cloudkitty
+
+# Error messages and constants
+constants:
+  invalid_timestamp: "INVALID_TIMESTAMP"

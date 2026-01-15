@@ -1,16 +1,32 @@
-{"streams": [{ "stream": { "service": "cloudkitty" }, "values": [
+{"streams": [{ "stream": { "service": "{{ loki_stream.service }}" }, "values": [
 {%- for item in log_data %}
+{%- set outer_idx = loop.index0 %}
+{%- set is_last_outer = loop.last %}
+{%- for log_type_name in log_type_names %}
+{%- set entry_data = all_log_entries[outer_idx][log_type_name] -%}
+{%- set entry = {
+    "start": item.start_time,
+    "end": item.end_time,
+    "type": entry_data.type,
+    "unit": entry_data.unit,
+    "description": entry_data.description,
+    "qty": entry_data.qty,
+    "price": entry_data.price,
+    "groupby": entry_data.groupby,
+    "metadata": entry_data.metadata
+} -%}
+{%- if loop.first %}
 [
 "{{ item.nanoseconds }}",
-"{\"start\": \"{{ item.start_time }}\", \"end\": \"{{ item.end_time }}\", \"type\": \"ceilometer_image_size\", \"unit\": \"MiB\", \"description\": null, \"qty\": 20.6875, \"price\": 0.0206875, \"groupby\": {\"id\": \"cd65d30f-8b94-4fa3-95dc-e3b429f479b2\", \"project_id\": \"0030775de80e4d84a4fd0d73e0a1b3a7\", \"user_id\": null, \"week_of_the_year\": \"37\", \"day_of_the_year\": \"258\", \"month\": \"9\", \"year\": \"2025\"}, \"metadata\": {\"container_format\": \"bare\", \"disk_format\": \"qcow2\"}}"
-],
-[
-"{{ item.nanoseconds }}",
-"{\"start\": \"{{ item.start_time }}\", \"end\": \"{{ item.end_time }}\", \"type\": \"instance\", \"unit\": \"instance\", \"description\": null, \"qty\": 1.0, \"price\": 0.3, \"groupby\": {\"id\": \"de168c31-ed44-4a1a-a079-51bd238a91d6\", \"project_id\": \"9cf5bcfc61a24682acc448af2d062ad2\", \"user_id\": \"c29ab6e886354bbd88ee9899e62d1d40\", \"week_of_the_year\": \"37\", \"day_of_the_year\": \"258\", \"month\": \"9\", \"year\": \"2025\"}, \"metadata\": {\"flavor_name\": \"m1.tiny\", \"flavor_id\": \"1\", \"vcpus\": \"\"}}"
+{{ entry | tojson | tojson }}
 ]
-{#- This logic adds a comma after every pair, *except* for the very last one. #}
-{%- if not loop.last -%}
-,
-{%- endif -%}
+{%- else %}
+[
+{{ entry | tojson | tojson }}
+]
+{%- endif %}
+{%- if not (loop.last and is_last_outer) %},
+{% endif -%}
+{%- endfor %}
 {%- endfor %}
 ]}]}
