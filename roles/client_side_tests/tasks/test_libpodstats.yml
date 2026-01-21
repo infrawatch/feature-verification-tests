@@ -1,0 +1,85 @@
+---
+- name: Get prom creds
+  ansible.builtin.include_tasks:
+    file: get_prom_info.yml
+
+- name: Check for libpodstats cpu time total
+#     Description: Query Prometheus for collectd_libpodstats_cpu_time_total  metrics and save the output into the file
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
+        -g https://{{ prom_url }}/api/v1/query? \
+        --data-urlencode 'query=collectd_libpodstats_pod_cpu_time_total {type_instance="base"}[1m]' \
+        --output /tmp/query_libpodstats_pod_cpu_time_total
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc !=0
+
+
+- name: Check for libpodstats_pod_memory
+#     Description: Query Prometheus for collectd_libpodstats_memory metrics and save the output into the file
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
+        -g https://{{ prom_url }}/api/v1/query? \
+        --data-urlencode 'query=collectd_libpodstats_pod_memory {type_instance="base"}[1m]' \
+        --output /tmp/query_libpodstats_pod_memory
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc !=0
+
+
+- name: Check for libpodstats_pod_memory
+#     Description: Query Prometheus for collectd_libpodstats_cpu_percent metrics and save the output into the file
+  ansible.builtin.shell:
+    cmd: >-
+      /usr/bin/curl -k -u "{{ prom_user }}:{{ prom_pass }}" \
+        -g https://{{ prom_url }}/api/v1/query? \
+        --data-urlencode 'query=collectd_libpodstats_pod_cpu_percent {type_instance="base"}[1m]' \
+        --output /tmp/query_libpodstats_pod_cpu_percent
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc !=0
+
+
+
+- name: Read content of query_libpodstats_pod_cpu_time_total
+#     Description: Read content of query_libpodstats_pod_cpu_time_total and check that metrics are present
+  ansible.builtin.shell:
+    cmd: >-
+      egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_libpodstats_pod_cpu_time_total
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc != 0
+
+
+- name: Read content of query_libpodstats_pod_memory
+#     Description: Read content of query_libpodstats_pod_memory and check that metrics are present
+  ansible.builtin.shell:
+    cmd: >-
+      egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_libpodstats_pod_memory
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc != 0
+
+
+
+
+- name: Read content of query_libpodstats_pod_cpu_percent
+#     Description: Read content of query_libpodstats_pod_cpu_percent and check that metrics are present
+  ansible.builtin.shell:
+    cmd: >-
+      egrep 'controller-0|controller-1|controller-2|compute-0|compute-1|ceph-0' /tmp/query_libpodstats_pod_cpu_percent
+  register: checkmyconf
+  changed_when: false
+  failed_when:
+    - checkmyconf.rc != 0
+
+
+
+
