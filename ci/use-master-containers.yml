@@ -8,21 +8,26 @@
     - vars/common.yml
     - vars/osp18_env.yml
   tasks:
-    - name: Make sure logs directory exists
-      ansible.builtin.file:
-        path: "{{ logs_dir }}"
-        state: directory
-        recurse: true
+    #    - name: Make sure logs directory exists
+    #      ansible.builtin.file:
+    #        path: "{{ logs_dir }}"
+    #        state: directory
+    #        recurse: true
+    #
+    # - name: Generate container update template file
+    #   ansible.builtin.template:
+    #     src: "patch-openstack-versions.yaml.j2"
+    #     dest: "{{ logs_dir }}/patch-openstack-versions.yaml"
+    # - name: Patch the openstackversions to use the master containers for aodh, heat and ceilometer
+    #   ansible.builtin.shell:
+    #     cmd: |
+    #       oc patch openstackversions controlplane --type merge --patch-file {{ logs_dir }}/patch-openstack-versions.yaml
+    #     chdir: "{{ fvt_dir }}"
+    #   tags:
+    #     - setup
 
-    - name: Generate container update template file
-      ansible.builtin.template:
-        src: "patch-openstack-versions.yaml.j2"
-        dest: "{{ logs_dir }}/patch-openstack-versions.yaml"
-    - name: Patch the openstackversions to use the master containers for aodh, heat and ceilometer
-      ansible.builtin.shell:
-        cmd: |
-          oc patch openstackversions controlplane --type merge --patch-file {{ logs_dir }}/patch-openstack-versions.yaml
-        chdir: "{{ fvt_dir }}"
-      tags:
-        - setup
+     - name: Render the kustomization
+       ansible.builtin.template:
+         src: "openstack-versions-kustomization.yaml.j2"
+         dest: "{{ cifmw_basedir }}/artifacts/manifests/kustomizations/controlplane/openstackversions-use-master-containers.yaml"
 
