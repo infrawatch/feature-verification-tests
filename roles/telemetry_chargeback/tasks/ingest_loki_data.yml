@@ -1,0 +1,74 @@
+---
+# Ingest data log to Loki that is generated from gen_synth_loki_data.yml"
+
+# Create a directory to add certs
+- name: Create certificates directory
+  ansible.builtin.file:
+    path: "{{ cert_dir }}"
+    state: directory
+    mode: '0755'
+
+# Extract certificates
+- name: Extract certificates from openshift secret
+  ansible.builtin.command:
+    cmd: >
+      oc extract secret/{{ cert_secret_name }}
+      --to={{ cert_dir }}
+      --confirm
+  changed_when: true
+
+# Copy file
+- name: Copy source log file to temp location
+  ansible.builtin.copy:
+    src: "{{ source_log_file }}"
+    dest: "{{ temp_log_file }}"
+    mode: '0644'
+
+# Get time in nanoseconds
+- name: Get Current time in Nanoseconds
+  ansible.builtin.set_fact:
+    current_nano: "{{ lookup('pipe', 'date +%s%N') }}"
+
+# Update time to current
+- name: Update timestamp in the temp log file
+  ansible.builtin.replace:
+    path: "{{ temp_log_file }}"
+    regexp: '[0-9]{19}'
+    replace: "{{ current_nano }}"
+
+# Push the json format data log to loki
+- name: Ingest data log to Loki via API
+  block:
+    - name: Push data to Loki
+      ansible.builtin.uri:
+        url: "{{ loki_push_url }}"
+        method: POST
+        body: "{{ lookup('file', temp_log_file) }}"
+        body_format: json
+        client_cert: "{{ cert_dir }}/tls.crt"
+        client_key: "{{ cert_dir }}/tls.key"
+        validate_certs: false
+        status_code: 204
+        return_content: yes
+      register: loki_response
+
+    # Success
+    - name: Confirm Success
+      ansible.builtin.debug:
+        msg: "Ingestion Successful! Timestamp used: {{ current_nano }}"
+
+  rescue:
+    # Failure
+    - name: Report Ingestion Failure
+      ansible.builtin.fail:
+        msg: >
+          Ingestion Failed. 
+          Status: {{ loki_response.status | default('Unknown') }} 
+          Response: {{ loki_response.msg | default('No response') }}
+
+  always:
+    # Cleanup temp file
+    - name: Clean up temp log file
+      ansible.builtin.file:
+        path: "{{ temp_log_file }}"
+        state: absent

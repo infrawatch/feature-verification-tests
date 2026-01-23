@@ -7,4 +7,18 @@ ck_data_config: "{{ role_path }}/files/test_static.yml"
 ck_output_file_local: "{{ role_path }}/files/loki_synth_data.json"
 
 # Output directory for test artifacts
-logs_dir: "/home/zuul/ci-framework-data/tests/feature-verification-tests" 
+logs_dir: "/home/zuul/ci-framework-data/tests/feature-verification-tests"
+
+# loki url's
+loki_base_url: "https://cloudkitty-lokistack-openstack.apps-crc.testing"
+loki_push_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/push"
+loki_query_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/query_range"
+
+# Cloudkitty certificates
+cert_secret_name: "cert-cloudkitty-client-internal"
+cert_dir: "{{ ansible_user_dir }}/ck-certs"
+
+# Test log files:
+source_log_file: "{{ logs_dir }}/gen_loki_synth_data.log"
+temp_log_file: "{{ logs_dir }}/temp_log_updated_ts.json"
+output_log_file: "{{ logs_dir }}/retrieve_loki_op.json"
