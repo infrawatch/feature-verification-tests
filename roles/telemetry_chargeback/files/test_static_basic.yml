@@ -2,8 +2,8 @@
 
 # Time range configuration
 generation:
-  days: 5
-  step_seconds: 300
+  days: 1
+  step_seconds: 3600
 
 # Log type definitions
 log_types:
@@ -11,8 +11,10 @@ log_types:
     type: ceilometer_image_size
     unit: MiB
     description: null
-    qty: 20.6
-    price: 0.02
+    qty:
+      - 20.6
+    price:
+      - 0.02
     groupby:
       id: cd65d30f-8b94-4fa3-95dc-e3b429f479b2
       project_id: 0030775de80e4d84a4fd0d73e0a1b3a7
@@ -25,8 +27,10 @@ log_types:
     type: instance
     unit: instance
     description: null
-    qty: 1.0
-    price: 0.3
+    qty:
+      - 1.0
+    price:
+      - 0.3
     groupby:
       id: de168c31-ed44-4a1a-a079-51bd238a91d6
       project_id: 9cf5bcfc61a24682acc448af2d062ad2
@@ -55,7 +59,3 @@ date_fields:
 # Loki stream configuration
 loki_stream:
   service: cloudkitty
-
-# Error messages and constants
-constants:
-  invalid_timestamp: "INVALID_TIMESTAMP"

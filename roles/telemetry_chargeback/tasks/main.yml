@@ -2,5 +2,28 @@
 - name: "Validate Chargeback Feature"
   ansible.builtin.include_tasks: "chargeback_tests.yml"
 
-- name: "Generate Synthetic Data"
-  ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
+- name: "Generate Synthetic data for each scenario file"
+  block:
+    - name: "Find test files"
+      ansible.builtin.find:
+        paths: "{{ ck_scenario_dir }}"
+        patterns: "test_*.yml"
+      register: found_files_raw
+
+    - name: "Process and Loop if files exist"
+      when: found_files_raw.matched > 0
+      block:
+        - name: "Extract only the filenames into a clean list"
+          ansible.builtin.set_fact:
+            found_files: "{{ found_files_raw.files | map(attribute='path') | map('basename') | map('regex_replace', '\\.yml$', '') | list }}"
+
+        - name: "Generate Synthetic Data for each file"
+          ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
+          loop: "{{ found_files }}"
+          loop_control:
+            loop_var: current_scenario_name
+
+  rescue:
+    - name: "Log failure"
+      ansible.builtin.debug:
+        msg: "The file processing block failed."

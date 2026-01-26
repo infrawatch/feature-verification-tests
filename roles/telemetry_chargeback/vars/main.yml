@@ -1,0 +1,7 @@
+---
+logs_dir_zuul: "/home/zuul/ci-framework-data/logs"
+artifacts_dir_zuul: "/home/zuul/ci-framework-data/artifacts"
+ck_scenario_dir: "{{ role_path }}/files"
+
+ck_synth_script: "{{ role_path }}/files/gen_synth_loki_data.py"
+ck_data_template: "{{ role_path }}/template/loki_data_templ.j2"

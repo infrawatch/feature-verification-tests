@@ -1,10 +1,13 @@
-- name: Define Synthetic Data Variables
+---
+- name: Set variables dynamically
   ansible.builtin.set_fact:
-    output_file_remote: "{{ logs_dir }}/gen_loki_synth_data.log"
+    ck_data_file: "{{ artifacts_dir_zuul }}/{{ current_scenario_name }}.json"
+    ck_data_log: "{{ logs_dir_zuul }}/{{ current_scenario_name }}.log"
+    ck_test_file: "{{ ck_scenario_dir }}/{{ current_scenario_name }}.yml"
 
 - name: Check for preexisting output file
   ansible.builtin.stat:
-    path: "{{ ck_output_file_local }}"
+    path: "{{ ck_data_file }}"
   register: file_preexists
 
 - name: TEST Generate Synthetic Data
@@ -12,31 +15,33 @@
     cmd: >
       python3 "{{ ck_synth_script }}"
       --tmpl "{{ ck_data_template }}"
-      -t "{{ ck_data_config }}"
-      -o "{{ ck_output_file_local }}"
+      -t "{{ ck_test_file }}"
+      -o "{{ ck_data_file }}"
   register: script_output
-  when: not file_preexists.stat.exists | bool 
+  when: not file_preexists.stat.exists | bool
   changed_when: script_output.rc == 0
 
 - name: Read the content of the file
   ansible.builtin.slurp:
-    src: "{{ ck_output_file_local }}"
+    src: "{{ ck_data_file }}"
   register: slurped_file
 
 - name: TEST Validate JSON format of synthetic data file
   ansible.builtin.assert:
     that:
-    # This filter will trigger a task failure if the string isn't valid JSON
+      # This filter will trigger a task failure if the string isn't valid JSON
       - slurped_file.content | b64decode | from_json is defined
-    fail_msg: "The file does not contain valid JSON format."
+    fail_msg: "The file {{ ck_data_file }} does not contain valid JSON format. Delete the file to regenerate."
     success_msg: "JSON format validated successfully."
 
-- name: Print output_file_remote path
+- name: Print ck_data_log path
   ansible.builtin.debug:
-    msg: "Synthetic data file: {{ output_file_remote }}"
+    msg: |
+      "Synthetic data file: {{ ck_data_file }}"
+      "Synthetic data log file: {{ ck_data_log }}"
 
 - name: Copy output file to remote host
   ansible.builtin.copy:
-    src: "{{ ck_output_file_local }}"
-    dest: "{{ output_file_remote }}"
+    src: "{{ ck_data_file }}"
+    dest: "{{ ck_data_log }}"
     mode: '0644'

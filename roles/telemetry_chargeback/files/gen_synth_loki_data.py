@@ -5,8 +5,42 @@ import json
 import yaml
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List, Union
 from jinja2 import Environment
+
+
+def _get_value_for_step(
+    values: List[Union[int, float]],
+    step_idx: int,
+    num_steps: int
+) -> Union[int, float]:
+    """
+    Get the appropriate value from a list based on the current step index.
+
+    Values are distributed evenly across all steps. For example, if there are
+    12 steps and 4 values, each value covers 3 steps:
+    - Steps 0-2: values[0]
+    - Steps 3-5: values[1]
+    - Steps 6-8: values[2]
+    - Steps 9-11: values[3]
+
+    Args:
+        values: List of values to choose from.
+        step_idx: Current step index (0-based).
+        num_steps: Total number of steps.
+
+    Returns:
+        The value corresponding to the current step.
+    """
+    num_values = len(values)
+    if num_values == 1:
+        return values[0]
+
+    # Calculate how many steps each value covers
+    steps_per_value = num_steps / num_values
+    # Determine which value index to use, clamping to valid range
+    value_idx = min(int(step_idx // steps_per_value), num_values - 1)
+    return values[value_idx]
 
 
 # --- Configure logging with a default level that can be changed ---
@@ -86,9 +120,8 @@ def generate_loki_data(
         time_step_seconds (int): The duration of each log entry in seconds.
         config (Dict[str, Any]): Configuration dictionary loaded from file.
     """
-    # Get constants from config
-    constants = config.get("constants", {})
-    invalid_timestamp = constants.get("invalid_timestamp", "INVALID_TIMESTAMP")
+    # Hardcoded constant for invalid timestamp display
+    invalid_timestamp = "INVALID_TIMESTAMP"
 
     # --- Step 1: Generate the data structure first ---
     logger.info(
@@ -201,12 +234,18 @@ def generate_loki_data(
                 f"groupby must be a dictionary for {log_type_name}"
             )
 
+        # Ensure qty and price are lists for step-based distribution
+        qty_val = log_type_config["qty"]
+        price_val = log_type_config["price"]
+        qty_list = qty_val if isinstance(qty_val, list) else [qty_val]
+        price_list = price_val if isinstance(price_val, list) else [price_val]
+
         log_types[log_type_name] = {
             "type": log_type_config["type"],
             "unit": log_type_config["unit"],
             "description": log_type_config.get("description"),
-            "qty": log_type_config["qty"],
-            "price": log_type_config["price"],
+            "qty": qty_list,
+            "price": price_list,
             "groupby": groupby.copy(),
             "metadata": log_type_config.get("metadata", {})
         }
@@ -232,15 +271,15 @@ def generate_loki_data(
     # --- Render the template in one pass with all the data ---
     logger.info("Rendering final output...")
 
+    # Calculate total number of steps for value distribution
+    num_steps = len(log_data_list)
+    logger.debug(f"Total number of time steps: {num_steps}")
+
     # Pre-calculate log types with date fields for each time step
     log_types_list = []
     for idx, item in enumerate(log_data_list):
-        # For the last entry, use end_time to ensure it shows today's date
-        if idx == len(log_data_list) - 1:
-            dt = end_time
-        else:
-            epoch_seconds = item["nanoseconds"] / 1_000_000_000
-            dt = datetime.fromtimestamp(epoch_seconds, tz=timezone.utc)
+        epoch_seconds = item["nanoseconds"] / 1_000_000_000
+        dt = datetime.fromtimestamp(epoch_seconds, tz=timezone.utc)
 
         iso_year, iso_week, _ = dt.isocalendar()
         day_of_year = dt.timetuple().tm_yday
@@ -268,6 +307,13 @@ def generate_loki_data(
             log_type_with_dates = log_type_data.copy()
             log_type_with_dates["groupby"] = log_type_data["groupby"].copy()
             log_type_with_dates["groupby"].update(date_fields)
+            # Select qty and price based on step index distribution
+            log_type_with_dates["qty"] = _get_value_for_step(
+                log_type_data["qty"], idx, num_steps
+            )
+            log_type_with_dates["price"] = _get_value_for_step(
+                log_type_data["price"], idx, num_steps
+            )
             log_types_with_dates[log_type_name] = log_type_with_dates
 
         log_types_list.append(log_types_with_dates)
