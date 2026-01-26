@@ -15,16 +15,10 @@
     "groupby": entry_data.groupby,
     "metadata": entry_data.metadata
 } -%}
-{%- if loop.first %}
 [
 "{{ item.nanoseconds }}",
 {{ entry | tojson | tojson }}
 ]
-{%- else %}
-[
-{{ entry | tojson | tojson }}
-]
-{%- endif %}
 {%- if not (loop.last and is_last_outer) %},
 {% endif -%}
 {%- endfor %}

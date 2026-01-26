@@ -18,11 +18,23 @@ It is expected to be run **after** a successful deployment and configuration of 
 
 Role Variables
 --------------
-The role uses a few primary variables to control the testing environment and execution.
+The role uses the following variables to control the testing environment and execution.
+
+### User-Configurable Variables (defaults/main.yml)
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
 | `openstack_cmd` | `openstack` | The command used to execute OpenStack CLI calls. This can be customized if the binary is not in the standard PATH. |
+
+### Internal Variables (vars/main.yml)
+
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `logs_dir_zuul` | `/home/zuul/ci-framework-data/logs` | Remote directory for log files. |
+| `artifacts_dir_zuul` | `/home/zuul/ci-framework-data/artifacts` | Remote directory for generated artifacts. |
+| `ck_scenario_dir` | `{{ role_path }}/files` | Local directory containing scenario files (test_*.yml). |
+| `ck_synth_script` | `{{ role_path }}/files/gen_synth_loki_data.py` | Path to the Python script that generates synthetic Loki data. |
+| `ck_data_template` | `{{ role_path }}/template/loki_data_templ.j2` | Path to the Jinja2 template for Loki data format. |
 
 Dependencies
 ------------
