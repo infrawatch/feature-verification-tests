@@ -55,7 +55,3 @@ date_fields:
 # Loki stream configuration
 loki_stream:
   service: cloudkitty
-
-# Error messages and constants
-constants:
-  invalid_timestamp: "INVALID_TIMESTAMP"

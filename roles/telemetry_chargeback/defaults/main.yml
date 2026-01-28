@@ -20,5 +20,4 @@ cert_dir: "{{ ansible_user_dir }}/ck-certs"
 
 # Test log files:
 source_log_file: "{{ logs_dir }}/gen_loki_synth_data.log"
-temp_log_file: "{{ logs_dir }}/temp_log_updated_ts.json"
 output_log_file: "{{ logs_dir }}/retrieve_loki_op.json"

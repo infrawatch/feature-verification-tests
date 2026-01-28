@@ -18,7 +18,7 @@ It is expected to be run **after** a successful deployment and configuration of 
 
 Role Variables
 --------------
-The role uses a few primary variables to control the testing environment and execution.
+The role uses the following variables to control the testing environment and execution.
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|

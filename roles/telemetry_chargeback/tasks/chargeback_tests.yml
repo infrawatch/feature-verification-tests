@@ -17,7 +17,7 @@
     cmd: "{{ openstack_cmd }} rating module set priority hashmap 100"
   register: set_hashmap_priority
   when: get_hashmap_priority.stdout | trim != '100'
-  failed_when: (set_hashmap_priority.rc | default(0)) >= 1 or get_hashmap_priority.stdout == ""
+  failed_when: (set_hashmap_priority.rc | default(42)) >= 1 or get_hashmap_priority.stdout == ""
   changed_when: True
 
 - name: Get status of all CloudKitty rating modules

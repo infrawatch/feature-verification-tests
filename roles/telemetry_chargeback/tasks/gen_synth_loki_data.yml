@@ -1,7 +1,4 @@
-- name: Define Synthetic Data Variables
-  ansible.builtin.set_fact:
-    output_file_remote: "{{ logs_dir }}/gen_loki_synth_data.log"
-
+---
 - name: Check for preexisting output file
   ansible.builtin.stat:
     path: "{{ ck_output_file_local }}"
@@ -33,10 +30,11 @@
 
 - name: Print output_file_remote path
   ansible.builtin.debug:
-    msg: "Synthetic data file: {{ output_file_remote }}"
+    msg: "Synthetic data file: {{ ck_output_file_remote }}"
+
 
 - name: Copy output file to remote host
   ansible.builtin.copy:
     src: "{{ ck_output_file_local }}"
-    dest: "{{ output_file_remote }}"
+    dest: "{{ ck_output_file_remote }}"
     mode: '0644'

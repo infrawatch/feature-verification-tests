@@ -17,13 +17,6 @@
       --confirm
   changed_when: true
 
-# Copy file
-- name: Copy source log file to temp location
-  ansible.builtin.copy:
-    src: "{{ source_log_file }}"
-    dest: "{{ temp_log_file }}"
-    mode: '0644'
-
 # Push the json format data log to loki
 - name: Ingest data log to Loki via API
   block:
@@ -31,7 +24,7 @@
       ansible.builtin.uri:
         url: "{{ loki_push_url }}"
         method: POST
-        body: "{{ lookup('file', temp_log_file) }}"
+        body: "{{ lookup('file', source_log_file) | from_json }}"
         body_format: json
         client_cert: "{{ cert_dir }}/tls.crt"
         client_key: "{{ cert_dir }}/tls.key"
@@ -39,6 +32,8 @@
         status_code: 204
         return_content: yes
       register: loki_response
+      ignore_errors: false
+      failed_when: loki_response.status != 204
 
     # Success
     - name: Confirm Success
@@ -46,17 +41,15 @@
         msg: "Ingestion Successful!"
 
   rescue:
+    # Rescue block
+    - name: Debug - Print Malformed Log Content
+      ansible.builtin.debug:
+        msg: "The JSON content that failed to send: {{ lookup('file', source_log_file) }}"
+    
     # Failure
     - name: Report Ingestion Failure
       ansible.builtin.fail:
         msg: >
           Ingestion Failed. 
           Status: {{ loki_response.status | default('Unknown') }} 
-          Response: {{ loki_response.msg | default('No response') }}
-
-  always:
-    # Cleanup temp file
-    - name: Clean up temp log file
-      ansible.builtin.file:
-        path: "{{ temp_log_file }}"
-        state: absent
+          Response: {{ loki_response.msg | default(loki_response.content) }}

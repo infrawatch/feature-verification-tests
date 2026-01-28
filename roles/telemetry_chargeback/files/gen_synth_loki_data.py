@@ -86,9 +86,8 @@ def generate_loki_data(
         time_step_seconds (int): The duration of each log entry in seconds.
         config (Dict[str, Any]): Configuration dictionary loaded from file.
     """
-    # Get constants from config
-    constants = config.get("constants", {})
-    invalid_timestamp = constants.get("invalid_timestamp", "INVALID_TIMESTAMP")
+    # Hardcoded constant for invalid timestamps
+    invalid_timestamp = "INVALID_TIMESTAMP"
 
     # --- Step 1: Generate the data structure first ---
     logger.info(
