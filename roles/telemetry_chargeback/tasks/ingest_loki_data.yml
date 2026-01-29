@@ -20,11 +20,17 @@
 # Push the json format data log to loki
 - name: Ingest data log to Loki via API
   block:
+
+    - name: Read log file content
+      ansible.builtin.slurp:
+        src: "{{ ck_output_file_remote }}"
+      register: log_file_content
+
     - name: Push data to Loki
       ansible.builtin.uri:
         url: "{{ loki_push_url }}"
         method: POST
-        body: "{{ lookup('file', source_log_file) | from_json }}"
+        body: "{{ log_file_content['content'] | b64decode | from_json }}"
         body_format: json
         client_cert: "{{ cert_dir }}/tls.crt"
         client_key: "{{ cert_dir }}/tls.key"
@@ -42,14 +48,12 @@
 
   rescue:
     # Rescue block
-    - name: Debug - Print Malformed Log Content
+    - name: Debug failure
       ansible.builtin.debug:
-        msg: "The JSON content that failed to send: {{ lookup('file', source_log_file) }}"
+        msg: "{{ loki_response.status }}"
     
     # Failure
     - name: Report Ingestion Failure
       ansible.builtin.fail:
-        msg: >
-          Ingestion Failed. 
-          Status: {{ loki_response.status | default('Unknown') }} 
-          Response: {{ loki_response.msg | default(loki_response.content) }}
+        msg: "Ingestion Failed! See debug output for details."
+      ignore_errors: false

@@ -32,7 +32,6 @@
   ansible.builtin.debug:
     msg: "Synthetic data file: {{ ck_output_file_remote }}"
 
-
 - name: Copy output file to remote host
   ansible.builtin.copy:
     src: "{{ ck_output_file_local }}"

@@ -17,7 +17,3 @@ loki_query_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/query_ra
 # Cloudkitty certificates
 cert_secret_name: "cert-cloudkitty-client-internal"
 cert_dir: "{{ ansible_user_dir }}/ck-certs"
-
-# Test log files:
-source_log_file: "{{ logs_dir }}/gen_loki_synth_data.log"
-output_log_file: "{{ logs_dir }}/retrieve_loki_op.json"
