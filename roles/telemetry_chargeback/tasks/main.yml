@@ -4,3 +4,6 @@
 
 - name: "Generate Synthetic Data"
   ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
+
+- name: "Ingest Data log to loki"
+  ansible.builtin.include_tasks: "ingest_loki_data.yml"
