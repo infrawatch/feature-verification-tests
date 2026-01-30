@@ -5,7 +5,7 @@ The custom_logger plugin takes a test-id from the task names and reports the res
 The custom_junit plugin extends the standard ansible junit plugin and report in XML format that Polarion expects.
 
 
-The tests are STF and for telemetry services in RHOSO.
+The tests are for STF and for telemetry services in RHOSO.
 
 STF tests
 These are the functional tests for stf. They check that OpenStack components are running and connected to STF and that the system works end-to-end.
