@@ -36,27 +36,13 @@ The role uses the following variables to control the testing environment and exe
 
 ### Internal Variables (vars/main.yml)
 
-These variables are used internally by the role and typically do not need to be modified.
-
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
 | `logs_dir_zuul` | `/home/zuul/ci-framework-data/logs` | Remote directory for log files. |
-| `artifacts_dir_zuul` | `/home/zuul/ci-framework-data/artifacts` | Directory for generated artifacts. |
-| `ck_synth_script` | `{{ role_path }}/files/gen_synth_loki_data.py` | Path to the synthetic data generation script. |
+| `artifacts_dir_zuul` | `/home/zuul/ci-framework-data/artifacts` | Remote directory for generated artifacts. |
+| `ck_scenario_dir` | `{{ role_path }}/files` | Local directory containing scenario files (test_*.yml). |
+| `ck_synth_script` | `{{ role_path }}/files/gen_synth_loki_data.py` | Path to the Python script that generates synthetic Loki data. |
 | `ck_data_template` | `{{ role_path }}/template/loki_data_templ.j2` | Path to the Jinja2 template for Loki data format. |
-| `ck_data_config` | `{{ role_path }}/files/test_static.yml` | Path to the scenario configuration file. |
-| `ck_output_file_local` | `{{ artifacts_dir_zuul }}/loki_synth_data.json` | Local path for generated synthetic data. |
-| `ck_output_file_remote` | `{{ logs_dir_zuul }}/gen_loki_synth_data.log` | Remote destination for synthetic data. |
-
-Scenario Configuration
-----------------------
-The synthetic data generation is controlled by a YAML configuration file (`files/test_static.yml`). This file defines:
-
-* **generation** - Time range configuration (days, step_seconds)
-* **log_types** - List of log type definitions with name, type, unit, qty, price, groupby, and metadata
-* **required_fields** - Fields required for validation
-* **date_fields** - Date fields to add to groupby (week_of_the_year, day_of_the_year, month, year)
-* **loki_stream** - Loki stream configuration (service name)
 
 Dependencies
 ------------

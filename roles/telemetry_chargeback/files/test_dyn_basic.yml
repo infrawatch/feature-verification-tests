@@ -3,7 +3,7 @@
 # Time range configuration
 generation:
   days: 1
-  step_seconds: 3600
+  step_seconds: 7200
 
 # Log type definitions
 log_types:
@@ -13,8 +13,15 @@ log_types:
     description: null
     qty:
       - 20.6
+      - 25.0
+      - 26.0
+      - 30.5
     price:
       - 0.02
+      - 0.03
+      - 0.04
+      - 0.07
+      - 0.10
     groupby:
       id: cd65d30f-8b94-4fa3-95dc-e3b429f479b2
       project_id: 0030775de80e4d84a4fd0d73e0a1b3a7
