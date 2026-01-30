@@ -1,5 +1,7 @@
 ---
 - name: "Verify journal entries"
-  when: journal_list is defined
+  when: telemetry_logging_journal_list is defined
   ansible.builtin.include_tasks: "journal_tests.yml"
-  loop: "{{ journal_list }}"
+  loop: "{{ telemetry_logging_journal_list }}"
+  loop_control:
+    loop_var: journal
