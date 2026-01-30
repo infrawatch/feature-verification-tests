@@ -2,6 +2,11 @@ telemetry_chargeback
 =========
 The **`telemetry_chargeback`** role is designed to test the **RHOSO Cloudkitty** feature. These tests are specific to the Cloudkitty feature. Tests that are not specific to this feature (e.g., standard OpenStack deployment validation, basic networking) should be added to a common role.
 
+The role performs two main functions:
+
+1. **CloudKitty Validation** - Enables and configures the CloudKitty hashmap rating module, then validates its state.
+2. **Synthetic Data Generation** - Generates synthetic Loki log data for testing chargeback scenarios using a Python script and Jinja2 template.
+
 Requirements
 ------------
 It relies on the following being available on the target or control host:
@@ -10,6 +15,9 @@ It relies on the following being available on the target or control host:
 * The **OpenStack CLI client** must be installed and configured with administrative credentials.
 * Required Python libraries for the `openstack` CLI (e.g., `python3-openstackclient`).
 * Connectivity to the OpenStack API endpoint.
+* **Python 3** with the following libraries for synthetic data generation:
+  * `PyYAML`
+  * `Jinja2`
 
 It is expected to be run **after** a successful deployment and configuration of the following components:
 
@@ -48,7 +56,7 @@ Example Playbook
   gather_facts: no
 
   tasks:
-    - name: "Run chargeback specific tests" 
+    - name: "Run chargeback specific tests"
       ansible.builtin.import_role:
         name: telemetry_chargeback
 ```
