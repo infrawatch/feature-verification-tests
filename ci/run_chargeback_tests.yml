@@ -1,0 +1,62 @@
+---
+- name: "Verify all the applicable projects, endpoints, pods & services for cloudkitty"
+  hosts: "{{ cifmw_target_hook_host | default('localhost')  }}"
+  gather_facts: true
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+    - vars/osp18_env.yml
+  vars:
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack
+    common_pod_list:
+      - cloudkitty-api
+      - cloudkitty-lokistack-compactor
+      - cloudkitty-lokistack-distributor
+      # pod tests expect only one instance of a pod, there are two of this one
+      # Some work is needed on the pod tests to deal with this test case
+      #- cloudkitty-lokistack-gateway
+      - cloudkitty-lokistack-index-gateway
+      - cloudkitty-lokistack-ingester
+      - cloudkitty-lokistack-querier
+      - cloudkitty-lokistack-query-frontend
+      - cloudkitty-proc
+
+    common_project_list:
+      - openstack
+      - openstack-operators
+
+    common_endpoint_list:
+      - [cloudkitty,rating,public]
+      - [cloudkitty,rating,internal]
+
+    common_service_nspace: openstack
+    common_service_list:
+      - cloudkitty-internal
+      - cloudkitty-lokistack-compactor-grpc
+      - cloudkitty-lokistack-compactor-http
+      - cloudkitty-lokistack-distributor-grpc
+      - cloudkitty-lokistack-distributor-http
+      - cloudkitty-lokistack-gateway-http
+      - cloudkitty-lokistack-gossip-ring
+      - cloudkitty-lokistack-index-gateway-grpc
+      - cloudkitty-lokistack-index-gateway-http
+      - cloudkitty-lokistack-ingester-grpc
+      - cloudkitty-lokistack-ingester-http
+      - cloudkitty-lokistack-querier-grpc
+      - cloudkitty-lokistack-querier-http
+      - cloudkitty-lokistack-query-frontend-grpc
+      - cloudkitty-lokistack-query-frontend-http
+      - cloudkitty-public
+
+  tasks:
+    - name: "Verify cloudkitty infrastructure components"
+      ansible.builtin.import_role:
+        name: common
+
+    - name: "Verify cloudkitty deployment"
+      ansible.builtin.import_role:
+        name: telemetry_chargeback

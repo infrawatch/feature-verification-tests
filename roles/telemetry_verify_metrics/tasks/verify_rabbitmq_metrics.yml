@@ -1,45 +1,134 @@
-- name: Verify rabbitmq scrapeconfig exists
-  ansible.builtin.include_role:
-    name: common
-  vars:
-    common_cr_list:
-      - kind: scrapeconfigs.monitoring.rhobs
-        name: telemetry-rabbitmq
-
 - name: Get rabbitmq CR names
-  ansible.builtin.shell: |
+  ansible.builtin.command: |
     oc get rabbitmqs -o custom-columns=NAME:.metadata.name --no-headers
   register: cr_names
   changed_when: false
   failed_when: cr_names.rc >= 1 or cr_names.stdout == ""
 
+- name: Create rabbitmq ScrapeConfig list
+  ansible.builtin.set_fact:
+    rabbitmq_sc_list: "{{ rabbitmq_sc_list | default([]) + [{'kind': 'scrapeconfigs.monitoring.rhobs', 'name': 'telemetry-' + item}] }}"
+  loop: "{{ cr_names.stdout_lines }}"
+
+- name: Get rabbitmq pod names
+  ansible.builtin.command: |
+    oc get pods -l app.kubernetes.io/component=rabbitmq -o custom-columns=NAME:.metadata.name --no-headers
+  register: pod_names
+  changed_when: false
+  failed_when: pod_names.rc >= 1 or pod_names.stdout == ""
+
 - name: Create rabbitmq pod list
   ansible.builtin.set_fact:
-    common_pod_list: "{{ common_pod_list | default([]) + [{ 'name': item + '-server-0', 'status_str': 'Running', 'napace': 'openstack', 'test_id': 'RHOSO-1241' ] }}"
-  loop: "{{ cr_names.stdout_lines }}"
+    rabbitmq_pod_list: "{{ rabbitmq_pod_list | default([]) + [item] }}"
+  loop: "{{ pod_names.stdout_lines }}"
 
-- name: Verify rabbitmq pods are running
-  ansible.builtin.include_role:
-    name: common
-  vars:
-    common_pod_status_str: "Running"
-    common_pod_nspace: openstack
-
-- name: Check rabbitmq metric endpoints
+# TODO: Task  can be deleted in the future. The fixed scrapeconfig was targeted for FR4 BR1
+- name: Detect if we're working with fixed scrapeconfigs
   ansible.builtin.shell: |
-    oc rsh openstackclient curl https://{{ item }}.openstack.svc:15691/metrics
-  register: result
+    # We can use "regex: namespace" to detect the old scrapeconfig. This string is absent
+    # in the new one.
+    oc get scrapeconfig {{ rabbitmq_sc_list[0].name }} -oyaml | grep 'regex: namespace'
+  register: scrapeconfig_regex_grep_result
   changed_when: false
-  failed_when: result.rc >= 1
-  loop: "{{ cr_names.stdout_lines }}"
+  failed_when: false
 
-- name: |
-    TEST Use openstack observabilityclient to verify rabbitmq metrics are stored in prometheus
-  ansible.builtin.shell: |
-    {{ openstack_cmd }} metric query rabbitmq_identity_info{instance=\'{{ item }}.openstack.svc:15691\'} --disable-rbac
-  register: result
-  delay: 30
-  retries: 10
-  changed_when: false
-  until: result.rc == 0 and "rabbitmq_identity_info" in result.stdout
-  loop: "{{ cr_names.stdout_lines }}"
+# TODO: Block can be deleted in the future. The fix was targeted for FR4 BR1
+- name: Perform tests without fixed rabbitmq scrapeconfigs
+  when: scrapeconfig_regex_grep_result.rc == 0
+  block:
+  - name: Verify rabbitmq scrapeconfig exists and pods are running
+    ansible.builtin.include_role:
+      name: common
+    vars:
+      common_cr_list:
+        - kind: scrapeconfigs.monitoring.rhobs
+          name: telemetry-rabbitmq
+      common_pod_list: "{{ rabbitmq_pod_list }}"
+      common_pod_status_str: "Running"
+      common_pod_nspace: openstack
+
+  - name: Check rabbitmq metric endpoints
+    ansible.builtin.command: |
+      oc rsh openstackclient curl https://{{ item }}.openstack.svc:15691/metrics
+    register: result
+    changed_when: false
+    failed_when: result.rc >= 1
+    loop: "{{ cr_names.stdout_lines }}"
+
+  - name: |
+      TEST Use openstack observabilityclient to verify rabbitmq metrics are stored in prometheus
+    ansible.builtin.command: |
+      {{ openstack_cmd }} metric query rabbitmq_identity_info{instance=\'{{ item }}.openstack.svc:15691\'} --disable-rbac
+    register: result
+    delay: 30
+    retries: 10
+    changed_when: false
+    until: result.rc == 0 and "rabbitmq_identity_info" in result.stdout
+    loop: "{{ cr_names.stdout_lines }}"
+
+- name: Perform tests with fixed rabbitmq scrapeconfigs
+  when: scrapeconfig_regex_grep_result.rc >= 1
+  block:
+  - name: Verify rabbitmq scrapeconfigs exist and pods are running
+    ansible.builtin.include_role:
+      name: common
+    vars:
+      common_cr_list: "{{ rabbitmq_sc_list }}"
+      common_pod_list: "{{ rabbitmq_pod_list }}"
+      common_pod_status_str: "Running"
+      common_pod_nspace: openstack
+
+  - name: Retrieve rabbitmq pod IPs
+    ansible.builtin.command: |
+      oc get pods {{ item }} -ojsonpath --template \{.status.podIP\}
+    register: rabbitmq_pod_ips
+    changed_when: false
+    failed_when: rabbitmq_pod_ips.rc >= 1
+    loop: "{{ rabbitmq_pod_list }}"
+
+  - name: Check rabbitmq metric endpoints
+    ansible.builtin.command: |
+      oc rsh openstackclient curl https://{{ item.stdout }}:15691/metrics --insecure
+    register: curl_result
+    changed_when: false
+    failed_when: curl_result.rc >= 1
+    loop: "{{ rabbitmq_pod_ips.results }}"
+
+  - name: Build command to retrieve how many rabbitmq pods are configured to be scraped
+    block:
+    - ansible.builtin.set_fact:
+        pod_count_command: "{{ pod_count_command | default('oc get') + ' scrapeconfigs/telemetry-' + item }}"
+      changed_when: false
+      loop: "{{ cr_names.stdout_lines }}"
+
+    - ansible.builtin.set_fact:
+        pod_count_command: "{{ pod_count_command + \" -ojsonpath --template '{.items..spec.staticConfigs}' | jq -s 'flatten | length'\" }}"
+      changed_when: false
+
+  - name: Using the following command to compute how many rabbitmq pods are bing scraped
+    ansible.builtin.debug:
+      var: pod_count_command
+
+  - name: Retrieve how many rabbitmq pods are being scraped
+    ansible.builtin.shell: |
+      {{ pod_count_command }}
+    register: pods_being_scraped
+    changed_when: false
+
+  - name: |
+      TEST Verify all rabbitmq pods are configured to be scraped
+    ansible.builtin.assert:
+      that: pods_being_scraped.stdout | int == rabbitmq_pod_list | length
+      success_msg: "All rabbitmq pods are configured to be scraped. ScrapeConfigs appear to be correct."
+      fail_msg: "ScrapeConfigs are configured to scrape {{ pods_being_scraped.stdout }} pods, but there are {{ rabbitmq_pod_list | length }} rabbitmq pods running."
+
+  - name: |
+      TEST Use openstack observabilityclient to verify rabbitmq metrics are stored in prometheus
+    ansible.builtin.command: |
+      {{ openstack_cmd }} metric query rabbitmq_identity_info{pod=\'{{ item }}\'} --disable-rbac
+    register: result
+    delay: 30
+    retries: 10
+    changed_when: false
+    until: result.rc == 0 and "rabbitmq_identity_info" in result.stdout
+    loop: "{{ rabbitmq_pod_list }}"
