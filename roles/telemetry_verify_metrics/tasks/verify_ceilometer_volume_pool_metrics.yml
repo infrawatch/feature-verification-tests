@@ -1,0 +1,40 @@
+- name: Verify ceilometer scrapeconfig exists
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-ceilometer
+
+- name: Verify ceilometer central agent is running
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack
+    common_pod_list:
+      - ceilometer-0
+
+- name: |
+    TEST Use openstack CLI to verify a cinder volume is configured
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} volume backend pool list
+  register: result
+  until: result.rc == 0 and result.stdout_lines | length > 0
+  changed_when: false
+
+- name: |
+    TEST Use openstack observabilityclient to verify ceilometer volume pool metrics are stored in prometheus
+  vars:
+    volume_pool_metrics:
+      - ceilometer_volume_provider_pool_capacity_allocated
+      - ceilometer_volume_provider_pool_capacity_free
+      - ceilometer_volume_provider_pool_capacity_total
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
+  register: result
+  delay: 30
+  retries: 10
+  until: result.rc == 0 and item in result.stdout
+  changed_when: false
+  loop: "{{ volume_pool_metrics }}"

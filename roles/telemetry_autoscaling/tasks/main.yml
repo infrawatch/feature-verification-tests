@@ -4,7 +4,6 @@
   # i.e. networks, flavor, image, security group
 - name: |
     TEST Verify services running
-    RHOSO-12666
   when: metrics_backend == "prometheus"
   ansible.builtin.include_tasks: 
     file: test_services.yml
@@ -31,6 +30,7 @@
   tags: test
 
 - name: Run the cleanup task
-  ansible.builtin.include_tasks: 
+  ansible.builtin.include_tasks:
     file: post_teardown.yml
+  when: telemetry_autoscaling_cleanup | bool
   tags: cleanup

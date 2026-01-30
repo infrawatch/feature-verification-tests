@@ -5,54 +5,17 @@
   vars_files:
     - vars/common.yml
   tasks:
+    - name: Check whether the log dir exists
+      ansible.builtin.stat:
+        path: "{{ logs_dir }}"
+      register: stat_out
+
     - name: Create log dir
+      when: not stat_out.stat.exists
       ansible.builtin.file:
         path: "{{ logs_dir }}"
         state: directory
         mode: "0755"
-
-- name: "Run the log file collection"
-  hosts:
-    - controller
-    - compute
-  gather_facts: true
-  vars_files:
-    - vars/common.yml
-  tasks:
-    - name: "Find the XML file(s)"
-      ansible.builtin.shell:
-        cmd: |
-          find {{ logs_dir }} -name *.xml
-      register: xml_file_list
-      ignore_errors: true
-
-    - name: "Show the XML files"
-      ansible.builtin.debug:
-        var: xml_file_list.stdout_lines
-      ignore_errors: true
-
-    - name: "Copy the XML files"
-      delegate_to: controller
-      ansible.builtin.copy:
-        remote_src: true
-        src: "{{ item }}"
-        dest: "{{ logs_dir }}/{{ item | basename }} "
-      with_items: "{{ xml_file_list.stdout_lines }}"
-      when: xml_file_list.stdout_lines | length != 0
-
-    - name: "Collect the custom_logger results"
-      delegate_to: controller
-      ansible.builtin.copy:
-        remote_src: true
-        src: "{{ ansible_env.HOME }}/test_run_result.out"
-        dest: "{{ logs_dir }}/test_run_result.out"
-
-    - name: "Collect the results summary"
-      delegate_to: controller
-      ansible.builtin.copy:
-        remote_src: true
-        src: "{{ ansible_env.HOME }}/summary_results.log"
-        dest: "{{ logs_dir }}/summary_result.log"
 
 - name: Check the XML file for failed tasks
   hosts: controller
@@ -72,23 +35,30 @@
       register: verbose_matches
       ignore_errors: true
 
-    - name: "Get the number of failed testcases"
-      ansible.builtin.set_fact:
-        tasks_failed: "{{ verbose_matches.stdout | regex_replace('.*failures=\"([0-9]*)\".*>', '\\1') | split('\n') | map('int') | sum }}"
-
-      # The RC from grep is 0 if the string is matched
-    - name: Fail when there's a testcase failure
-      ansible.builtin.fail:
-        msg: There were {{ tasks_failed }} failed testcases.
-      when: tasks_failed | int > 0 and verbose_matches.rc == 0
-
-    - name: Determine success or failure based on the number of failed tasks
-      ansible.builtin.fail:
-        msg: "The log file(s) contain failed task."
-      when: tasks_failed | int > 0 and verbose_matches.rc == 0
-
       # The RC from grep is 2 if an error occurred.
     - name: Fail if the file was not found (or other grep error)
       ansible.builtin.fail:
         msg: "{{ verbose_matches.stderr if verbose_matches.stderr | length > 0 else 'There was an error with grep.' }}"
       when: verbose_matches.rc > 1
+
+    - name: "Fail if there are no XML files"
+      ansible.builtin.fail:
+        msg: "There were no XML files found in {{ logs_dir }}."
+      when: verbose_matches.stdout_lines | length == 0
+
+    - name: "Get the number of testcase errors and failures"
+      ansible.builtin.set_fact:
+        tasks_errored: "{{ verbose_matches.stdout | regex_replace('.*errors=\"([0-9]*)\".*>', '\\1') | split('\n') | map('int') | sum }}"
+        tasks_failed: "{{ verbose_matches.stdout | regex_replace('.*failures=\"([0-9]*)\".*>', '\\1') | split('\n') | map('int') | sum }}"
+
+      # The RC from grep is 0 if the string is matched
+    - name: Fail when there's a testcase error
+      ansible.builtin.fail:
+        msg: There were {{ tasks_errored }} errors in the testcases.
+      when: tasks_errored | int > 0 and verbose_matches.rc == 0
+
+      # The RC from grep is 0 if the string is matched
+    - name: Fail when there's a testcase failure
+      ansible.builtin.fail:
+        msg: There were {{ tasks_errored }} errors and {{ tasks_failed }} failed testcases.
+      when: ( [ tasks_failed, tasks_errored ] | sum > 0 ) and verbose_matches.rc == 0

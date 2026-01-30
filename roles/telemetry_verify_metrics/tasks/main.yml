@@ -3,8 +3,6 @@
   ansible.builtin.include_role:
     name: common
   vars:
-    common_cr_test_id: RHOSO-1258
-    common_cr_ready_test_id: RHOSO-1259
     common_cr_list:
       - kind: telemetry
         name: telemetry
@@ -108,3 +106,15 @@
   when: '"kepler_vm" in telemetry_verify_metrics_metric_sources_to_test and "ACTIVE" in kepler_vm_status.stdout'
   vars:
     metrics_cmd_prefix: "{{ openstack_cmd }} metric show --disable-rbac -c value -f value"
+
+- name: Verify Ceilometer volume pool metrics are being exposed and stored
+  ansible.builtin.include_tasks:
+    file: verify_ceilometer_volume_pool_metrics.yml
+  tags: test
+  when: '"volume_pool" in telemetry_verify_metrics_metric_sources_to_test'
+
+- name: Verify OVN metrics are being exposed and stored
+  ansible.builtin.include_tasks:
+    file: verify_ovn_metrics.yml
+  tags: test
+  when: '"ovn" in telemetry_verify_metrics_metric_sources_to_test'

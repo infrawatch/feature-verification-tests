@@ -62,7 +62,6 @@
 
 - name: |
     TEST Run Cypress tests
-    RHOSO-13627
   ansible.builtin.shell: |
       Xvfb :99 -ac &
       export DISPLAY=:99
@@ -90,7 +89,6 @@
 
 - name: |
     TEST Check if all tests passed
-    RHOSO-13628
   ansible.builtin.assert:
     that:
       - cypress_run.rc == 0

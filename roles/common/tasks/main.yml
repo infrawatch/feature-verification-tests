@@ -38,12 +38,23 @@
     - common_file_list is defined
   ansible.builtin.include_tasks: "file_tests.yml"
   loop: "{{ common_file_list }}"
-  
+
 - name: "Run manifest tests"
   when:
     - common_manifest_list is defined
-  ansible.builtin.include_tasks: "manifest_tests.yml"
-  loop: "{{ common_manifest_list }}"
+  block:
+    - name: "Get the manifest list once"
+      ansible.builtin.command: oc get packagemanifests
+      changed_when: false
+      register: _manifest_output
+
+    - name: "Check that each package manifest is present"
+      ansible.builtin.include_tasks: "manifest_tests.yml"
+      vars:
+        available_manifests: "{{ _manifest_output.stdout_lines }}"
+      loop: "{{ common_manifest_list }}"
+      loop_control:
+        loop_var: manifest
 
 - name: "Run crd tests"
   when:

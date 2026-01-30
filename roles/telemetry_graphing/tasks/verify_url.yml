@@ -12,7 +12,6 @@
 
 - name: |
     TEST Check OpenShift Console is accessible
-    RHOSO-13626
   ansible.builtin.shell:
     cmd: |
       curl -o /dev/null -s -w "%{http_code}" -k {{ openshift_console_url }}
