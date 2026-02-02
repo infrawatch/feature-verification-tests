@@ -7,3 +7,13 @@ ck_data_template: "{{ role_path }}/template/loki_data_templ.j2"
 ck_data_config: "{{ role_path }}/files/test_static.yml"
 ck_output_file_local: "{{ artifacts_dir_zuul }}/loki_synth_data.json"
 ck_output_file_remote: "{{ logs_dir_zuul }}/gen_loki_synth_data.log"
+ck_loki_retreive_file: "{{ logs_dir_zuul }}/reteive_loki_op.json"
+
+# loki url's
+loki_base_url: "https://cloudkitty-lokistack-openstack.apps-crc.testing"
+loki_push_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/push"
+loki_query_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/query_range"
+
+# Cloudkitty certificates
+cert_secret_name: "cert-cloudkitty-client-internal"
+cert_dir: "{{ ansible_user_dir }}/ck-certs"

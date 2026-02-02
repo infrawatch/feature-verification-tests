@@ -1,0 +1,59 @@
+---
+# Ingest data log to Loki that is generated from gen_synth_loki_data.yml"
+
+# Create a directory to add certs
+- name: Create certificates directory
+  ansible.builtin.file:
+    path: "{{ cert_dir }}"
+    state: directory
+    mode: '0755'
+
+# Extract certificates
+- name: Extract certificates from openshift secret
+  ansible.builtin.command:
+    cmd: >
+      oc extract secret/{{ cert_secret_name }}
+      --to={{ cert_dir }}
+      --confirm
+  changed_when: true
+
+# Push the json format data log to loki
+- name: Ingest data log to Loki via API
+  block:
+
+    - name: Read log file content
+      ansible.builtin.slurp:
+        src: "{{ ck_output_file_remote }}"
+      register: log_file_content
+
+    - name: Push data to Loki
+      ansible.builtin.uri:
+        url: "{{ loki_push_url }}"
+        method: POST
+        body: "{{ log_file_content['content'] | b64decode | from_json }}"
+        body_format: json
+        client_cert: "{{ cert_dir }}/tls.crt"
+        client_key: "{{ cert_dir }}/tls.key"
+        validate_certs: false
+        status_code: 204
+        return_content: yes
+      register: loki_response
+      ignore_errors: false
+      failed_when: loki_response.status != 204
+
+    # Success
+    - name: Confirm Success
+      ansible.builtin.debug:
+        msg: "Ingestion Successful!"
+
+  rescue:
+    # Rescue block
+    - name: Debug failure
+      ansible.builtin.debug:
+        msg: "{{ loki_response.status }}"
+    
+    # Failure
+    - name: Report Ingestion Failure
+      ansible.builtin.fail:
+        msg: "Ingestion Failed! See debug output for details."
+      ignore_errors: false

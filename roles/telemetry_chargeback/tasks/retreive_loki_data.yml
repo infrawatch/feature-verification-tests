@@ -1,0 +1,80 @@
+---
+- name: Automate Loki Log Retrieval
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+  
+  vars:
+    # LogQL Query
+    logql_query: "{{ loki_query | default('{test=\"chargeback\"}') }}"
+    
+    # Time window settings
+    lookback_days: "{{ lookback | default(6) }}"
+    limit_logs: "{{ limit | default(50) }}"
+
+  tasks:
+    # Calculate Time
+    - name: Calculate Start Time in nanoseconds
+      ansible.builtin.command: date -d "{{ lookback_days }} days ago" +%s000000000
+      register: nano_time
+      changed_when: false
+
+    - name: Set Start Time
+      ansible.builtin.set_fact:
+        start_time: "{{ nano_time.stdout }}"
+
+    - name: Display Query Parameters
+      ansible.builtin.debug:
+        msg: 
+          - "Query: {{ logql_query }}"
+          - "Start Time: {{ start_time }}"
+          - "Limit: {{ limit_logs }}"
+
+    # Query Loki
+    - name: Retrieve Logs from Loki via API
+      block:
+        - name: Query Loki API
+          ansible.builtin.uri:
+            url: "{{ loki_query_url }}?query={{ logql_query | urlencode }}&start={{ start_time }}&limit={{ limit_logs }}"
+            method: GET
+            client_cert: "{{ cert_dir }}/tls.crt"
+            client_key: "{{ cert_dir }}/tls.key"
+            ca_path: "{{ cert_dir }}/ca.crt"
+            validate_certs: false
+            status_code: 200
+            return_content: yes
+            body_format: json
+          register: loki_response
+
+        # Save data
+        - name: Save Loki Data to JSON file
+          ansible.builtin.copy:
+            content: "{{ loki_response.json | to_nice_json }}"
+            dest: "{{ ck_loki_retreive_file }}"
+
+        # Validate
+        - name: Verify Data Integrity
+          ansible.builtin.assert:
+            that:
+              - loki_response.json.status == 'success'
+              - loki_response.json.data.result | length > 0
+            fail_msg: "Query returned success but found ZERO logs. Check ingestion pipeline."
+            success_msg: "SUCCESS: Found {{ loki_response.json.data.result | length }} log streams."
+
+        # Success
+        - name: Confirm Success
+          ansible.builtin.debug:
+            msg: "Retrieval Successful! Data saved to {{ ck_loki_retreive_file }}"
+
+      rescue:
+        - name: Debug failure
+          ansible.builtin.debug:
+            msg: 
+              - "Status: {{ loki_response.status | default('Unknown') }}"
+              - "Body: {{ loki_response.content | default('No Content') }}"
+              - "Msg: {{ loki_response.msg | default('Request failed') }}"
+
+        # Failure
+        - name: Report Retrieval Failure
+          ansible.builtin.fail:
+            msg: "Retrieval Failed! See debug output for details."
