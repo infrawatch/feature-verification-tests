@@ -17,3 +17,10 @@ loki_query_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/query_ra
 # Cloudkitty certificates
 cert_secret_name: "cert-cloudkitty-client-internal"
 cert_dir: "{{ ansible_user_dir }}/ck-certs"
+
+# LogQL Query
+logql_query: "{{ loki_query | default('{service=\"cloudkitty\"}') }}"
+
+# Time window settings
+lookback_days: "{{ lookback | default(6) }}"
+limit_logs: "{{ limit | default(50) }}"
