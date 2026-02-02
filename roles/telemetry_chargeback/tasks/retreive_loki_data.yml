@@ -6,7 +6,7 @@
   
   vars:
     # LogQL Query
-    logql_query: "{{ loki_query | default('{test=\"chargeback\"}') }}"
+    logql_query: "{{ loki_query | default('{service=\"cloudkitty\"}') }}"
     
     # Time window settings
     lookback_days: "{{ lookback | default(6) }}"
