@@ -1,6 +1,31 @@
 ---
-- name: "Validate Chargeback Feature"
+- name: "Validate Chargeback Feature deployed correctly"
   ansible.builtin.include_tasks: "chargeback_tests.yml"
 
-- name: "Generate Synthetic Data"
-  ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
+- name: "Setup Loki Environment"
+  ansible.builtin.include_tasks: "setup_loki_env.yml"
+
+- name: "Find test files"
+  ansible.builtin.find:
+    paths: "{{ ck_scenario_dir }}"
+    patterns: "test_*.yml"
+  register: found_files_raw
+
+- name: "Extract only the filenames into a clean list"
+  ansible.builtin.set_fact:
+    found_files: "{{ found_files_raw.files | map(attribute='path') | map('basename') | map('regex_replace', '\\.yml$', '') | list }}"
+
+- name: "Run scenario file through workflow"
+  block:
+    - name: "Process and Loop if files exist"
+      ansible.builtin.include_tasks: run_test_scenarios.yml
+      loop: "{{ found_files }}"
+      when: found_files | length > 0
+
+    - name: Cleanup after job run
+      ansible.builtin.include_tasks: cleanup_ck.yml
+
+  rescue:
+    - name: "Log failure"
+      ansible.builtin.debug:
+        msg: "Running test scenarios loop failed."
