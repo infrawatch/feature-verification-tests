@@ -1,0 +1,37 @@
+---
+- name: Load first timestep starttime and last timestep endtime
+  ansible.builtin.include_vars:
+    file: "{{ artifacts_dir_zuul }}/{{ item }}{{ ck_synth_totals_suffix }}"
+
+- name: Print Begin and End timestamps
+  ansible.builtin.debug:
+    msg: "Range is {{ time.begin | default('Unknown') }} to {{ time.end | default('Unknown') }}"
+
+- name: "TEST Get total cost fromi Cloudkitty {{ item }}"
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} rating summary get -b {{ time.begin }} -e {{ time.end }} -f yaml  -g type"
+  register: cost_totals
+  changed_when: true
+  failed_when: cost_totals.rc != 0
+
+- name: "Save output as a loadable variable file"
+  ansible.builtin.copy:
+    content: |
+        "{{ cost_totals.stdout }}"
+    dest: "{{ artifacts_dir_zuul }}/{{ item }}{{ ck_loki_totals_suffix }}"
+    mode: '0644'
+
+- name: DEBUG Print the rating summary "{{ item }}" 
+  ansible.builtin.debug:
+    var: cost_totals
+
+- name: "Help for total cost cmd {{ item }}"
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} rating summary get -h"
+  register: cost_totals_h
+  changed_when: true
+  failed_when: cost_totals_h.rc != 0
+
+- name: DEBUG Print the rating summary get help output
+  ansible.builtin.debug:
+    var: cost_totals_h.stdout_lines

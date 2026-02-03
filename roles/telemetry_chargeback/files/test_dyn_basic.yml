@@ -1,0 +1,87 @@
+---
+# Scenario configuration for synthetic Loki log data generation
+
+# Time range configuration
+generation:
+  days: 1
+  step_seconds: 14400
+
+# Log type definitions
+log_types:
+  - name: ceilometer_image_size
+    type: persistent_storage
+    unit: MiB
+    description: "Size of ceilometer image"
+    qty:
+      - 20.6
+      - 25.0
+      - 26.0
+      - 30.5
+    price:
+      - 0.02
+      - 0.03
+      - 0.04
+      - 0.07
+      - 0.10
+    groupby:
+      id: null
+      user_id: 1
+      project_id: 12345
+      tenant_id: tenant-01
+    metadata:
+      container_format: bare
+      disk_format: qcow2
+
+  - name: ceilometer_cpu
+    type: cpu_instances
+    unit: scalar
+    description: "max number of cpus used in time step"
+    qty:
+      - 1.0
+    price:
+      - 0.3
+    groupby:
+      id: null
+      user_id: 0
+      project_id: 23456
+      tenant_id: tenant-02
+    metadata:
+      flavor_name: m1.tiny
+      flavor_id: "1"
+      vcpus: ""
+
+  - name: ceilometer_ip_floating
+    type: number_floating_ips
+    unit: ip
+    description: null
+    qty:
+      - 0.0
+    price:
+      - 0.50
+    groupby:
+      id: null
+      user_id: null
+      project_id: 34567
+      tenant_id: tenant-01
+    metadata:
+      state: null
+
+# Required fields for validation (top-level fields only, not nested in groupby)
+required_fields:
+  - type
+  - unit
+  - qty
+  - price
+  - groupby
+  - metadata
+
+# Date field names to add to groupby
+date_fields:
+  - week_of_the_year
+  - day_of_the_year
+  - month
+  - year
+
+# Loki stream configuration
+loki_stream:
+  service: cloudkitty

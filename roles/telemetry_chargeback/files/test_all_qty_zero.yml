@@ -1,0 +1,144 @@
+---
+# Scenario configuration for synthetic Loki log data generation
+
+# Time range configuration
+generation:
+  days: 1
+  step_seconds: 14400
+
+# Log type definitions
+log_types:
+  - name: ceilometer_cpu
+    type: cpu_instances
+    unit: scalar
+    description: "max number of cpus used in time step"
+    qty:
+      - 0.0
+    price:
+      - 0.3
+    groupby:
+      id: null
+      user_id: null
+      project_id: 2
+      tenant_id: tenant-01
+    metadata:
+      flavor_name: null
+      flavor_id: ""
+      vcpus: ""
+
+  - name: ceilometer_image_size
+    type: persistent_storage
+    unit: MiB
+    description: "Size of ceilometer image"
+    qty:
+      - 0.0
+    price:
+      - 0.02
+    groupby:
+      id: null
+      user_id: null
+      project_id: 2
+      tenant_id: tenant-02
+    metadata:
+      container_format: null
+      disk_format: null
+
+  - name: ceilometer_disk_ephemeral_size
+    type: ephemeral_storage
+    unit: GiB
+    description: "Max at each timestep"
+    qty:
+      - 0.0
+    price:
+      - 0.1
+    groupby:
+      id: null
+      user_id: null
+      project_id: 2
+      tenant_id: tenant-01
+    metadata:
+      type: null
+
+  - name: ceilometer-disk-root_size
+    type: persistent_storage
+    unit: GiB
+    description: null
+    qty:
+      - 0.0
+    price:
+      - 1.00
+    groupby:
+      id: null
+      user_id: null
+      project_id: 2
+      tenant_id: tenant-02
+    metadata:
+      disk_format: null
+
+  - name: ceilometer_network_outgoing_bytes
+    type: network_traffic
+    unit: B
+    description: null
+    qty:
+      - 0.0
+    price:
+      - 0.02
+    groupby:
+      id: null
+      user_id: null
+      project_id: 2
+      tenant_id: tenant-01
+    metadata:
+      vm_instance: null
+
+  - name: ceilometer_network_incoming_bytes
+    type: network_traffic
+    unit: B
+    description: null
+    qty:
+      - 0.0
+    price:
+      - 0.02
+    groupby:
+      id: null
+      user_id: null
+      project_id: 2
+      tenant_id: tenant-02
+    metadata:
+      vm_instance: null
+
+  - name: ceilometer_ip_floating
+    type: number_floating_ips
+    unit: ip
+    description: null
+    qty:
+      - 0.0
+    price:
+      - 0.50
+    groupby:
+      id: null
+      user_id: null
+      project_id: 1
+      tenant_id: tenant-01
+    metadata:
+      state: null
+
+# Required fields for validation (top-level fields only, not nested in groupby)
+required_fields:
+  - type
+  - unit
+  - qty
+  - price
+  - groupby
+  - metadata
+
+# Date field names to add to groupby
+date_fields:
+  - week_of_the_year
+  - day_of_the_year
+  - month
+  - year
+
+# Loki stream configuration
+loki_stream:
+  service: cloudkitty
