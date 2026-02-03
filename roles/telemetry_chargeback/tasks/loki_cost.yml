@@ -1,0 +1,26 @@
+---
+- name: "TEST Get total cost from loki {{ item }}"
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} rating summary get -f yaml -c 'Rate'"
+  register: cost_totals
+  changed_when: true
+  failed_when: cost_totals.rc != 0
+
+- name: "Save output as a loadable variable file"
+  ansible.builtin.copy:
+    content: |
+      loki_rate:
+        total_rate: '{{ (cost_totals.stdout | from_yaml).Rate | default("0") }}'
+    dest: "{{ artifacts_dir_zuul }}/{{ item }}_loki-totals.yml"
+    mode: '0644'
+
+- name: "Help for total cost cmd {{ item }}"
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} rating summary get -h"
+  register: cost_totals_h
+  changed_when: true
+  failed_when: cost_totals_h.rc != 0
+
+- name: Print the rating summary get help output
+  ansible.builtin.debug:
+    var: cost_totals_h

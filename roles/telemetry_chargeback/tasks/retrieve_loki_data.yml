@@ -1,0 +1,6 @@
+---
+# Automate Loki Log Retrieval
+
+- name: "Automate Loki Log Retrieval {{ item }}"
+  ansible.builtin.debug:
+    msg: "Automate Loki Log Retrieval"

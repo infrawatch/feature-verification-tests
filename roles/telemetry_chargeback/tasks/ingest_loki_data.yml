@@ -1,0 +1,6 @@
+---
+# Ingest data log to Loki that is generated from gen_synth_loki_data.yml
+
+- name: "Ingest data log to Loki {{ item }}"
+  ansible.builtin.debug:
+    msg: "Inside Ingest data log"
