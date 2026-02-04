@@ -2,12 +2,13 @@ telemetry_chargeback
 =========
 The **`telemetry_chargeback`** role is designed to test the **RHOSO Cloudkitty** feature. These tests are specific to the Cloudkitty feature. Tests that are not specific to this feature (e.g., standard OpenStack deployment validation, basic networking) should be added to a common role.
 
-The role performs three main functions:
+The role performs four main functions:
 
 1. **CloudKitty Validation** - Enables and configures the CloudKitty hashmap rating module, then validates its state.
 2. **Synthetic Data Generation** - Generates synthetic Loki log data for testing chargeback scenarios using a Python script and 
 Jinja2 template.
-3. **Ingest and Retreival of data** - Ingests synthetic Loki log data to loki and verifies retreival of data from loki
+3. **Ingest data and Flush to Loki** - Ingests synthetic CloudKitty log data and Flush Loki Ingester Memory to Storage
+4. **Retreival of data** - Verifies retreival of data from loki
 
 Requirements
 ------------
@@ -65,7 +66,7 @@ Dependencies
 ------------
 This role has no direct hard dependencies on other Ansible roles.
 
-This runs 4 playbooks
+This runs 5 playbooks
 ---------------------
 ```yaml
 - name: "Validate Chargeback Feature"
@@ -74,8 +75,11 @@ This runs 4 playbooks
 - name: "Generate Synthetic Data"
   ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
 
-- name: "Ingest Data log to loki"
+- name: "Ingests Cloudkitty Data log"
   ansible.builtin.include_tasks: "ingest_loki_data.yml"
+
+- name: "Flush Data to loki Storage"
+  ansible.builtin.include_tasks: "flush_loki_data.yml"
 
 - name: "Retreive Data log from loki"
   ansible.builtin.include_tasks: "retreive_loki_data.yml"
