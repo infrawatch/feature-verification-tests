@@ -38,7 +38,8 @@
     - name: Save Loki Data to JSON file
       ansible.builtin.copy:
         content: "{{ loki_response.json | to_nice_json }}"
-        dest: "{{ ck_loki_retreive_file }}"
+        dest: "{{ ck_loki_retrieve_file }}"
+        mode: '0644'
 
     # Validate
     - name: Verify Data Integrity
@@ -52,7 +53,7 @@
     # Success
     - name: Confirm Success
       ansible.builtin.debug:
-        msg: "Retrieval Successful! Data saved to {{ ck_loki_retreive_file }}"
+        msg: "Retrieval Successful! Data saved to {{ ck_loki_retrieve_file }}"
 
   rescue:
     - name: Debug failure

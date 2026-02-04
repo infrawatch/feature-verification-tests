@@ -45,6 +45,7 @@
           --key {{ remote_cert_dir }}/tls.key
           --cacert {{ remote_cert_dir }}/service-ca.crt
       register: flush_response
+      changed_when: true
       failed_when: flush_response.rc != 0
 
     # Status

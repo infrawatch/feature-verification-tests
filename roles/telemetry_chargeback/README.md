@@ -8,7 +8,7 @@ The role performs four main functions:
 2. **Synthetic Data Generation** - Generates synthetic Loki log data for testing chargeback scenarios using a Python script and 
 Jinja2 template.
 3. **Ingest data and Flush to Loki** - Ingests synthetic CloudKitty log data and Flush Loki Ingester Memory to Storage
-4. **Retreival of data** - Verifies retreival of data from loki
+4. **Retrieval of data** - Verifies retrieval of data from loki
 
 Requirements
 ------------
@@ -50,7 +50,7 @@ These variables are used internally by the role and typically do not need to be 
 | `ck_data_config` | `{{ role_path }}/files/test_static.yml` | Path to the scenario configuration file. |
 | `ck_output_file_local` | `{{ artifacts_dir_zuul }}/loki_synth_data.json` | Local path for generated synthetic data. |
 | `ck_output_file_remote` | `{{ logs_dir_zuul }}/gen_loki_synth_data.log` | Remote destination for synthetic data. |
-| `ck_loki_retreive_file` | `{{ logs_dir_zuul }}/reteive_loki_op.json` | Path where the retreival of loki data is stored. |
+| `ck_loki_retrieve_file` | `{{ logs_dir_zuul }}/retrieve_loki_op.json` | Path where the retrieval of loki data is stored. |
 
 Scenario Configuration
 ----------------------
@@ -81,8 +81,8 @@ This runs 5 playbooks
 - name: "Flush Data to loki Storage"
   ansible.builtin.include_tasks: "flush_loki_data.yml"
 
-- name: "Retreive Data log from loki"
-  ansible.builtin.include_tasks: "retreive_loki_data.yml"
+- name: "Retrieve Data log from loki"
+  ansible.builtin.include_tasks: "retrieve_loki_data.yml"
 ```
 
 Example Playbook

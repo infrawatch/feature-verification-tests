@@ -11,5 +11,5 @@
 - name: "Flush Data to loki Storage"
   ansible.builtin.include_tasks: "flush_loki_data.yml"
 
-- name: "Retreive Data log from loki"
-  ansible.builtin.include_tasks: "retreive_loki_data.yml"
+- name: "Retrieve Data log from loki"
+  ansible.builtin.include_tasks: "retrieve_loki_data.yml"
