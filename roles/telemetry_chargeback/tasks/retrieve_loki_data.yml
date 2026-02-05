@@ -13,7 +13,7 @@
 
 - name: Expected Count
   ansible.builtin.debug:
-    msg: "Input file has {{ expected_log_count }} log lines that Loki has to return"
+    msg: "Input file has {{ expected_log_count }} data entries that Loki has to return"
 
 # Calculate Time
 - name: Calculate Start Time in nanoseconds
@@ -69,7 +69,7 @@
           - loki_response.json.status == 'success'
           - loki_response.json.data.result | length > 0
         fail_msg: "Query did not return any data entries"
-        success_msg: "Query found {{ loki_response.json.data.result | length }} data entries"
+        success_msg: "Query found all the data entries"
 
     # Success
     - name: Confirm Success
