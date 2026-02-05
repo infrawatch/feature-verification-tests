@@ -1,6 +1,20 @@
 ---
 # Automate Loki Log Retrieval
 
+# Count the entries in the log file
+- name: Read the json data log file to calculate the no. of entries
+  ansible.builtin.slurp:
+    src: "{{ ck_output_file_remote }}"
+  register: source_file_data
+
+- name: Set Expected Log Count
+  ansible.builtin.set_fact:
+    expected_log_count: "{{ (source_file_data['content'] | b64decode | from_json).streams | map(attribute='values') | map('length') | sum }}"
+
+- name: Expected Count
+  ansible.builtin.debug:
+    msg: "Input file has {{ expected_log_count }} log lines that Loki has to return"
+
 # Calculate Time
 - name: Calculate Start Time in nanoseconds
   ansible.builtin.command: date -d "{{ lookback_days }} days ago" +%s000000000
@@ -29,10 +43,17 @@
         client_key: "{{ cert_dir }}/tls.key"
         ca_path: "{{ cert_dir }}/ca.crt"
         validate_certs: false
-        status_code: 200
         return_content: yes
         body_format: json
       register: loki_response
+      # Wait condition
+      until:
+        - loki_response.status == 200
+        - loki_response.json.status == 'success'
+        - loki_response.json.data.result | length > 0
+        - (loki_response.json.data.result | map(attribute='values') | map('length') | sum) >= expected_log_count|int
+      retries: 5
+      delay: 300
 
     # Save data
     - name: Save Loki Data to JSON file
@@ -47,13 +68,15 @@
         that:
           - loki_response.json.status == 'success'
           - loki_response.json.data.result | length > 0
-        fail_msg: "Query returned success but found ZERO logs. Check ingestion pipeline."
-        success_msg: "SUCCESS: Found {{ loki_response.json.data.result | length }} log streams."
+        fail_msg: "Query did not return any data entries"
+        success_msg: "Query found {{ loki_response.json.data.result | length }} data entries"
 
     # Success
     - name: Confirm Success
+      vars:
+        actual_count: "{{ loki_response.json.data.result | map(attribute='values') | map('length') | sum }}"
       ansible.builtin.debug:
-        msg: "Retrieval Successful! Data saved to {{ ck_loki_retrieve_file }}"
+        msg: "Successful, Input file had {{ expected_log_count }} entries and Loki returned {{ actual_count }}"
 
   rescue:
     - name: Debug failure
@@ -66,4 +89,4 @@
     # Failure
     - name: Report Retrieval Failure
       ansible.builtin.fail:
-        msg: "Retrieval Failed! See debug output for details."
+        msg: "Retrieval Failed"

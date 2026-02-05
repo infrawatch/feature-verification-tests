@@ -55,5 +55,5 @@
     # Failure
     - name: Report Ingestion Failure
       ansible.builtin.fail:
-        msg: "Ingestion Failed! See debug output for details."
+        msg: "Ingestion Failed"
       ignore_errors: false
