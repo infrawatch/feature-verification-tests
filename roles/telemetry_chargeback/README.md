@@ -2,10 +2,13 @@ telemetry_chargeback
 =========
 The **`telemetry_chargeback`** role is designed to test the **RHOSO Cloudkitty** feature. These tests are specific to the Cloudkitty feature. Tests that are not specific to this feature (e.g., standard OpenStack deployment validation, basic networking) should be added to a common role.
 
-The role performs two main functions:
+The role performs four main functions:
 
 1. **CloudKitty Validation** - Enables and configures the CloudKitty hashmap rating module, then validates its state.
-2. **Synthetic Data Generation** - Generates synthetic Loki log data for testing chargeback scenarios using a Python script and Jinja2 template.
+2. **Synthetic Data Generation** - Generates synthetic Loki log data for testing chargeback scenarios using a Python script and 
+Jinja2 template.
+3. **Ingest data and Flush to Loki** - Ingests synthetic CloudKitty log data and Flush Loki Ingester Memory to Storage
+4. **Retrieval of data** - Verifies retrieval of data from loki
 
 Requirements
 ------------
@@ -47,6 +50,7 @@ These variables are used internally by the role and typically do not need to be 
 | `ck_data_config` | `{{ role_path }}/files/test_static.yml` | Path to the scenario configuration file. |
 | `ck_output_file_local` | `{{ artifacts_dir_zuul }}/loki_synth_data.json` | Local path for generated synthetic data. |
 | `ck_output_file_remote` | `{{ logs_dir_zuul }}/gen_loki_synth_data.log` | Remote destination for synthetic data. |
+| `ck_loki_retrieve_file` | `{{ logs_dir_zuul }}/retrieve_loki_op.json` | Path where the retrieval of loki data is stored. |
 
 Scenario Configuration
 ----------------------
@@ -61,6 +65,25 @@ The synthetic data generation is controlled by a YAML configuration file (`files
 Dependencies
 ------------
 This role has no direct hard dependencies on other Ansible roles.
+
+This runs 5 playbooks
+---------------------
+```yaml
+- name: "Validate Chargeback Feature"
+  ansible.builtin.include_tasks: "chargeback_tests.yml"
+
+- name: "Generate Synthetic Data"
+  ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
+
+- name: "Ingests Cloudkitty Data log"
+  ansible.builtin.include_tasks: "ingest_loki_data.yml"
+
+- name: "Flush Data to loki Storage"
+  ansible.builtin.include_tasks: "flush_loki_data.yml"
+
+- name: "Retrieve Data log from loki"
+  ansible.builtin.include_tasks: "retrieve_loki_data.yml"
+```
 
 Example Playbook
 ----------------
@@ -78,4 +101,4 @@ Example Playbook
 Author Information
 ------------------
 
-Alex Yefimov, Red Hat
+Alex Yefimov, Muneesha Yadla
