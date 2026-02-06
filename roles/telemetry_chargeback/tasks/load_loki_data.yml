@@ -1,0 +1,9 @@
+---
+- name: "TEST Ingest Data log to loki {{ item }}"
+  ansible.builtin.include_tasks: "ingest_loki_data.yml"
+
+- name: "TEST Retrieve Data log from loki {{ item }}"
+  ansible.builtin.include_tasks: "retrieve_loki_data.yml"
+
+- name: "Get total cost from loki: {{ item }}"
+  ansible.builtin.include_tasks: "loki_cost.yml"
