@@ -66,7 +66,7 @@ Dependencies
 ------------
 This role has no direct hard dependencies on other Ansible roles.
 
-This runs 5 taskfiles
+This runs 6 taskfiles
 ---------------------
 ```yaml
 - name: "Validate Chargeback Feature"
@@ -74,6 +74,9 @@ This runs 5 taskfiles
 
 - name: "Generate Synthetic Data"
   ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
+
+- name: "Setup Loki Environment"
+  ansible.builtin.include_tasks: "setup_loki_env.yml"
 
 - name: "Ingests Cloudkitty Data log"
   ansible.builtin.include_tasks: "ingest_loki_data.yml"

@@ -1,26 +1,6 @@
 ---
 # Flush Loki Ingester Memory to Storage
 
-# create dir 
-- name: Create a directory to extract certificates
-  ansible.builtin.file:
-    path: "{{ local_cert_dir }}"
-    state: directory
-    mode: '0755'
-
-# Extract Certs
-- name: Extract Client Certificates
-  ansible.builtin.command:
-    cmd: "oc extract {{ client_secret }} --to={{ local_cert_dir }} --confirm -n {{ namespace }}"
-  changed_when: true
-
-# Extract CA Bundle
-- name: Extract CA Bundle
-  ansible.builtin.command:
-    cmd: "oc extract {{ ca_configmap }} --to={{ local_cert_dir }} --confirm -n {{ namespace }}"
-  changed_when: true
-
-# Flush
 - name: Flush Execution inside openstack CLI
   block:
     # create dir 

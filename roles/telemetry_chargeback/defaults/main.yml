@@ -1,21 +1,15 @@
 ---
 openstack_cmd: "openstack"
 
-# Loki url's
-loki_base_url: "https://cloudkitty-lokistack-openstack.apps-crc.testing"
-loki_push_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/push"
-loki_query_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/query_range"
-
-# Ingester URL
-ingester_flush_url: "https://cloudkitty-lokistack-ingester-http.openstack.svc:3100/flush"
-
 # Cloudkitty certificates
 cert_secret_name: "cert-cloudkitty-client-internal"
 cert_dir: "{{ ansible_user_dir }}/ck-certs"
+
 client_secret: "secret/cloudkitty-lokistack-gateway-client-http"
 ca_configmap: "cm/cloudkitty-lokistack-ca-bundle"
-local_cert_dir: "{{ ansible_env.HOME }}/flush_certs"
 remote_cert_dir: "osp-certs"
+local_cert_dir: "{{ ansible_env.HOME }}/flush_certs"
+
 
 # Loki Ingest & Retrieve logs
 logs_dir_zuul: "/home/zuul/ci-framework-data/logs"

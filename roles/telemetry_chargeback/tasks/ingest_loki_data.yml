@@ -1,22 +1,6 @@
 ---
 # Ingest data log to Loki that is generated from gen_synth_loki_data.yml"
 
-# Create a directory to add certs
-- name: Create certificates directory
-  ansible.builtin.file:
-    path: "{{ cert_dir }}"
-    state: directory
-    mode: '0755'
-
-# Extract certificates
-- name: Extract certificates from openshift secret
-  ansible.builtin.command:
-    cmd: >
-      oc extract secret/{{ cert_secret_name }}
-      --to={{ cert_dir }}
-      --confirm
-  changed_when: true
-
 # Push the json format data log to loki
 - name: Ingest data log to Loki via API
   block:
