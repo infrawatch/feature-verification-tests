@@ -49,11 +49,6 @@
       -n {{ namespace }}
   changed_when: true
 
-- name: Check if CA Bundle Exists
-  ansible.builtin.stat:
-    path: "{{ cert_dir }}/service-ca.crt"
-  register: ca_cert_check
-
 # Certs to Flush data to Loki
 - name: Create a directory to extract certificates
   ansible.builtin.file:
