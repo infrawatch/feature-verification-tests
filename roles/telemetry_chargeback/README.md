@@ -66,7 +66,7 @@ Dependencies
 ------------
 This role has no direct hard dependencies on other Ansible roles.
 
-This runs 5 playbooks
+This runs 5 taskfiles
 ---------------------
 ```yaml
 - name: "Validate Chargeback Feature"
@@ -101,4 +101,5 @@ Example Playbook
 Author Information
 ------------------
 
-Alex Yefimov, Muneesha Yadla
+Alex Yefimov, Red Hat
+Muneesha Yadla, Red Hat

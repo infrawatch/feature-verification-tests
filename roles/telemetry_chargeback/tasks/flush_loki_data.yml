@@ -56,10 +56,6 @@
         fail_msg: "Flush failed"
         success_msg: "Ingester Memory Flushed successfully"
 
-    - name: Confirm Success
-      ansible.builtin.debug:
-        msg: "Loki Ingester flushed the data successfully"
-
   rescue:
     - name: Debug Failure Output
       ansible.builtin.debug:

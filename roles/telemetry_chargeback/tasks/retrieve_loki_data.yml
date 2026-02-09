@@ -17,7 +17,7 @@
 
 # Calculate Time
 - name: Calculate Start Time in nanoseconds
-  ansible.builtin.command: date -d "{{ lookback_days }} days ago" +%s000000000
+  ansible.builtin.command: date -d "{{ lookback }} days ago" +%s000000000
   register: nano_time
   changed_when: false
 
@@ -37,7 +37,7 @@
   block:
     - name: Query Loki API
       ansible.builtin.uri:
-        url: "{{ loki_query_url }}?query={{ logql_query | urlencode }}&start={{ start_time }}&limit={{ limit_logs }}"
+        url: "{{ loki_query_url }}?query={{ logql_query | urlencode }}&start={{ start_time }}&limit={{ limit }}"
         method: GET
         client_cert: "{{ cert_dir }}/tls.crt"
         client_key: "{{ cert_dir }}/tls.key"
@@ -52,8 +52,8 @@
         - loki_response.json.status == 'success'
         - loki_response.json.data.result | length > 0
         - (loki_response.json.data.result | map(attribute='values') | map('length') | sum) >= expected_log_count|int
-      retries: 5
-      delay: 300
+      retries: 10
+      delay: 150
 
     # Save data
     - name: Save Loki Data to JSON file
@@ -64,19 +64,15 @@
 
     # Validate
     - name: Verify Data Integrity
+      vars:
+        actual_count: "{{ loki_response.json.data.result | map(attribute='values') | map('length') | sum }}"
       ansible.builtin.assert:
         that:
           - loki_response.json.status == 'success'
           - loki_response.json.data.result | length > 0
-        fail_msg: "Query did not return any data entries"
-        success_msg: "Query found all the data entries"
-
-    # Success
-    - name: Confirm Success
-      vars:
-        actual_count: "{{ loki_response.json.data.result | map(attribute='values') | map('length') | sum }}"
-      ansible.builtin.debug:
-        msg: "Successful, Input file had {{ expected_log_count }} entries and Loki returned {{ actual_count }}"
+          - actual_count|int == expected_log_count|int
+        fail_msg: "Query did not return all data entries. Expected {{ expected_log_count }} log entries, but Loki only returned {{ actual_count }}"
+        success_msg: "Query returned all data entries. Input file had {{ expected_log_count }} entries and Loki returned {{ actual_count }}"
 
   rescue:
     - name: Debug failure
