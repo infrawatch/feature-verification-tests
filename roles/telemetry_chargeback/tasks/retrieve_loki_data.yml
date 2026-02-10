@@ -1,5 +1,5 @@
 ---
-# Automate Loki Log Retrieval
+# Query Loki to retrieve data and output to retrieve_loki_op.json
 
 # Count the entries in the log file
 - name: Read the json data log file to calculate the no. of entries
@@ -30,7 +30,7 @@
     msg: 
       - "Query: {{ logql_query }}"
       - "Start Time: {{ start_time }}"
-      - "Limit: {{ limit_logs }}"
+      - "Limit: {{ limit }}"
 
 # Query Loki
 - name: Retrieve Logs from Loki via API

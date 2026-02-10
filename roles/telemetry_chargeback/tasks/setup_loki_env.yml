@@ -18,10 +18,7 @@
 
 - name: Set Derived Loki URLs
   ansible.builtin.set_fact:
-    # Push URL
     loki_push_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/push"
-    
-    # Query URL
     loki_query_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/query_range"
 
 - name: Debug URLs
@@ -32,14 +29,13 @@
       - "Flush URL:  {{ ingester_flush_url }}"
       - "Query URL:  {{ loki_query_url }}"
 
-# Setup Certificates
+# Certs to Ingest & Retrieve data to/from Loki
 - name: Ensure Local Certificate Directory Exists
   ansible.builtin.file:
     path: "{{ cert_dir }}"
     state: directory
     mode: '0755'
 
-# Certs to Ingest & Retrieve data to/from Loki
 - name: Extract Certificates from Openshift Secret
   ansible.builtin.command:
     cmd: >

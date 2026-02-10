@@ -43,13 +43,10 @@
           - "Failure"
           - "Stdout: {{ flush_response.stdout }}"
           - "Stderr: {{ flush_response.stderr }}"
-    
-    - name: Report Failure
-      ansible.builtin.fail:
-        msg: "Flush failure"
 
-# Cleanup
-- name: Cleanup local certificates
-  ansible.builtin.file:
-    path: "{{ local_cert_dir }}"
-    state: absent
+  always:
+    # Cleanup
+    - name: Cleanup local certificates
+      ansible.builtin.file:
+        path: "{{ local_cert_dir }}"
+        state: absent
