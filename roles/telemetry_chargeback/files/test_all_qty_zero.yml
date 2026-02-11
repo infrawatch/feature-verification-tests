@@ -1,0 +1,136 @@
+# Scenario configuration for synthetic Loki log data generation
+
+# Time range configuration
+generation:
+  days: 30
+  step_seconds: 3600
+
+# Log type definitions
+log_types:
+  - name: ceilometer_cpu
+    type: instance
+    unit: instance
+    description: "max number of cpus used in time step"
+    qty:
+      - 0.0 
+    price:
+      - 0.3 
+    groupby:
+      id: null
+      user_id: null
+      project_id: null
+    metadata:
+      flavor_name: null
+      flavor_id: "" 
+      vcpus: ""
+
+  - name: ceilometer_image_size
+    type: ceilometer_image_size
+    unit: MiB
+    description: "Size of ceilometer image"
+    qty:
+      - 0.0
+    price:
+      - 0.02
+    groupby:
+      id: null
+      user_id: null
+      project_id: null
+    metadata:
+      container_format: null
+      disk_format: null
+
+  - name: ceilometer_disk_ephemeral_size
+    type: null
+    unit: GiB
+    description: "Max at each timestep"
+    qty: 
+      - 0.0
+    price:
+      - 0.1
+    groupby:
+      id: null
+      user_id: null
+      project_id: null
+    metadata:
+      type: null
+
+  - name: ceilometer_disk_root_size
+    type: null
+    unit: GiB
+    description: null
+    qty: 
+      - 0.0
+    price: 
+      - 1.00
+    groupby:
+      id: null
+      user_id: null
+      project_id: null    
+    metadata:
+      disk_format: null
+
+  - name: ceilometer_network_outgoing_bytes
+    type: null
+    unit: B
+    description: null
+    qty: 
+      - 0.0
+    price:
+      - 0.02    
+    groupby:
+      id: null
+      user_id: null
+      project_id: null
+    metadata:
+      vm_instance: null
+
+  - name: ceilometer_network_incoming_bytes
+    type: null
+    unit: B
+    description: null
+    qty:
+      - 0.0
+    price:
+      - 0.02    
+    groupby:
+      id: null
+      user_id: null
+      project_id: null    
+    metadata:
+      vm_instance: null
+
+  - name: ceilometer_ip_floating
+    type: null
+    unit: ip
+    description: null
+    qty: 
+      - 0.0
+    price: 
+      - 0.50
+    groupby:
+      id: null
+      user_id: null
+      project_id: null    
+    metadata:
+      state: null
+
+# Required fields for validation (top-level fields only, not nested in groupby)
+required_fields:
+  - type
+  - unit
+  - qty
+  - price
+  - groupby
+  - metadata
+
+# Date field names to add to groupby
+date_fields:
+  - week_of_the_year
+  - day_of_the_year
+  - month
+  - year
+
+# Loki stream configuration
+loki_stream:
+  service: cloudkitty
