@@ -43,7 +43,6 @@ These variables are used internally by the role and typically do not need to be 
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
-| `logs_dir` | `{{ ansible_user_dir }}/ci-framework-data/logs` | Remote directory for log files. |
 | `artifacts_dir_zuul` | `/home/zuul/ci-framework-data/artifacts` | Directory for generated artifacts. |
 | `ck_synth_script` | `{{ role_path }}/files/gen_synth_loki_data.py` | Path to the synthetic data generation script. |
 | `ck_data_template` | `{{ role_path }}/template/loki_data_templ.j2` | Path to the Jinja2 template for Loki data format. |

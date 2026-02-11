@@ -11,7 +11,6 @@ ingester_client_cert_dir: "{{ ansible_user_dir }}/flush_certs"
 osp_remote_cert_dir: "osp-certs"
 
 # Loki Ingest & Retrieve logs
-logs_dir: "{{ ansible_user_dir }}/ci-framework-data/logs"
 ck_output_file_remote: "{{ logs_dir }}/gen_loki_synth_data.log"
 ck_loki_retrieve_file: "{{ logs_dir }}/retrieve_loki_op.json"
 
