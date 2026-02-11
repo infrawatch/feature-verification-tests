@@ -19,7 +19,7 @@ ck_loki_retrieve_file: "{{ logs_dir }}/retrieve_loki_op.json"
 logql_query: "{{ loki_query | default('{service=\"cloudkitty\"}') }}"
 
 # vars
-namespace: "openstack"
+openstack_ns: "openstack"
 openstackpod: "openstackclient"
 
 # Time window settings

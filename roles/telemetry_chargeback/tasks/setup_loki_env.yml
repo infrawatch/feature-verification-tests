@@ -4,7 +4,7 @@
 # Dynamic URL's
 - name: Get Loki Public Route Host
   ansible.builtin.command:
-    cmd: oc get route cloudkitty-lokistack -n {{ namespace }} -o jsonpath='{.spec.host}'
+    cmd: oc get route cloudkitty-lokistack -n {{ openstack_ns }} -o jsonpath='{.spec.host}'
   register: loki_route
   changed_when: false
 
@@ -13,8 +13,8 @@
     # Base URL
     loki_base_url: "https://{{ loki_route.stdout }}"
     
-    # Internal Flush URL (Service DNS: https://<service>.<namespace>.svc:3100/flush)
-    ingester_flush_url: "https://cloudkitty-lokistack-ingester-http.{{ namespace }}.svc:3100/flush"
+    # Internal Flush URL (Service DNS: https://<service>.<openstack_ns>.svc:3100/flush)
+    ingester_flush_url: "https://cloudkitty-lokistack-ingester-http.{{ openstack_ns }}.svc:3100/flush"
 
 - name: Set Derived Loki URLs
   ansible.builtin.set_fact:
@@ -42,7 +42,7 @@
       oc extract secret/{{ gateway_client_cert_secret_name }}
       --to={{ gateway_client_cert_dir }}
       --confirm
-      -n {{ namespace }}
+      -n {{ openstack_ns }}
   changed_when: true
 
 # Certs to Flush data to Loki
@@ -58,7 +58,7 @@
       oc extract {{ ingester_client_cert_secret }}
       --to={{ ingester_client_cert_dir }}
       --confirm
-      -n {{ namespace }}
+      -n {{ openstack_ns }}
   changed_when: true
 
 - name: Extract CA Bundle
@@ -66,5 +66,5 @@
     cmd: "oc extract {{ ingester_ca_configmap }}
     --to={{ ingester_client_cert_dir }}
     --confirm
-    -n {{ namespace }}"
+    -n {{ openstack_ns }}"
   changed_when: true
