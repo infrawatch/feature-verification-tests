@@ -19,12 +19,12 @@
     file: ingest_loki_data.yml
   tags: ingest
 
-- name: Flush Data to loki Storage
+- name: Flush Data to Loki Storage
   ansible.builtin.include_tasks: 
     file: flush_loki_data.yml
   tags: flush
 
-- name: Retrieve Data log from loki
+- name: Retrieve Data log from Loki
   ansible.builtin.include_tasks: 
     file: retrieve_loki_data.yml
   tags: retrieve

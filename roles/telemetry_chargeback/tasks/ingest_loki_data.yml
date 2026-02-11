@@ -16,8 +16,8 @@
         method: POST
         body: "{{ log_file_content['content'] | b64decode | from_json }}"
         body_format: json
-        client_cert: "{{ cert_dir }}/tls.crt"
-        client_key: "{{ cert_dir }}/tls.key"
+        client_cert: "{{ gateway_client_cert_dir }}/tls.crt"
+        client_key: "{{ gateway_client_cert_dir }}/tls.key"
         validate_certs: false
         status_code: 204
         return_content: yes

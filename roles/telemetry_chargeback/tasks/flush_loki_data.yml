@@ -6,13 +6,13 @@
     # create dir 
     - name: Create directory inside openstack CLI
       ansible.builtin.command:
-        cmd: "oc exec -n {{ namespace }} {{ openstackpod }} -- mkdir -p {{ remote_cert_dir }}"
+        cmd: "oc exec -n {{ namespace }} {{ openstackpod }} -- mkdir -p {{ osp_remote_cert_dir }}"
       changed_when: false
 
     # copy all certs
     - name: Copy certificates to openstack CLI
       ansible.builtin.command:
-        cmd: "oc cp {{ local_cert_dir }}/. {{ namespace }}/{{ openstackpod }}:{{ remote_cert_dir }}/"
+        cmd: "oc cp {{ ingester_client_cert_dir }}/. {{ namespace }}/{{ openstackpod }}:{{ osp_remote_cert_dir }}/"
       changed_when: true
 
     # flush loki
@@ -21,9 +21,9 @@
         cmd: >
           oc exec -n {{ namespace }} {{ openstackpod }} --
           curl -v -X POST {{ ingester_flush_url }}
-          --cert {{ remote_cert_dir }}/tls.crt
-          --key {{ remote_cert_dir }}/tls.key
-          --cacert {{ remote_cert_dir }}/service-ca.crt
+          --cert {{ osp_remote_cert_dir }}/tls.crt
+          --key {{ osp_remote_cert_dir }}/tls.key
+          --cacert {{ osp_remote_cert_dir }}/service-ca.crt
       register: flush_response
       changed_when: true
       failed_when: flush_response.rc != 0
@@ -48,5 +48,5 @@
     # Cleanup
     - name: Cleanup local certificates
       ansible.builtin.file:
-        path: "{{ local_cert_dir }}"
+        path: "{{ ingester_client_cert_dir }}"
         state: absent

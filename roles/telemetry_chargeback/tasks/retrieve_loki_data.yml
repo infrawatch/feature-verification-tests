@@ -30,18 +30,17 @@
     msg: 
       - "Query: {{ logql_query }}"
       - "Start Time: {{ start_time }}"
-      - "Limit: {{ limit }}"
 
 # Query Loki
 - name: Retrieve Logs from Loki via API
   block:
     - name: Query Loki API
       ansible.builtin.uri:
-        url: "{{ loki_query_url }}?query={{ logql_query | urlencode }}&start={{ start_time }}&limit={{ limit }}"
+        url: "{{ loki_query_url }}?query={{ logql_query | urlencode }}&start={{ start_time }}"
         method: GET
-        client_cert: "{{ cert_dir }}/tls.crt"
-        client_key: "{{ cert_dir }}/tls.key"
-        ca_path: "{{ cert_dir }}/ca.crt"
+        client_cert: "{{ gateway_client_cert_dir }}/tls.crt"
+        client_key: "{{ gateway_client_cert_dir }}/tls.key"
+        ca_path: "{{ gateway_client_cert_dir }}/ca.crt"
         validate_certs: false
         return_content: yes
         body_format: json
