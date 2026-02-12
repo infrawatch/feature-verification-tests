@@ -2,29 +2,24 @@
 - name: Validate Chargeback Feature
   ansible.builtin.include_tasks: 
     file: chargeback_tests.yml
-  tags: validate
 
 - name: Generate Synthetic Data
   ansible.builtin.include_tasks: 
     file: gen_synth_loki_data.yml
-  tags: generate
 
 - name: Setup Loki Environment
   ansible.builtin.include_tasks: 
     file: setup_loki_env.yml
-  tags: setup
 
 - name: Ingests Cloudkitty Data log
   ansible.builtin.include_tasks: 
     file: ingest_loki_data.yml
-  tags: ingest
 
 - name: Flush Data to Loki Storage
   ansible.builtin.include_tasks: 
     file: flush_loki_data.yml
-  tags: flush
 
 - name: Retrieve Data log from Loki
   ansible.builtin.include_tasks: 
     file: retrieve_loki_data.yml
-  tags: retrieve
+
