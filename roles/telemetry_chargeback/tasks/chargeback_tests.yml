@@ -3,12 +3,14 @@
   ansible.builtin.command:
     cmd: "{{ openstack_cmd }} rating module enable hashmap"
   register: enable_hashmap
-  changed_when: True
+  changed_when: true
   failed_when: enable_hashmap.rc != 0
 
 - name: Find the current value of hashmap
   ansible.builtin.shell:
-    cmd: "{{ openstack_cmd }} rating module get hashmap -c  Priority  -f csv | tail -n +2"
+    cmd: "set -o pipefail && {{ openstack_cmd }} rating module get hashmap -c  Priority  -f csv | tail -n +2"
+  args:
+    executable: /bin/bash
   register: get_hashmap_priority
   changed_when: false
 
@@ -18,7 +20,7 @@
   register: set_hashmap_priority
   when: get_hashmap_priority.stdout | trim != '100'
   failed_when: (set_hashmap_priority.rc | default(42)) >= 1 or get_hashmap_priority.stdout == ""
-  changed_when: True
+  changed_when: true
 
 - name: Get status of all CloudKitty rating modules
   ansible.builtin.command:
@@ -31,7 +33,7 @@
     that:
       - "'hashmap' in module_list.stdout"
       - "'True' in (module_list.stdout_lines | select('search', 'hashmap') | first)"
-    fail_msg: "FAILED: CloudKitty module validation failed . Module states are not as expected."
+    fail_msg: "FAILED: CloudKitty module validation failed. Module states are not as expected."
     success_msg: "SUCCESS: CloudKitty modules (hashmap=True) are configured correctly."
 
 - name: TEST Set priority for CloudKitty hashmap module

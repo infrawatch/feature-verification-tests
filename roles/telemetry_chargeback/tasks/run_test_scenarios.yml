@@ -1,0 +1,12 @@
+---
+- name: "Process and Loop if files exist"
+  block:
+    - name: "Generate Synthetic Data for each file: {{ item }}"
+      ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
+
+    - name: "Load data to loki: {{ item }}"
+      ansible.builtin.include_tasks: "load_loki_data.yml"
+
+    - name: "Get total rate from loki: {{ item }}"
+      ansible.builtin.include_tasks: "loki_rate.yml"
+
