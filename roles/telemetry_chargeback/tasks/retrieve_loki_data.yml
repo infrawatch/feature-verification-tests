@@ -72,6 +72,7 @@
           - actual_count|int == expected_log_count|int
         fail_msg: "Query did not return all data entries. Expected {{ expected_log_count }} log entries, but Loki only returned {{ actual_count }}"
         success_msg: "Query returned all data entries. Input file had {{ expected_log_count }} entries and Loki returned {{ actual_count }}"
+      ignore_errors: false
 
   rescue:
     - name: Debug failure
@@ -85,3 +86,4 @@
     - name: Report Retrieval Failure
       ansible.builtin.fail:
         msg: "Retrieval Failed"
+      ignore_errors: false
