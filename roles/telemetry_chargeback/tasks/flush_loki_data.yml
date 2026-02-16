@@ -1,0 +1,52 @@
+---
+# Flush Loki Ingester Memory to Storage
+
+- name: Flush Execution inside openstack CLI
+  block:
+    # create dir 
+    - name: Create directory inside openstack CLI
+      ansible.builtin.command:
+        cmd: "oc exec -n {{ openstack_ns }} {{ openstackpod }} -- mkdir -p {{ osp_remote_cert_dir }}"
+      changed_when: false
+
+    # copy all certs
+    - name: Copy certificates to openstack CLI
+      ansible.builtin.command:
+        cmd: "oc cp {{ ingester_client_cert_dir }}/. {{ openstack_ns }}/{{ openstackpod }}:{{ osp_remote_cert_dir }}/"
+      changed_when: true
+
+    # flush loki
+    - name: Trigger Flush
+      ansible.builtin.command:
+        cmd: >
+          oc exec -n {{ openstack_ns }} {{ openstackpod }} --
+          curl -v -X POST {{ ingester_flush_url }}
+          --cert {{ osp_remote_cert_dir }}/tls.crt
+          --key {{ osp_remote_cert_dir }}/tls.key
+          --cacert {{ osp_remote_cert_dir }}/service-ca.crt
+      register: flush_response
+      changed_when: true
+      failed_when: flush_response.rc != 0
+
+    # Status
+    - name: Verify Flush Status
+      ansible.builtin.assert:
+        that:
+          - "'204' in flush_response.stderr or '200' in flush_response.stderr"
+        fail_msg: "Flush failed"
+        success_msg: "Ingester Memory Flushed successfully"
+
+  rescue:
+    - name: Debug Failure Output
+      ansible.builtin.debug:
+        msg: 
+          - "Failure"
+          - "Stdout: {{ flush_response.stdout }}"
+          - "Stderr: {{ flush_response.stderr }}"
+
+  always:
+    # Cleanup
+    - name: Cleanup local certificates
+      ansible.builtin.file:
+        path: "{{ ingester_client_cert_dir }}"
+        state: absent
