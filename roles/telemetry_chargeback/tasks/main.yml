@@ -7,7 +7,7 @@
 
 - name: "Find test files"
   ansible.builtin.find:
-    paths: "{{ ck_scenario_dir }}"
+    paths: "{{ cloudkitty_scenario_dir }}"
     patterns: "test_*.yml"
   register: found_files_raw
 

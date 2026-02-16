@@ -4,16 +4,16 @@
 logs_dir_zuul: "{{ ansible_env.HOME }}/ci-framework-data/logs"
 artifacts_dir_zuul: "{{ ansible_env.HOME }}/ci-framework-data/artifacts"
 
-ck_scenario_dir: "{{ role_path }}/files"
-ck_synth_data_suffix: "-synth_data.json"
-ck_loki_data_suffix: "-loki_data.json"
-ck_synth_totals_suffix: "-totals_synth.yml"
-ck_loki_totals_suffix: "-totals_loki.yml"
-ck_begin_end_suffix: "-begin_end.yml"
+cloudkitty_scenario_dir: "{{ role_path }}/files"
+cloudkitty_synth_data_suffix: "-synth_data.json"
+cloudkitty_loki_data_suffix: "-loki_data.json"
+cloudkitty_synth_totals_suffix: "-totals_synth.yml"
+cloudkitty_loki_totals_suffix: "-totals_loki.yml"
+cloudkitty_begin_end_suffix: "-begin_end.yml"
 
-ck_synth_script: "{{ role_path }}/files/gen_synth_loki_data.py"
-ck_data_template: "{{ role_path }}/templates/loki_data_templ.j2"
-ck_totals_script: "{{ role_path }}/files/gen_synth_loki_metrics.totals.py"
+cloudkitty_synth_script: "{{ role_path }}/files/gen_synth_loki_data.py"
+cloudkitty_data_template: "{{ role_path }}/templates/loki_data_templ.j2"
+cloudkitty_totals_script: "{{ role_path }}/files/gen_synth_loki_metrics_totals.py"
 
 ### from Muneesah
 # Cloudkitty certificates
@@ -29,7 +29,7 @@ local_cert_dir: "{{ ansible_env.HOME }}/ci-framework-data/flush_certs"
 logql_query: "{{ loki_query | default('{service=\"cloudkitty\"}') }}"
 
 # vars
-ck_namespace: "openstack"
+cloudkitty_namespace: "openstack"
 openstackpod: "openstackclient"
 
 # Time window settings

@@ -4,7 +4,7 @@
 # Count the entries in the log file
 - name: Read the json data log file to calculate the no. of entries
   ansible.builtin.slurp:
-    src: "{{ artifacts_dir_zuul }}/{{ item }}{{ ck_synth_data_suffix }}"
+    src: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_data_suffix }}"
   register: source_file_data
 
 - name: Set Expected Log Count
@@ -59,7 +59,7 @@
     - name: Save Loki Data to JSON file
       ansible.builtin.copy:
         content: "{{ loki_response.json | to_nice_json }}"
-        dest: "{{ artifacts_dir_zuul }}/{{ item }}{{ ck_loki_data_suffix }}"
+        dest: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_data_suffix }}"
         mode: '0644'
 
     # Validate

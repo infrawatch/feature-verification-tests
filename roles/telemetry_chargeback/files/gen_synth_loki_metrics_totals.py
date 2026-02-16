@@ -29,12 +29,14 @@ def calculate_totals(json_path: Path, output_path: Path):
     metric_totals = {}
     aggregate_total = 0.0
     time_steps_set = set()
+    log_count = 0
     # Per-timestamp start/end from log entries (same for all entries at step)
     time_step_bounds = {}
 
     # Extract values from the Loki JSON structure
     for stream in data.get('streams', []):
         for val_pair in stream.get('values', []):
+            log_count += 1
             try:
                 # The first element is the timestamp (nanoseconds)
                 timestamp = val_pair[0]
@@ -79,7 +81,20 @@ def calculate_totals(json_path: Path, output_path: Path):
         time_step_bounds[sorted_ts[-1]]["end"] if sorted_ts else None
     )
 
-    # Prepare data for YAML output with time section and rates
+    # Prepare data for YAML output with time section and rates.
+    # log_count = total [timestamp, log_entry] pairs. When each timestep has the
+    # same number of metrics, log_count == total_time_steps * metrics_per_step.
+    total_time_steps = len(time_steps_set)
+    metrics_per_step = (
+        log_count // total_time_steps if total_time_steps > 0 else 0
+    )
+    if total_time_steps > 0 and log_count % total_time_steps != 0:
+        print(
+            f"Warning: log_count ({log_count}) is not divisible by "
+            f"total_time_steps ({total_time_steps}). "
+            "Expected log_count = total_time_steps × metrics_per_step."
+        )
+
     synth_rate = {
         m: round(t, 4) for m, t in sorted(metric_totals.items())
     }
@@ -87,9 +102,13 @@ def calculate_totals(json_path: Path, output_path: Path):
 
     output_data = {
         "time": {
-            "total_time_steps": len(time_steps_set),
             "begin": timestamp_begin,
             "end": timestamp_end,
+        },
+        "data_log": {
+            "total_time_steps": total_time_steps,
+            "metrics_per_step": metrics_per_step,
+            "log_count": log_count,
         },
         "synth_rate": synth_rate,
     }

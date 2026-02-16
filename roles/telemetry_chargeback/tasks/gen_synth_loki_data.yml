@@ -1,30 +1,30 @@
 ---
 - name: Set variables dynamically "{{ item }}"
   ansible.builtin.set_fact:
-    ck_begin_end_timestamp: "{{ artifacts_dir_zuul }}/{{ item }}{{ ck_begin_end_suffix }}"
-    ck_data_file: "{{ artifacts_dir_zuul }}/{{ item }}{{ ck_synth_data_suffix }}"
-    ck_synth_totals_file: "{{ artifacts_dir_zuul }}/{{ item }}{{ ck_synth_totals_suffix }}"
-    ck_test_file: "{{ ck_scenario_dir }}/{{ item }}.yml"
+    cloudkitty_begin_end_timestamp: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_begin_end_suffix }}"
+    cloudkitty_data_file: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_data_suffix }}"
+    cloudkitty_synth_totals_file: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_totals_suffix }}"
+    cloudkitty_test_file: "{{ cloudkitty_scenario_dir }}/{{ item }}.yml"
 
 - name: Check for preexisting output file
   ansible.builtin.stat:
-    path: "{{ ck_data_file }}"
+    path: "{{ cloudkitty_data_file }}"
   register: file_preexists
 
 - name: Generate Synthetic Data "{{ item }}"
   ansible.builtin.command:
     cmd: >
-      python3 "{{ ck_synth_script }}"
-      --tmpl "{{ ck_data_template }}"
-      -t "{{ ck_test_file }}"
-      -o "{{ ck_data_file }}"
+      python3 "{{ cloudkitty_synth_script }}"
+      --tmpl "{{ cloudkitty_data_template }}"
+      -t "{{ cloudkitty_test_file }}"
+      -o "{{ cloudkitty_data_file }}"
   register: script_output
   when: not file_preexists.stat.exists | bool
   changed_when: script_output.rc == 0
 
 - name: Read the content of the file
   ansible.builtin.slurp:
-    src: "{{ ck_data_file }}"
+    src: "{{ cloudkitty_data_file }}"
   register: slurped_file
 
 - name: Validate JSON format of synthetic data file
@@ -32,21 +32,21 @@
     that:
       # This filter will trigger a task failure if the string isn't valid JSON
       - slurped_file.content | b64decode | from_json is defined
-    fail_msg: "The file {{ ck_data_file }} does not contain valid JSON format. Delete the file to regenerate."
+    fail_msg: "The file {{ cloudkitty_data_file }} does not contain valid JSON format. Delete the file to regenerate."
     success_msg: "JSON format validated successfully."
 
-- name: Print ck_data_log path
+- name: Print cloudkitty_data_file path
   ansible.builtin.debug:
     msg: |
-      "Synthetic data file: {{ ck_data_file }}"
-      "Synthetic data calc totals: {{ ck_synth_totals_file }}"
+      "Synthetic data file: {{ cloudkitty_data_file }}"
+      "Synthetic data calc totals: {{ cloudkitty_synth_totals_file }}"
 
 - name: Generate chargeback cost from synthetic data file "{{ item }}"
   ansible.builtin.command:
     cmd: >
-      python3 "{{ ck_totals_script }}"
-      -j "{{ ck_data_file }}"
-      -o "{{ ck_synth_totals_file }}"
+      python3 "{{ cloudkitty_totals_script }}"
+      -j "{{ cloudkitty_data_file }}"
+      -o "{{ cloudkitty_synth_totals_file }}"
   register: script_output
   when: not file_preexists.stat.exists | bool
   changed_when: script_output.rc == 0

@@ -6,7 +6,7 @@
 
     - name: Read log file content
       ansible.builtin.slurp:
-        src: "{{ artifacts_dir_zuul }}/{{ item }}{{ ck_synth_data_suffix }}"
+        src: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_data_suffix }}"
       register: log_file_content
 
     - name: Push data to Loki

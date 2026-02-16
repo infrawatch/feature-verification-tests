@@ -1,0 +1,96 @@
+{"streams": [{ "stream": { "service": "cloudkitty" }, "values": [[
+"1771183286000000000",
+"{\"start\": \"2026-02-15T19:21:26+00:00\", \"end\": \"2026-02-15T21:21:25+00:00\", \"type\": \"persistent_storage\", \"unit\": \"MiB\", \"description\": \"Size of ceilometer image\", \"qty\": 20.6, \"price\": 0.02, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-01\", \"week_of_the_year\": \"7\", \"day_of_the_year\": \"46\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"container_format\": \"bare\", \"disk_format\": \"qcow2\"}}"
+],
+[
+"1771183286000000000",
+"{\"start\": \"2026-02-15T19:21:26+00:00\", \"end\": \"2026-02-15T21:21:25+00:00\", \"type\": \"cpu_instance\", \"unit\": \"scalar\", \"description\": \"max number of cpus used in time step\", \"qty\": 1.0, \"price\": 0.3, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-02\", \"week_of_the_year\": \"7\", \"day_of_the_year\": \"46\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"flavor_name\": null, \"flavor_id\": \"\", \"vcpus\": \"\"}}"
+],
+[
+"1771190486000000000",
+"{\"start\": \"2026-02-15T21:21:26+00:00\", \"end\": \"2026-02-15T23:21:25+00:00\", \"type\": \"persistent_storage\", \"unit\": \"MiB\", \"description\": \"Size of ceilometer image\", \"qty\": 20.6, \"price\": 0.02, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-01\", \"week_of_the_year\": \"7\", \"day_of_the_year\": \"46\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"container_format\": \"bare\", \"disk_format\": \"qcow2\"}}"
+],
+[
+"1771190486000000000",
+"{\"start\": \"2026-02-15T21:21:26+00:00\", \"end\": \"2026-02-15T23:21:25+00:00\", \"type\": \"cpu_instance\", \"unit\": \"scalar\", \"description\": \"max number of cpus used in time step\", \"qty\": 1.0, \"price\": 0.3, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-02\", \"week_of_the_year\": \"7\", \"day_of_the_year\": \"46\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"flavor_name\": null, \"flavor_id\": \"\", \"vcpus\": \"\"}}"
+],
+[
+"1771197686000000000",
+"{\"start\": \"2026-02-15T23:21:26+00:00\", \"end\": \"2026-02-16T01:21:25+00:00\", \"type\": \"persistent_storage\", \"unit\": \"MiB\", \"description\": \"Size of ceilometer image\", \"qty\": 20.6, \"price\": 0.02, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-01\", \"week_of_the_year\": \"7\", \"day_of_the_year\": \"46\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"container_format\": \"bare\", \"disk_format\": \"qcow2\"}}"
+],
+[
+"1771197686000000000",
+"{\"start\": \"2026-02-15T23:21:26+00:00\", \"end\": \"2026-02-16T01:21:25+00:00\", \"type\": \"cpu_instance\", \"unit\": \"scalar\", \"description\": \"max number of cpus used in time step\", \"qty\": 1.0, \"price\": 0.3, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-02\", \"week_of_the_year\": \"7\", \"day_of_the_year\": \"46\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"flavor_name\": null, \"flavor_id\": \"\", \"vcpus\": \"\"}}"
+],
+[
+"1771204886000000000",
+"{\"start\": \"2026-02-16T01:21:26+00:00\", \"end\": \"2026-02-16T03:21:25+00:00\", \"type\": \"persistent_storage\", \"unit\": \"MiB\", \"description\": \"Size of ceilometer image\", \"qty\": 20.6, \"price\": 0.02, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-01\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"container_format\": \"bare\", \"disk_format\": \"qcow2\"}}"
+],
+[
+"1771204886000000000",
+"{\"start\": \"2026-02-16T01:21:26+00:00\", \"end\": \"2026-02-16T03:21:25+00:00\", \"type\": \"cpu_instance\", \"unit\": \"scalar\", \"description\": \"max number of cpus used in time step\", \"qty\": 1.0, \"price\": 0.3, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-02\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"flavor_name\": null, \"flavor_id\": \"\", \"vcpus\": \"\"}}"
+],
+[
+"1771212086000000000",
+"{\"start\": \"2026-02-16T03:21:26+00:00\", \"end\": \"2026-02-16T05:21:25+00:00\", \"type\": \"persistent_storage\", \"unit\": \"MiB\", \"description\": \"Size of ceilometer image\", \"qty\": 20.6, \"price\": 0.02, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-01\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"container_format\": \"bare\", \"disk_format\": \"qcow2\"}}"
+],
+[
+"1771212086000000000",
+"{\"start\": \"2026-02-16T03:21:26+00:00\", \"end\": \"2026-02-16T05:21:25+00:00\", \"type\": \"cpu_instance\", \"unit\": \"scalar\", \"description\": \"max number of cpus used in time step\", \"qty\": 1.0, \"price\": 0.3, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-02\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"flavor_name\": null, \"flavor_id\": \"\", \"vcpus\": \"\"}}"
+],
+[
+"1771219286000000000",
+"{\"start\": \"2026-02-16T05:21:26+00:00\", \"end\": \"2026-02-16T07:21:25+00:00\", \"type\": \"persistent_storage\", \"unit\": \"MiB\", \"description\": \"Size of ceilometer image\", \"qty\": 20.6, \"price\": 0.02, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-01\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"container_format\": \"bare\", \"disk_format\": \"qcow2\"}}"
+],
+[
+"1771219286000000000",
+"{\"start\": \"2026-02-16T05:21:26+00:00\", \"end\": \"2026-02-16T07:21:25+00:00\", \"type\": \"cpu_instance\", \"unit\": \"scalar\", \"description\": \"max number of cpus used in time step\", \"qty\": 1.0, \"price\": 0.3, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-02\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"flavor_name\": null, \"flavor_id\": \"\", \"vcpus\": \"\"}}"
+],
+[
+"1771226486000000000",
+"{\"start\": \"2026-02-16T07:21:26+00:00\", \"end\": \"2026-02-16T09:21:25+00:00\", \"type\": \"persistent_storage\", \"unit\": \"MiB\", \"description\": \"Size of ceilometer image\", \"qty\": 20.6, \"price\": 0.02, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-01\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"container_format\": \"bare\", \"disk_format\": \"qcow2\"}}"
+],
+[
+"1771226486000000000",
+"{\"start\": \"2026-02-16T07:21:26+00:00\", \"end\": \"2026-02-16T09:21:25+00:00\", \"type\": \"cpu_instance\", \"unit\": \"scalar\", \"description\": \"max number of cpus used in time step\", \"qty\": 1.0, \"price\": 0.3, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-02\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"flavor_name\": null, \"flavor_id\": \"\", \"vcpus\": \"\"}}"
+],
+[
+"1771233686000000000",
+"{\"start\": \"2026-02-16T09:21:26+00:00\", \"end\": \"2026-02-16T11:21:25+00:00\", \"type\": \"persistent_storage\", \"unit\": \"MiB\", \"description\": \"Size of ceilometer image\", \"qty\": 20.6, \"price\": 0.02, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-01\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"container_format\": \"bare\", \"disk_format\": \"qcow2\"}}"
+],
+[
+"1771233686000000000",
+"{\"start\": \"2026-02-16T09:21:26+00:00\", \"end\": \"2026-02-16T11:21:25+00:00\", \"type\": \"cpu_instance\", \"unit\": \"scalar\", \"description\": \"max number of cpus used in time step\", \"qty\": 1.0, \"price\": 0.3, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-02\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"flavor_name\": null, \"flavor_id\": \"\", \"vcpus\": \"\"}}"
+],
+[
+"1771240886000000000",
+"{\"start\": \"2026-02-16T11:21:26+00:00\", \"end\": \"2026-02-16T13:21:25+00:00\", \"type\": \"persistent_storage\", \"unit\": \"MiB\", \"description\": \"Size of ceilometer image\", \"qty\": 20.6, \"price\": 0.02, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-01\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"container_format\": \"bare\", \"disk_format\": \"qcow2\"}}"
+],
+[
+"1771240886000000000",
+"{\"start\": \"2026-02-16T11:21:26+00:00\", \"end\": \"2026-02-16T13:21:25+00:00\", \"type\": \"cpu_instance\", \"unit\": \"scalar\", \"description\": \"max number of cpus used in time step\", \"qty\": 1.0, \"price\": 0.3, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-02\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"flavor_name\": null, \"flavor_id\": \"\", \"vcpus\": \"\"}}"
+],
+[
+"1771248086000000000",
+"{\"start\": \"2026-02-16T13:21:26+00:00\", \"end\": \"2026-02-16T15:21:25+00:00\", \"type\": \"persistent_storage\", \"unit\": \"MiB\", \"description\": \"Size of ceilometer image\", \"qty\": 20.6, \"price\": 0.02, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-01\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"container_format\": \"bare\", \"disk_format\": \"qcow2\"}}"
+],
+[
+"1771248086000000000",
+"{\"start\": \"2026-02-16T13:21:26+00:00\", \"end\": \"2026-02-16T15:21:25+00:00\", \"type\": \"cpu_instance\", \"unit\": \"scalar\", \"description\": \"max number of cpus used in time step\", \"qty\": 1.0, \"price\": 0.3, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-02\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"flavor_name\": null, \"flavor_id\": \"\", \"vcpus\": \"\"}}"
+],
+[
+"1771255286000000000",
+"{\"start\": \"2026-02-16T15:21:26+00:00\", \"end\": \"2026-02-16T17:21:25+00:00\", \"type\": \"persistent_storage\", \"unit\": \"MiB\", \"description\": \"Size of ceilometer image\", \"qty\": 20.6, \"price\": 0.02, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-01\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"container_format\": \"bare\", \"disk_format\": \"qcow2\"}}"
+],
+[
+"1771255286000000000",
+"{\"start\": \"2026-02-16T15:21:26+00:00\", \"end\": \"2026-02-16T17:21:25+00:00\", \"type\": \"cpu_instance\", \"unit\": \"scalar\", \"description\": \"max number of cpus used in time step\", \"qty\": 1.0, \"price\": 0.3, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-02\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"flavor_name\": null, \"flavor_id\": \"\", \"vcpus\": \"\"}}"
+],
+[
+"1771262486000000000",
+"{\"start\": \"2026-02-16T17:21:26+00:00\", \"end\": \"2026-02-16T19:21:25+00:00\", \"type\": \"persistent_storage\", \"unit\": \"MiB\", \"description\": \"Size of ceilometer image\", \"qty\": 20.6, \"price\": 0.02, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-01\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"container_format\": \"bare\", \"disk_format\": \"qcow2\"}}"
+],
+[
+"1771262486000000000",
+"{\"start\": \"2026-02-16T17:21:26+00:00\", \"end\": \"2026-02-16T19:21:25+00:00\", \"type\": \"cpu_instance\", \"unit\": \"scalar\", \"description\": \"max number of cpus used in time step\", \"qty\": 1.0, \"price\": 0.3, \"groupby\": {\"id\": null, \"user_id\": null, \"project_id\": null, \"tenant_id\": \"tenant-02\", \"week_of_the_year\": \"8\", \"day_of_the_year\": \"47\", \"month\": \"2\", \"year\": \"2026\"}, \"metadata\": {\"flavor_name\": null, \"flavor_id\": \"\", \"vcpus\": \"\"}}"
+]]}]}
