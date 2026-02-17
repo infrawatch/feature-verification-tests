@@ -31,5 +31,6 @@ telemetry_tag: >-
   {%- if content_provider_os_registry_url is defined and content_provider_os_registry_url != 'null' -%}
   telemetry_latest
   {%- else -%}
-  current-tested
+# current-tested    ### fix before merging
+  podified-ci-testing ### fix before merging
   {%- endif -%}
