@@ -41,12 +41,17 @@
       "Synthetic data file: {{ cloudkitty_data_file }}"
       "Synthetic data calc totals: {{ cloudkitty_synth_totals_file }}"
 
-- name: Generate chargeback cost from synthetic data file "{{ item }}"
+- name: Generate chargeback rating from synthetic data file "{{ item }}"
   ansible.builtin.command:
     cmd: >
       python3 "{{ cloudkitty_totals_script }}"
       -j "{{ cloudkitty_data_file }}"
       -o "{{ cloudkitty_synth_totals_file }}"
-  register: script_output
+  register: synth_rating_info
   when: not file_preexists.stat.exists | bool
-  changed_when: script_output.rc == 0
+  changed_when: synth_rating_info.rc == 0
+
+- name: Load metrics from YAML file
+  ansible.builtin.include_vars:
+    file: "{{ cloudkitty_synth_totals_file }}"
+    name: synth_data_rates
