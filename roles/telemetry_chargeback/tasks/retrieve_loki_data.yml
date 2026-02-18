@@ -1,18 +1,4 @@
 ---
-# Query Loki to retrieve data and output to retrieve_loki_op.json
-
-# Count the entries in the log file
-#- name: Read the json data log file to calculate the no. of entries
-#  ansible.builtin.slurp:
-#    src: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_data_suffix }}"
-#  register: source_file_data
-
-#- name: Set Expected Log Count
-#  ansible.builtin.set_fact:
-#    expected_log_count: "{{ (source_file_data['content'] | b64decode | from_json).streams | map(attribute='values') | map('length') | sum }}"
-
-
-
 - name: Expected Count
   ansible.builtin.debug:
     msg: "Input file has {{ synth_data_rates.data_log.log_count }} data entries that Loki has to return"
@@ -88,3 +74,12 @@
     - name: Report Retrieval Failure
       ansible.builtin.fail:
         msg: "Retrieval Failed"
+
+- name: "Generate chargeback stats from Loki-retrieved data file: {{ item }}"
+  ansible.builtin.command:
+    cmd: >
+      python3 "{{ cloudkitty_totals_script }}"
+      -j "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_data_suffix }}"
+      -o "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_metrics_suffix }}"
+  register: synth_rating_info
+  changed_when: synth_rating_info.rc == 0

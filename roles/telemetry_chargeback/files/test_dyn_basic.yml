@@ -33,7 +33,7 @@ log_types:
       disk_format: qcow2
 
   - name: ceilometer_cpu
-    type: cpu_instances
+    type: cpu_instance
     unit: scalar
     description: "max number of cpus used in time step"
     qty:

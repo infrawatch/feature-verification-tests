@@ -9,7 +9,7 @@ generation:
 # Log type definitions
 log_types:
   - name: ceilometer_cpu
-    type: cpu_instances
+    type: cpu_instance
     unit: scalar
     description: "max number of cpus used in time step"
     qty:

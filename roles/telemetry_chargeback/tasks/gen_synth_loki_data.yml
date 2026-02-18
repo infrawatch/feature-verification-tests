@@ -1,17 +1,16 @@
 ---
-- name: Set variables dynamically "{{ item }}"
+- name: "Set variables dynamically {{ item }}"
   ansible.builtin.set_fact:
-    cloudkitty_begin_end_timestamp: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_begin_end_suffix }}"
     cloudkitty_data_file: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_data_suffix }}"
     cloudkitty_synth_totals_file: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_totals_suffix }}"
     cloudkitty_test_file: "{{ cloudkitty_scenario_dir }}/{{ item }}.yml"
 
-- name: Check for preexisting output file
+- name: "Check for preexisting output file"
   ansible.builtin.stat:
     path: "{{ cloudkitty_data_file }}"
   register: file_preexists
 
-- name: Generate Synthetic Data "{{ item }}"
+- name: "Generate Synthetic Data {{ item }}"
   ansible.builtin.command:
     cmd: >
       python3 "{{ cloudkitty_synth_script }}"
@@ -22,12 +21,12 @@
   when: not file_preexists.stat.exists | bool
   changed_when: script_output.rc == 0
 
-- name: Read the content of the file
+- name: "Read the content of the file"
   ansible.builtin.slurp:
     src: "{{ cloudkitty_data_file }}"
   register: slurped_file
 
-- name: Validate JSON format of synthetic data file
+- name: "Validate JSON format of synthetic data file"
   ansible.builtin.assert:
     that:
       # This filter will trigger a task failure if the string isn't valid JSON
@@ -35,13 +34,7 @@
     fail_msg: "The file {{ cloudkitty_data_file }} does not contain valid JSON format. Delete the file to regenerate."
     success_msg: "JSON format validated successfully."
 
-- name: Print cloudkitty_data_file path
-  ansible.builtin.debug:
-    msg: |
-      "Synthetic data file: {{ cloudkitty_data_file }}"
-      "Synthetic data calc totals: {{ cloudkitty_synth_totals_file }}"
-
-- name: Generate chargeback rating from synthetic data file "{{ item }}"
+- name: "Generate chargeback rating from synthetic data file {{ item }}"
   ansible.builtin.command:
     cmd: >
       python3 "{{ cloudkitty_totals_script }}"
@@ -51,7 +44,7 @@
   when: not file_preexists.stat.exists | bool
   changed_when: synth_rating_info.rc == 0
 
-- name: Load metrics from YAML file
+- name: "Load metrics from YAML file"
   ansible.builtin.include_vars:
     file: "{{ cloudkitty_synth_totals_file }}"
     name: synth_data_rates

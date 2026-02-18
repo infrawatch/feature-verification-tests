@@ -7,15 +7,14 @@ artifacts_dir_zuul: "{{ ansible_env.HOME }}/ci-framework-data/artifacts"
 cloudkitty_scenario_dir: "{{ role_path }}/files"
 cloudkitty_synth_data_suffix: "-synth_data.json"
 cloudkitty_loki_data_suffix: "-loki_data.json"
-cloudkitty_synth_totals_suffix: "-totals_synth.yml"
-cloudkitty_loki_totals_suffix: "-totals_loki.yml"
-cloudkitty_begin_end_suffix: "-begin_end.yml"
+cloudkitty_synth_totals_suffix: "-synth_totals.yml"
+cloudkitty_loki_totals_suffix: "-loki_totals.yml"
+cloudkitty_loki_totals_metrics_suffix: "-loki_metrics_totals.yml"
 
 cloudkitty_synth_script: "{{ role_path }}/files/gen_synth_loki_data.py"
 cloudkitty_data_template: "{{ role_path }}/templates/loki_data_templ.j2"
 cloudkitty_totals_script: "{{ role_path }}/files/gen_synth_loki_metrics_totals.py"
 
-### from Muneesah
 # Cloudkitty certificates
 cert_secret_name: "cert-cloudkitty-client-internal"
 cert_dir: "{{ ansible_user_dir }}/ck-certs"

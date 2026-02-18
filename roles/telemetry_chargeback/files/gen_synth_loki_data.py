@@ -107,7 +107,9 @@ def generate_loki_data(
     start_time: datetime,
     end_time: datetime,
     time_step_seconds: int,
-    config: Dict[str, Any]
+    config: Dict[str, Any],
+    project_id: Union[str, int, None] = None,
+    user_id: Union[str, int, None] = None,
 ):
     """
     Generate synthetic Loki log data by preparing a data list and rendering.
@@ -119,6 +121,10 @@ def generate_loki_data(
         end_time (datetime): The end time for data generation.
         time_step_seconds (int): The duration of each log entry in seconds.
         config (Dict[str, Any]): Configuration dictionary loaded from file.
+        project_id: Optional value to inject as groupby.project_id in every
+            log entry in the output (overrides test_* file value when set).
+        user_id: Optional value to inject as groupby.user_id in every
+            log entry in the output (overrides test_* file value when set).
     """
     # Hardcoded constant for invalid timestamps
     invalid_timestamp = "INVALID_TIMESTAMP"
@@ -307,6 +313,10 @@ def generate_loki_data(
             log_type_with_dates = log_type_data.copy()
             log_type_with_dates["groupby"] = log_type_data["groupby"].copy()
             log_type_with_dates["groupby"].update(date_fields)
+            if project_id is not None:
+                log_type_with_dates["groupby"]["project_id"] = project_id
+            if user_id is not None:
+                log_type_with_dates["groupby"]["user_id"] = user_id
             # Select qty and price based on step index distribution
             log_type_with_dates["qty"] = _get_value_for_step(
                 log_type_data["qty"], idx, num_steps
@@ -371,6 +381,22 @@ def main():
         required=True,
         help="Path to the output file."
     )
+    parser.add_argument(
+        "-p", "--project-id",
+        type=str,
+        default=None,
+        metavar="ID",
+        help="Optional alphanumeric value to use as groupby.project_id in "
+             "every log entry in the output (overrides value from test file)."
+    )
+    parser.add_argument(
+        "-u", "--user-id",
+        type=str,
+        default=None,
+        metavar="ID",
+        help="Optional alphanumeric value to use as groupby.user_id in "
+             "every log entry in the output (overrides value from test file)."
+    )
 
     # --- Optional Utility Arguments ---
     parser.add_argument(
@@ -409,7 +435,9 @@ def main():
             start_time=start_time_utc,
             end_time=end_time_utc,
             time_step_seconds=step_seconds,
-            config=config
+            config=config,
+            project_id=args.project_id,
+            user_id=args.user_id,
         )
     except FileNotFoundError:
         logger.error(

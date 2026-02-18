@@ -4,8 +4,8 @@ Calculate metric totals and aggregate total from a Loki JSON file.
 
 Output is in YAML format.
 """
-import json
 import argparse
+import json
 import sys
 import yaml
 from pathlib import Path
@@ -26,6 +26,14 @@ def calculate_totals(json_path: Path, output_path: Path):
         print(f"Error reading JSON file {json_path}: {e}")
         sys.exit(1)
 
+    # Support both synthetic format (top-level "streams") and Loki API format
+    # (top-level "data" -> "result" from query_range response)
+    streams = data.get('streams')
+    if streams is None:
+        streams = data.get('data', {}).get('result', [])
+    if not isinstance(streams, list):
+        streams = []
+
     metric_totals = {}
     aggregate_total = 0.0
     time_steps_set = set()
@@ -34,7 +42,7 @@ def calculate_totals(json_path: Path, output_path: Path):
     time_step_bounds = {}
 
     # Extract values from the Loki JSON structure
-    for stream in data.get('streams', []):
+    for stream in streams:
         for val_pair in stream.get('values', []):
             log_count += 1
             try:

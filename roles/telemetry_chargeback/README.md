@@ -46,9 +46,9 @@ These variables are used internally by the role and typically do not need to be 
 | `cloudkitty_scenario_dir` | `{{ role_path }}/files` | Directory containing scenario files (`test_*.yml`). |
 | `cloudkitty_synth_data_suffix` | `-synth_data.json` | Suffix for generated synthetic data files. |
 | `cloudkitty_loki_data_suffix` | `-loki_data.json` | Suffix for Loki query result JSON files. |
-| `cloudkitty_synth_totals_suffix` | `-totals_synth.yml` | Suffix for generated metric totals files (from synthetic data). |
-| `cloudkitty_loki_totals_suffix` | `-totals_loki.yml` | Suffix for CloudKitty rating summary output files (from loki_rate task). |
-| `cloudkitty_begin_end_suffix` | `-begin_end.yml` | Suffix for begin/end timestamp output files. |
+| `cloudkitty_synth_totals_suffix` | `-synth_totals.yml` | Suffix for generated metric totals files (from synthetic data). |
+| `cloudkitty_loki_totals_suffix` | `-loki_totals.yml` | Suffix for CloudKitty rating summary output files (from loki_rate task). |
+| `cloudkitty_loki_totals_metrics_suffix` | `-totals_loki_metrics.yml` | Suffix for metric totals computed from Loki-retrieved JSON (retrieve_loki_data task). |
 | `cloudkitty_synth_script` | `{{ role_path }}/files/gen_synth_loki_data.py` | Path to the synthetic data generation script. |
 | `cloudkitty_data_template` | `{{ role_path }}/templates/loki_data_templ.j2` | Path to the Jinja2 template for Loki data format. |
 | `cloudkitty_totals_script` | `{{ role_path }}/files/gen_synth_loki_metrics_totals.py` | Path to the metric totals calculation script. |
@@ -80,8 +80,7 @@ These variables are set dynamically for each scenario file during the loop:
 | Variable | Description |
 |----------|-------------|
 | `cloudkitty_data_file` | Local path for generated JSON data (`{{ artifacts_dir_zuul }}/{{ scenario_name }}-synth_data.json`) |
-| `cloudkitty_synth_totals_file` | Local path for calculated metric totals (`{{ artifacts_dir_zuul }}/{{ scenario_name }}-totals_synth.yml`) |
-| `cloudkitty_begin_end_timestamp` | Local path for begin/end timestamp file (`{{ artifacts_dir_zuul }}/{{ scenario_name }}-begin_end.yml`) |
+| `cloudkitty_synth_totals_file` | Local path for calculated metric totals (`{{ artifacts_dir_zuul }}/{{ scenario_name }}-synth_totals.yml`) |
 | `cloudkitty_test_file` | Path to the scenario configuration file (`{{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml`) |
 
 Scenario Configuration

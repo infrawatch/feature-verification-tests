@@ -1,29 +1,42 @@
 ---
-- name: "TEST Get total cost from Cloudkitty {{ item }}"
+- name: "TEST Get Rate and Qty by type from Cloudkitty {{ item }}"
   ansible.builtin.command:
-    cmd: "{{ openstack_cmd }} rating summary get -b {{ synth_data_rates.time.begin }} -e {{ synth_data_rates.time.end }} -f yaml  -g type"
-  register: cost_totals
+    # cmd: "{{ openstack_cmd }} rating summary get -b {{ synth_data_rates.time.begin }} -e {{ synth_data_rates.time.end }} -g type"
+    cmd: "{{ openstack_cmd }} rating summary get -g type"
+  register: cost_totals_by_type
   changed_when: true
-  failed_when: cost_totals.rc != 0
+  failed_when: cost_totals_by_type.rc != 0
 
-- name: "Save output as a loadable variable file"
+- name: "**INFO** Print the rating by type {{ item }}"
+  ansible.builtin.debug:
+    var: cost_totals_by_type
+
+- name: "Save output as a loadable variable file {{ item }}"
   ansible.builtin.copy:
     content: |
-        "{{ cost_totals.stdout }}"
+        "{{ cost_totals_by_type.stdout }}"
     dest: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_suffix }}"
     mode: '0644'
 
-- name: DEBUG Print the rating summary "{{ item }}"
-  ansible.builtin.debug:
-    var: cost_totals
+- name: "TEST Get Rate and Qty Summary from Cloudkitty {{ item }}"
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} rating summary get"
+  register: cost_totals_summary
+  changed_when: true
+  failed_when: cost_totals_summary.rc != 0
 
-- name: "Help for total cost cmd {{ item }}"
+- name: "**INFO** Print the rating summary {{ item }}"
+  ansible.builtin.debug:
+    var: cost_totals_summary
+
+
+- name: "**INFO** help for openstack rating summary cmd"
   ansible.builtin.command:
     cmd: "{{ openstack_cmd }} rating summary get -h"
   register: cost_totals_h
   changed_when: true
   failed_when: cost_totals_h.rc != 0
 
-- name: DEBUG Print the rating summary get help output
+- name: "**INFO** Print the rating summary get help output"
   ansible.builtin.debug:
     var: cost_totals_h.stdout_lines
