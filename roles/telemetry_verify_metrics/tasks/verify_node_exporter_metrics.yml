@@ -1,3 +1,4 @@
+---
 - name: Verify node exporter scrapeconfigs exist
   ansible.builtin.include_role:
     name: common
@@ -37,3 +38,33 @@
   retries: 10
   changed_when: false
   until: result.rc == 0 and "node_systemd_unit_state" in result.stdout
+
+- name: |
+    TEST Use openstack observabilityclient to verify filesystem metrics from node exporter are stored in prometheus
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show --disable-rbac node_filesystem_size_bytes
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and "node_filesystem_size_bytes" in result.stdout
+
+- name: |
+    TEST Verify node exporter reports host filesystem mountpoints instead of container-internal ones
+  ansible.builtin.command: |
+    {{ openstack_cmd }} metric query --disable-rbac 'node_filesystem_size_bytes{mountpoint="/"}'
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and "mountpoint" in result.stdout
+
+- name: |
+    TEST Verify node exporter filesystem metrics report a real filesystem type instead of overlay
+  ansible.builtin.command: |
+    {{ openstack_cmd }} metric query --disable-rbac 'node_filesystem_size_bytes{mountpoint="/"}'
+  register: result
+  delay: 30
+  retries: 10
+  changed_when: false
+  until: result.rc == 0 and "overlay" not in result.stdout and "fstype" in result.stdout
