@@ -33,7 +33,7 @@
     # Rescue block
     - name: Debug failure
       ansible.builtin.debug:
-        msg: "{{ loki_response.status }}"
+        msg: "{{ loki_response.status | default('N/A') }}"
 
     # Failure
     - name: Report Ingestion Failure

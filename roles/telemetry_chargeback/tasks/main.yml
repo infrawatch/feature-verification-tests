@@ -34,6 +34,11 @@
   loop: "{{ projects }}"
   when: projects is defined and (projects | length) > 0
 
+- name: Set admin project ID for CI
+  ansible.builtin.set_fact:
+    cloudkitty_project_id: "{{ (projects | selectattr('Name', 'equalto', 'admin') | list | map(attribute='ID') | first) | default('') }}"
+  when: projects is defined
+
 - name: "Find test files"
   ansible.builtin.find:
     paths: "{{ cloudkitty_scenario_dir }}"

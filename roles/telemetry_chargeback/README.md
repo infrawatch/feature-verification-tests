@@ -48,7 +48,7 @@ These variables are used internally by the role and typically do not need to be 
 | `cloudkitty_loki_data_suffix` | `-loki_data.json` | Suffix for Loki query result JSON files. |
 | `cloudkitty_synth_totals_suffix` | `-synth_totals.yml` | Suffix for generated metric totals files (from synthetic data). |
 | `cloudkitty_loki_totals_suffix` | `-loki_totals.yml` | Suffix for CloudKitty rating summary output files (from loki_rate task). |
-| `cloudkitty_loki_totals_metrics_suffix` | `-totals_loki_metrics.yml` | Suffix for metric totals computed from Loki-retrieved JSON (retrieve_loki_data task). |
+| `cloudkitty_loki_totals_metrics_suffix` | `-loki_metrics_totals.yml` | Suffix for metric totals computed from Loki-retrieved JSON (retrieve_loki_data task). |
 | `cloudkitty_synth_script` | `{{ role_path }}/files/gen_synth_loki_data.py` | Path to the synthetic data generation script. |
 | `cloudkitty_data_template` | `{{ role_path }}/templates/loki_data_templ.j2` | Path to the Jinja2 template for Loki data format. |
 | `cloudkitty_totals_script` | `{{ role_path }}/files/gen_synth_loki_metrics_totals.py` | Path to the metric totals calculation script. |
@@ -73,9 +73,15 @@ Used by setup, ingest, flush, and retrieve tasks when running against Loki on Op
 
 Loki push/query URLs are set dynamically in `setup_loki_env.yml` from the Cloudkitty Loki route.
 
-### Dynamically Set Variables (gen_synth_loki_data.yml)
+### Dynamically Set Variables
 
-These variables are set dynamically for each scenario file during the loop:
+Set in **main.yml** from the OpenStack project list:
+
+| Variable | Description |
+|----------|-------------|
+| `cloudkitty_project_id` | ID of the OpenStack project named `admin` (empty string if not found). Passed as `-p` to the synthetic data generator when non-empty. |
+
+Set in **gen_synth_loki_data.yml** for each scenario file during the loop:
 
 | Variable | Description |
 |----------|-------------|

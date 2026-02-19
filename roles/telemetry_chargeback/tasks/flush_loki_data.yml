@@ -48,5 +48,5 @@
       ansible.builtin.debug:
         msg:
           - "Failure"
-          - "Stdout: {{ flush_response.stdout }}"
-          - "Stderr: {{ flush_response.stderr }}"
+          - "Stdout: {{ flush_response.stdout | default('') }}"
+          - "Stderr: {{ flush_response.stderr | default('') }}"

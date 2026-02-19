@@ -17,6 +17,7 @@
       --tmpl "{{ cloudkitty_data_template }}"
       -t "{{ cloudkitty_test_file }}"
       -o "{{ cloudkitty_data_file }}"
+      {% if cloudkitty_project_id | default('') %} -p "{{ cloudkitty_project_id }}"{% endif %}
   register: script_output
   when: not file_preexists.stat.exists | bool
   changed_when: script_output.rc == 0
