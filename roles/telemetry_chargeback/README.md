@@ -46,7 +46,7 @@ These variables are used internally by the role and typically do not need to be 
 | `cloudkitty_scenario_dir` | `{{ role_path }}/files` | Directory containing scenario files (`test_*.yml`). |
 | `cloudkitty_synth_data_suffix` | `-synth_data.json` | Suffix for generated synthetic data files. |
 | `cloudkitty_loki_data_suffix` | `-loki_data.json` | Suffix for Loki query result JSON files. |
-| `cloudkitty_synth_totals_suffix` | `-synth_totals.yml` | Suffix for generated metric totals files (from synthetic data). |
+| `cloudkitty_synth_totals_suffix` | `-synth_metrics_totals.yml` | Suffix for generated metric totals files (from synthetic data). |
 | `cloudkitty_loki_totals_suffix` | `-loki_totals.yml` | Suffix for CloudKitty rating summary output files (from loki_rate task). |
 | `cloudkitty_loki_totals_metrics_suffix` | `-loki_metrics_totals.yml` | Suffix for metric totals computed from Loki-retrieved JSON (retrieve_loki_data task). |
 | `cloudkitty_synth_script` | `{{ role_path }}/files/gen_synth_loki_data.py` | Path to the synthetic data generation script. |
@@ -75,18 +75,19 @@ Loki push/query URLs are set dynamically in `setup_loki_env.yml` from the Cloudk
 
 ### Dynamically Set Variables
 
-Set in **main.yml** from the OpenStack project list:
+Set in **main.yml** from the OpenStack CLI (`openstack project show admin` / `openstack user show admin`):
 
 | Variable | Description |
 |----------|-------------|
 | `cloudkitty_project_id` | ID of the OpenStack project named `admin` (empty string if not found). Passed as `-p` to the synthetic data generator when non-empty. |
+| `cloudkitty_user_id` | ID of the OpenStack user named `admin` (empty string if not found). Passed as `-u` to the synthetic data generator when non-empty. |
 
 Set in **gen_synth_loki_data.yml** for each scenario file during the loop:
 
 | Variable | Description |
 |----------|-------------|
 | `cloudkitty_data_file` | Local path for generated JSON data (`{{ artifacts_dir_zuul }}/{{ scenario_name }}-synth_data.json`) |
-| `cloudkitty_synth_totals_file` | Local path for calculated metric totals (`{{ artifacts_dir_zuul }}/{{ scenario_name }}-synth_totals.yml`) |
+| `cloudkitty_synth_totals_file` | Local path for calculated metric totals (`{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_totals_suffix }}`) |
 | `cloudkitty_test_file` | Path to the scenario configuration file (`{{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml`) |
 
 Scenario Configuration

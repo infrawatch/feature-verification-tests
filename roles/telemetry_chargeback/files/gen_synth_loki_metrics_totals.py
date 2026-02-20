@@ -90,8 +90,9 @@ def calculate_totals(json_path: Path, output_path: Path):
     )
 
     # Prepare data for YAML output with time section and rates.
-    # log_count = total [timestamp, log_entry] pairs. When each timestep has the
-    # same number of metrics, log_count == total_time_steps * metrics_per_step.
+    # log_count = total [timestamp, log_entry] pairs. When each timestep has
+    # the same number of metrics, log_count == total_time_steps *
+    # metrics_per_step.
     total_time_steps = len(time_steps_set)
     metrics_per_step = (
         log_count // total_time_steps if total_time_steps > 0 else 0

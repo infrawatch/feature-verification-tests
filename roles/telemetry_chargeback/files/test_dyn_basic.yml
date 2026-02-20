@@ -25,8 +25,8 @@ log_types:
       - 0.10
     groupby:
       id: null
-      user_id: 1
-      project_id: 12345
+      user_id: null
+      project_id: null
       tenant_id: tenant-01
     metadata:
       container_format: bare
@@ -42,8 +42,8 @@ log_types:
       - 0.3
     groupby:
       id: null
-      user_id: 0
-      project_id: 23456
+      user_id: null
+      project_id: null
       tenant_id: tenant-02
     metadata:
       flavor_name: m1.tiny
@@ -61,7 +61,7 @@ log_types:
     groupby:
       id: null
       user_id: null
-      project_id: 34567
+      project_id: null
       tenant_id: tenant-01
     metadata:
       state: null

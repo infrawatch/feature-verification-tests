@@ -19,7 +19,7 @@ log_types:
     groupby:
       id: null
       user_id: null
-      project_id: 2
+      project_id: null
       tenant_id: tenant-01
     metadata:
       flavor_name: null
@@ -37,7 +37,7 @@ log_types:
     groupby:
       id: null
       user_id: null
-      project_id: 2
+      project_id: null
       tenant_id: tenant-02
     metadata:
       container_format: null
@@ -54,7 +54,7 @@ log_types:
     groupby:
       id: null
       user_id: null
-      project_id: 2
+      project_id: null
       tenant_id: tenant-01
     metadata:
       type: null
@@ -70,7 +70,7 @@ log_types:
     groupby:
       id: null
       user_id: null
-      project_id: 2
+      project_id: null
       tenant_id: tenant-02
     metadata:
       disk_format: null
@@ -86,7 +86,7 @@ log_types:
     groupby:
       id: null
       user_id: null
-      project_id: 2
+      project_id: null
       tenant_id: tenant-01
     metadata:
       vm_instance: null
@@ -102,7 +102,7 @@ log_types:
     groupby:
       id: null
       user_id: null
-      project_id: 2
+      project_id: null
       tenant_id: tenant-02
     metadata:
       vm_instance: null
@@ -118,7 +118,7 @@ log_types:
     groupby:
       id: null
       user_id: null
-      project_id: 1
+      project_id: null
       tenant_id: tenant-01
     metadata:
       state: null

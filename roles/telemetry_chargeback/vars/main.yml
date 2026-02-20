@@ -7,7 +7,7 @@ artifacts_dir_zuul: "{{ ansible_env.HOME }}/ci-framework-data/artifacts"
 cloudkitty_scenario_dir: "{{ role_path }}/files"
 cloudkitty_synth_data_suffix: "-synth_data.json"
 cloudkitty_loki_data_suffix: "-loki_data.json"
-cloudkitty_synth_totals_suffix: "-synth_totals.yml"
+cloudkitty_synth_totals_suffix: "-synth_metrics_totals.yml"
 cloudkitty_loki_totals_suffix: "-loki_totals.yml"
 cloudkitty_loki_totals_metrics_suffix: "-loki_metrics_totals.yml"
 

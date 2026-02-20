@@ -5,39 +5,27 @@
 - name: "Setup Loki Environment"
   ansible.builtin.include_tasks: "setup_loki_env.yml"
 
-- name: Get list of all OpenStack projects
+- name: Get admin project ID for CI
   ansible.builtin.command:
-    cmd: "{{ openstack_cmd }} project list -f json"
-  register: openstack_project_list
+    cmd: "{{ openstack_cmd }} project show admin -f value -c id"
+  register: get_admin_project_id
   changed_when: false
   failed_when: false
 
-- name: Parse project list from OpenStack CLI output
-  block:
-    - name: Set project list from JSON output
-      ansible.builtin.set_fact:
-        projects: "{{ (openstack_project_list.stdout | from_json) | default([]) }}"
-      when: openstack_project_list.rc == 0 and (openstack_project_list.stdout | trim) != ""
-
-    - name: Set empty project list when CLI failed or returned nothing
-      ansible.builtin.set_fact:
-        projects: []
-      when: openstack_project_list.rc != 0 or (openstack_project_list.stdout | trim) == ""
-  rescue:
-    - name: Set empty project list on parse failure
-      ansible.builtin.set_fact:
-        projects: []
-
-- name: "Display project names and IDs"
-  ansible.builtin.debug:
-    msg: "Project: {{ item.Name }} (ID: {{ item.ID }})"
-  loop: "{{ projects }}"
-  when: projects is defined and (projects | length) > 0
-
 - name: Set admin project ID for CI
   ansible.builtin.set_fact:
-    cloudkitty_project_id: "{{ (projects | selectattr('Name', 'equalto', 'admin') | list | map(attribute='ID') | first) | default('') }}"
-  when: projects is defined
+    cloudkitty_project_id: "{{ (get_admin_project_id.stdout | trim) | default('') }}"
+
+- name: Get admin user ID for CI
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} user show admin -f value -c id"
+  register: get_admin_user_id
+  changed_when: false
+  failed_when: false
+
+- name: Set admin user ID for CI
+  ansible.builtin.set_fact:
+    cloudkitty_user_id: "{{ (get_admin_user_id.stdout | trim) | default('') }}"
 
 - name: "Find test files"
   ansible.builtin.find:
