@@ -27,11 +27,22 @@ Variable required for all tasks to run
 For pod_tests.yml tasks:
 
     common_pod_list
-      - list of pods to validate
+      (list) the list of pods to validate
+      Each list value can take one of two forms
+      - (string) the names of the pods to validate
+      - (dict) with name, nspace, status_str and (optionally) test_id elements.
+      When a list of strings is used, the other values (listed below) are required.
+      When the list of  dicts is used, the types match the vars below
+
+    common_pod_test_id (optional)
+      - (string) polarion ID number for each test.
+        This is used as the default value for common_pod_list.test_id
     common_pod_status_str
-      - status of pods to check
+      - (string) status of pods to check e.g. "Running", "Completed", etc
+        This is used as the default value for common_pod_list.status_str
     common_pod_nspace
-      - list of projects where pods exist
+      - (string) The namespace where the pod should exist.
+        This is also used as default for the common_pod_list.nspace
 
 
 For subscription_tests.yml tasks:
@@ -122,6 +133,9 @@ can be set at the play level.
           common_pod_nspace: openstack
           common_pod_list:
             - openstackclient
+            - name: cluster-logging-operator
+              nspace: openshift-logging
+              # the status_str and test_id will default to the common_pod_* vars
 
       - name: "Verify subscription"
         ansible.builtin.import_role:
