@@ -1,39 +1,52 @@
 ---
-- name: Check for preexisting output file
+- name: "Set variables dynamically {{ item }}"
+  ansible.builtin.set_fact:
+    cloudkitty_data_file: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_data_suffix }}"
+    cloudkitty_synth_totals_file: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_totals_suffix }}"
+    cloudkitty_test_file: "{{ cloudkitty_scenario_dir }}/{{ item }}.yml"
+
+- name: "Check for preexisting output file"
   ansible.builtin.stat:
-    path: "{{ ck_output_file_local }}"
+    path: "{{ cloudkitty_data_file }}"
   register: file_preexists
 
-- name: TEST Generate Synthetic Data
+- name: "Generate Synthetic Data {{ item }}"
   ansible.builtin.command:
     cmd: >
-      python3 "{{ ck_synth_script }}"
-      --tmpl "{{ ck_data_template }}"
-      -t "{{ ck_data_config }}"
-      -o "{{ ck_output_file_local }}"
+      python3 "{{ cloudkitty_synth_script }}"
+      --tmpl "{{ cloudkitty_data_template }}"
+      -t "{{ cloudkitty_test_file }}"
+      -o "{{ cloudkitty_data_file }}"
+      {% if cloudkitty_project_id | default('') %} -p "{{ cloudkitty_project_id }}"{% endif %}
+      {% if cloudkitty_user_id | default('') %} -u "{{ cloudkitty_user_id }}"{% endif %}
   register: script_output
-  when: not file_preexists.stat.exists | bool 
+  when: not file_preexists.stat.exists | bool
   changed_when: script_output.rc == 0
 
-- name: Read the content of the file
+- name: "Read the content of the file"
   ansible.builtin.slurp:
-    src: "{{ ck_output_file_local }}"
+    src: "{{ cloudkitty_data_file }}"
   register: slurped_file
 
-- name: TEST Validate JSON format of synthetic data file
+- name: "Validate JSON format of synthetic data file"
   ansible.builtin.assert:
     that:
-    # This filter will trigger a task failure if the string isn't valid JSON
+      # This filter will trigger a task failure if the string isn't valid JSON
       - slurped_file.content | b64decode | from_json is defined
-    fail_msg: "The file does not contain valid JSON format."
+    fail_msg: "The file {{ cloudkitty_data_file }} does not contain valid JSON format. Delete the file to regenerate."
     success_msg: "JSON format validated successfully."
 
-- name: Print output_file_remote path
-  ansible.builtin.debug:
-    msg: "Synthetic data file: {{ ck_output_file_remote }}"
+- name: "Generate chargeback rating from synthetic data file {{ item }}"
+  ansible.builtin.command:
+    cmd: >
+      python3 "{{ cloudkitty_totals_script }}"
+      -j "{{ cloudkitty_data_file }}"
+      -o "{{ cloudkitty_synth_totals_file }}"
+  register: synth_rating_info
+  when: not file_preexists.stat.exists | bool
+  changed_when: synth_rating_info.rc == 0
 
-- name: Copy output file to remote host
-  ansible.builtin.copy:
-    src: "{{ ck_output_file_local }}"
-    dest: "{{ ck_output_file_remote }}"
-    mode: '0644'
+- name: "Load metrics from YAML file"
+  ansible.builtin.include_vars:
+    file: "{{ cloudkitty_synth_totals_file }}"
+    name: synth_data_rates

@@ -1,0 +1,70 @@
+---
+# Setup Loki Environment
+
+# Dynamic URL's
+- name: Get Loki Public Route Host
+  ansible.builtin.command:
+    cmd: oc get route cloudkitty-lokistack -n {{ cloudkitty_namespace }} -o jsonpath='{.spec.host}'
+  register: loki_route
+  changed_when: false
+
+- name: Set Loki URLs
+  ansible.builtin.set_fact:
+    # Base URL
+    loki_base_url: "https://{{ loki_route.stdout }}"
+
+    # Internal Flush URL (Service DNS: https://<service>.<namespace>.svc:3100/flush)
+    ingester_flush_url: "https://cloudkitty-lokistack-ingester-http.{{ cloudkitty_namespace }}.svc:3100/flush"
+
+- name: Set Derived Loki URLs
+  ansible.builtin.set_fact:
+    loki_push_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/push"
+    loki_query_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/query_range"
+
+- name: Debug URLs
+  ansible.builtin.debug:
+    msg:
+      - "Loki Route: {{ loki_base_url }}"
+      - "Push URL:   {{ loki_push_url }}"
+      - "Flush URL:  {{ ingester_flush_url }}"
+      - "Query URL:  {{ loki_query_url }}"
+
+# Certs to Ingest & Retrieve data to/from Loki
+- name: Ensure Local Certificate Directory Exists
+  ansible.builtin.file:
+    path: "{{ cert_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Extract Certificates from Openshift Secret
+  ansible.builtin.command:
+    cmd: >
+      oc extract secret/{{ cert_secret_name }}
+      --to={{ cert_dir }}
+      --confirm
+      -n {{ cloudkitty_namespace }}
+  changed_when: true
+
+#  Certs to Flush data to Loki
+# - name: Create a directory to extract certificates
+#  ansible.builtin.file:
+#    path: "{{ local_cert_dir }}"
+#    state: directory
+#    mode: '0755'
+
+- name: Extract Client Certificates
+  ansible.builtin.command:
+    cmd: >
+      oc extract {{ client_secret }}
+      --to={{ local_cert_dir }}
+      --confirm
+      -n {{ cloudkitty_namespace }}
+  changed_when: true
+
+- name: Extract CA Bundle
+  ansible.builtin.command:
+    cmd: "oc extract {{ ca_configmap }}
+    --to={{ local_cert_dir }}
+    --confirm
+    -n {{ cloudkitty_namespace }}"
+  changed_when: true

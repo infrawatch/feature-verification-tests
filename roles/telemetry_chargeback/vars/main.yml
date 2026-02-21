@@ -1,9 +1,36 @@
 ---
-logs_dir_zuul: "/home/zuul/ci-framework-data/logs"
-artifacts_dir_zuul: "/home/zuul/ci-framework-data/artifacts"
+# logs_dir_zuul: "/home/zuul/ci-framework-data/logs"
+# artifacts_dir_zuul: "/home/zuul/ci-framework-data/artifacts"
+logs_dir_zuul: "{{ ansible_env.HOME }}/ci-framework-data/logs"
+artifacts_dir_zuul: "{{ ansible_env.HOME }}/ci-framework-data/artifacts"
 
-ck_synth_script: "{{ role_path }}/files/gen_synth_loki_data.py"
-ck_data_template: "{{ role_path }}/template/loki_data_templ.j2"
-ck_data_config: "{{ role_path }}/files/test_static.yml"
-ck_output_file_local: "{{ artifacts_dir_zuul }}/loki_synth_data.json"
-ck_output_file_remote: "{{ logs_dir_zuul }}/gen_loki_synth_data.log"
+cloudkitty_scenario_dir: "{{ role_path }}/files"
+cloudkitty_synth_data_suffix: "-synth_data.json"
+cloudkitty_loki_data_suffix: "-loki_data.json"
+cloudkitty_synth_totals_suffix: "-synth_metrics_totals.yml"
+cloudkitty_loki_totals_suffix: "-loki_totals.yml"
+cloudkitty_loki_totals_metrics_suffix: "-loki_metrics_totals.yml"
+
+cloudkitty_synth_script: "{{ role_path }}/files/gen_synth_loki_data.py"
+cloudkitty_data_template: "{{ role_path }}/templates/loki_data_templ.j2"
+cloudkitty_totals_script: "{{ role_path }}/files/gen_synth_loki_metrics_totals.py"
+
+# Cloudkitty certificates
+cert_secret_name: "cert-cloudkitty-client-internal"
+cert_dir: "{{ ansible_user_dir }}/ck-certs"
+
+client_secret: "secret/cloudkitty-lokistack-gateway-client-http"
+ca_configmap: "cm/cloudkitty-lokistack-ca-bundle"
+remote_cert_dir: "osp-certs"
+local_cert_dir: "{{ ansible_env.HOME }}/ci-framework-data/flush_certs"
+
+# LogQL Query
+logql_query: "{{ loki_query | default('{service=\"cloudkitty\"}') }}"
+
+# vars
+cloudkitty_namespace: "openstack"
+openstackpod: "openstackclient"
+
+# Time window settings
+lookback: 6
+limit: 50

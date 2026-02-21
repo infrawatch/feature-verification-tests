@@ -1,0 +1,85 @@
+---
+- name: Expected Count
+  ansible.builtin.debug:
+    msg: "Input file has {{ synth_data_rates.data_log.log_count }} data entries that Loki has to return"
+
+# Calculate Time
+- name: Calculate Start Time in nanoseconds
+  ansible.builtin.command: date -d "{{ lookback }} days ago" +%s000000000
+  register: nano_time
+  changed_when: false
+
+- name: Set Start Time
+  ansible.builtin.set_fact:
+    start_time: "{{ nano_time.stdout }}"
+
+- name: Display Query Parameters
+  ansible.builtin.debug:
+    msg:
+      - "Query: {{ logql_query }}"
+      - "Start Time: {{ start_time }}"
+      - "Limit: {{ limit }}"
+
+# Query Loki
+- name: Retrieve Logs from Loki via API
+  block:
+    - name: Query Loki API
+      ansible.builtin.uri:
+        url: "{{ loki_query_url }}?query={{ logql_query | urlencode }}&start={{ start_time }}&limit={{ limit }}"
+        method: GET
+        client_cert: "{{ cert_dir }}/tls.crt"
+        client_key: "{{ cert_dir }}/tls.key"
+        ca_path: "{{ cert_dir }}/ca.crt"
+        validate_certs: false
+        return_content: true
+        body_format: json
+      register: loki_response
+      # Wait condition
+      until:
+        - loki_response.status == 200
+        - loki_response.json.status == 'success'
+        - loki_response.json.data.result | length > 0
+        - (loki_response.json.data.result | map(attribute='values') | map('length') | sum) >= (synth_data_rates.data_log.log_count | int)
+      retries: 25
+      delay: 60
+
+    # Save data
+    - name: Save Loki Data to JSON file
+      ansible.builtin.copy:
+        content: "{{ loki_response.json | to_nice_json }}"
+        dest: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_data_suffix }}"
+        mode: '0644'
+
+    # Validate
+    - name: Verify Data Integrity
+      vars:
+        actual_count: "{{ loki_response.json.data.result | map(attribute='values') | map('length') | sum }}"
+      ansible.builtin.assert:
+        that:
+          - loki_response.json.status == 'success'
+          - loki_response.json.data.result | length > 0
+          - actual_count | int == (synth_data_rates.data_log.log_count | int)
+        fail_msg: "Query did not return all data entries. Expected {{ synth_data_rates.data_log.log_count }} log entries, but Loki only returned {{ actual_count }}"
+        success_msg: "Query returned all data entries. Input file had {{ synth_data_rates.data_log.log_count }} entries and Loki returned {{ actual_count }}"
+
+  rescue:
+    - name: Debug failure
+      ansible.builtin.debug:
+        msg:
+          - "Status: {{ loki_response.status | default('Unknown') }}"
+          - "Body: {{ loki_response.content | default('No Content') }}"
+          - "Msg: {{ loki_response.msg | default('Request failed') }}"
+
+    # Failure
+    - name: Report Retrieval Failure
+      ansible.builtin.fail:
+        msg: "Retrieval Failed"
+
+- name: "Generate chargeback stats from Loki-retrieved data file: {{ item }}"
+  ansible.builtin.command:
+    cmd: >
+      python3 "{{ cloudkitty_totals_script }}"
+      -j "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_data_suffix }}"
+      -o "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_metrics_suffix }}"
+  register: synth_rating_info
+  changed_when: synth_rating_info.rc == 0
