@@ -11,11 +11,20 @@ cloudkitty_artifacts_dir: "{{ cifmw_basedir }}/artifacts"
 cert_dir: "{{ cifmw_basedir }}/ck-certs"
 local_cert_dir: "{{ cifmw_basedir }}/flush_certs"
 remote_cert_dir: "osp-certs"
+loki_gateway_service: "cloudkitty-lokistack-gateway-http"
+loki_gateway_port: 8080
+loki_api_cert_dir: "{{ remote_cert_dir }}/loki-api"
+loki_api_data_file: "{{ loki_api_cert_dir }}/push.json"
+loki_query_retries: 12
+loki_query_delay: 10
+loki_connect_timeout: 5
+loki_request_timeout: 30
 
 # Cloudkitty certificates and secrets
 cert_secret_name: "cert-cloudkitty-client-internal"
 client_secret: "secret/cloudkitty-lokistack-gateway-client-http"
 ca_configmap: "cm/cloudkitty-lokistack-ca-bundle"
+gateway_ca_configmap: "cm/cloudkitty-lokistack-gateway-ca-bundle"
 
 # LogQL Query
 logql_query: "{{ loki_query | default('{service=\"cloudkitty\"}') }}"
@@ -26,6 +35,10 @@ openstackpod: "openstackclient"
 
 # Time window settings
 limit: 1500
+
+# Scope API test variables (OSPRH-23754)
+ck_test_scope_id: "fvt_scope_api_test"
+ck_test_scope_timestamp: "2025-01-01T00:00:00+00:00"
 
 # List of test scenario files to run (names without .yml extension)
 # The .yml extension is added automatically in vars/main.yml

@@ -3,21 +3,58 @@
 
 - name: "TEST Push data to Loki {{ scenario_name }}"
   block:
-    - name: "POST data to Loki"
-      ansible.builtin.uri:
-        # loki_push_url is configured in setup_loki_env.yml
-        url: "{{ loki_push_url }}"
-        method: POST
-        src: "{{ cloudkitty_data_file }}"
-        body_format: json
-        client_cert: "{{ cert_dir }}/tls.crt"
-        client_key: "{{ cert_dir }}/tls.key"
-        # Note: ca_path not required with validate_certs: false, but included for consistency with retrieve_loki_data.yml
-        ca_path: "{{ cert_dir }}/ca.crt"
-        validate_certs: false
-        status_code: 204
-        return_content: true
+    - name: "Copy data to OpenStack Client pod"
+      ansible.builtin.command:
+        argv:
+          - oc
+          - cp
+          - "{{ cloudkitty_data_file }}"
+          - "{{ cloudkitty_namespace }}/{{ openstackpod }}:{{ loki_api_data_file }}"
+      changed_when: false
+
+    - name: "POST data to Loki through the internal Gateway Service"
+      ansible.builtin.command:
+        argv:
+          - oc
+          - exec
+          - -n
+          - "{{ cloudkitty_namespace }}"
+          - "{{ openstackpod }}"
+          - --
+          - curl
+          - --silent
+          - --show-error
+          - --fail
+          - --connect-timeout
+          - "{{ loki_connect_timeout }}"
+          - --max-time
+          - "{{ loki_request_timeout }}"
+          - --output
+          - /dev/null
+          - --write-out
+          - "%{http_code}"
+          - --request
+          - POST
+          - --header
+          - "Content-Type: application/json"
+          - --cert
+          - "{{ loki_api_cert_dir }}/tls.crt"
+          - --key
+          - "{{ loki_api_cert_dir }}/tls.key"
+          - --cacert
+          - "{{ loki_api_cert_dir }}/service-ca.crt"
+          - --data-binary
+          - "@{{ loki_api_data_file }}"
+          - "{{ loki_push_url }}"
       register: loki_response
+      changed_when: loki_response.rc == 0
+
+    - name: "Verify Loki accepted the pushed data"
+      ansible.builtin.assert:
+        that:
+          - loki_response.stdout == '204'
+        fail_msg: "Loki push returned HTTP {{ loki_response.stdout | default('no status') }}"
+        success_msg: "Loki accepted the data for {{ scenario_name }}"
 
     - name: "Ingest Status Message"
       ansible.builtin.debug:
@@ -28,6 +65,6 @@
       ansible.builtin.fail:
         msg:
           - "Scenario: {{ scenario_name }}"
-          - "Status: {{ loki_response.status | default('Unknown') }}"
-          - "Body: {{ loki_response.content | default('No Content') }}"
-          - "Message: {{ loki_response.msg | default('Request failed') }}"
+          - "Status: {{ (loki_response | default({})).stdout | default('Unknown') }}"
+          - "Error: {{ (loki_response | default({})).stderr | default('No error output') }}"
+          - "Message: {{ (loki_response | default({})).msg | default('Request failed') }}"

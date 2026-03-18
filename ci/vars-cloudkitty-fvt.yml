@@ -1,4 +1,7 @@
 ---
+cifmw_update_containers_openstack: false
+content_provider_dlrn_md5_hash: ''
+
 pre_tests_01_run_chargeback_tests:
   source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_chargeback_tests.yml"
   type: playbook
