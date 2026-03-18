@@ -1,0 +1,106 @@
+---
+# Verification test for OSPRH-23754: CloudKitty Scope API POST fix
+# The Scope API POST /v2/scope was broken because last_processed_timestamp
+# was not accepted as input, and the active field defaulted to None.
+# CL 970605 fixed this by making last_processed_timestamp a required input
+# parameter and defaulting active to True.
+#
+# API calls use oc exec into the openstackclient pod because the CloudKitty
+# internal endpoint is only resolvable from within the cluster.
+
+- name: Get OpenStack auth token
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} token issue -f value -c id"
+  register: os_token
+  changed_when: false
+  failed_when: os_token.rc != 0
+
+- name: Get CloudKitty rating endpoint
+  ansible.builtin.shell:
+    cmd: "{{ openstack_cmd }} endpoint list --service rating --interface internal -f value -c URL | head -1"
+  register: ck_endpoint
+  changed_when: false
+  failed_when: ck_endpoint.rc != 0 or ck_endpoint.stdout == ""
+
+- name: Display CloudKitty endpoint
+  ansible.builtin.debug:
+    msg: "CloudKitty endpoint: {{ ck_endpoint.stdout | trim }}"
+
+- name: Create a scope via the Scope API POST
+  ansible.builtin.command:
+    cmd: >
+      oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} --
+      curl -s -o /dev/stdout -w '\n%{http_code}'
+      -X POST "{{ ck_endpoint.stdout | trim }}/v2/scope"
+      -H "X-Auth-Token: {{ os_token.stdout | trim }}"
+      -H "Content-Type: application/json"
+      -d '{"scope_id":"{{ ck_test_scope_id }}","scope_key":"project_id","fetcher":"keystone","collector":"prometheus","last_processed_timestamp":"{{ ck_test_scope_timestamp }}"}'
+  register: scope_create_raw
+  changed_when: false
+  failed_when: false
+
+- name: Parse scope creation response
+  ansible.builtin.set_fact:
+    scope_create_body: "{{ scope_create_raw.stdout_lines[:-1] | join('') }}"
+    scope_create_status: "{{ scope_create_raw.stdout_lines[-1] | int }}"
+
+- name: Display scope creation result
+  ansible.builtin.debug:
+    msg: "Status: {{ scope_create_status }}, Body: {{ scope_create_body }}"
+
+- name: TEST RHOSO Verify CloudKitty Scope API POST creates a scope (OSPRH-23754)
+  ansible.builtin.assert:
+    that:
+      - scope_create_status | int in [200, 409]
+      - (scope_create_status | int == 409) or
+        ((scope_create_body | from_json).scope_id == ck_test_scope_id and
+         (scope_create_body | from_json).scope_key == "project_id" and
+         (scope_create_body | from_json).fetcher == "keystone" and
+         (scope_create_body | from_json).collector == "prometheus" and
+         (scope_create_body | from_json).active == true and
+         (scope_create_body | from_json).last_processed_timestamp is defined and
+         (scope_create_body | from_json).last_processed_timestamp | length > 0)
+    fail_msg: "FAILED: CloudKitty Scope API POST did not return expected scope data. Status: {{ scope_create_status }}, Body: {{ scope_create_body }}"
+    success_msg: >-
+      {{ 'SUCCESS: CloudKitty Scope API POST correctly creates a scope with all fields populated.'
+         if scope_create_status | int == 200 else
+         'SUCCESS: Scope already exists from a previous run (HTTP 409), creation was previously verified.' }}
+
+- name: Retrieve scope via Scope API GET to confirm persistence
+  ansible.builtin.command:
+    cmd: >
+      oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} --
+      curl -s
+      -X GET "{{ ck_endpoint.stdout | trim }}/v2/scope"
+      -H "X-Auth-Token: {{ os_token.stdout | trim }}"
+  register: scope_get_raw
+  changed_when: false
+  failed_when: scope_get_raw.rc != 0
+
+- name: TEST RHOSO Verify CloudKitty Scope API GET returns the created scope (OSPRH-23754)
+  ansible.builtin.assert:
+    that:
+      - scope_get_raw.stdout | from_json is defined
+      - scope_get_raw.stdout | from_json | selectattr('scope_id', 'equalto', ck_test_scope_id) | list | length > 0
+    fail_msg: "FAILED: Created scope '{{ ck_test_scope_id }}' not found in Scope API GET response."
+    success_msg: "SUCCESS: Created scope '{{ ck_test_scope_id }}' confirmed via Scope API GET."
+
+- name: POST to Scope API without last_processed_timestamp
+  ansible.builtin.command:
+    cmd: >
+      oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} --
+      curl -s -w '\n%{http_code}' -o /dev/null
+      -X POST "{{ ck_endpoint.stdout | trim }}/v2/scope"
+      -H "X-Auth-Token: {{ os_token.stdout | trim }}"
+      -H "Content-Type: application/json"
+      -d '{"scope_id":"fvt_scope_no_timestamp"}'
+  register: scope_create_no_ts_raw
+  changed_when: false
+  failed_when: false
+
+- name: TEST RHOSO Verify CloudKitty Scope API POST rejects request without last_processed_timestamp (OSPRH-23754)
+  ansible.builtin.assert:
+    that:
+      - scope_create_no_ts_raw.stdout_lines[-1] | int == 400
+    fail_msg: "FAILED: CloudKitty Scope API POST should return 400 when last_processed_timestamp is missing. Got: {{ scope_create_no_ts_raw.stdout_lines[-1] }}"
+    success_msg: "SUCCESS: CloudKitty Scope API POST correctly rejects request without last_processed_timestamp (HTTP 400)."

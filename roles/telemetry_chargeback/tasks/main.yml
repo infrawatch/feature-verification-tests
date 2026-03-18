@@ -2,6 +2,9 @@
 - name: "Validate Chargeback Feature deployed correctly"
   ansible.builtin.include_tasks: "chargeback_tests.yml"
 
+- name: "Validate CloudKitty Scope API (OSPRH-23754)"
+  ansible.builtin.include_tasks: "scope_api_tests.yml"
+
 - name: "Setup Loki Environment"
   ansible.builtin.include_tasks: "setup_loki_env.yml"
 
