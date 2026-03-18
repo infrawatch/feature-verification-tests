@@ -26,7 +26,7 @@ This role must be run **after** successful deployment of:
 * **CloudKitty:** Chargeback service installed, configured, and running
 * **Loki/OpenShift** (optional): Required only for Loki integration features
   * Control host needs `oc` CLI access
-  * CloudKitty Loki stack (route, certificates, ingester) deployed
+  * CloudKitty Loki stack (internal Gateway Service, certificates, ingester) deployed
 
 ### Resource Limitations
 
@@ -77,6 +77,12 @@ Role Variables
 | `cert_dir` | `"{{ cifmw_basedir }}/ck-certs"` | Directory for CloudKitty client certificates |
 | `local_cert_dir` | `"{{ cifmw_basedir }}/flush_certs"` | Local directory for flush certificates |
 | `remote_cert_dir` | `"osp-certs"` | Remote directory inside OpenStack pod for certificates |
+| `loki_gateway_service` | `"cloudkitty-lokistack-gateway-http"` | Internal Loki Gateway Service name |
+| `loki_gateway_port` | `8080` | Internal Loki Gateway Service port |
+| `loki_query_retries` | `12` | Retries while waiting for queried log data to become visible |
+| `loki_query_delay` | `10` | Seconds between Loki query attempts |
+| `loki_connect_timeout` | `5` | Seconds allowed to establish a Loki connection |
+| `loki_request_timeout` | `30` | Maximum seconds allowed for one Loki request |
 | `cloudkitty_debug_dir` | `"{{ (cloudkitty_debug \| bool) \| ternary(cloudkitty_artifacts_dir + '/debug_ck_db', '') }}"` | Directory for debug output (auto-set based on debug flag) |
 
 #### OpenShift/Kubernetes Settings
@@ -92,7 +98,8 @@ Role Variables
 |----------|---------------|-------------|
 | `cert_secret_name` | `"cert-cloudkitty-client-internal"` | OpenShift secret name for client certificates |
 | `client_secret` | `"secret/cloudkitty-lokistack-gateway-client-http"` | Secret for flush client certificates |
-| `ca_configmap` | `"cm/cloudkitty-lokistack-ca-bundle"` | ConfigMap for CA bundle |
+| `ca_configmap` | `"cm/cloudkitty-lokistack-ca-bundle"` | ConfigMap for the Loki internal CA bundle (ingester) |
+| `gateway_ca_configmap` | `"cm/cloudkitty-lokistack-gateway-ca-bundle"` | ConfigMap for the Loki Gateway CA bundle |
 | `logql_query` | `"{{ loki_query \| default('{service=\"cloudkitty\"}') }}"` | LogQL query for Loki (overridable via `loki_query` variable) |
 | `cloudkitty_namespace` | `"openstack"` | Kubernetes namespace where CloudKitty is deployed |
 | `openstackpod` | `"openstackclient"` | OpenStack client pod name for exec/cp operations |
@@ -111,9 +118,9 @@ The role executes the following workflow:
    - Validates module state
 
 2. **Loki Environment Setup** (`setup_loki_env.yml`)
-   - Extracts Loki route information from OpenShift
+   - Configures Loki push/query URLs using the internal Gateway Service
    - Retrieves certificates from secrets/configmaps
-   - Configures Loki push/query URLs
+   - Copies the certificates to the OpenStack client pod, from where the Loki requests are sent
 
 3. **Test Scenario Selection**
    - Uses scenarios defined in `cloudkitty_test_scenarios` variable
