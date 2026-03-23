@@ -11,6 +11,14 @@
   ansible.builtin.include_tasks: 
     file: setup_loki_env.yml
 
+- name: Negative test without certs
+  ansible.builtin.include_tasks: 
+    file: neg_loki_nocerts.yml
+
+- name: Negative test with unknown certs
+  ansible.builtin.include_tasks: 
+    file: neg_loki_unknown_certs.yml
+
 - name: Ingests Cloudkitty Data log
   ansible.builtin.include_tasks: 
     file: ingest_loki_data.yml

@@ -1,0 +1,31 @@
+---
+# Negative testing to Test Loki using a certificate signed by an unknown CA
+
+# Sending a request withoutwith unknown certs and keys
+
+- name: Read log file content
+  ansible.builtin.slurp:
+    src: "{{ ck_output_file_remote }}"
+  register: log_file_content
+
+- name: "Attempt access with Unknown CA Signed Cert"
+  ansible.builtin.uri:
+    url: "{{ loki_push_url }}"
+    method: POST
+    body: "{{ log_file_content['content'] | b64decode | from_json }}"
+    body_format: json
+    client_cert: "./unknown.crt"
+    client_key: "./unknown.key"
+    validate_certs: false
+    return_content: yes
+    status_code: 500
+  register: loki_response
+  ignore_errors: false
+
+- name: "Assert Loki Gateway rejected Unknown CA"
+    assert:
+      that: 
+        - "'x509: certificate signed by unknown authority' in loki_response.json.error"
+        - "loki_response.json.errorType == 'observatorium-api'"
+      success_msg: "Loki gateway successfully identified and rejected untrusted CA"
+      fail_msg: "Loki gateway failed to identify unknown CA and allowed access"
