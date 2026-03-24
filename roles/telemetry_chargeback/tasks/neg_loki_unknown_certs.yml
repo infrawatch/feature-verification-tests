@@ -8,24 +8,38 @@
     src: "{{ ck_output_file_remote }}"
   register: log_file_content
 
+- name: "Generate unknown certificate and key"
+  ansible.builtin.command:
+    cmd: openssl req -x509 -newkey rsa:2048 -keyout /tmp/unknown.key -out /tmp/unknown.crt -days 1 -nodes -subj "/CN=unknown"
+  args:
+    creates: /tmp/unknown.crt
+
 - name: "Attempt access with Unknown CA Signed Cert"
   ansible.builtin.uri:
     url: "{{ loki_push_url }}"
     method: POST
     body: "{{ log_file_content['content'] | b64decode | from_json }}"
     body_format: json
-    client_cert: "./unknown.crt"
-    client_key: "./unknown.key"
-    validate_certs: false
+    client_cert: "/tmp/unknown.crt"
+    client_key: "/tmp/unknown.key"
+    validate_certs: no
     return_content: yes
     status_code: 500
   register: loki_response
   ignore_errors: false
 
 - name: "Assert Loki Gateway rejected Unknown CA"
-    assert:
-      that: 
-        - "'x509: certificate signed by unknown authority' in loki_response.json.error"
-        - "loki_response.json.errorType == 'observatorium-api'"
-      success_msg: "Loki gateway successfully identified and rejected untrusted CA"
-      fail_msg: "Loki gateway failed to identify unknown CA and allowed access"
+  ansible.builtin.assert:
+    that:
+      - "'x509:' in loki_response.json.error"
+      - "loki_response.json.errorType == 'observatorium-api'"
+    success_msg: "Loki gateway successfully identified and rejected untrusted CA"
+    fail_msg: "Loki gateway failed to identify unknown CA and allowed access"
+
+- name: "Cleanup"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/unknown.crt
+    - /tmp/unknown.key

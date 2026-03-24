@@ -21,7 +21,7 @@
   ignore_errors: false
 
 - name: "Assert Loki gateway blocked the request"
-  assert:
+  ansible.builtin.assert:
     that:
       - "'no client certificate presented' in missing_cert_response.content"
       - "missing_cert_response.json.errorType == 'observatorium-api'"
