@@ -24,10 +24,9 @@ log_types:
       container_format: bare
       disk_format: qcow2
  
-  - type: ceilometer_image_test
+  - type: ceilometer_image_size_2
     description: "Size of ceilometer test"
     unit: B
-#   factor: 1
     qty:
       - 10000
     price:
@@ -40,6 +39,98 @@ log_types:
     metadata:
       container_format: bare
       disk_format: qcow2
+
+  - type: ceilometer_image_size_3
+    description: "Size of ceilometer test"
+    unit: B
+    qty:
+      - 10000
+    price:
+      - 0.10
+    groupby:
+      resource: null
+      user: null
+      project: null
+      tenant: tenant-01
+    metadata:
+      container_format: bare
+
+  - type: ceilometer_image_size_4
+    description: "Size of ceilometer test"
+    unit: B
+    qty:
+      - 10000
+    price:
+      - 0.10
+    groupby:
+      resource: null
+      user: null
+      project: null
+      tenant: tenant-01
+    metadata:
+      disk_format: qcow2
+
+  - type: ceilometer_image_size_5
+    description: "Size of ceilometer test"
+    unit: B
+    qty:
+      - 10000
+    price:
+      - 0.10
+    groupby:
+      resource: null
+      user: null
+      project: null
+      tenant: tenant-01
+    metadata:
+      container_format: null
+      disk_format: null
+
+  - type: ceilometer_image_size_6
+    description: "Size of ceilometer test"
+    unit: B
+    qty:
+      - 10000
+    price:
+      - 0.10
+    groupby:
+      resource: null
+      user: null
+      project: null
+      tenant: tenant-01
+    metadata:
+      type: null
+
+  - type: ceilometer_image_size_7
+    description: "Size of ceilometer test"
+    unit: B
+    qty:
+      - 10000
+    price:
+      - 0.10
+    groupby:
+      resource: null
+      user: null
+      project: null
+      tenant: tenant-01
+    metadata:
+      type: null
+
+  - type: ceilometer_image_size_8
+    description: "max number of cpus used in time step"
+    unit: instance
+    alt_name: instance
+    qty:
+      - 5
+    price:
+      - 5.00
+    groupby:
+      resource: null
+      user: null
+      project: null
+      tenant: tenant-02
+      flavor_name: null
+      flavor_id: null
 
   - type: ceilometer_cpu
     description: "max number of cpus used in time step"
@@ -57,82 +148,6 @@ log_types:
       flavor_name: null
       flavor_id: null
     mutate: NUMBOOL
-
-  - type: ceilometer_ip_floating
-    description: null
-    unit: ip
-    qty:
-      - 5
-    price:
-      - 1.00
-    groupby:
-      resource: null
-      user: null
-      project: null
-      tenant: tenant-01
-    metadata:
-      state: null
-    mutate: NUMBOOL
-
-  - type: ceilometer_disk_ephemeral_size
-    description: "Max at each timestep"
-    unit: GiB
-    qty:
-      - 0.0
-    price:
-      - 0.0
-    groupby:
-      resource: null
-      user: null
-      project: null
-      tenant: tenant-01
-    metadata:
-      type: null
-
-  - type: ceilometer_disk_root_size
-    description: null
-    unit: GiB
-    qty:
-      - 0.0
-    price:
-      - 0.0
-    groupby:
-      resource: null
-      user: null
-      project: null
-      tenant: tenant-02
-    metadata:
-      type: null
-
-  - type: ceilometer_network_outgoing_bytes
-    description: null
-    unit: B
-    qty:
-      - 0.0
-    price:
-      - 0.0
-    groupby:
-      resource: null
-      user: null
-      project: null
-      tenant: tenant-01
-    metadata:
-      vm_instance: null
-
-  - type: ceilometer_network_incoming_bytes
-    description: null
-    unit: B
-    qty:
-      - 0.0
-    price:
-      - 0.0
-    groupby:
-      resource: null
-      user: null
-      project: null
-      tenant: tenant-02
-    metadata:
-      vm_instance: null
 
 # Required fields for validation (top-level fields only, not nested in groupby)
 required_fields:

@@ -1,6 +1,4 @@
 ---
-# Internal role variables - these use role_path and should not be overridden
-
 # Scenario and script paths (using role_path)
 cloudkitty_scenario_dir: "{{ role_path }}/files"
 cloudkitty_synth_script: "{{ role_path }}/files/gen_synth_loki_data.py"
