@@ -1,0 +1,51 @@
+---
+- name: Build and serve container image from review
+  hosts: "{{ cifmw_target_host | default('localhost') }}"
+  gather_facts: true
+  tasks:
+    - name: Discover registry IP
+      ansible.builtin.set_fact:
+        cifmw_rp_registry_ip: "{{ ansible_default_ipv4.address }}"
+
+    - name: Deploy local registry
+      ansible.builtin.include_role:
+        name: registry_deploy
+
+    - name: Get commit SHA
+      ansible.builtin.command:
+        cmd: git show-ref --head --hash head
+      args:
+        chdir: "{{ container_build_src }}"
+      register: _container_sha
+
+    - name: Set image tag
+      ansible.builtin.set_fact:
+        _container_image_tag: "{{ _container_sha.stdout | trim }}"
+
+    - name: Set full image reference
+      ansible.builtin.set_fact:
+        _container_image_url: "{{ cifmw_rp_registry_ip }}:5001/{{ container_build_image_name }}:{{ _container_image_tag }}"
+
+    - name: Build container image
+      ansible.builtin.command:
+        cmd: >-
+          make docker-build
+          IMG={{ _container_image_url }}
+      args:
+        chdir: "{{ container_build_src }}"
+
+    - name: Push container image to local registry
+      ansible.builtin.command:
+        cmd: >-
+          make docker-push
+          IMG={{ _container_image_url }}
+      args:
+        chdir: "{{ container_build_src }}"
+
+    - name: Return image URL for dependent jobs
+      vars:
+        _return_data: >-
+          {{ {'zuul': {'pause': true}}
+             | combine({container_update_var_name: _container_image_url}) }}
+      zuul_return:
+        data: "{{ _return_data }}"

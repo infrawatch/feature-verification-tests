@@ -1,5 +1,21 @@
 ---
 - job:
+    name: telemetry-container-image-content-provider
+    parent: cifmw-base-minimal
+    abstract: true
+    description: |
+      Build a container image from the current change and serve it from
+      a local registry. Child jobs must set:
+        container_build_src: path to the project source
+        container_build_image_name: image name (e.g. sg-core)
+        container_update_var_name: cifmw_update_containers variable to return
+    required-projects:
+      - name: openstack-k8s-operators/ci-framework
+        override-checkout: main
+    run:
+      - ci/playbooks/container-image-content-provider.yml
+
+- job:
     name: functional-tests-osp18
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
     parent: telemetry-operator-multinode-autoscaling
