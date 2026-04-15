@@ -1,0 +1,31 @@
+---
+- name: Build and serve container images from review
+  hosts: "{{ cifmw_target_host | default('controller') }}"
+  gather_facts: true
+  tasks:
+    # Task copied from https://github.com/openstack-k8s-operators/ci-framework/blob/81ed403edc15e23cc5e4e268e5dffe3891f0b9d5/ci/playbooks/content_provider/pre.yml#L21C1-L28C24
+    - name: Discover an IPv4 for provider job
+      ansible.builtin.set_fact:
+        cifmw_rp_registry_ip: >-
+          {{ hostvars[groups.all[0]].ansible_host if hostvars[groups.all[0]].ansible_host
+          is match("[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")
+          else hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}
+        cacheable: true
+
+    - name: Deploy local registry
+      ansible.builtin.include_role:
+        name: registry_deploy
+
+    - name: Build and push container images
+      ansible.builtin.include_tasks: container-image-build.yml
+      loop: "{{ container_images }}"
+      loop_control:
+        loop_var: container_image
+
+    - name: Return image URLs and pause for dependent jobs
+      zuul_return:
+        data: "{{ _return_data }}"
+      vars:
+        _image_overrides: "{{ dict(_built_images | default([]) | map(attribute='update_var') | zip(_built_images | default([]) | map(attribute='url'))) }}"
+        _registry: "{{ cifmw_rp_registry_ip }}:5001"
+        _return_data: "{{ {'zuul': {'pause': true}, 'cifmw_crc_additional_insecure_registries': [_registry], 'cifmw_crc_additional_allowed_registries': [_registry]} | combine(_image_overrides) }}"
