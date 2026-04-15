@@ -14,7 +14,6 @@
     - name: Get commit SHA
       ansible.builtin.command:
         cmd: git show-ref --head --hash head
-      args:
         chdir: "{{ container_build_src }}"
       register: _container_sha
 
@@ -31,7 +30,6 @@
         cmd: >-
           make docker-build
           IMG={{ _container_image_url }}
-      args:
         chdir: "{{ container_build_src }}"
 
     - name: Push container image to local registry
@@ -39,7 +37,6 @@
         cmd: >-
           make docker-push
           IMG={{ _container_image_url }}
-      args:
         chdir: "{{ container_build_src }}"
 
     - name: Return image URL for dependent jobs
