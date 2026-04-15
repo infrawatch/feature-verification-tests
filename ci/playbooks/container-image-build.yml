@@ -1,0 +1,28 @@
+---
+- name: "Get commit SHA for {{ container_image.name }}"
+  ansible.builtin.command:
+    cmd: git show-ref --head --hash head
+    chdir: "{{ container_image.src }}"
+  register: _container_sha
+
+- name: "Set image reference for {{ container_image.name }}"
+  ansible.builtin.set_fact:
+    _container_image_url: "{{ cifmw_rp_registry_ip }}:5001/{{ container_image.name }}:{{ _container_sha.stdout | trim }}"
+
+- name: "Build {{ container_image.name }}"
+  ansible.builtin.command:
+    cmd: >-
+      make docker-build
+      IMG={{ _container_image_url }}
+    chdir: "{{ container_image.src }}"
+
+- name: "Push {{ container_image.name }}"
+  ansible.builtin.command:
+    cmd: >-
+      make docker-push
+      IMG={{ _container_image_url }}
+    chdir: "{{ container_image.src }}"
+
+- name: "Record built image {{ container_image.name }}"
+  ansible.builtin.set_fact:
+    _built_images: "{{ _built_images | default([]) + [{'name': container_image.name, 'update_var': container_image.update_var, 'url': _container_image_url}] }}"
