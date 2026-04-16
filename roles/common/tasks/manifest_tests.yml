@@ -2,7 +2,7 @@
 - name: "Check manifest {{ manifest.name }}"
   vars:
     expected_count: "{{ manifest.expected_number | default(1) | int }}"
-    actual_count: "{{ available_manifests | select('search', '^'+manifest.name ) | length }}"
+    actual_count: "{{ available_manifests | select('search', '^' + manifest.name) | length }}"
   block:
     - name: |
         TEST Get {{ manifest.name }} {{ expected_count }} packagemanifest
