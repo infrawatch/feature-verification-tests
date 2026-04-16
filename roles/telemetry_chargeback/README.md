@@ -61,24 +61,6 @@ These variables can be overridden when importing the role or set at the play lev
     cloudkitty_debug: true
 ```
 
-### Internal Variables (vars/main.yml)
-
-These variables are used internally by the role and should not be modified. They use `role_path` for internal file/script references and define internal file naming conventions.
-
-| Variable | Default Value | Description |
-|----------|---------------|-------------|
-| `cloudkitty_scenario_dir` | `{{ role_path }}/files` | Directory containing scenario files (`test_*.yml`). |
-| `cloudkitty_synth_script` | `{{ role_path }}/files/gen_synth_loki_data.py` | Path to the synthetic data generation script. |
-| `cloudkitty_data_template` | `{{ role_path }}/templates/loki_data_templ.j2` | Path to the Jinja2 template for Loki data format. |
-| `cloudkitty_summary_script` | `{{ role_path }}/files/gen_db_summary.py` | Path to the summary script (gen_db_summary.py). |
-| `cloudkitty_synth_data_suffix` | `-synth_data.json` | Suffix for generated synthetic data files. |
-| `cloudkitty_loki_data_suffix` | `-loki_data.json` | Suffix for Loki query result JSON files. |
-| `cloudkitty_synth_totals_metrics_suffix` | `-synth_metrics_summary.yml` | Suffix for generated metric totals files (from synthetic data). |
-| `cloudkitty_loki_totals_metrics_suffix` | `-loki_metrics_summary.yml` | Suffix for metric totals computed from Loki-retrieved JSON (retrieve_loki_data task). |
-| `cloudkitty_loki_totals_suffix` | `-rating.yml` | Suffix for CloudKitty rating summary output files (from loki_rate task). |
-
-**Note:** Loki push/query URLs are set dynamically in `setup_loki_env.yml` from the Cloudkitty Loki route.
-
 ### Synthetic Data Scripts
 
 **gen_synth_loki_data.py** — Generates Loki-format JSON from a scenario YAML and template. The role invokes it with `-r` so that timestamps in the output are in **reverse** order (youngest first, oldest last). When run manually you can omit `-r` for chronological order (oldest first, youngest last).
