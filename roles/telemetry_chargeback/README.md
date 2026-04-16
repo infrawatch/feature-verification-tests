@@ -1,5 +1,5 @@
 telemetry_chargeback
-=========
+
 The **`telemetry_chargeback`** role is designed to test the **RHOSO Cloudkitty** feature. These tests are specific to the Cloudkitty feature. Tests that are not specific to this feature (e.g., standard OpenStack deployment validation, basic networking) should be added to a common role.
 
 The role performs two main functions:
@@ -36,7 +36,6 @@ These variables can be overridden when importing the role or set at the play lev
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
 | `openstack_cmd` | `openstack` | The command used to execute OpenStack CLI calls. This can be customized if the binary is not in the standard PATH. |
-| `cloudkitty_debug` | `false` | Enable debug mode for the role. |
 | `logs_dir_zuul` | `{{ ansible_env.HOME }}/ci-framework-data/logs` | Directory for log files. |
 | `artifacts_dir_zuul` | `{{ ansible_env.HOME }}/ci-framework-data/artifacts` | Directory for generated artifacts. |
 | `cert_dir` | `{{ ansible_user_dir }}/ck-certs` | Local directory for extracted ingest/query certs. |
