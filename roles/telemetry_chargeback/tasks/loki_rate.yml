@@ -12,8 +12,7 @@
 
 - name: "Output saved as yaml {{ item }}"
   ansible.builtin.copy:
-    content: |
-        "{{ cost_totals_by_type.stdout }}"
+    content: "{{ cost_totals_by_type.stdout }}"
     dest: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_suffix }}"
     mode: '0644'
 
