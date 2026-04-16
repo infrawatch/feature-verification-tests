@@ -36,10 +36,17 @@
     paths: "{{ cloudkitty_scenario_dir }}"
     patterns: "test_*.yml"
   register: found_files_raw
+  when: cloudkitty_test_scenarios | length == 0  
 
-- name: "Extract only the filenames into a clean list"
+- name: "Set scenario list from discovered files"
   ansible.builtin.set_fact:
     found_files: "{{ found_files_raw.files | map(attribute='path') | map('basename') | map('regex_replace', '\\.yml$', '') | list }}"
+  when: cloudkitty_test_scenarios | length == 0
+
+- name: "Set scenario list from user-provided variable"
+  ansible.builtin.set_fact:
+    found_files: "{{ cloudkitty_test_scenarios }}"
+  when: cloudkitty_test_scenarios | length > 0  
 
 - name: "Run scenario file through workflow"
   block:
