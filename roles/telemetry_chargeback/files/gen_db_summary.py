@@ -79,7 +79,8 @@ def extract_and_sort(json_path: Path) -> list[tuple[str, str]]:
     # Extract from known Loki JSON structures
     if not isinstance(data, dict):
         print(
-            f"Error: Expected JSON object, got {type(data).__name__} in {json_path}",
+            f"Error: Expected JSON object, got {type(data).__name__} "
+            f"in {json_path}",
             file=sys.stderr
         )
         sys.exit(1)
@@ -132,9 +133,9 @@ def _parse_numeric(value: Any, default: float = 0) -> float:
 
     This function handles the 'factor' field in scenario YAML files which uses
     fraction notation (e.g., '1/1048576' to convert bytes to MiB) to match
-    CloudKitty/chargeback documentation standards. Without this parser, fraction
-    strings would cause ValueError when passed to float(), silently dropping
-    metrics from the output summary.
+    CloudKitty/chargeback documentation standards. Without this parser,
+    fraction strings would cause ValueError when passed to float(), silently
+    dropping metrics from the output summary.
 
     Args:
         value: The value to parse (can be number, string, or fraction string)
