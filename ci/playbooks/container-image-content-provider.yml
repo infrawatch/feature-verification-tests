@@ -22,4 +22,5 @@
         data: "{{ _return_data }}"
       vars:
         _image_overrides: "{{ dict(_built_images | default([]) | map(attribute='update_var') | zip(_built_images | default([]) | map(attribute='url'))) }}"
-        _return_data: "{{ {'zuul': {'pause': true}} | combine(_image_overrides) }}"
+        _registry: "{{ cifmw_rp_registry_ip }}:5001"
+        _return_data: "{{ {'zuul': {'pause': true}, 'cifmw_crc_additional_insecure_registries': [_registry], 'cifmw_crc_additional_allowed_registries': [_registry]} | combine(_image_overrides) }}"
