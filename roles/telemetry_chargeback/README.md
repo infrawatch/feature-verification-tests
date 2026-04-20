@@ -61,7 +61,7 @@ These variables can be overridden when importing the role or set at the play lev
     cloudkitty_debug: true
 ```
 
-### Internal Variables (vars/main.yml)
+### Synthetic Data Scripts
 
 These variables are used internally by the role and should not be modified. They use `role_path` for internal file/script references and define internal file naming conventions.
 
@@ -93,7 +93,7 @@ These variables are used internally by the role and should not be modified. They
 | `-r`, `--reverse` | Reverse timestamp order in JSON output (youngest first, oldest last). |
 | `--debug` | Enable debug logging. |
 
-**gen_db_summary.py** (`cloudkitty_summary_script`) — Parses Loki-style JSON (streams or `data.result`), sorts entries by timestamp, and writes a YAML summary. This script is invoked by the role for **both** synthetic totals (in `gen_synth_loki_data.yml`) and Loki-retrieved totals (in `retrieve_loki_data.yml`). It applies rate calculations with support for `factor`, `offset`, and `mutate` transformations.
+**gen_db_summary.py** — Parses Loki-style JSON (streams or `data.result`), sorts entries by timestamp, and writes a YAML summary. This script is invoked by the role for **both** synthetic totals (in `gen_synth_loki_data.yml`) and Loki-retrieved totals (in `retrieve_loki_data.yml`). It applies rate calculations with support for `factor`, `offset`, and `mutate` transformations.
 
 | Option | Description |
 |--------|--------------|
@@ -121,8 +121,8 @@ Set in **gen_synth_loki_data.yml** for each scenario file during the loop:
 | Variable | Description |
 |----------|-------------|
 | `cloudkitty_data_file` | Local path for generated JSON data (`{{ artifacts_dir_zuul }}/{{ scenario_name }}-synth_data.json`) |
-| `cloudkitty_synth_totals_file` | Local path for calculated metric totals (`{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_totals_suffix }}`) |
-| `cloudkitty_test_file` | Path to the scenario configuration file (`{{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml`) |
+| `cloudkitty_synth_totals_file` | Local path for calculated metric totals (`{{ artifacts_dir_zuul }}/{{ scenario_name }}-synth_metrics_summary.yml`) |
+| `cloudkitty_test_file` | Path to the scenario configuration file (`{{ role_path }}/files/{{ scenario_name }}.yml`) |
 
 Scenario Configuration
 ----------------------
