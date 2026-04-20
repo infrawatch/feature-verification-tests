@@ -7,3 +7,5 @@ ck_data_template: "{{ role_path }}/templates/loki_data_templ.j2"
 ck_data_config: "{{ role_path }}/files/test_static.yml"
 ck_output_file_local: "{{ artifacts_dir_zuul }}/loki_synth_data.json"
 ck_output_file_remote: "{{ logs_dir_zuul }}/gen_loki_synth_data.log"
+
+
