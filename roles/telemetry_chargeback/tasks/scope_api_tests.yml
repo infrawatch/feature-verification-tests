@@ -1,0 +1,98 @@
+---
+# Verification test for OSPRH-23754: CloudKitty Scope API POST fix
+# The Scope API POST /v2/scope was broken because last_processed_timestamp
+# was not accepted as input, and the active field defaulted to None.
+# CL 970605 fixed this by making last_processed_timestamp a required input
+# parameter and defaulting active to True.
+
+- name: Get OpenStack auth token
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} token issue -f value -c id"
+  register: os_token
+  changed_when: false
+  failed_when: os_token.rc != 0
+
+- name: Get CloudKitty rating endpoint
+  ansible.builtin.shell:
+    cmd: "{{ openstack_cmd }} endpoint list --service rating --interface internal -f value -c URL | head -1"
+  register: ck_endpoint
+  changed_when: false
+  failed_when: ck_endpoint.rc != 0 or ck_endpoint.stdout == ""
+
+- name: Display CloudKitty endpoint
+  ansible.builtin.debug:
+    msg: "CloudKitty endpoint: {{ ck_endpoint.stdout | trim }}"
+
+- name: Create a scope via the Scope API POST
+  ansible.builtin.uri:
+    url: "{{ ck_endpoint.stdout | trim }}/v2/scope"
+    method: POST
+    headers:
+      X-Auth-Token: "{{ os_token.stdout | trim }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      scope_id: "{{ ck_test_scope_id }}"
+      scope_key: "project_id"
+      fetcher: "keystone"
+      collector: "prometheus"
+      last_processed_timestamp: "{{ ck_test_scope_timestamp }}"
+    status_code: [200, 409]
+    return_content: true
+  register: scope_create_response
+
+- name: TEST RHOSO Verify CloudKitty Scope API POST creates a scope (OSPRH-23754)
+  ansible.builtin.assert:
+    that:
+      - scope_create_response.status in [200, 409]
+      - (scope_create_response.status == 409) or
+        (scope_create_response.json.scope_id == ck_test_scope_id and
+         scope_create_response.json.scope_key == "project_id" and
+         scope_create_response.json.fetcher == "keystone" and
+         scope_create_response.json.collector == "prometheus" and
+         scope_create_response.json.active == true and
+         scope_create_response.json.last_processed_timestamp is defined and
+         scope_create_response.json.last_processed_timestamp | length > 0)
+    fail_msg: "FAILED: CloudKitty Scope API POST did not return expected scope data. Response: {{ scope_create_response.json }}"
+    success_msg: >-
+      {{ 'SUCCESS: CloudKitty Scope API POST correctly creates a scope with all fields populated.'
+         if scope_create_response.status == 200 else
+         'SUCCESS: Scope already exists from a previous run (HTTP 409), creation was previously verified.' }}
+
+- name: Retrieve scope via Scope API GET to confirm persistence
+  ansible.builtin.uri:
+    url: "{{ ck_endpoint.stdout | trim }}/v2/scope"
+    method: GET
+    headers:
+      X-Auth-Token: "{{ os_token.stdout | trim }}"
+    return_content: true
+  register: scope_get_response
+
+- name: TEST RHOSO Verify CloudKitty Scope API GET returns the created scope (OSPRH-23754)
+  ansible.builtin.assert:
+    that:
+      - scope_get_response.json is defined
+      - scope_get_response.json | selectattr('scope_id', 'equalto', ck_test_scope_id) | list | length > 0
+    fail_msg: "FAILED: Created scope '{{ ck_test_scope_id }}' not found in Scope API GET response."
+    success_msg: "SUCCESS: Created scope '{{ ck_test_scope_id }}' confirmed via Scope API GET."
+
+- name: POST to Scope API without last_processed_timestamp
+  ansible.builtin.uri:
+    url: "{{ ck_endpoint.stdout | trim }}/v2/scope"
+    method: POST
+    headers:
+      X-Auth-Token: "{{ os_token.stdout | trim }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      scope_id: "fvt_scope_no_timestamp"
+    status_code: 400
+    return_content: true
+  register: scope_create_no_ts
+
+- name: TEST RHOSO Verify CloudKitty Scope API POST rejects request without last_processed_timestamp (OSPRH-23754)
+  ansible.builtin.assert:
+    that:
+      - scope_create_no_ts.status == 400
+    fail_msg: "FAILED: CloudKitty Scope API POST should return 400 when last_processed_timestamp is missing."
+    success_msg: "SUCCESS: CloudKitty Scope API POST correctly rejects request without last_processed_timestamp (HTTP 400)."

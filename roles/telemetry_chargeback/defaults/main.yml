@@ -1,2 +1,6 @@
 ---
 openstack_cmd: "openstack"
+
+# Scope API test variables (OSPRH-23754)
+ck_test_scope_id: "fvt_scope_api_test"
+ck_test_scope_timestamp: "2025-01-01T00:00:00+00:00"

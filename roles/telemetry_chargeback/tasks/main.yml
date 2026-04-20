@@ -2,5 +2,8 @@
 - name: "Validate Chargeback Feature"
   ansible.builtin.include_tasks: "chargeback_tests.yml"
 
+- name: "Validate CloudKitty Scope API (OSPRH-23754)"
+  ansible.builtin.include_tasks: "scope_api_tests.yml"
+
 - name: "Generate Synthetic Data"
   ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
