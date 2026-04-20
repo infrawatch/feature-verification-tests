@@ -7,8 +7,8 @@
 - name: TEST Generate Synthetic Data
   ansible.builtin.command:
     cmd: >
-      python3 "{{ ck_synth_script }}"
-      --tmpl "{{ ck_data_template }}"
+      python3 "{{ cloudkitty_synth_script }}"
+      --tmpl "{{ cloudkitty_data_template }}"
       -t "{{ ck_data_config }}"
       -o "{{ ck_output_file_local }}"
   register: script_output
