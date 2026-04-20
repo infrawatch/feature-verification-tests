@@ -31,22 +31,30 @@
   ansible.builtin.set_fact:
     cloudkitty_user_id: "{{ (get_admin_user_id.stdout | trim) | default('') }}"
 
-- name: "Find test files"
-  ansible.builtin.find:
-    paths: "{{ cloudkitty_scenario_dir }}"
-    patterns: "test_*.yml"
-  register: found_files_raw
+- name: "Auto-discover test scenarios"
+  when: cloudkitty_test_scenarios | length == 0
+  block:
+    - name: "Find test files"
+      ansible.builtin.find:
+        paths: "{{ cloudkitty_scenario_dir }}"
+        patterns: "test_*.yml"
+      register: found_files_raw
 
-- name: "Extract only the filenames into a clean list"
+    - name: "Set scenario list from discovered files"
+      ansible.builtin.set_fact:
+        found_files: "{{ found_files_raw.files | map(attribute='path') | map('basename') | map('regex_replace', '\\.yml$', '') | list }}"
+
+- name: "Set scenario list from user-provided variable"
   ansible.builtin.set_fact:
-    found_files: "{{ found_files_raw.files | map(attribute='path') | map('basename') | map('regex_replace', '\\.yml$', '') | list }}"
+    found_files: "{{ cloudkitty_test_scenarios }}"
+  when: cloudkitty_test_scenarios | length > 0
 
 - name: "Run scenario file through workflow"
+  when: found_files | length > 0
   block:
     - name: "Process and Loop if files exist"
       ansible.builtin.include_tasks: run_test_scenarios.yml
       loop: "{{ found_files }}"
-      when: found_files | length > 0
 
     - name: "Cleanup after job run"
       ansible.builtin.include_tasks: cleanup_ck.yml
