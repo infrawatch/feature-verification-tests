@@ -42,8 +42,8 @@ These variables are used internally by the role and typically do not need to be 
 |----------|---------------|-------------|
 | `logs_dir_zuul` | `/home/zuul/ci-framework-data/logs` | Remote directory for log files. |
 | `artifacts_dir_zuul` | `/home/zuul/ci-framework-data/artifacts` | Directory for generated artifacts. |
-| `ck_synth_script` | `{{ role_path }}/files/gen_synth_loki_data.py` | Path to the synthetic data generation script. |
-| `ck_data_template` | `{{ role_path }}/template/loki_data_templ.j2` | Path to the Jinja2 template for Loki data format. |
+| `cloudkitty_synth_script` | `{{ role_path }}/files/gen_synth_loki_data.py` | Path to the synthetic data generation script. |
+| `cloudkitty_data_template` | `{{ role_path }}/templates/loki_data_templ.j2` | Path to the Jinja2 template for Loki data format. |
 | `ck_data_config` | `{{ role_path }}/files/test_static.yml` | Path to the scenario configuration file. |
 | `ck_output_file_local` | `{{ artifacts_dir_zuul }}/loki_synth_data.json` | Local path for generated synthetic data. |
 | `ck_output_file_remote` | `{{ logs_dir_zuul }}/gen_loki_synth_data.log` | Remote destination for synthetic data. |
