@@ -1,0 +1,89 @@
+---
+# Query Loki to retrieve data and output to retrieve_loki_op.json
+
+# Count the entries in the log file
+- name: Read the json data log file to calculate the no. of entries
+  ansible.builtin.slurp:
+    src: "{{ ck_output_file_remote }}"
+  register: source_file_data
+
+- name: Set Expected Log Count
+  ansible.builtin.set_fact:
+    expected_log_count: "{{ (source_file_data['content'] | b64decode | from_json).streams | map(attribute='values') | map('length') | sum }}"
+
+- name: Expected Count
+  ansible.builtin.debug:
+    msg: "Input file has {{ expected_log_count }} data entries that Loki has to return"
+
+# Calculate Time
+- name: Calculate Start Time in nanoseconds
+  ansible.builtin.command: date -d "{{ lookback }} days ago" +%s000000000
+  register: nano_time
+  changed_when: false
+
+- name: Set Start Time
+  ansible.builtin.set_fact:
+    start_time: "{{ nano_time.stdout }}"
+
+- name: Display Query Parameters
+  ansible.builtin.debug:
+    msg: 
+      - "Query: {{ logql_query }}"
+      - "Start Time: {{ start_time }}"
+
+# Query Loki
+- name: Retrieve Logs from Loki via API
+  block:
+    - name: Query Loki API
+      ansible.builtin.uri:
+        url: "{{ loki_query_url }}?query={{ logql_query | urlencode }}&start={{ start_time }}"
+        method: GET
+        client_cert: "{{ gateway_client_cert_dir }}/tls.crt"
+        client_key: "{{ gateway_client_cert_dir }}/tls.key"
+        ca_path: "{{ gateway_client_cert_dir }}/ca.crt"
+        validate_certs: false
+        return_content: yes
+        body_format: json
+      register: loki_response
+      # Wait condition
+      until:
+        - loki_response.status == 200
+        - loki_response.json.status == 'success'
+        - loki_response.json.data.result | length > 0
+        - (loki_response.json.data.result | map(attribute='values') | map('length') | sum) >= expected_log_count|int
+      retries: 25
+      delay: 60
+
+    # Save data
+    - name: Save Loki Data to JSON file
+      ansible.builtin.copy:
+        content: "{{ loki_response.json | to_nice_json }}"
+        dest: "{{ ck_loki_retrieve_file }}"
+        mode: '0644'
+
+    # Validate
+    - name: Verify Data Integrity
+      vars:
+        actual_count: "{{ loki_response.json.data.result | map(attribute='values') | map('length') | sum }}"
+      ansible.builtin.assert:
+        that:
+          - loki_response.json.status == 'success'
+          - loki_response.json.data.result | length > 0
+          - actual_count|int == expected_log_count|int
+        fail_msg: "Query did not return all data entries. Expected {{ expected_log_count }} log entries, but Loki only returned {{ actual_count }}"
+        success_msg: "Query returned all data entries. Input file had {{ expected_log_count }} entries and Loki returned {{ actual_count }}"
+      ignore_errors: false
+
+  rescue:
+    - name: Debug failure
+      ansible.builtin.debug:
+        msg: 
+          - "Status: {{ loki_response.status | default('Unknown') }}"
+          - "Body: {{ loki_response.content | default('No Content') }}"
+          - "Msg: {{ loki_response.msg | default('Request failed') }}"
+
+    # Failure
+    - name: Report Retrieval Failure
+      ansible.builtin.fail:
+        msg: "Retrieval Failed"
+      ignore_errors: false
