@@ -108,23 +108,6 @@ Output YAML structure:
 * **data_log** — `total_timesteps`, `metrics_per_step`, `log_count`.
 * **rate** — `by_types` (per-type `Rate` calculated as `Σ((qty_mutated * factor + offset) * price)`) and `total.Rating` (sum of all rates).
 
-### Dynamically Set Variables
-
-Set in **main.yml** from the OpenStack CLI (`openstack project show admin` / `openstack user show admin`):
-
-| Variable | Description |
-|----------|-------------|
-| `cloudkitty_project_id` | ID of the OpenStack project named `admin` (empty string if not found). Passed as `-p` to the synthetic data generator when non-empty. |
-| `cloudkitty_user_id` | ID of the OpenStack user named `admin` (empty string if not found). Passed as `-u` to the synthetic data generator when non-empty. |
-
-Set in **gen_synth_loki_data.yml** for each scenario file during the loop:
-
-| Variable | Description |
-|----------|-------------|
-| `cloudkitty_data_file` | Local path for generated JSON data (`{{ artifacts_dir_zuul }}/{{ scenario_name }}-synth_data.json`) |
-| `cloudkitty_synth_totals_file` | Local path for calculated metric totals (`{{ artifacts_dir_zuul }}/{{ scenario_name }}-synth_metrics_summary.yml`) |
-| `cloudkitty_test_file` | Path to the scenario configuration file (`{{ role_path }}/files/{{ scenario_name }}.yml`) |
-
 Scenario Configuration
 ----------------------
 The synthetic data generation is controlled by YAML configuration files in the `files/` directory. Any file matching `test_*.yml` will be automatically discovered and processed. Files whose names start with an underscore (e.g. `_test_*.yml`) are **not** discovered by the role; they can be used as reference or for manual runs.
