@@ -1,16 +1,16 @@
 ---
-- name: "Set variables dynamically for {{ item }}"
+- name: "Set variables dynamically for {{ scenario_name }}"
   ansible.builtin.set_fact:
-    cloudkitty_data_file: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_data_suffix }}"
-    cloudkitty_synth_totals_file: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_totals_metrics_suffix }}"
-    cloudkitty_test_file: "{{ cloudkitty_scenario_dir }}/{{ item }}.yml"
+    cloudkitty_data_file: "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_data_suffix }}"
+    cloudkitty_synth_totals_file: "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}"
+    cloudkitty_test_file: "{{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml"
 
 - name: "Check for preexisting output file"
   ansible.builtin.stat:
     path: "{{ cloudkitty_data_file }}"
   register: file_preexists
 
-- name: "Generate Synthetic Data for {{ item }}"
+- name: "Generate Synthetic Data for {{ scenario_name }}"
   ansible.builtin.command:
     cmd: >
       python3 "{{ cloudkitty_synth_script }}"
@@ -22,7 +22,7 @@
   when: not file_preexists.stat.exists | bool
   changed_when: script_output.rc == 0
 
-- name: "Generate chargeback rating from synthetic data file {{ item }}"
+- name: "Generate chargeback rating from synthetic data file {{ scenario_name }}"
   ansible.builtin.command:
     cmd: >
       python3 "{{ cloudkitty_summary_script }}"
