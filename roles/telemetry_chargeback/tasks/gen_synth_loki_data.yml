@@ -14,7 +14,6 @@
   ansible.builtin.command:
     cmd: >
       python3 "{{ cloudkitty_synth_script }}"
-      -r
       --tmpl "{{ cloudkitty_data_template }}"
       -t "{{ cloudkitty_test_file }}"
       -o "{{ cloudkitty_data_file }}"
