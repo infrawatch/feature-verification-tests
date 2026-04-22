@@ -111,7 +111,7 @@ def generate_loki_data(
     config: Dict[str, Any],
     project: Union[str, int, None] = None,
     user: Union[str, int, None] = None,
-    reverse_timestamps: bool = False,
+    reverse_timestamps: bool = True,
 ):
     """
     Generate synthetic Loki log data by preparing a data list and rendering.
@@ -127,8 +127,9 @@ def generate_loki_data(
             log entry in the output (overrides test_* file value when set).
         user: Optional value to inject as groupby.user in every
             log entry in the output (overrides test_* file value when set).
-        reverse_timestamps (bool): If True, reverse the order of timestamps
-            in the JSON output (newest first, oldest last).
+        reverse_timestamps (bool): If True, sort timestamps in descending order
+            (newest first, oldest last). If False, sort in ascending order
+            (oldest first, newest last). Default is True (descending).
     """
     # Hardcoded constant for invalid timestamps
     invalid_timestamp = "INVALID_TIMESTAMP"
@@ -290,7 +291,7 @@ def generate_loki_data(
     if reverse_timestamps:
         log_data_list.reverse()
         logger.debug(
-            "Reversed timestamp order (newest first, oldest last)."
+            "Sorted timestamps in descending order (newest first, oldest last)."
         )
 
     # Calculate total number of steps for value distribution
@@ -427,10 +428,18 @@ def main():
 
     # --- Optional Utility Arguments ---
     parser.add_argument(
-        "-r", "--reverse",
+        "--ascending",
+        action="store_false",
+        dest="reverse",
+        help="Sort timestamps in ascending order: oldest first, newest last."
+    )
+    parser.add_argument(
+        "--descending",
         action="store_true",
-        help="Reverse timestamp order in JSON output: newest first, "
-             "oldest last (default is oldest first, newest last)."
+        dest="reverse",
+        default=True,
+        help="Sort timestamps in descending order: newest first, oldest last "
+             "(default behavior)."
     )
     parser.add_argument(
         "--debug",
