@@ -50,6 +50,7 @@ These variables can be overridden when importing the role or set at the play lev
 | `openstackpod` | `openstackclient` | OpenStack client pod name for exec/cp. |
 | `lookback` | `6` | Days lookback for Loki query time range. |
 | `limit` | `50` | Limit for Loki query results. |
+| `cloudkitty_test_scenarios` | `[]` | List of test scenario files to run (default: auto-discover all `test_*.yml` files). |
 
 **Example: Overriding variables when importing the role**
 ```yaml
@@ -62,9 +63,26 @@ These variables can be overridden when importing the role or set at the play lev
     cloudkitty_debug: true
 ```
 
+How It Works
+------------
+
+The role executes the following workflow:
+
+1. **CloudKitty Validation** - Enables the hashmap rating module and sets its priority to 100.
+2. **Loki Environment Setup** - Extracts Loki route information and certificates from the OpenShift cluster.
+3. **Admin Credentials** - Retrieves admin project ID and user ID for test data generation.
+4. **Scenario Discovery** - Finds all `test_*.yml` scenario files in the scenario directory (unless overridden by `cloudkitty_test_scenarios`).
+5. **Scenario Loop** - For each scenario file found (exposed as `{{ scenario_name }}`):
+   - Generates synthetic Loki log data based on the scenario configuration
+   - Calculates expected chargeback metrics from the generated data
+   - Loads the metrics for validation
+6. **Cleanup** - Removes temporary certificate directories.
+
+The role uses `{{ scenario_name }}` as the loop variable when processing multiple test scenarios, making it easy to track which scenario is currently being executed.
+
 ### Synthetic Data Scripts
 
-**gen_synth_loki_data.py** — Generates Loki-format JSON from a scenario YAML and template. The role invokes it with `-r` so that timestamps in the output are in **reverse** order (youngest first, oldest last). When run manually you can omit `-r` for chronological order (oldest first, youngest last).
+**gen_synth_loki_data.py** — Generates Loki-format JSON from a scenario YAML and template.
 
 | Option | Description |
 |--------|--------------|
@@ -73,8 +91,11 @@ These variables can be overridden when importing the role or set at the play lev
 | `-o`, `--output` | Path to the output JSON file. |
 | `-p`, `--project-id` | Optional; overrides `groupby.project_id` in every log entry. |
 | `-u`, `--user-id` | Optional; overrides `groupby.user_id` in every log entry. |
-| `-r`, `--reverse` | Reverse timestamp order in JSON output (youngest first, oldest last). |
-| `--debug` | Enable debug logging. |
+| `--ascending` | Sort timestamps in ascending order (oldest first, newest last). |
+| `--descending` | Sort timestamps in descending order (newest first, oldest last) - **default**. |
+| `--debug` | Enable debug logging to stdout. |
+
+By default, the script generates data in descending order (newest timestamps first), which is the expected format for Loki ingestion.
 
 **gen_db_summary.py** — Parses Loki-style JSON (streams or `data.result`), sorts entries by timestamp, and writes a YAML summary. This script is invoked by the role for **both** synthetic totals (in `gen_synth_loki_data.yml`) and Loki-retrieved totals (in `retrieve_loki_data.yml`). It applies rate calculations with support for `factor`, `offset`, and `mutate` transformations.
 
@@ -82,13 +103,14 @@ These variables can be overridden when importing the role or set at the play lev
 |--------|--------------|
 | `-j`, `--json` | Path to the input JSON file (required). |
 | `-o`, `--output` | Path to the output YAML file (default: `<input_stem>_total.yml`). |
-| `--debug` | Directory to write debug output (`<stem>_diff.txt` with one `[ts,log]` JSON per line). |
+| `--debug` | Enable debug mode (writes `<stem>_diff.txt` with one `[ts,log]` JSON per line). |
+| `--debug_dir` | Directory for debug output files (default: same directory as `-o` output file). |
 
 Output YAML structure:
 
-* **time** — `begin_step` / `end_step`, each with `nanosec` (nanosecond timestamp), `begin`, `end` (ISO window strings from the log payload). The `nanosec` values are used for Loki query time range in `retrieve_loki_data.yml`.
-* **data_log** — `total_timesteps`, `metrics_per_step`, `log_count`.
-* **rate** — `by_types` (per-type `Rate` calculated as `Σ((qty_mutated * factor + offset) * price)`) and `total.Rating` (sum of all rates).
+* **time** — `begin_step` / `end_step`, each with `nanosec` (nanosecond timestamp), `begin`, `end` (ISO window strings from the log payload). The `nanosec` values are used for Loki query time range.
+* **data_summary** — `total_timesteps`, `metrics_per_step`, `log_count`, `total_rating`.
+* **by_type** — `rate` (flat list with `Begin`, `End`, `Qty`, `Rate`, `Type` for each metric type). Rate calculated as `Σ((qty_mutated * factor + offset) * price)` where `qty_mutated` is the quantity after applying the `mutate` transformation.
 
 ### Dynamically Set Variables
 
@@ -111,17 +133,18 @@ Scenario Configuration
 ----------------------
 The synthetic data generation is controlled by YAML configuration files in the `files/` directory. Any file matching `test_*.yml` will be automatically discovered and processed. Files whose names start with an underscore (e.g. `_test_*.yml`) are **not** discovered by the role; they can be used as reference or for manual runs.
 
+**Available scenarios:**
+- `test_dyn_basic.yml` - Dynamic test scenario with variable values over time
+
 Each scenario file defines:
 
 * **generation** — Time range configuration (days, step_seconds).
-* **log_types** — List of log type definitions. Each entry has **type** (identifier and value in output), unit, description, qty, price, groupby, and metadata. The **groupby** dict typically includes dimension keys (e.g. id, user_id, project_id, tenant_id); the generator merges **date_fields** into groupby at run time.
-* **required_fields** — Top-level keys required for each log type (e.g. type, unit, qty, price, groupby, metadata).
+* **log_types** — List of log type definitions. Each entry has **type** (identifier and value in output), unit, description, qty, price, groupby, and metadata. The **groupby** dict typically includes dimension keys (e.g. resource, user, project); the generator merges **date_fields** into groupby at run time.
+* **required_fields** — Top-level keys required for each log type (e.g. type, unit, qty, price, groupby).
 * **date_fields** — Date field names to merge into groupby (week_of_the_year, day_of_the_year, month, year).
 * **loki_stream** — Loki stream configuration (service name).
 
-**groupby.id** should be consistent by metric type across scenario files so that the same type always uses the same id.
-
-Scenario files matching `test_*.yml` in the `files/` directory are automatically discovered and processed. Files whose names start with an underscore are not auto-discovered.
+**groupby.resource** should be consistent by metric type across scenario files so that the same type always uses the same resource identifier.
 
 Dependencies
 ------------
