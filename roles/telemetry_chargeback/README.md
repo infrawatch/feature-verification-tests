@@ -33,30 +33,60 @@ The role uses the following variables to control the testing environment and exe
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
 | `openstack_cmd` | `openstack` | The command used to execute OpenStack CLI calls. This can be customized if the binary is not in the standard PATH. |
+| `cloudkitty_debug` | `false` | Enable debug mode for CloudKitty database dumps. |
+| `logs_dir_zuul` | `{{ ansible_env.HOME }}/ci-framework-data/logs` | Directory for log files. |
+| `artifacts_dir_zuul` | `{{ ansible_env.HOME }}/ci-framework-data/artifacts` | Directory for generated artifacts and test output. |
+| `cert_dir` | `{{ ansible_user_dir }}/ck-certs` | Directory for CloudKitty client certificates. |
+| `local_cert_dir` | `{{ ansible_env.HOME }}/ci-framework-data/flush_certs` | Local directory for certificate extraction. |
+| `cloudkitty_namespace` | `openstack` | Kubernetes namespace where CloudKitty is deployed. |
 
-### Internal Variables (vars/main.yml)
+How It Works
+------------
 
-These variables are used internally by the role and typically do not need to be modified.
+The role executes the following workflow:
 
-| Variable | Default Value | Description |
-|----------|---------------|-------------|
-| `logs_dir_zuul` | `/home/zuul/ci-framework-data/logs` | Remote directory for log files. |
-| `artifacts_dir_zuul` | `/home/zuul/ci-framework-data/artifacts` | Directory for generated artifacts. |
-| `cloudkitty_synth_script` | `{{ role_path }}/files/gen_synth_loki_data.py` | Path to the synthetic data generation script. |
-| `cloudkitty_data_template` | `{{ role_path }}/templates/loki_data_templ.j2` | Path to the Jinja2 template for Loki data format. |
-| `ck_data_config` | `{{ role_path }}/files/test_static.yml` | Path to the scenario configuration file. |
-| `ck_output_file_local` | `{{ artifacts_dir_zuul }}/loki_synth_data.json` | Local path for generated synthetic data. |
-| `ck_output_file_remote` | `{{ logs_dir_zuul }}/gen_loki_synth_data.log` | Remote destination for synthetic data. |
+1. **CloudKitty Validation** - Enables the hashmap rating module and sets its priority to 100.
+2. **Loki Environment Setup** - Extracts Loki route information and certificates from the OpenShift cluster.
+3. **Admin Credentials** - Retrieves admin project ID and user ID for test data generation.
+4. **Scenario Discovery** - Finds all `test_*.yml` scenario files in the scenario directory.
+5. **Scenario Loop** - For each scenario file found (exposed as `{{ scenario_name }}`):
+   - Generates synthetic Loki log data based on the scenario configuration
+   - Calculates expected chargeback metrics from the generated data
+   - Loads the metrics for validation
+6. **Cleanup** - Removes temporary certificate directories.
+
+The role uses `{{ scenario_name }}` as the loop variable when processing multiple test scenarios, making it easy to track which scenario is currently being executed.
 
 Scenario Configuration
 ----------------------
-The synthetic data generation is controlled by a YAML configuration file (`files/test_static.yml`). This file defines:
+The synthetic data generation is controlled by YAML configuration files in the `files/` directory. Any file matching the pattern `test_*.yml` will be automatically discovered and executed.
+
+**Available scenarios:**
+- `test_static.yml` - Static test scenario with predefined values
+- `test_dyn_basic.yml` - Dynamic test scenario with variable values over time
+
+Each scenario file defines:
 
 * **generation** - Time range configuration (days, step_seconds)
 * **log_types** - List of log type definitions with name, type, unit, qty, price, groupby, and metadata
 * **required_fields** - Fields required for validation
 * **date_fields** - Date fields to add to groupby (week_of_the_year, day_of_the_year, month, year)
 * **loki_stream** - Loki stream configuration (service name)
+
+### Data Generation Script Options
+
+The `gen_synth_loki_data.py` script supports the following options:
+
+* `--tmpl` - Path to the Jinja2 template file (required)
+* `-t, --test` - Path to the scenario YAML file (required)
+* `-o, --output` - Path for the output JSON file (required)
+* `-p, --project-id` - Optional project ID to override the scenario file value
+* `-u, --user-id` - Optional user ID to override the scenario file value
+* `--ascending` - Sort timestamps in ascending order (oldest first, newest last)
+* `--descending` - Sort timestamps in descending order (newest first, oldest last) - **default**
+* `--debug` - Enable debug logging
+
+By default, the script generates data in descending order (newest timestamps first), which is the expected format for Loki ingestion.
 
 Dependencies
 ------------

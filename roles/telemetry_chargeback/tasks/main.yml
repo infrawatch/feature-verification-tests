@@ -46,6 +46,8 @@
     - name: "Process and Loop if files exist"
       ansible.builtin.include_tasks: run_test_scenarios.yml
       loop: "{{ found_files }}"
+      loop_control:
+        loop_var: scenario_name
       when: found_files | length > 0
 
     - name: "Cleanup after job run"
