@@ -73,7 +73,8 @@ def generate_loki_data(
     start_time: datetime,
     end_time: datetime,
     time_step_seconds: int,
-    config: Dict[str, Any]
+    config: Dict[str, Any],
+    sort: str = "descending",
 ):
     """
     Generate synthetic Loki log data by preparing a data list and rendering.
@@ -85,6 +86,9 @@ def generate_loki_data(
         end_time (datetime): The end time for data generation.
         time_step_seconds (int): The duration of each log entry in seconds.
         config (Dict[str, Any]): Configuration dictionary loaded from file.
+        sort (str): Sort order for timestamps in the output. "descending"
+            generates newest first, oldest last (default). "ascending"
+            generates oldest first, newest last.
     """
     # Hardcoded constant for invalid timestamps
     invalid_timestamp = "INVALID_TIMESTAMP"
@@ -231,6 +235,20 @@ def generate_loki_data(
     # --- Render the template in one pass with all the data ---
     logger.info("Rendering final output...")
 
+    if sort == "descending":
+        log_data_list.reverse()
+        logger.debug(
+            "Timestamp order: descending (newest first, oldest last)."
+        )
+    else:
+        logger.debug(
+            "Timestamp order: ascending (oldest first, newest last)."
+        )
+
+    # Calculate total number of steps for value distribution
+    num_steps = len(log_data_list)
+    logger.debug(f"Total number of time steps: {num_steps}")
+
     # Pre-calculate log types with date fields for each time step
     log_types_list = []
     for idx, item in enumerate(log_data_list):
@@ -327,6 +345,14 @@ def main():
 
     # --- Optional Utility Arguments ---
     parser.add_argument(
+        "--sort",
+        choices=["ascending", "descending"],
+        default="descending",
+        help="Sort order for timestamps. 'ascending' generates oldest first, "
+             "newest last. 'descending' generates newest first, oldest last. "
+             "Default: %(default)s."
+    )
+    parser.add_argument(
         "--debug",
         action="store_true",
         help="Enable debug level logging for verbose output."
@@ -362,7 +388,8 @@ def main():
             start_time=start_time_utc,
             end_time=end_time_utc,
             time_step_seconds=step_seconds,
-            config=config
+            config=config,
+            sort=args.sort,
         )
     except FileNotFoundError:
         logger.error(

@@ -48,6 +48,19 @@ These variables are used internally by the role and typically do not need to be 
 | `ck_output_file_local` | `{{ artifacts_dir_zuul }}/loki_synth_data.json` | Local path for generated synthetic data. |
 | `ck_output_file_remote` | `{{ logs_dir_zuul }}/gen_loki_synth_data.log` | Remote destination for synthetic data. |
 
+
+### Synthetic Data Scripts
+
+**gen_synth_loki_data.py** — Generates Loki-format JSON from a scenario YAML and template. By default, timestamps in the output are in descending order (newest first, oldest last). Use `--sort=ascending` to generate in chronological order (oldest first, newest last).
+
+| Option | Description |
+|--------|--------------|
+| `--tmpl` | Path to the Jinja2 template (e.g. `loki_data_templ.j2`). |
+| `-t`, `--test` | Path to the scenario YAML (e.g. `test_dyn_basic.yml`). |
+| `-o`, `--output` | Path to the output JSON file. |
+| `--sort` | Sort order for timestamps: `ascending` (oldest first, newest last) or `descending` (newest first, oldest last). Default: `descending`. |
+| `--debug` | Enable debug logging. |
+
 Scenario Configuration
 ----------------------
 The synthetic data generation is controlled by a YAML configuration file (`files/test_static.yml`). This file defines:
