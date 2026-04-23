@@ -9,28 +9,6 @@
   ansible.builtin.set_fact:
     cloudkitty_debug_dir: "{{ (cloudkitty_debug | bool) | ternary(artifacts_dir_zuul + '/debug_ck_db', '') }}"
 
-- name: "Get admin project ID for CI"
-  ansible.builtin.command:
-    cmd: "{{ openstack_cmd }} project show admin -f value -c id"
-  register: get_admin_project_id
-  changed_when: false
-  failed_when: false
-
-- name: "Set admin project ID for CI"
-  ansible.builtin.set_fact:
-    cloudkitty_project_id: "{{ (get_admin_project_id.stdout | trim) | default('') }}"
-
-- name: "Get admin user ID for CI"
-  ansible.builtin.command:
-    cmd: "{{ openstack_cmd }} user show admin -f value -c id"
-  register: get_admin_user_id
-  changed_when: false
-  failed_when: false
-
-- name: "Set admin user ID for CI"
-  ansible.builtin.set_fact:
-    cloudkitty_user_id: "{{ (get_admin_user_id.stdout | trim) | default('') }}"
-
 - name: "Find test files"
   ansible.builtin.find:
     paths: "{{ cloudkitty_scenario_dir }}"

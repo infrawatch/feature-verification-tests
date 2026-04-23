@@ -1,7 +1,4 @@
 ---
-logs_dir_zuul: "/home/zuul/ci-framework-data/logs"
-artifacts_dir_zuul: "/home/zuul/ci-framework-data/artifacts"
-
 cloudkitty_synth_script: "{{ role_path }}/files/gen_synth_loki_data.py"
 cloudkitty_data_template: "{{ role_path }}/templates/loki_data_templ.j2"
 ck_data_config: "{{ role_path }}/files/test_static.yml"
