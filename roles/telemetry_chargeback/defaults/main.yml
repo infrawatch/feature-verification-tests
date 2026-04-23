@@ -2,7 +2,7 @@
 # OpenStack CLI command
 openstack_cmd: "openstack"
 
-# Debug mode
+# Debug mode set
 cloudkitty_debug: false
 cloudkitty_debug_dir: "{{ (cloudkitty_debug | bool) | ternary(artifacts_dir_zuul + '/debug_ck_db', '') }}"
 

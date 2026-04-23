@@ -5,18 +5,11 @@
 - name: "Setup Loki Environment"
   ansible.builtin.include_tasks: "setup_loki_env.yml"
 
-- name: "CloudKitty debug ON/OFF"
-  ansible.builtin.set_fact:
-    cloudkitty_debug_dir: "{{ (cloudkitty_debug | bool) | ternary(artifacts_dir_zuul + '/debug_ck_db', '') }}"
-
-- name: "Auto-discover test scenarios"
-  when: cloudkitty_test_scenarios | length == 0
-  block:
-    - name: "Find test files"
-      ansible.builtin.find:
-        paths: "{{ cloudkitty_scenario_dir }}"
-        patterns: "test_*.yml"
-      register: test_files_raw
+- name: "Find test files"
+  ansible.builtin.find:
+    paths: "{{ cloudkitty_scenario_dir }}"
+    patterns: "test_*.yml"
+  register: found_files_raw
 
     - name: "Set scenario list from discovered files"
       ansible.builtin.set_fact:
@@ -38,10 +31,11 @@
         loop_var: scenario_name
       when: cloudkitty_test_scenario_names | length > 0
 
-    - name: "Cleanup after job run"
-      ansible.builtin.include_tasks: cleanup_ck.yml
-
   rescue:
     - name: "Log failure"
       ansible.builtin.debug:
         msg: "Running test scenarios loop failed."
+
+  always:
+    - name: "Cleanup after job run"
+      ansible.builtin.include_tasks: cleanup_ck.yml        
