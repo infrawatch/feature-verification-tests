@@ -1,5 +1,33 @@
 ---
 - job:
+    name: telemetry-container-image-content-provider
+    parent: cifmw-base-minimal
+    nodeset: centos-stream-9-vexxhost
+    description: |
+      Build sg-core, prometheus-podman-exporter and mysqld-exporter
+      container images from the current change and serve them from
+      a local registry for dependent jobs.
+    required-projects:
+      - name: openstack-k8s-operators/ci-framework
+        override-checkout: main
+      - name: openstack-k8s-operators/sg-core
+      - name: openstack-k8s-operators/prometheus-podman-exporter
+      - name: openstack-k8s-operators/mysqld_exporter
+    run:
+      - ci/playbooks/container-image-content-provider.yml
+    vars:
+      container_images:
+        - src: "{{ ansible_user_dir }}/src/github.com/openstack-k8s-operators/sg-core"
+          name: sg-core
+          update_var: cifmw_update_containers_ceilometersgcoreImage
+        - src: "{{ ansible_user_dir }}/src/github.com/openstack-k8s-operators/prometheus-podman-exporter"
+          name: prometheus-podman-exporter
+          update_var: cifmw_update_containers_edpmpodmanexporterImage
+        - src: "{{ ansible_user_dir }}/src/github.com/openstack-k8s-operators/mysqld_exporter"
+          name: mysqld-exporter
+          update_var: cifmw_update_containers_ceilometermysqldexporterImage
+
+- job:
     name: functional-tests-osp18
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
     parent: telemetry-operator-multinode-autoscaling
@@ -14,7 +42,7 @@
       content_provider_dlrn_md5_hash: ''
     vars:
       patch_observabilityclient: true
-      cifmw_update_containers: false
+      cifmw_update_containers: true
       crc_enable_monitoring: true
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
