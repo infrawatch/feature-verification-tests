@@ -285,7 +285,8 @@ def generate_loki_data(
     if reverse_timestamps:
         log_data_list.reverse()
         logger.debug(
-            "Sorted timestamps in descending order (newest first, oldest last)."
+            "Sorted timestamps in descending order "
+            "(newest first, oldest last)."
         )
 
     # Calculate total number of steps for value distribution
