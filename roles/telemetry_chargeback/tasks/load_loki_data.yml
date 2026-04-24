@@ -1,0 +1,20 @@
+---
+- name: "Ingest CloudKitty data log for {{ item }}"
+  ansible.builtin.include_tasks:
+    file: ingest_loki_data.yml
+
+- name: "Flush data to Loki storage for {{ item }}"
+  ansible.builtin.include_tasks:
+    file: flush_loki_data.yml
+
+- name: "Retrieve data log from Loki for {{ item }}"
+  ansible.builtin.include_tasks:
+    file: retrieve_loki_data.yml
+
+- name: "Negative testing without certs"
+  ansible.builtin.include_tasks:
+    file: neg_loki_nocerts.yml
+
+- name: "Negative testing with unknown certs"
+  ansible.builtin.include_tasks:
+    file: neg_loki_unknown_certs.yml
