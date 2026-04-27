@@ -66,6 +66,6 @@
       python3 "{{ cloudkitty_summary_script }}"
       -j "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_loki_data_suffix }}"
       -o "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_loki_totals_metrics_suffix }}"
-      --debug "{{ cloudkitty_debug_dir }}"
+      {% if cloudkitty_debug | bool %}--debug --debug_dir "{{ cloudkitty_debug_dir }}"{% endif %}
   register: synth_rating_info
   changed_when: synth_rating_info.rc == 0

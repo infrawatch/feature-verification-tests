@@ -27,7 +27,7 @@
       python3 "{{ cloudkitty_summary_script }}"
       -j "{{ cloudkitty_data_file }}"
       -o "{{ cloudkitty_synth_totals_file }}"
-      --debug "{{ cloudkitty_debug_dir }}"
+      {% if cloudkitty_debug | bool %}--debug --debug_dir "{{ cloudkitty_debug_dir }}"{% endif %}
   register: synth_rating_info
   when: not file_preexists.stat.exists | bool
   changed_when: synth_rating_info.rc == 0
