@@ -8,9 +8,7 @@
 
 - name: "Find the current value of hashmap"
   ansible.builtin.shell:
-    cmd: "set -o pipefail && {{ openstack_cmd }} rating module get hashmap -c Priority -f csv | tail -n +2"
-  args:
-    executable: /bin/bash
+    cmd: "{{ openstack_cmd }} rating module get hashmap -c Priority -f csv | tail -n +2"
   register: get_hashmap_priority
   changed_when: false
 

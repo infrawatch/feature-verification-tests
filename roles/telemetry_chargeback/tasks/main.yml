@@ -5,11 +5,14 @@
 - name: "Setup Loki Environment"
   ansible.builtin.include_tasks: "setup_loki_env.yml"
 
-- name: "Find test files"
-  ansible.builtin.find:
-    paths: "{{ cloudkitty_scenario_dir }}"
-    patterns: "test_*.yml"
-  register: found_files_raw
+- name: "Auto-discover test scenarios"
+  when: cloudkitty_test_scenarios | length == 0
+  block:
+    - name: "Find test files"
+      ansible.builtin.find:
+        paths: "{{ cloudkitty_scenario_dir }}"
+        patterns: "test_*.yml"
+      register: test_files_raw
 
     - name: "Set scenario list from discovered files"
       ansible.builtin.set_fact:
@@ -38,4 +41,4 @@
 
   always:
     - name: "Cleanup after job run"
-      ansible.builtin.include_tasks: cleanup_ck.yml        
+      ansible.builtin.include_tasks: cleanup_ck.yml
