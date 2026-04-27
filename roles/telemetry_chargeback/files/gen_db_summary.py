@@ -119,7 +119,7 @@ def _apply_mutate(qty: float, mutate: str) -> float:
         return math.floor(qty)
     elif mutate_upper == "NUMBOOL":
         # If qty equals 0, leave it at 0. Else, set it to 1.
-        return 0.0 if qty == 0 else 1.0
+        return 0.0 if abs(qty) < 1e-9 else 1.0
     elif mutate_upper == "NOTNUMBOOL":
         # If qty equals 0, set it to 1. Else, set it to 0.
         return 1.0 if qty == 0 else 0.0
@@ -175,8 +175,9 @@ def _parse_numeric(value: Any, default: float = 0) -> float:
 
 def aggregate_rates_by_type(
     pairs: list[tuple[str, str]],
-) -> tuple[dict, float]:
-    sums: defaultdict[str, float] = defaultdict(float)
+) -> tuple[dict, float, dict]:
+    rate_sums: defaultdict[str, float] = defaultdict(float)
+    qty_sums: defaultdict[str, float] = defaultdict(float)
     for _, log_str in pairs:
         try:
             entry = json.loads(log_str)
@@ -196,17 +197,26 @@ def aggregate_rates_by_type(
         except (TypeError, ValueError):
             continue
 
-        # Apply mutate transformation
+        # Track raw qty sum (before any transformation)
+        qty_sums[mtype] += qty
+
+        # Apply mutate transformation for rating calculation
         qty_mutated = _apply_mutate(qty, mutate)
 
         # Apply factor and offset
         qty_rate = qty_mutated * factor + offset
 
         # Calculate rate
-        sums[mtype] += qty_rate * price
-    by_types = {k: {"Rate": round(v, 4)} for k, v in sorted(sums.items())}
-    total = sum(sums.values())
-    return by_types, total
+        rate_sums[mtype] += qty_rate * price
+
+    by_types = {
+        k: {"Rate": round(v, 4)} for k, v in sorted(rate_sums.items())
+    }
+    qty_by_types = {
+        k: {"qty_sum": round(v, 4)} for k, v in sorted(qty_sums.items())
+    }
+    total = sum(rate_sums.values())
+    return by_types, total, qty_by_types
 
 
 def build_summary(pairs: list[tuple[str, str]]) -> dict[str, Any]:
@@ -237,13 +247,14 @@ def build_summary(pairs: list[tuple[str, str]]) -> dict[str, Any]:
         empty = {"nanosec": None, "begin": None, "end": None}
         time_block = {"begin_step": empty.copy(), "end_step": empty.copy()}
 
-    by_types, total_r = aggregate_rates_by_type(pairs)
+    by_types, total_r, qty_by_types = aggregate_rates_by_type(pairs)
     return {
         "time": time_block,
         "data_log": {
             "total_timesteps": n_ts,
             "metrics_per_step": mps,
             "log_count": log_count,
+            "qty_by_types": qty_by_types,
         },
         "rate": {
             "by_types": by_types,
@@ -282,11 +293,20 @@ def main() -> None:
     )
     parser.add_argument(
         "--debug",
+        action="store_true",
+        help=(
+            "Enable debug mode: write <stem>_diff.txt with one "
+            "[ts,log] JSON per line."
+        ),
+    )
+    parser.add_argument(
+        "--debug_dir",
         type=Path,
         default=None,
         metavar="DIR",
         help=(
-            "If set, write <stem>_diff.txt with one [ts,log] JSON per line."
+            "Directory for debug output. If not specified, uses the "
+            "directory from -o output path."
         ),
     )
     args = parser.parse_args()
@@ -299,10 +319,12 @@ def main() -> None:
     out_path = args.output or (args.json.parent / f"{stem}_total.yml")
     pairs = extract_and_sort(args.json)
 
-    dbg = str(args.debug).strip() if args.debug is not None else ""
-    if dbg and dbg != ".":
-        args.debug.mkdir(parents=True, exist_ok=True)
-        dbg_file = args.debug / f"{args.json.stem}_diff.txt"
+    if args.debug:
+        # Determine debug directory: use --debug_dir if provided,
+        # otherwise use output directory
+        debug_dir = args.debug_dir if args.debug_dir else out_path.parent
+        debug_dir.mkdir(parents=True, exist_ok=True)
+        dbg_file = debug_dir / f"{args.json.stem}_diff.txt"
         with dbg_file.open("w", encoding="utf-8") as f:
             for ts, log_str in pairs:
                 print(json.dumps([ts, log_str], ensure_ascii=False), file=f)

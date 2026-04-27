@@ -2,16 +2,16 @@
 # OpenStack CLI command
 openstack_cmd: "openstack"
 
-# Debug mode set
-cloudkitty_debug: false
-cloudkitty_debug_dir: "{{ (cloudkitty_debug | bool) | ternary(artifacts_dir_zuul + '/debug_ck_db', '') }}"
-
 # Directory paths
 logs_dir_zuul: "{{ ansible_env.HOME }}/ci-framework-data/logs"
 artifacts_dir_zuul: "{{ ansible_env.HOME }}/ci-framework-data/artifacts"
 cert_dir: "{{ ansible_user_dir }}/ck-certs"
 local_cert_dir: "{{ ansible_env.HOME }}/ci-framework-data/flush_certs"
 remote_cert_dir: "osp-certs"
+
+# Debug mode set
+cloudkitty_debug: false
+cloudkitty_debug_dir: "{{ artifacts_dir_zuul + '/debug_ck_db' }}"
 
 # Cloudkitty certificates and secrets
 cert_secret_name: "cert-cloudkitty-client-internal"
