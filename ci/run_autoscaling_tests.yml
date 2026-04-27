@@ -48,6 +48,11 @@
             target: edpm_deploy_instance
           tags:
             - setup
+          register: output
+
+        - name: print edpm_deploy_instance output
+          debug:
+            var: output
 
         - name: Patch observabilityclient into openstackclient
           ansible.builtin.shell:
