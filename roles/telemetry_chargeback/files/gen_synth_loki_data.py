@@ -48,7 +48,7 @@ def _get_value_for_step(
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%dT%H:%M:%S+00:00'
+    datefmt='%Y-%m-%dT%H:%M:%SZ'
 )
 logger = logging.getLogger()
 
@@ -62,11 +62,11 @@ def _format_timestamp(epoch_seconds: float, invalid_timestamp: str) -> str:
         invalid_timestamp (str): String to return for invalid timestamps.
 
     Returns:
-        str: The formatted datetime string (e.g., "2023-10-26T14:30:00+00:00").
+        str: The formatted datetime string (e.g., "2023-10-26T14:30:00Z").
     """
     try:
         dt_object = datetime.fromtimestamp(epoch_seconds, tz=timezone.utc)
-        return dt_object.isoformat()
+        return dt_object.strftime('%Y-%m-%dT%H:%M:%SZ')
     except (ValueError, TypeError):
         logger.warning(f"Invalid epoch value provided: {epoch_seconds}")
         return invalid_timestamp
@@ -258,7 +258,10 @@ def generate_loki_data(
             "qty": qty_list,
             "price": price_list,
             "groupby": groupby.copy(),
-            "metadata": log_type_config.get("metadata", {})
+            "metadata": log_type_config.get("metadata", {}),
+            "mutate": log_type_config.get("mutate"),
+            "factor": log_type_config.get("factor"),
+            "offset": log_type_config.get("offset")
         }
 
     # --- Step 3: Load template and render ---
