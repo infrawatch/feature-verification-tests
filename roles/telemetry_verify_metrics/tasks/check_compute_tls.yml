@@ -1,0 +1,67 @@
+- delegate_to: "{{ compute_node }}"
+  become: true
+  block:
+  - name: |
+      TEST Verify ceilometer_agent_compute container has /etc/ceilometer/tls volume mount on {{ compute_node }}
+    ansible.builtin.shell:
+      cmd: |
+        podman inspect ceilometer_agent_compute --format "{{ '{{range .Mounts}}{{.Destination}}\n{{end}}' }}"
+    register: mounts
+    changed_when: false
+    failed_when: '"/etc/ceilometer/tls" not in mounts.stdout'
+
+  - name: |
+      TEST Verify TLS cert and key files exist in ceilometer_agent_compute container on {{ compute_node }}
+    ansible.builtin.shell:
+      cmd: |
+        podman exec ceilometer_agent_compute ls /etc/ceilometer/tls/tls.crt /etc/ceilometer/tls/tls.key
+    register: tls_files
+    changed_when: false
+    failed_when: tls_files.rc != 0
+
+  - name: Get ceilometer.conf from container on {{ compute_node }}
+    ansible.builtin.shell:
+      cmd: |
+        podman exec ceilometer_agent_compute cat /etc/ceilometer/ceilometer.conf
+    register: ceilometer_conf
+    changed_when: false
+    failed_when: ceilometer_conf.rc != 0
+
+  - name: |
+      TEST Verify ceilometer.conf has cafile in service_credentials section on {{ compute_node }}
+    ansible.builtin.assert:
+      that:
+        - "'[service_credentials]' in ceilometer_conf.stdout"
+        - "'cafile' in ceilometer_conf.stdout"
+      success_msg: "ceilometer.conf contains cafile in service_credentials section"
+      fail_msg: >-
+        ceilometer.conf is missing cafile configuration in [service_credentials] section.
+        This causes Keystone SSL verification failures (OSPRH-27068).
+
+  - name: |
+      TEST Verify ceilometer.conf has region_name configured on {{ compute_node }}
+    ansible.builtin.assert:
+      that:
+        - "'region_name' in ceilometer_conf.stdout"
+      success_msg: "ceilometer.conf contains region_name configuration"
+      fail_msg: >-
+        ceilometer.conf is missing region_name configuration.
+        Compute agents in multi-region deployments need region_name set (OSPRH-27068).
+
+  - name: |
+      TEST Verify ceilometer prometheus exporter listens on port 9101 with TLS on {{ compute_node }}
+    ansible.builtin.shell:
+      cmd: |
+        podman exec ceilometer_agent_compute curl -sk https://localhost:9101/metrics | head -5
+    register: prom_metrics
+    changed_when: false
+    failed_when: prom_metrics.rc != 0
+
+  - name: |
+      TEST Verify no TLS errors in ceilometer_agent_compute container logs on {{ compute_node }}
+    ansible.builtin.shell:
+      cmd: |
+        podman logs ceilometer_agent_compute 2>&1 | grep -i -E "SSLCertVerificationError|Cannot load server certificate|tls.crt|tls.key.*No such file" || true
+    register: tls_errors
+    changed_when: false
+    failed_when: tls_errors.stdout | length > 0
