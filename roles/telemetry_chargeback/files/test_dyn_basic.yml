@@ -16,10 +16,9 @@ log_types:
     price:
       - 0.10
     groupby:
-      resource: null
+      resource: tenant-01
       user: null
       project: null
-      tenant: tenant-01
     metadata:
       container_format: bare
       disk_format: qcow2
@@ -33,10 +32,9 @@ log_types:
     price:
       - 0.10
     groupby:
-      resource: null
+      resource: tenant-01
       user: null
       project: null
-      tenant: tenant-01
     metadata:
       container_format: bare
       disk_format: qcow2
@@ -50,10 +48,9 @@ log_types:
     price:
       - 5.00
     groupby:
-      resource: null
+      resource: tenant-02
       user: null
       project: null
-      tenant: tenant-02
       flavor_name: null
       flavor_id: null
     mutate: NUMBOOL
@@ -66,10 +63,9 @@ log_types:
     price:
       - 1.00
     groupby:
-      resource: null
+      resource: tenant-01
       user: null
       project: null
-      tenant: tenant-01
     metadata:
       state: null
     mutate: NUMBOOL
@@ -82,10 +78,9 @@ log_types:
     price:
       - 0.0
     groupby:
-      resource: null
+      resource: tenant-01
       user: null
       project: null
-      tenant: tenant-01
     metadata:
       type: null
 
@@ -97,10 +92,9 @@ log_types:
     price:
       - 0.10
     groupby:
-      resource: null
+      resource: tenant-02
       user: null
       project: null
-      tenant: tenant-02
     metadata:
       type: null
 
@@ -112,10 +106,9 @@ log_types:
     price:
       - 0.0
     groupby:
-      resource: null
+      resource: tenant-01
       user: null
       project: null
-      tenant: tenant-01
     metadata:
       vm_instance: null
 
@@ -127,10 +120,9 @@ log_types:
     price:
       - 0.0
     groupby:
-      resource: null
+      resource: tenant-02
       user: null
       project: null
-      tenant: tenant-02
     metadata:
       vm_instance: null
 
