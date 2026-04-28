@@ -263,7 +263,10 @@ def generate_loki_data(
             "qty": qty_list,
             "price": price_list,
             "groupby": groupby.copy(),
-            "metadata": log_type_config.get("metadata", {})
+            "metadata": log_type_config.get("metadata", {}),
+            "mutate": log_type_config.get("mutate"),
+            "factor": log_type_config.get("factor"),
+            "offset": log_type_config.get("offset")
         }
 
     # --- Step 3: Load template and render ---
