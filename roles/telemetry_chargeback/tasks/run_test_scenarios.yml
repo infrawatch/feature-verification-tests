@@ -1,0 +1,53 @@
+---
+- name: "Generate Synthetic Data for each file: {{ item }}"
+  ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
+
+- name: "Load data to Loki: {{ item }}"
+  ansible.builtin.include_tasks: "load_loki_data.yml"
+
+- name: "Get total rate from Loki: {{ item }}"
+  ansible.builtin.include_tasks: "loki_rate.yml"
+
+#### diff uploaded data totals vs download data totals
+- name: "Check synthetic totals file exists"
+  ansible.builtin.stat:
+    path: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_totals_metrics_suffix }}"
+  register: synth_totals_stat
+
+- name: "Check Loki totals file exists"
+  ansible.builtin.stat:
+    path: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_metrics_suffix }}"
+  register: loki_totals_stat
+
+- name: "TEST Totals files exist {{ item }}"
+  ansible.builtin.assert:
+    that:
+      - synth_totals_stat.stat.exists | default(false)
+      - loki_totals_stat.stat.exists | default(false)
+    fail_msg: |
+      FAILED! Required file(s) missing for scenario {{ item }}:
+      - {{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_totals_metrics_suffix }}
+      - {{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_metrics_suffix }}
+    success_msg: |
+      PASSED! Required file(s) exist {{ item }}:
+      - {{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_totals_metrics_suffix }}
+      - {{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_metrics_suffix }}
+
+- name: "Diff synthetic totals vs Loki totals {{ item }}"
+  ansible.builtin.command:
+    cmd: >
+      diff
+      {{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_totals_metrics_suffix }}
+      {{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_metrics_suffix }}
+  register: yaml_diff
+  failed_when: false
+  changed_when: false
+
+- name: "TEST Compare synthetic data vs Loki data results {{ item }}"
+  ansible.builtin.assert:
+    that:
+      - yaml_diff.rc == 0
+    fail_msg: |
+      FAILED! {{ item }} - Files differ:
+      {{ yaml_diff.stdout }}
+    success_msg: "PASSED! {{ item }} - Data totals are identical."
