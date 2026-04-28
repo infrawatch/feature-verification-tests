@@ -1,0 +1,28 @@
+---
+- name: "TEST Get Rate and Qty by type from CloudKitty {{ item }}"
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} --rating-api-version 2 rating summary get -f yaml -g type"
+  register: cost_totals_by_type
+  changed_when: false
+  failed_when: cost_totals_by_type.rc != 0
+
+- name: "**INFO** Print the rating by type {{ item }}"
+  ansible.builtin.debug:
+    var: cost_totals_by_type.stdout
+
+- name: "Output saved as yaml {{ item }}"
+  ansible.builtin.copy:
+    content: "{{ cost_totals_by_type.stdout }}"
+    dest: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_suffix }}"
+    mode: '0644'
+
+- name: "TEST Get Rate and Qty Summary from CloudKitty {{ item }}"
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} --rating-api-version 2 rating summary get -f yaml"
+  register: cost_totals_summary
+  changed_when: false
+  failed_when: cost_totals_summary.rc != 0
+
+- name: "**INFO** Print the rating summary {{ item }}"
+  ansible.builtin.debug:
+    var: cost_totals_summary.stdout

@@ -13,7 +13,10 @@
     "qty": entry_data.qty,
     "price": entry_data.price,
     "groupby": entry_data.groupby,
-    "metadata": entry_data.metadata
+    "metadata": entry_data.metadata,
+    "mutate": entry_data.get("mutate"),
+    "factor": entry_data.get("factor"),
+    "offset": entry_data.get("offset")
 } -%}
 [
 "{{ item.nanoseconds }}",
