@@ -1,5 +1,5 @@
 from __future__ import (absolute_import, division, print_function)
-#__metaclass__ = type
+# __metaclass__ = type
 
 import os
 import re
@@ -12,8 +12,10 @@ DOCUMENTATION = '''
     short_description: output logs to a file
     description:
     - This callback function creates two log files for each host.
-        - The first log file records the result (pass/fail) for each task executed on the host.
-        - The second log file contains a summary of all tasks executed on the host, including their results.
+        - The first log file records the result (pass/fail)
+          for each task executed on the host.
+        - The second log file contains a summary of all tasks
+          executed on the host, including their results.
     - Log file names:
         - test_run_result.out
         - summary_results.log
@@ -29,6 +31,7 @@ DOCUMENTATION = '''
             type: path
 '''
 
+
 class CallbackModule(CallbackBase):
     """
     logs playbook results, per host, in /var/log/ansible/hosts
@@ -42,19 +45,22 @@ class CallbackModule(CallbackBase):
     def __init__(self):
         super(CallbackModule, self).__init__()
         self.set_options()
-        
+
         self.output_dir = self.get_option('output_dir')
         self.results = {}
 
     def playbook_on_stats(self, stats):
-        #Log results for each host
-        hosts= stats.processed
+        # Log results for each host
+        hosts = stats.processed
         for host in hosts:
             self.log_summary_results(host)
 
     def log_task_result(self, host, result, task_name):
-        # test_run_result.out only interested in the test tasks, not setup or debug.
-        if "RHELOSP" in task_name or "RHOSO" in task_name  or "UI" in task_name:
+        # test_run_result.out only interested in the test
+        # tasks, not setup or debug.
+        if ("RHELOSP" in task_name
+                or "RHOSO" in task_name
+                or "UI" in task_name):
             if "RHELOSP" in task_name:
                 test_id = re.search(r'RHELOSP\S*', task_name).group(0)
             elif "RHOSO" in task_name:
@@ -62,14 +68,22 @@ class CallbackModule(CallbackBase):
             elif "UI" in task_name:
                 test_id = re.search(r'UI\S*', task_name).group(0)
 
-            file_path = os.path.join(self.output_dir, f"test_run_result.out")
-            test_result_message = self.MSG_FORMAT.format(task=test_id, status=result)
+            file_path = os.path.join(
+                self.output_dir, "test_run_result.out"
+            )
+            test_result_message = self.MSG_FORMAT.format(
+                task=test_id, status=result
+            )
             with open(file_path, 'a') as f:
                 f.write(test_result_message)
 
             # Gather the result data to be used in the summary log.
             if host not in self.results:
-                self.results[host] = {'passed': 0, 'failed': 0, 'skipped': 0, 'failed_task_names':[], 'ok_task_names':[] }
+                self.results[host] = {
+                    'passed': 0, 'failed': 0, 'skipped': 0,
+                    'failed_task_names': [],
+                    'ok_task_names': [],
+                }
             if result == 'failed':
                 self.results[host]['failed_task_names'].append(task_name)
             elif result == 'passed':
@@ -77,7 +91,9 @@ class CallbackModule(CallbackBase):
             self.results[host][result] += 1
 
     def log_summary_results(self, host):
-        file_path = os.path.join(self.output_dir, f"summary_results.log")
+        file_path = os.path.join(
+            self.output_dir, "summary_results.log"
+        )
 
         # Make sure that the there is a result for the host, or else we get
         # errors referencing the results dict later
