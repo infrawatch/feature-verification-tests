@@ -1,0 +1,29 @@
+---
+# Negative testing to Test Loki by sending a request without mTLS certificates
+
+# Sending a request without certs and keys
+
+- name: Read log file content
+  ansible.builtin.slurp:
+    src: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_data_suffix }}"
+  register: log_file_content
+
+- name: "Send request without mTLS cert"
+  ansible.builtin.uri:
+    url: "{{ loki_push_url }}"
+    method: POST
+    body: "{{ log_file_content['content'] | b64decode | from_json }}"
+    body_format: json
+    validate_certs: false
+    return_content: yes
+    status_code: 401
+  register: missing_cert_response
+  ignore_errors: false
+
+- name: "Assert Loki gateway blocked the request"
+  ansible.builtin.assert:
+    that:
+      - "'no client certificate presented' in missing_cert_response.content"
+      - "missing_cert_response.json.errorType == 'observatorium-api'"
+    success_msg: "Loki gateway successfully blocked unauthenticated request"
+    fail_msg: "Loki gateway failed to block ununauthenticated request and allowed access"
