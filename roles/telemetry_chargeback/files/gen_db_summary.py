@@ -247,18 +247,35 @@ def build_summary(pairs: list[tuple[str, str]]) -> dict[str, Any]:
         empty = {"nanosec": None, "begin": None, "end": None}
         time_block = {"begin_step": empty.copy(), "end_step": empty.copy()}
 
+    # Get aggregated data by type
     by_types, total_r, qty_by_types = aggregate_rates_by_type(pairs)
+
+    # Get overall time range for by_type entries
+    begin_time = first.get("start") if pairs else None
+    end_time = last.get("end") if pairs else None
+
+    # Build flat list of entries
+    rate_list = []
+    for type_name in sorted(by_types.keys()):
+        entry = {
+            "Begin": begin_time,
+            "End": end_time,
+            "Qty": qty_by_types.get(type_name, {}).get("qty_sum", 0.0),
+            "Rate": by_types[type_name]["Rate"],
+            "Type": type_name,
+        }
+        rate_list.append(entry)
+
     return {
         "time": time_block,
-        "data_log": {
+        "data_summary": {
             "total_timesteps": n_ts,
             "metrics_per_step": mps,
             "log_count": log_count,
-            "qty_by_types": qty_by_types,
+            "total_rating": round(total_r, 4),
         },
-        "rate": {
-            "by_types": by_types,
-            "total": {"Rating": round(total_r, 4)},
+        "by_type": {
+            "rate": rate_list,
         },
     }
 
@@ -278,7 +295,8 @@ def write_yaml(path: Path, doc: dict[str, Any]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "Summarize Loki JSON log entries to YAML (time, data_log, rate)."
+            "Summarize Loki JSON log entries to YAML "
+            "(time, data_summary, by_type)."
         ),
     )
     parser.add_argument(
@@ -321,7 +339,7 @@ def main() -> None:
     doc = build_summary(pairs)
     write_yaml(out_path, doc)
 
-    if doc["data_log"]["metrics_per_step"] == "ERROR":
+    if doc["data_summary"]["metrics_per_step"] == "ERROR":
         per_ts = Counter(ts for ts, _ in pairs)
         exp = next(iter(per_ts.values()), 0)
         for ts in sorted(per_ts, key=int):
