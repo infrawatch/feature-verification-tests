@@ -31,4 +31,8 @@
 
   always:
     - name: "Cleanup after job run"
+<<<<<<< alexy_ck_job_4
       ansible.builtin.include_tasks: cleanup_ck.yml        
+=======
+      ansible.builtin.include_tasks: cleanup_ck.yml
+>>>>>>> alexy_db_download_tasks_files
