@@ -31,4 +31,4 @@
 
   always:
     - name: "Cleanup after job run"
-      ansible.builtin.include_tasks: cleanup_ck.yml        
+      ansible.builtin.include_tasks: cleanup_ck.yml
