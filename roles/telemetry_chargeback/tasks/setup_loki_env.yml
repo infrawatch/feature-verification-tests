@@ -14,7 +14,7 @@
     # Base URL
     loki_base_url: "https://{{ loki_route.stdout }}"
 
-    # Internal Flush URL (Service DNS: https://<service>.<namespace>.svc:3100/flush)
+    # Internal Flush URL(Service DNS: https://<service>.<namespace>.svc:3100/flush)
     ingester_flush_url: "https://cloudkitty-lokistack-ingester-http.{{ cloudkitty_namespace }}.svc:3100/flush"
 
 - name: "Set Derived Loki URLs"
