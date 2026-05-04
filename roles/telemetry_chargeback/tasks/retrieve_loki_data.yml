@@ -67,5 +67,5 @@
       -j "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_data_suffix }}"
       -o "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_metrics_suffix }}"
       --debug "{{ cloudkitty_debug_dir }}"
-  register: synth_rating_info
-  changed_when: synth_rating_info.rc == 0
+  register: loki_retrieved_summary_info
+  changed_when: loki_retrieved_summary_info.rc == 0

@@ -51,10 +51,12 @@
 
 - name: "Run scenario file through workflow"
   when: found_files | length > 0
+  
   block:
     - name: "Process and Loop if files exist"
       ansible.builtin.include_tasks: run_test_scenarios.yml
       loop: "{{ found_files }}"
+      when: found_files | length > 0
 
     - name: "Cleanup after job run"
       ansible.builtin.include_tasks: cleanup_ck.yml
