@@ -350,13 +350,6 @@ def main() -> None:
     doc = build_summary(pairs)
     write_yaml(out_path, doc)
 
-    if doc["data_summary"]["metrics_per_step"] == "ERROR":
-        per_ts = Counter(ts for ts, _ in pairs)
-        exp = next(iter(per_ts.values()), 0)
-        for ts in sorted(per_ts, key=int):
-            if per_ts[ts] != exp:
-                print(ts, per_ts[ts], file=sys.stdout)
-
 
 if __name__ == "__main__":
     main()

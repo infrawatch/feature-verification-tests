@@ -146,6 +146,21 @@ Each scenario file defines:
 
 **groupby.resource** should be consistent by metric type across scenario files so that the same type always uses the same resource identifier.
 
+### Data Generation Script Options
+
+The `gen_synth_loki_data.py` script supports the following options:
+
+* `--tmpl` - Path to the Jinja2 template file (required)
+* `-t, --test` - Path to the scenario YAML file (required)
+* `-o, --output` - Path for the output JSON file (required)
+* `-p, --project-id` - Optional project ID to override the scenario file value
+* `-u, --user-id` - Optional user ID to override the scenario file value
+* `--ascending` - Sort timestamps in ascending order (oldest first, newest last)
+* `--descending` - Sort timestamps in descending order (newest first, oldest last) - **default**
+* `--debug` - Enable debug logging
+
+By default, the script generates data in descending order (newest timestamps first), which is the expected format for Loki ingestion.
+
 Dependencies
 ------------
 This role has no direct hard dependencies on other Ansible roles.
