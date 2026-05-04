@@ -137,15 +137,6 @@
       functional tests on osp18+patched versions of adoh and heat.
 
 - job:
-    name: feature-verification-tests-noop
-    parent: noop
-    description: |
-      A job that always passes. Runs when there's a change to jobs that don't
-      need full zuul to run but still need to report a pass.
-    run:
-      - ci/noop.yml
-
-- job:
     name: functional-periodic-telemetry-with-ceph
     parent: podified-multinode-hci-deployment-crc-1comp-backends
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
@@ -220,7 +211,7 @@
               - ^.zuul.yaml$
             dependencies:
               - telemetry-openstack-meta-content-provider-master
-        - feature-verification-tests-noop:
+        - noop:
             files: *irrelevant_files
         - functional-tests-osp18
         - functional-logging-tests-osp18:
