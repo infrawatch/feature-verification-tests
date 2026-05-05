@@ -72,13 +72,29 @@ These variables are used internally by the role and should not be modified. They
 | `cloudkitty_synth_script` | `{{ role_path }}/files/gen_synth_loki_data.py` | Path to the synthetic data generation script. |
 | `cloudkitty_data_template` | `{{ role_path }}/templates/loki_data_templ.j2` | Path to the Jinja2 template for Loki data format. |
 | `cloudkitty_summary_script` | `{{ role_path }}/files/gen_db_summary.py` | Path to the summary script (gen_db_summary.py). |
-| `cloudkitty_synth_data_suffix` | `-synth_data.json` | Suffix for generated synthetic data files. |
-| `cloudkitty_loki_data_suffix` | `-loki_data.json` | Suffix for Loki query result JSON files. |
-| `cloudkitty_synth_totals_metrics_suffix` | `-synth_metrics_summary.yml` | Suffix for generated metric totals files (from synthetic data). |
-| `cloudkitty_loki_totals_metrics_suffix` | `-loki_metrics_summary.yml` | Suffix for metric totals computed from Loki-retrieved JSON (retrieve_loki_data task). |
-| `cloudkitty_loki_totals_suffix` | `-rating.yml` | Suffix for CloudKitty rating summary output files (from loki_rate task). |
 
 **Note:** Loki push/query URLs are set dynamically in `setup_loki_env.yml` from the Cloudkitty Loki route.
+
+### Scenario Result Dictionary
+
+Instead of using separate file-suffix variables, the role builds a `scenario_result` dictionary for each scenario that carries all metadata through the pipeline:
+
+```yaml
+scenario_result:
+  file_name: "test_static"                          # scenario name
+  synth_data_file: "<artifacts_dir>/test_static-synth_data.json"
+  synth_totals_file: "<artifacts_dir>/test_static-synth_metrics_summary.yml"
+  num_values: 12                                     # number of generated log entries
+  total_rate: 1.234                                  # expected total rating
+  synth_summary: { ... }                             # full output from gen_db_summary.py
+  loki_data_file: "<artifacts_dir>/test_static-loki_data.json"       # added after retrieval
+  loki_totals_file: "<artifacts_dir>/test_static-loki_metrics_summary.yml"
+  loki_summary: { ... }                              # added after retrieval
+  ck_rating_by_type: { ... }                         # added after CloudKitty query
+  ck_rating_summary: { ... }                         # added after CloudKitty query
+```
+
+This dictionary is built in `gen_synth_loki_data.yml` and progressively enriched by `retrieve_loki_data.yml` and `loki_rate.yml`. Comparisons in `run_test_scenarios.yml` use the dictionary values directly instead of diffing files.
 
 ### Synthetic Data Scripts
 

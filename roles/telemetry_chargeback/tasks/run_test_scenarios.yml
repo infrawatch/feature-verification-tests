@@ -8,46 +8,47 @@
 - name: "Get total rate from Loki: {{ item }}"
   ansible.builtin.include_tasks: "loki_rate.yml"
 
-#### diff uploaded data totals vs download data totals
-- name: "Check synthetic totals file exists"
-  ansible.builtin.stat:
-    path: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_totals_metrics_suffix }}"
-  register: synth_totals_stat
-
-- name: "Check Loki totals file exists"
-  ansible.builtin.stat:
-    path: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_metrics_suffix }}"
-  register: loki_totals_stat
-
-- name: "TEST Totals files exist {{ item }}"
+- name: "TEST Scenario data available for comparison {{ item }}"
   ansible.builtin.assert:
     that:
-      - synth_totals_stat.stat.exists | default(false)
-      - loki_totals_stat.stat.exists | default(false)
-    fail_msg: |
-      FAILED! Required file(s) missing for scenario {{ item }}:
-      - {{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_totals_metrics_suffix }}
-      - {{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_metrics_suffix }}
-    success_msg: |
-      PASSED! Required file(s) exist {{ item }}:
-      - {{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_totals_metrics_suffix }}
-      - {{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_metrics_suffix }}
+      - scenario_result.synth_summary is defined
+      - scenario_result.loki_summary is defined
+    fail_msg: >-
+      FAILED! Missing summary data for scenario {{ item }}.
+      synth_summary defined: {{ scenario_result.synth_summary is defined }},
+      loki_summary defined: {{ scenario_result.loki_summary is defined }}
+    success_msg: "PASSED! Scenario data available for {{ item }}"
 
-- name: "Diff synthetic totals vs Loki totals {{ item }}"
-  ansible.builtin.command:
-    cmd: >
-      diff
-      {{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_totals_metrics_suffix }}
-      {{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_loki_totals_metrics_suffix }}
-  register: yaml_diff
-  failed_when: false
-  changed_when: false
-
-- name: "TEST Compare synthetic data vs Loki data results {{ item }}"
+- name: "TEST Compare log counts - synthetic vs Loki {{ item }}"
   ansible.builtin.assert:
     that:
-      - yaml_diff.rc == 0
-    fail_msg: |
-      FAILED! {{ item }} - Files differ:
-      {{ yaml_diff.stdout }}
-    success_msg: "PASSED! {{ item }} - Data totals are identical."
+      - scenario_result.synth_summary.data_log.log_count | int == scenario_result.loki_summary.data_log.log_count | int
+    fail_msg: >-
+      FAILED! {{ item }} - Log count mismatch:
+      synthetic={{ scenario_result.synth_summary.data_log.log_count }},
+      loki={{ scenario_result.loki_summary.data_log.log_count }}
+    success_msg: >-
+      PASSED! {{ item }} - Log counts match:
+      {{ scenario_result.synth_summary.data_log.log_count }}
+
+- name: "TEST Compare total rate - synthetic vs Loki {{ item }}"
+  ansible.builtin.assert:
+    that:
+      - scenario_result.synth_summary.rate.total.Rating | float == scenario_result.loki_summary.rate.total.Rating | float
+    fail_msg: >-
+      FAILED! {{ item }} - Total rate mismatch:
+      synthetic={{ scenario_result.synth_summary.rate.total.Rating }},
+      loki={{ scenario_result.loki_summary.rate.total.Rating }}
+    success_msg: >-
+      PASSED! {{ item }} - Total rates match:
+      {{ scenario_result.synth_summary.rate.total.Rating }}
+
+- name: "TEST Compare per-type rates - synthetic vs Loki {{ item }}"
+  ansible.builtin.assert:
+    that:
+      - scenario_result.synth_summary.rate.by_types == scenario_result.loki_summary.rate.by_types
+    fail_msg: >-
+      FAILED! {{ item }} - Per-type rates differ:
+      synthetic={{ scenario_result.synth_summary.rate.by_types }},
+      loki={{ scenario_result.loki_summary.rate.by_types }}
+    success_msg: "PASSED! {{ item }} - Per-type rates are identical."

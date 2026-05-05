@@ -1,13 +1,19 @@
 ---
-- name: "Set variables dynamically for {{ item }}"
+- name: "Ensure artifacts directory exists for {{ item }}"
+  ansible.builtin.file:
+    path: "{{ artifacts_dir_zuul }}"
+    state: directory
+    mode: '0755'
+
+- name: "Set file paths for {{ item }}"
   ansible.builtin.set_fact:
-    cloudkitty_data_file: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_data_suffix }}"
-    cloudkitty_synth_totals_file: "{{ artifacts_dir_zuul }}/{{ item }}{{ cloudkitty_synth_totals_metrics_suffix }}"
-    cloudkitty_test_file: "{{ cloudkitty_scenario_dir }}/{{ item }}.yml"
+    _synth_data_file: "{{ artifacts_dir_zuul }}/{{ item }}-synth_data.json"
+    _synth_totals_file: "{{ artifacts_dir_zuul }}/{{ item }}-synth_metrics_summary.yml"
+    _test_file: "{{ cloudkitty_scenario_dir }}/{{ item }}.yml"
 
 - name: "Check for preexisting output file"
   ansible.builtin.stat:
-    path: "{{ cloudkitty_data_file }}"
+    path: "{{ _synth_data_file }}"
   register: file_preexists
 
 - name: "Generate Synthetic Data for {{ item }}"
@@ -16,8 +22,8 @@
       python3 "{{ cloudkitty_synth_script }}"
       -r
       --tmpl "{{ cloudkitty_data_template }}"
-      -t "{{ cloudkitty_test_file }}"
-      -o "{{ cloudkitty_data_file }}"
+      -t "{{ _test_file }}"
+      -o "{{ _synth_data_file }}"
       {% if cloudkitty_project_id is defined and cloudkitty_project_id %} -p "{{ cloudkitty_project_id }}"{% endif %}
   register: script_output
   when: not file_preexists.stat.exists | bool
@@ -27,14 +33,24 @@
   ansible.builtin.command:
     cmd: >
       python3 "{{ cloudkitty_summary_script }}"
-      -j "{{ cloudkitty_data_file }}"
-      -o "{{ cloudkitty_synth_totals_file }}"
+      -j "{{ _synth_data_file }}"
+      -o "{{ _synth_totals_file }}"
       --debug "{{ cloudkitty_debug_dir }}"
   register: synth_rating_info
   when: not file_preexists.stat.exists | bool
   changed_when: synth_rating_info.rc == 0
 
-- name: "Load metrics from YAML file"
+- name: "Load synthetic metrics summary"
   ansible.builtin.include_vars:
-    file: "{{ cloudkitty_synth_totals_file }}"
-    name: synth_data_rates
+    file: "{{ _synth_totals_file }}"
+    name: _synth_summary
+
+- name: "Build scenario_result dict for {{ item }}"
+  ansible.builtin.set_fact:
+    scenario_result:
+      file_name: "{{ item }}"
+      synth_data_file: "{{ _synth_data_file }}"
+      synth_totals_file: "{{ _synth_totals_file }}"
+      num_values: "{{ _synth_summary.data_log.log_count }}"
+      total_rate: "{{ _synth_summary.rate.total.Rating }}"
+      synth_summary: "{{ _synth_summary }}"
