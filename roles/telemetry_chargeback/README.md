@@ -2,14 +2,14 @@ telemetry_chargeback
 
 The **`telemetry_chargeback`** role is designed to test the **RHOSO Cloudkitty** feature. These tests are specific to the Cloudkitty feature. Tests that are not specific to this feature (e.g., standard OpenStack deployment validation, basic networking) should be added to a common role.
 
-The role performs two main functions:
+The **`telemetry_chargeback`** role validates and tests the **RHOSO CloudKitty** chargeback feature. It performs CloudKitty configuration validation and generates synthetic test data for chargeback scenario testing.
 
 1. **CloudKitty Validation** - Enables and configures the CloudKitty hashmap rating module, then validates its state.
 2. **Synthetic Data Generation & Analysis** - Generates synthetic Loki log data for testing chargeback scenarios and calculates metric totals. The role automatically discovers and processes all scenario files matching `test_*.yml` in the `files/` directory. For each scenario it runs: generate synthetic data, compute syn-totals, ingest to Loki, flush Loki ingester memory, and get cost via CloudKitty rating summary (using begin/end from syn-totals). Retrieve-from-Loki is included in the load_loki_data flow. After all scenarios, the role runs cleanup (`cleanup_ck.yml`) to remove the local flush cert directory.
+**Note:** This role contains tests specific to the CloudKitty feature. Generic OpenStack tests (deployment validation, basic networking) should be placed in a common role.
 
 Requirements
 ------------
-It relies on the following being available on the target or control host:
 
 * This role requires **Ansible 2.9** or newer.
 * The **OpenStack CLI client** must be installed and configured with administrative credentials.
@@ -19,7 +19,13 @@ It relies on the following being available on the target or control host:
   * `PyYAML`
   * `Jinja2`
 
-It is expected to be run **after** a successful deployment and configuration of the following components:
+* **Ansible:** Version 2.9 or newer
+* **Python 3** with the following libraries:
+  * `PyYAML` - YAML parsing and generation
+  * `Jinja2` - Template rendering
+* **OpenStack CLI:** Installed and configured with administrative credentials
+  * Package: `python3-openstackclient`
+* **Network:** Connectivity to OpenStack API endpoints
 
 * **OpenStack:** A functional OpenStack cloud (RHOSO) environment.
 * **Cloudkitty:** The Cloudkitty service must be installed, configured, and running.
@@ -27,7 +33,6 @@ It is expected to be run **after** a successful deployment and configuration of 
 
 Role Variables
 --------------
-The role uses the following variables to control the testing environment and execution.
 
 ### User-Configurable Variables (defaults/main.yml)
 
@@ -83,7 +88,30 @@ The role executes the following workflow:
    - Generates chargeback metrics from the retrieved Loki data
 6. **Cleanup** - Removes temporary certificate directories.
 
-The role uses `{{ scenario_name }}` as the loop variable when processing multiple test scenarios, making it easy to track which scenario is currently being executed.
+**Rating Calculation:**
+For each log entry:
+1. Apply `mutate` transformation to `qty` (CEIL, FLOOR, NUMBOOL, NOTNUMBOOL)
+2. Apply linear transformation: `qty_transformed = qty_mutated * factor + offset`
+3. Calculate rate: `rate = qty_transformed * price`
+4. Sum rates by type and overall
+
+**Supported Transformations:**
+- `CEIL`: Round quantity up to nearest integer
+- `FLOOR`: Round quantity down to nearest integer
+- `NUMBOOL`: Convert to 1 if qty > 0, else 0
+- `NOTNUMBOOL`: Convert to 0 if qty > 0, else 1
+- `NONE`: No transformation
+
+**Example:**
+```bash
+python3 gen_db_summary.py \
+  -j artifacts/test_dyn_basic-synth_data.json \
+  -o artifacts/test_dyn_basic-synth_metrics_summary.yml \
+  --debug --debug_dir artifacts/debug
+```
+
+**Debug Output:**
+When `--debug` is enabled, the script writes a `<stem>_diff.txt` file containing one JSON array per line: `[timestamp, log_entry]`. This is useful for troubleshooting data quality issues or timestamp ordering problems.
 
 ### Synthetic Data Scripts
 
@@ -136,12 +164,57 @@ Set in **gen_synth_loki_data.yml** for each scenario file during the loop:
 
 Scenario Configuration
 ----------------------
-The synthetic data generation is controlled by YAML configuration files in the `files/` directory. Any file matching `test_*.yml` will be automatically discovered and processed. Files whose names start with an underscore (e.g. `_test_*.yml`) are **not** discovered by the role; they can be used as reference or for manual runs.
 
-**Available scenarios:**
-- `test_dyn_basic.yml` - Dynamic test scenario with variable values over time
+Test scenarios are defined in YAML files located in the `files/` directory. Any file matching the pattern `test_*.yml` will be automatically discovered unless you override with the `cloudkitty_test_scenarios` variable.
 
-Each scenario file defines:
+### Available Scenarios
+
+| File | Description |
+|------|-------------|
+| `test_static.yml` | Static test scenario with predefined constant values |
+| `test_dyn_basic.yml` | Dynamic test scenario with variable values over time, includes NUMBOOL transformations |
+
+### Scenario File Structure
+
+Each scenario file must define:
+
+```yaml
+# Time range configuration
+generation:
+  days: <number>              # Number of days to generate
+  step_seconds: <seconds>     # Time step interval
+
+# Validation configuration
+required_fields:
+  - type
+  - unit
+  - qty
+  - price
+  - groupby
+
+# Date field injection
+date_fields:
+  - week_of_the_year
+  - day_of_the_year
+  - month
+  - year
+
+# Loki stream metadata
+loki_stream:
+  service: cloudkitty
+```
+
+### Field Details
+
+**groupby fields:**
+- `resource`: Tenant/resource identifier (e.g., `tenant-01`, `tenant-02`)
+- `user`: User identifier (null for unspecified)
+- `project`: Project identifier (null for unspecified)
+
+**Transformation fields:**
+- `mutate`: Type of transformation to apply to quantity
+- `factor`: Multiplier applied after mutation (e.g., `1/1048576` for byte-to-MiB conversion)
+- `offset`: Value added after factor multiplication
 
 * **generation** — Time range configuration (days, step_seconds).
 * **log_types** — List of log type definitions. Each entry has **type** (identifier and value in output), unit, description, qty, price, groupby, and metadata. The **groupby** dict typically includes dimension keys (e.g. resource, user, project); the generator merges **date_fields** into groupby at run time.
@@ -160,25 +233,74 @@ Rating calculation applies transformations in this order:
 4. **price** - Multiply to get final rate
 
 Timestamps are formatted in ISO 8601 format with Z notation (e.g., `2023-10-26T14:30:00Z`).
+**Note:** Use consistent `resource` values by metric type across scenario files to ensure proper aggregation.
+
+### Overriding Auto-Discovery
+
+To run specific scenarios instead of auto-discovering all `test_*.yml` files:
+
+```yaml
+- name: "Run specific chargeback tests"
+  ansible.builtin.import_role:
+    name: telemetry_chargeback
+  vars:
+    cloudkitty_test_scenarios:
+      - test_dyn_basic
+      - test_static
+```
+
+Or via command line:
+```bash
+ansible-playbook playbook.yml \
+  --extra-vars "cloudkitty_test_scenarios=['test_dyn_basic']"
+```
 
 Dependencies
 ------------
+
 This role has no direct hard dependencies on other Ansible roles.
 
 Example Playbook
 ----------------
+
+**Basic usage (auto-discover scenarios):**
 ```yaml
 - name: "Run chargeback tests"
   hosts: controllers
-  gather_facts: no
+  gather_facts: false
 
   tasks:
-    - name: "Run chargeback specific tests"
+    - name: "Run chargeback validation"
       ansible.builtin.import_role:
         name: telemetry_chargeback
 ```
+
+**With custom configuration:**
+```yaml
+- name: "Run chargeback tests with custom settings"
+  hosts: controllers
+  gather_facts: false
+
+  tasks:
+    - name: "Run chargeback validation"
+      ansible.builtin.import_role:
+        name: telemetry_chargeback
+      vars:
+        cloudkitty_namespace: "my-custom-namespace"
+        cloudkitty_debug: true
+        cloudkitty_test_scenarios:
+          - test_dyn_basic
+```
+
+License
+-------
+
+Apache 2.0
 
 Author Information
 ------------------
 
 Alex Yefimov, Red Hat
+
+**Project:** RHOSO (Red Hat OpenStack Services on OpenShift)  
+**Component:** Telemetry - CloudKitty Chargeback
