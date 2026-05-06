@@ -1,0 +1,3 @@
+---
+- name: "Ingest CloudKitty data log for {{ scenario_name }}"
+  ansible.builtin.include_tasks: ingest_loki_data.yml
