@@ -7,10 +7,10 @@ cloudkitty_debug: false
 cloudkitty_debug_dir: "{{ (cloudkitty_debug | bool) | ternary(artifacts_dir_zuul + '/debug_ck_db', '') }}"
 
 # Directory paths
-logs_dir_zuul: "{{ ansible_env.HOME }}/ci-framework-data/logs"
-artifacts_dir_zuul: "{{ ansible_env.HOME }}/ci-framework-data/artifacts"
+logs_dir_zuul: "{{ cifmw_basedir }}/logs"
+artifacts_dir_zuul: "{{ cifmw_basedir }}/artifacts"
 cert_dir: "{{ ansible_user_dir }}/ck-certs"
-local_cert_dir: "{{ ansible_env.HOME }}/ci-framework-data/flush_certs"
+local_cert_dir: "{{ cifmw_basedir }}/flush_certs"
 remote_cert_dir: "osp-certs"
 
 # Cloudkitty certificates and secrets
