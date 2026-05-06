@@ -2,12 +2,25 @@ telemetry_chargeback
 
 The **`telemetry_chargeback`** role validates and tests the **RHOSO CloudKitty** chargeback feature. It performs CloudKitty configuration validation and generates synthetic test data for chargeback scenario testing.
 
+
+The **`telemetry_chargeback`** role is designed to test the **RHOSO Cloudkitty** feature. These tests are specific to the Cloudkitty feature. Tests that are not specific to this feature (e.g., standard OpenStack deployment validation, basic networking) should be added to a common role.
+
+The **`telemetry_chargeback`** role validates and tests the **RHOSO CloudKitty** chargeback feature. It performs CloudKitty configuration validation and generates synthetic test data for chargeback scenario testing.
+
+1. **CloudKitty Validation** - Enables and configures the CloudKitty hashmap rating module, then validates its state.
+2. **Synthetic Data Generation & Analysis** - Generates synthetic Loki log data for testing chargeback scenarios and calculates metric totals. The role automatically discovers and processes all scenario files matching `test_*.yml` in the `files/` directory. For each scenario it runs: generate synthetic data, compute syn-totals, ingest to Loki, flush Loki ingester memory, and get cost via CloudKitty rating summary (using begin/end from syn-totals). Retrieve-from-Loki is included in the load_loki_data flow. After all scenarios, the role runs cleanup (`cleanup_ck.yml`) to remove the local flush cert directory.
 **Note:** This role contains tests specific to the CloudKitty feature. Generic OpenStack tests (deployment validation, basic networking) should be placed in a common role.
 
 Requirements
 ------------
 
-### System Requirements
+* This role requires **Ansible 2.9** or newer.
+* The **OpenStack CLI client** must be installed and configured with administrative credentials.
+* Required Python libraries for the `openstack` CLI (e.g., `python3-openstackclient`).
+* Connectivity to the OpenStack API endpoint.
+* **Python 3** with the following libraries for synthetic data generation and analysis:
+  * `PyYAML`
+  * `Jinja2`
 
 * **Ansible:** Version 2.9 or newer
 * **Python 3** with the following libraries:
@@ -17,15 +30,9 @@ Requirements
   * Package: `python3-openstackclient`
 * **Network:** Connectivity to OpenStack API endpoints
 
-### Infrastructure Requirements
-
-This role must be run **after** successful deployment of:
-
-* **OpenStack (RHOSO):** Functional cloud environment
-* **CloudKitty:** Chargeback service installed, configured, and running
-* **Loki/OpenShift** (optional): Required only for Loki integration features
-  * Control host needs `oc` CLI access
-  * CloudKitty Loki stack (route, certificates, ingester) deployed
+* **OpenStack:** A functional OpenStack cloud (RHOSO) environment.
+* **Cloudkitty:** The Cloudkitty service must be installed, configured, and running.
+* **Loki / OpenShift (for ingest and flush):** When using ingest and flush tasks, the control host must have `oc` CLI access, and the Cloudkitty Loki stack (route, certificates, ingester) must be deployed. The role sets Loki push/query URLs and extracts certificates via `setup_loki_env.yml`.
 
 Role Variables
 --------------
@@ -310,6 +317,23 @@ loki_stream:
 - `factor`: Multiplier applied after mutation (e.g., `1/1048576` for byte-to-MiB conversion)
 - `offset`: Value added after factor multiplication
 
+* **generation** — Time range configuration (days, step_seconds).
+* **log_types** — List of log type definitions. Each entry has **type** (identifier and value in output), unit, description, qty, price, groupby, and metadata. The **groupby** dict typically includes dimension keys (e.g. resource, user, project); the generator merges **date_fields** into groupby at run time.
+  * Optional rating calculation fields: **mutate**, **factor**, **offset** (transforms qty before rating calculation)
+  * Supported mutate values: NUMBOOL, NOTNUMBOOL, CEIL, FLOOR
+* **required_fields** — Top-level keys required for each log type (e.g. type, unit, qty, price, groupby).
+* **date_fields** — Date field names to merge into groupby (week_of_the_year, day_of_the_year, month, year).
+* **loki_stream** — Loki stream configuration (service name).
+
+**groupby.resource** should be consistent by metric type across scenario files so that the same type always uses the same resource identifier.
+
+Rating calculation applies transformations in this order:
+1. **mutate** - Transform quantity (NUMBOOL: 0→0, >0→1; CEIL/FLOOR: round up/down)
+2. **factor** - Multiply the mutated quantity
+3. **offset** - Add to the result
+4. **price** - Multiply to get final rate
+
+Timestamps are formatted in ISO 8601 format with Z notation (e.g., `2023-10-26T14:30:00Z`).
 **Note:** Use consistent `resource` values by metric type across scenario files to ensure proper aggregation.
 
 ### Overriding Auto-Discovery
