@@ -109,6 +109,7 @@ def generate_loki_data(
     end_time: datetime,
     time_step_seconds: int,
     config: Dict[str, Any],
+    scenario_name: str,
     reverse_timestamps: bool = True,
 ):
     """
@@ -121,6 +122,7 @@ def generate_loki_data(
         end_time (datetime): The end time for data generation.
         time_step_seconds (int): The duration of each log entry in seconds.
         config (Dict[str, Any]): Configuration dictionary loaded from file.
+        scenario_name (str): Name of the test scenario for Loki labeling.
         reverse_timestamps (bool): If True, sort timestamps in descending order
             (newest first, oldest last). If False, sort in ascending order
             (oldest first, newest last). Default is True (descending).
@@ -339,11 +341,15 @@ def generate_loki_data(
 
         log_types_list.append(log_types_with_dates)
 
-    # Get loki_stream configuration
+    # Get loki_stream configuration and add scenario
     loki_stream = config.get("loki_stream", {})
     if not loki_stream:
         logger.warning("No loki_stream configuration found, using defaults")
         loki_stream = {"service": "cloudkitty"}
+
+    # Add scenario name to loki_stream labels
+    loki_stream["scenario"] = scenario_name
+    logger.info(f"Adding scenario label: {scenario_name}")
 
     # Build template context with generic log type information
     template_context = {
@@ -437,6 +443,10 @@ def main():
         logger.critical(f"Failed to load config: {e}")
         return
 
+    # Derive scenario name from test file path
+    scenario_name = args.test.stem
+    logger.info(f"Derived scenario name from test file: {scenario_name}")
+
     # Get generation parameters from config
     generation_config = config.get("generation", {})
     days = generation_config.get("days", 30)
@@ -456,6 +466,7 @@ def main():
             end_time=end_time_utc,
             time_step_seconds=step_seconds,
             config=config,
+            scenario_name=scenario_name,
             reverse_timestamps=args.reverse,
         )
     except FileNotFoundError:
