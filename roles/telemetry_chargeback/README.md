@@ -34,6 +34,7 @@ The role uses the following variables to control the testing environment and exe
 |----------|---------------|-------------|
 | `openstack_cmd` | `openstack` | The command used to execute OpenStack CLI calls. This can be customized if the binary is not in the standard PATH. |
 | `cloudkitty_debug` | `false` | Enable debug mode for CloudKitty database dumps. |
+| `cloudkitty_debug_dir` | `{{ (cloudkitty_debug \| bool) \| ternary(artifacts_dir_zuul + '/debug_ck_db', '') }}` | Directory for debug output (auto-set based on cloudkitty_debug flag). |
 | `logs_dir_zuul` | `{{ ansible_env.HOME }}/ci-framework-data/logs` | Directory for log files. |
 | `artifacts_dir_zuul` | `{{ ansible_env.HOME }}/ci-framework-data/artifacts` | Directory for generated artifacts and test output. |
 | `cert_dir` | `{{ ansible_user_dir }}/ck-certs` | Directory for CloudKitty client certificates. |
