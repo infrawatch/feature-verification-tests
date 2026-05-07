@@ -138,7 +138,6 @@
 
 - job:
     name: feature-verification-tests-noop
-    parent: noop
     description: |
       A job that always passes. Runs when there's a change to jobs that don't
       need full zuul to run but still need to report a pass.
@@ -149,6 +148,7 @@
     name: functional-periodic-telemetry-with-ceph
     parent: podified-multinode-hci-deployment-crc-1comp-backends
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
+    nodeset: telemetry-operator-all-the-features
     description: |
       Deploy OpenStack with Telemetry and Ceph. Run metric-verification with volume pool metric tests
     extra-vars: *functional_autoscaling_extra_vars
@@ -241,4 +241,3 @@
               # case the job definition changes.
               - ^roles/telemetry_verify_metrics/tasks/verify_ceilometer_volume_pool_metrics.yml$
               - ^.zuul.yaml$
-
