@@ -40,18 +40,17 @@ Role Variables
 | `cloudkitty_debug_dir` | `"{{ (cloudkitty_debug \| bool) \| ternary(artifacts_dir_zuul + '/debug_ck_db', '') }}"` | Directory for debug output (auto-set based on debug flag) |
 | `logs_dir_zuul` | `"{{ cifmw_basedir }}/logs"` | Directory for log files |
 | `artifacts_dir_zuul` | `"{{ cifmw_basedir }}/artifacts"` | Directory for generated artifacts and test output |
-| `cert_dir` | `"{{ ansible_user_dir }}/ck-certs"` | Directory for CloudKitty client certificates |
+| `cert_dir` | `"{{ cifmw_basedir }}/ck-certs"` | Directory for CloudKitty client certificates |
 | `local_cert_dir` | `"{{ cifmw_basedir }}/flush_certs"` | Local directory for flush certificates (cleaned up after run) |
 | `remote_cert_dir` | `"osp-certs"` | Remote directory inside OpenStack pod for certificates |
 | `cert_secret_name` | `"cert-cloudkitty-client-internal"` | OpenShift secret name for client certificates |
 | `client_secret` | `"secret/cloudkitty-lokistack-gateway-client-http"` | Secret for flush client certificates |
 | `ca_configmap` | `"cm/cloudkitty-lokistack-ca-bundle"` | ConfigMap for CA bundle |
-| `logql_query` | `"{service=\"cloudkitty\"}"` | LogQL query for Loki (overridable via `loki_query`) |
+| `logql_query` | `"{{ loki_query \| default('{service=\"cloudkitty\"}') }}"` | LogQL query for Loki (overridable via `loki_query` variable) |
 | `cloudkitty_namespace` | `"openstack"` | Kubernetes namespace where CloudKitty is deployed |
 | `openstackpod` | `"openstackclient"` | OpenStack client pod name for exec/cp operations |
 | `lookback` | `6` | Days to look back for Loki query time range |
 | `limit` | `50` | Limit for Loki query results |
-| `cloudkitty_test_scenarios` | `[]` | List of test scenario files to run (empty = auto-discover) |
 
 How It Works
 ------------
@@ -69,8 +68,7 @@ The role executes the following workflow:
    - Configures Loki push/query URLs
 
 3. **Test Scenario Discovery**
-   - **Auto-discovery** (default): Finds all `test_*.yml` files in `files/` directory
-   - **User-provided**: Uses scenarios from `cloudkitty_test_scenarios` variable
+   - Automatically finds all `test_*.yml` files in `files/` directory
 
 4. **Scenario Execution Loop** (for each discovered scenario)
    - Generates synthetic Loki log data (`gen_synth_loki_data.py`)
@@ -81,9 +79,6 @@ The role executes the following workflow:
    - Removes temporary certificate directories
    - Always runs (even on failure) via block/rescue/always structure
 
-### Loop Variable
-
-The role uses `{{ scenario_name }}` as the loop variable when processing multiple test scenarios, making it easy to track which scenario is currently executing.
 
 Python Scripts
 --------------
@@ -209,7 +204,7 @@ When `--debug` is enabled, the script writes a `<stem>_diff.txt` file containing
 Scenario Configuration
 ----------------------
 
-Test scenarios are defined in YAML files located in the `files/` directory. Any file matching the pattern `test_*.yml` will be automatically discovered unless you override with the `cloudkitty_test_scenarios` variable.
+Test scenarios are defined in YAML files located in the `files/` directory. Any file matching the pattern `test_*.yml` will be automatically discovered and executed.
 
 ### Available Scenarios
 
@@ -262,26 +257,6 @@ loki_stream:
 
 **Note:** Use consistent `resource` values by metric type across scenario files to ensure proper aggregation.
 
-### Overriding Auto-Discovery
-
-To run specific scenarios instead of auto-discovering all `test_*.yml` files:
-
-```yaml
-- name: "Run specific chargeback tests"
-  ansible.builtin.import_role:
-    name: telemetry_chargeback
-  vars:
-    cloudkitty_test_scenarios:
-      - test_dyn_basic
-      - test_static
-```
-
-Or via command line:
-```bash
-ansible-playbook playbook.yml \
-  --extra-vars "cloudkitty_test_scenarios=['test_dyn_basic']"
-```
-
 Dependencies
 ------------
 
@@ -315,8 +290,7 @@ Example Playbook
       vars:
         cloudkitty_namespace: "my-custom-namespace"
         cloudkitty_debug: true
-        cloudkitty_test_scenarios:
-          - test_dyn_basic
+        lookback: 10
 ```
 
 License
