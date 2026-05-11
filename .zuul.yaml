@@ -147,10 +147,10 @@
 - job:
     name: functional-periodic-telemetry-with-ceph
     parent: podified-multinode-hci-deployment-crc-1comp-backends
-    dependencies: ["telemetry-openstack-meta-content-provider-master"]
     nodeset: telemetry-operator-all-the-features
     description: |
       Deploy OpenStack with Telemetry and Ceph. Run metric-verification with volume pool metric tests
+    pre-run: stop.yaml
     extra-vars: *functional_autoscaling_extra_vars
     vars:
       run_graphing_test: false
@@ -209,35 +209,4 @@
         - functional-periodic-telemetry-with-ceph
     github-check:
       jobs:
-        - telemetry-openstack-meta-content-provider-master:
-            override-checkout: main
-        - functional-chargeback-tests-osp18:
-            files:
-              - ^roles/telemetry_chargeback/.*$
-              - ^roles/common/.*$
-              - ^ci/vars-cloudkitty-fvt.yml$
-              - ^ci/report_result.yml$
-              - ^.zuul.yaml$
-            dependencies:
-              - telemetry-openstack-meta-content-provider-master
-        - feature-verification-tests-noop:
-            files: *irrelevant_files
-        - functional-tests-osp18
-        - functional-logging-tests-osp18:
-            irrelevant-files: *irrelevant_files
-            files:
-              - ^roles/telemetry_logging/.*$
-              - ^roles/common/.*$
-              - ^ci/vars-logging-test.yml$
-              - ^ci/logging_tests_all.yml$
-              - ^ci/logging_tests_computes.yml$
-              - ^ci/logging_tests_controller.yml$
-              - ^ci/report_result.yml$
-              - ^.zuul.yaml$
-        - functional-periodic-telemetry-with-ceph:
-            files:
-              # Run this job for changes to the volume_pool_metrics test changes as this is
-              # the only job, where those tests get executed and for changes to zuul.yaml in
-              # case the job definition changes.
-              - ^roles/telemetry_verify_metrics/tasks/verify_ceilometer_volume_pool_metrics.yml$
-              - ^.zuul.yaml$
+        - functional-periodic-telemetry-with-ceph
