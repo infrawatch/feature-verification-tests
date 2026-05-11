@@ -1,20 +1,13 @@
 ---
 # Flush Loki Ingester Memory to Storage
 
-- name: "Flush execution inside OpenStack CLI"
+- name: "Flush execution inside OpenStack Client Pod"
   block:
     # create dir
     - name: "Create directory inside OpenStack CLI"
       ansible.builtin.command:
         cmd: "oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} -- mkdir -p {{ remote_cert_dir }}"
       changed_when: false
-
-    # certs to Flush data to Loki
-    - name: "Create directory to extract certificates"
-      ansible.builtin.file:
-        path: "{{ local_cert_dir }}"
-        state: directory
-        mode: '0755'
 
     # copy all certs
     - name: "Copy certificates to OpenStack CLI"
@@ -46,7 +39,4 @@
   rescue:
     - name: "Debug failure output"
       ansible.builtin.debug:
-        msg:
-          - "Failure"
-          - "Stdout: {{ flush_response.stdout | default('') }}"
-          - "Stderr: {{ flush_response.stderr | default('') }}"
+        msg: "Failure Data: {{ flush_response | default('No response captured') | to_json }}"

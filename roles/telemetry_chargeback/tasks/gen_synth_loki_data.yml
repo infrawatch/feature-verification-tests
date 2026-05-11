@@ -17,9 +17,9 @@
       --tmpl "{{ cloudkitty_data_template }}"
       -t "{{ cloudkitty_test_file }}"
       -o "{{ cloudkitty_data_file }}"
-  register: script_output
+  register: cloudkitty_data_file_output
   when: not file_preexists.stat.exists | bool
-  changed_when: script_output.rc == 0
+  changed_when: cloudkitty_data_file_output.rc == 0
 
 - name: "Generate chargeback rating from synthetic data file {{ scenario_name }}"
   ansible.builtin.command:
@@ -28,11 +28,6 @@
       -j "{{ cloudkitty_data_file }}"
       -o "{{ cloudkitty_synth_totals_file }}"
       --debug "{{ cloudkitty_debug_dir }}"
-  register: synth_rating_info
+  register: cloudkitty_synth_totals_file_output
   when: not file_preexists.stat.exists | bool
-  changed_when: synth_rating_info.rc == 0
-
-- name: "Load metrics from YAML file"
-  ansible.builtin.include_vars:
-    file: "{{ cloudkitty_synth_totals_file }}"
-    name: synth_data_rates
+  changed_when: cloudkitty_synth_totals_file_output.rc == 0
