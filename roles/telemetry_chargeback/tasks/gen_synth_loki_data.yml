@@ -24,6 +24,7 @@
       --tmpl "{{ cloudkitty_data_template }}"
       -t "{{ _test_file }}"
       -o "{{ _synth_data_file }}"
+      -s "{{ item }}"
       {% if cloudkitty_project_id is defined and cloudkitty_project_id %} -p "{{ cloudkitty_project_id }}"{% endif %}
   register: script_output
   when: not file_preexists.stat.exists | bool

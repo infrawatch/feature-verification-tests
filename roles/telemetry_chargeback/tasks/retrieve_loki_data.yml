@@ -3,17 +3,18 @@
   ansible.builtin.debug:
     msg: "Input file has {{ scenario_result.num_values }} data entries that Loki has to return"
 
-- name: "Set Loki output paths for {{ item }}"
+- name: "Set Loki output paths and query for {{ item }}"
   ansible.builtin.set_fact:
     _loki_data_file: "{{ artifacts_dir_zuul }}/{{ scenario_result.file_name }}-loki_data.json"
     _loki_totals_file: "{{ artifacts_dir_zuul }}/{{ scenario_result.file_name }}-loki_metrics_summary.yml"
+    _loki_scenario_query: '{service="cloudkitty", scenario="{{ scenario_result.file_name }}"}'
 
 # Query Loki
 - name: "Retrieve Logs from Loki via API {{ item }}"
   block:
     - name: "Query Loki API"
       ansible.builtin.uri:
-        url: "{{ loki_query_url }}?query={{ logql_query | urlencode }}&start={{ scenario_result.synth_summary.time.begin_step.nanosec }}&limit={{ limit }}"
+        url: "{{ loki_query_url }}?query={{ _loki_scenario_query | urlencode }}&start={{ scenario_result.synth_summary.time.begin_step.nanosec }}&limit={{ limit }}"
         method: GET
         client_cert: "{{ cert_dir }}/tls.crt"
         client_key: "{{ cert_dir }}/tls.key"

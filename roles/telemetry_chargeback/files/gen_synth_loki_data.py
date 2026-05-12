@@ -431,6 +431,14 @@ def main():
 
     # --- Optional Utility Arguments ---
     parser.add_argument(
+        "-s", "--scenario",
+        type=str,
+        default=None,
+        metavar="NAME",
+        help="Scenario name to add as a label in the Loki stream, "
+             "allowing per-scenario filtering on retrieval."
+    )
+    parser.add_argument(
         "-r", "--reverse",
         action="store_true",
         help="Reverse timestamp order in JSON output: newest first, "
@@ -466,6 +474,11 @@ def main():
 
     # Run the generator
     try:
+        if args.scenario:
+            loki_stream = config.get("loki_stream", {})
+            loki_stream["scenario"] = args.scenario
+            config["loki_stream"] = loki_stream
+
         generate_loki_data(
             template_path=Path(args.tmpl),
             output_path=Path(args.output),
