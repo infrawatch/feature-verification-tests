@@ -4,13 +4,13 @@
 - name: "Flush execution inside OpenStack Client Pod"
   block:
     # create dir
-    - name: "Create directory inside OpenStack CLI"
+    - name: "Create directory inside OpenStack Client pod"
       ansible.builtin.command:
         cmd: "oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} -- mkdir -p {{ remote_cert_dir }}"
       changed_when: false
 
     # copy all certs
-    - name: "Copy certificates to OpenStack CLI"
+    - name: "Copy certificates to OpenStack Client pod"
       ansible.builtin.command:
         cmd: "oc cp {{ local_cert_dir }}/. {{ cloudkitty_namespace }}/{{ openstackpod }}:{{ remote_cert_dir }}/"
       changed_when: true
