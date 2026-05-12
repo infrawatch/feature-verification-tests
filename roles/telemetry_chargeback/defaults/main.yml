@@ -9,7 +9,7 @@ cloudkitty_debug_dir: "{{ (cloudkitty_debug | bool) | ternary(artifacts_dir_zuul
 # Directory paths
 logs_dir_zuul: "{{ cifmw_basedir }}/logs"
 artifacts_dir_zuul: "{{ cifmw_basedir }}/artifacts"
-cert_dir: "{{ ansible_user_dir }}/ck-certs"
+cert_dir: "{{ cifmw_basedir }}/ck-certs"
 local_cert_dir: "{{ cifmw_basedir }}/flush_certs"
 remote_cert_dir: "osp-certs"
 
