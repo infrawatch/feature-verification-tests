@@ -35,6 +35,16 @@
       register: cmd_output
       failed_when: cmd_output.rc != 0
 
+    - name: Wait for the snmp-webhook pod to be ready
+      ansible.builtin.shell: >
+        oc wait pod -l app=default-snmp-webhook
+        --for=condition=Ready --timeout=300s
+      register: webhook_wait
+      changed_when: false
+      retries: 6
+      delay: 10
+      until: webhook_wait.rc == 0
+
     - name: "Create an alert for an interrruption to metrics"
       ansible.builtin.shell:
         cmd: |
@@ -60,19 +70,39 @@
           EOF
       changed_when: true
 
+    - name: Wait for the PrometheusRule to be loaded
+      ansible.builtin.command: >
+        curl -k {{ prom_auth_string }}
+        https://{{ prom_url }}/api/v1/rules
+      register: rules_output
+      retries: 30
+      delay: 10
+      changed_when: false
+      until: '"FVT_TESTING Collectd metrics receive rate is zero" in rules_output.stdout'
+
     - name: "RHELOSP-144966 Interrupt metrics flow by preventing the QDR from running"
       ansible.builtin.shell:
         cmd: |
-          for i in {1..30}; do oc delete po -l application=default-interconnect; sleep 1; done
+          for i in {1..60}; do oc delete po -l application=default-interconnect; sleep 1; done
       changed_when: false
 
-    - name: "RHELOSP-144481 Check for snmpTraps logs"
-      ansible.builtin.shell:
-        cmd: |
-          oc logs -l "app=default-snmp-webhook"
+    - name: Verify the alert is firing in Alertmanager
+      ansible.builtin.shell: >-
+        oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c
+        'curl -k -H "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+        https://default-alertmanager-proxy:9095/api/v1/alerts' | grep 'active'
+      register: alert_status
+      retries: 30
+      delay: 10
+      changed_when: false
+      until: '"FVT_TESTING Collectd metrics receive rate is zero" in alert_status.stdout'
+
+    - name: RHELOSP-144481 Check for snmpTraps logs
+      ansible.builtin.shell: >
+        oc logs -l "app=default-snmp-webhook"
       register: cmd_output
       changed_when: false
-      retries: 12
+      retries: 30
       delay: 10
       until: "'Sending SNMP trap' in cmd_output.stdout"
 
@@ -89,13 +119,14 @@
       register: delete_prom
       changed_when: delete_prom.rc == 0
 
-    - name: "Wait up to two minutes until the rule is deleted"
-      ansible.builtin.command:
-        cmd: |
-          curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
+    - name: Wait up to two minutes until the rule is deleted
+      ansible.builtin.command: >
+        curl -k {{ prom_auth_string }}
+        https://{{ prom_url }}/api/v1/rules
+      register: rules_check
       retries: 12
       delay: 10
-      until: 'not "FVT_TESTING Collectd metrics receive rate is zero" in cmd_output.stdout'
+      until: '"FVT_TESTING Collectd metrics receive rate is zero" not in rules_check.stdout'
       changed_when: false
 
     - name: "Remove alertmanagerConfigManifest from the ServiceTelemetry object"
