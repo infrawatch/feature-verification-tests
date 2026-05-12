@@ -1,39 +1,57 @@
 ---
-- name: Check for preexisting output file
+- name: "Ensure artifacts directory exists for {{ item }}"
+  ansible.builtin.file:
+    path: "{{ artifacts_dir_zuul }}"
+    state: directory
+    mode: '0755'
+
+- name: "Set file paths for {{ item }}"
+  ansible.builtin.set_fact:
+    _synth_data_file: "{{ artifacts_dir_zuul }}/{{ item }}-synth_data.json"
+    _synth_totals_file: "{{ artifacts_dir_zuul }}/{{ item }}-synth_metrics_summary.yml"
+    _test_file: "{{ cloudkitty_scenario_dir }}/{{ item }}.yml"
+
+- name: "Check for preexisting output file"
   ansible.builtin.stat:
-    path: "{{ ck_output_file_local }}"
+    path: "{{ _synth_data_file }}"
   register: file_preexists
 
-- name: TEST Generate Synthetic Data
+- name: "Generate Synthetic Data for {{ item }}"
   ansible.builtin.command:
     cmd: >
       python3 "{{ cloudkitty_synth_script }}"
+      -r
       --tmpl "{{ cloudkitty_data_template }}"
-      -t "{{ ck_data_config }}"
-      -o "{{ ck_output_file_local }}"
+      -t "{{ _test_file }}"
+      -o "{{ _synth_data_file }}"
+      -s "{{ item }}"
+      {% if cloudkitty_project_id is defined and cloudkitty_project_id %} -p "{{ cloudkitty_project_id }}"{% endif %}
   register: script_output
-  when: not file_preexists.stat.exists | bool 
+  when: not file_preexists.stat.exists | bool
   changed_when: script_output.rc == 0
 
-- name: Read the content of the file
-  ansible.builtin.slurp:
-    src: "{{ ck_output_file_local }}"
-  register: slurped_file
+- name: "Generate chargeback rating from synthetic data file {{ item }}"
+  ansible.builtin.command:
+    cmd: >
+      python3 "{{ cloudkitty_summary_script }}"
+      -j "{{ _synth_data_file }}"
+      -o "{{ _synth_totals_file }}"
+      --debug "{{ cloudkitty_debug_dir }}"
+  register: synth_rating_info
+  when: not file_preexists.stat.exists | bool
+  changed_when: synth_rating_info.rc == 0
 
-- name: TEST Validate JSON format of synthetic data file
-  ansible.builtin.assert:
-    that:
-    # This filter will trigger a task failure if the string isn't valid JSON
-      - slurped_file.content | b64decode | from_json is defined
-    fail_msg: "The file does not contain valid JSON format."
-    success_msg: "JSON format validated successfully."
+- name: "Load synthetic metrics summary"
+  ansible.builtin.include_vars:
+    file: "{{ _synth_totals_file }}"
+    name: _synth_summary
 
-- name: Print output_file_remote path
-  ansible.builtin.debug:
-    msg: "Synthetic data file: {{ ck_output_file_remote }}"
-
-- name: Copy output file to remote host
-  ansible.builtin.copy:
-    src: "{{ ck_output_file_local }}"
-    dest: "{{ ck_output_file_remote }}"
-    mode: '0644'
+- name: "Build scenario_result dict for {{ item }}"
+  ansible.builtin.set_fact:
+    scenario_result:
+      file_name: "{{ item }}"
+      synth_data_file: "{{ _synth_data_file }}"
+      synth_totals_file: "{{ _synth_totals_file }}"
+      num_values: "{{ _synth_summary.data_log.log_count }}"
+      total_rate: "{{ _synth_summary.rate.total.Rating }}"
+      synth_summary: "{{ _synth_summary }}"

@@ -1,0 +1,90 @@
+---
+- name: "Expected Count {{ item }}"
+  ansible.builtin.debug:
+    msg: "Input file has {{ scenario_result.num_values }} data entries that Loki has to return"
+
+- name: "Set Loki output paths and query for {{ item }}"
+  ansible.builtin.set_fact:
+    _loki_data_file: "{{ artifacts_dir_zuul }}/{{ scenario_result.file_name }}-loki_data.json"
+    _loki_totals_file: "{{ artifacts_dir_zuul }}/{{ scenario_result.file_name }}-loki_metrics_summary.yml"
+    _loki_scenario_query: '{service="cloudkitty", scenario="{{ scenario_result.file_name }}"}'
+
+# Query Loki
+- name: "Retrieve Logs from Loki via API {{ item }}"
+  block:
+    - name: "Query Loki API"
+      ansible.builtin.uri:
+        url: "{{ loki_query_url }}?query={{ _loki_scenario_query | urlencode }}&start={{ scenario_result.synth_summary.time.begin_step.nanosec }}&limit={{ limit }}"
+        method: GET
+        client_cert: "{{ cert_dir }}/tls.crt"
+        client_key: "{{ cert_dir }}/tls.key"
+        ca_path: "{{ cert_dir }}/ca.crt"
+        validate_certs: false
+        return_content: true
+        body_format: json
+      register: loki_response
+      until:
+        - loki_response.status == 200
+        - loki_response.json.status == 'success'
+        - loki_response.json.data.result | length > 0
+        - (loki_response.json.data.result | map(attribute='values') | map('length') | sum) >= (scenario_result.num_values | int)
+      retries: 25
+      delay: 60
+
+    - name: "Save Loki Data to JSON file"
+      ansible.builtin.copy:
+        content: "{{ loki_response.json | to_json }}"
+        dest: "{{ _loki_data_file }}"
+        mode: '0644'
+
+    - name: "Verify Data Integrity {{ item }}"
+      vars:
+        actual_count: "{{ loki_response.json.data.result | map(attribute='values') | map('length') | sum }}"
+      ansible.builtin.assert:
+        that:
+          - loki_response.json.status == 'success'
+          - loki_response.json.data.result | length > 0
+          - actual_count | int == (scenario_result.num_values | int)
+        fail_msg: >-
+          Query did not return all data entries. Expected
+          {{ scenario_result.num_values }} log entries, but Loki
+          only returned {{ actual_count }}
+        success_msg: >-
+          Query returned all data entries. Input file had
+          {{ scenario_result.num_values }} entries and Loki returned {{ actual_count }}
+
+  rescue:
+    - name: "Debug failure"
+      ansible.builtin.debug:
+        msg:
+          - "Status: {{ loki_response.status | default('Unknown') }}"
+          - "Body: {{ loki_response.content | default('No Content') }}"
+          - "Msg: {{ loki_response.msg | default('Request failed') }}"
+
+    - name: "Report Retrieval Failure"
+      ansible.builtin.fail:
+        msg: "Retrieval Failed"
+
+- name: "Generate chargeback stats from Loki-retrieved data file: {{ item }}"
+  ansible.builtin.command:
+    cmd: >
+      python3 "{{ cloudkitty_summary_script }}"
+      -j "{{ _loki_data_file }}"
+      -o "{{ _loki_totals_file }}"
+      --debug "{{ cloudkitty_debug_dir }}"
+  register: loki_retrieved_summary_info
+  changed_when: loki_retrieved_summary_info.rc == 0
+
+- name: "Load Loki metrics summary"
+  ansible.builtin.include_vars:
+    file: "{{ _loki_totals_file }}"
+    name: _loki_summary
+
+- name: "Update scenario_result with Loki retrieval data for {{ item }}"
+  ansible.builtin.set_fact:
+    scenario_result: >-
+      {{ scenario_result | combine({
+        'loki_data_file': _loki_data_file,
+        'loki_totals_file': _loki_totals_file,
+        'loki_summary': _loki_summary
+      }) }}

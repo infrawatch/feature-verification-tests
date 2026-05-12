@@ -1,4 +1,4 @@
-{"streams": [{ "stream": { "service": "{{ loki_stream.service }}" }, "values": [
+{"streams": [{ "stream": { {% for key, value in loki_stream.items() %}"{{ key }}": "{{ value }}"{% if not loop.last %}, {% endif %}{% endfor %} }, "values": [
 {%- for item in log_data %}
 {%- set outer_idx = loop.index0 %}
 {%- set is_last_outer = loop.last %}
@@ -13,7 +13,10 @@
     "qty": entry_data.qty,
     "price": entry_data.price,
     "groupby": entry_data.groupby,
-    "metadata": entry_data.metadata
+    "metadata": entry_data.metadata,
+    "factor": entry_data.factor,
+    "offset": entry_data.offset,
+    "mutate": entry_data.mutate
 } -%}
 [
 "{{ item.nanoseconds }}",

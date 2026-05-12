@@ -1,0 +1,54 @@
+---
+- name: "Generate Synthetic Data for each file: {{ item }}"
+  ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
+
+- name: "Load data to Loki: {{ item }}"
+  ansible.builtin.include_tasks: "load_loki_data.yml"
+
+- name: "Get total rate from Loki: {{ item }}"
+  ansible.builtin.include_tasks: "loki_rate.yml"
+
+- name: "TEST Scenario data available for comparison {{ item }}"
+  ansible.builtin.assert:
+    that:
+      - scenario_result.synth_summary is defined
+      - scenario_result.loki_summary is defined
+    fail_msg: >-
+      FAILED! Missing summary data for scenario {{ item }}.
+      synth_summary defined: {{ scenario_result.synth_summary is defined }},
+      loki_summary defined: {{ scenario_result.loki_summary is defined }}
+    success_msg: "PASSED! Scenario data available for {{ item }}"
+
+- name: "TEST Compare log counts - synthetic vs Loki {{ item }}"
+  ansible.builtin.assert:
+    that:
+      - scenario_result.synth_summary.data_log.log_count | int == scenario_result.loki_summary.data_log.log_count | int
+    fail_msg: >-
+      FAILED! {{ item }} - Log count mismatch:
+      synthetic={{ scenario_result.synth_summary.data_log.log_count }},
+      loki={{ scenario_result.loki_summary.data_log.log_count }}
+    success_msg: >-
+      PASSED! {{ item }} - Log counts match:
+      {{ scenario_result.synth_summary.data_log.log_count }}
+
+- name: "TEST Compare total rate - synthetic vs Loki {{ item }}"
+  ansible.builtin.assert:
+    that:
+      - scenario_result.synth_summary.rate.total.Rating | float == scenario_result.loki_summary.rate.total.Rating | float
+    fail_msg: >-
+      FAILED! {{ item }} - Total rate mismatch:
+      synthetic={{ scenario_result.synth_summary.rate.total.Rating }},
+      loki={{ scenario_result.loki_summary.rate.total.Rating }}
+    success_msg: >-
+      PASSED! {{ item }} - Total rates match:
+      {{ scenario_result.synth_summary.rate.total.Rating }}
+
+- name: "TEST Compare per-type rates - synthetic vs Loki {{ item }}"
+  ansible.builtin.assert:
+    that:
+      - scenario_result.synth_summary.rate.by_types == scenario_result.loki_summary.rate.by_types
+    fail_msg: >-
+      FAILED! {{ item }} - Per-type rates differ:
+      synthetic={{ scenario_result.synth_summary.rate.by_types }},
+      loki={{ scenario_result.loki_summary.rate.by_types }}
+    success_msg: "PASSED! {{ item }} - Per-type rates are identical."
