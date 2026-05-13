@@ -1,0 +1,6 @@
+---
+- name: "Generate Synthetic Data for each file: {{ scenario_name }}"
+  ansible.builtin.include_tasks: "gen_synth_loki_data.yml"
+
+- name: "Load data to Loki: {{ scenario_name }}"
+  ansible.builtin.include_tasks: "load_loki_data.yml"
