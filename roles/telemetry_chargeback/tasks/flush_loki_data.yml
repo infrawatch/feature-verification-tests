@@ -16,24 +16,24 @@
       changed_when: true
 
     # flush loki
-    - name: "Trigger Loki ingester flush"
+    - name: "TEST Trigger Loki ingester flush"
       ansible.builtin.command:
         cmd: >
           oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} --
-          curl -v -X POST {{ ingester_flush_url }}
+          curl -s -w '%{http_code}' -X POST {{ ingester_flush_url }}
           --cert {{ remote_cert_dir }}/tls.crt
           --key {{ remote_cert_dir }}/tls.key
           --cacert {{ remote_cert_dir }}/service-ca.crt
       register: flush_response
       changed_when: true
-      failed_when: flush_response.rc != 0
+      any_errors_fatal: true
 
     # Status
     - name: "Verify flush status"
       ansible.builtin.assert:
         that:
-          - "'204' in flush_response.stderr or '200' in flush_response.stderr"
-        fail_msg: "Flush failed"
+          - "flush_response.stdout in ['200', '204']"
+        fail_msg: "Flush failed with status: {{ flush_response.stdout }}"
         success_msg: "Ingester Memory Flushed successfully"
 
   rescue:
