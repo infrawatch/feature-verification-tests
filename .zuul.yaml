@@ -2,7 +2,6 @@
 - job:
     name: telemetry-container-image-content-provider
     parent: cifmw-base-minimal
-    nodeset: centos-stream-9-vexxhost
     description: |
       Build sg-core, prometheus-podman-exporter and mysqld-exporter
       container images from the current change and serve them from
