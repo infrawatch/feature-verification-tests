@@ -1,5 +1,4 @@
 telemetry_chargeback
-===================
 
 The **`telemetry_chargeback`** role validates and tests the **RHOSO CloudKitty** chargeback feature. It performs CloudKitty configuration validation and generates synthetic test data for chargeback scenario testing.
 
@@ -32,6 +31,8 @@ Role Variables
 --------------
 
 ### User-Configurable Variables (defaults/main.yml)
+
+These variables can be overridden when importing the role or set at the play level. Users can customize these based on their deployment environment and test requirements.
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
