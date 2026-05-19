@@ -30,15 +30,12 @@
       - "Flush URL:  {{ ingester_flush_url }}"
       - "Query URL:  {{ loki_query_url }}"
 
-- name: "Ensure Certificate Directories Exist"
+# Certs to Ingest & Retrieve data to/from Loki
+- name: "Ensure Local Certificate Directory Exists"
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ cert_dir }}"
     state: directory
-    mode: '0700'  # Restricted for security
-  loop:
-    - "{{ cert_dir }}"
-    - "{{ local_cert_dir }}"
-  when: item is defined
+    mode: '0755'
 
 - name: "Extract Certificates from OpenShift Secret"
   ansible.builtin.command:

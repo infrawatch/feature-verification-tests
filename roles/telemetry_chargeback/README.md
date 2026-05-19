@@ -41,6 +41,9 @@ These variables can be overridden when importing the role or set at the play lev
 | `cloudkitty_debug_dir` | `"{{ (cloudkitty_debug \| bool) \| ternary(artifacts_dir_zuul + '/debug_ck_db', '') }}"` | Directory for debug output (auto-set based on debug flag) |
 | `logs_dir_zuul` | `"{{ cifmw_basedir }}/logs"` | Directory for log files |
 | `artifacts_dir_zuul` | `"{{ cifmw_basedir }}/artifacts"` | Directory for generated artifacts and test output |
+| `cert_dir` | `"{{ cifmw_basedir }}/ck-certs"` | Directory for CloudKitty client certificates |
+| `local_cert_dir` | `"{{ cifmw_basedir }}/flush_certs"` | Local directory for flush certificates (cleaned up after run) |
+| `remote_cert_dir` | `"osp-certs"` | Remote directory inside OpenStack pod for certificates |
 | `cert_secret_name` | `"cert-cloudkitty-client-internal"` | OpenShift secret name for client certificates |
 | `client_secret` | `"secret/cloudkitty-lokistack-gateway-client-http"` | Secret for flush client certificates |
 | `ca_configmap` | `"cm/cloudkitty-lokistack-ca-bundle"` | ConfigMap for CA bundle |
@@ -49,7 +52,6 @@ These variables can be overridden when importing the role or set at the play lev
 | `openstackpod` | `"openstackclient"` | OpenStack client pod name for exec/cp operations |
 | `lookback` | `6` | Days to look back for Loki query time range |
 | `limit` | `50` | Limit for Loki query results |
-| `cloudkitty_test_scenarios` | `[]` | List of test scenario files to run (empty = auto-discover) |
 
 How It Works
 ------------
@@ -67,8 +69,7 @@ The role executes the following workflow:
    - Configures Loki push/query URLs
 
 3. **Test Scenario Discovery**
-   - **Auto-discovery** (default): Finds all `test_*.yml` files in `files/` directory
-   - **User-provided**: Uses scenarios from `cloudkitty_test_scenarios` variable
+   - Automatically finds all `test_*.yml` files in `files/` directory
 
 4. **Scenario Execution Loop** (for each discovered scenario)
    - Generates synthetic Loki log data (`gen_synth_loki_data.py`)
@@ -79,9 +80,6 @@ The role executes the following workflow:
    - Removes temporary certificate directories
    - Always runs (even on failure) via block/rescue/always structure
 
-### Loop Variable
-
-The role uses `{{ scenario_name }}` as the loop variable when processing multiple test scenarios, making it easy to track which scenario is currently executing.
 
 Python Scripts
 --------------

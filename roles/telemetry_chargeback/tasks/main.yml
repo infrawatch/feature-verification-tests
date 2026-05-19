@@ -5,34 +5,24 @@
 - name: "Setup Loki Environment"
   ansible.builtin.include_tasks: "setup_loki_env.yml"
 
-- name: "Auto-discover test scenarios"
-  when: cloudkitty_test_scenarios | length == 0
-  block:
-    - name: "Find test files"
-      ansible.builtin.find:
-        paths: "{{ cloudkitty_scenario_dir }}"
-        patterns: "test_*.yml"
-      register: test_files_raw
+- name: "Find test files"
+  ansible.builtin.find:
+    paths: "{{ cloudkitty_scenario_dir }}"
+    patterns: "test_*.yml"
+  register: found_files_raw
 
-    - name: "Set scenario list from discovered files"
-      ansible.builtin.set_fact:
-        cloudkitty_test_scenario_names: "{{ test_files_raw.files | map(attribute='path') | map('basename') | map('regex_replace', '\\.yml$', '') | list }}"
-
-- name: "Set scenario list from user-provided variable"
+- name: "Extract only the filenames into a clean list"
   ansible.builtin.set_fact:
-    cloudkitty_test_scenario_names: "{{ cloudkitty_test_scenarios }}"
-  when: cloudkitty_test_scenarios | length > 0
+    found_files: "{{ found_files_raw.files | map(attribute='path') | map('basename') | map('regex_replace', '\\.yml$', '') | list }}"
 
 - name: "Run scenario file through workflow"
-  when: cloudkitty_test_scenario_names | length > 0
-
   block:
     - name: "Process and Loop if files exist"
       ansible.builtin.include_tasks: run_test_scenarios.yml
-      loop: "{{ cloudkitty_test_scenario_names }}"
+      loop: "{{ found_files }}"
       loop_control:
         loop_var: scenario_name
-      when: cloudkitty_test_scenario_names | length > 0
+      when: found_files | length > 0
 
   rescue:
     - name: "Log failure"
