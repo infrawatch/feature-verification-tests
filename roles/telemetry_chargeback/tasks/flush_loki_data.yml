@@ -33,7 +33,7 @@
       ansible.builtin.assert:
         that:
           - "flush_response.stdout in ['200', '204']"
-        fail_msg: "Flush failed with status: {{ flush_response.stdout }}"
+        fail_msg: "Flush failed with status: {{ flush_response.stderr }}"
         success_msg: "Ingester Memory Flushed successfully"
 
   rescue:
