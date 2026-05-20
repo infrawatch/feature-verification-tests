@@ -109,6 +109,7 @@ def generate_loki_data(
     end_time: datetime,
     time_step_seconds: int,
     config: Dict[str, Any],
+    scenario_name: str,
     reverse_timestamps: bool = True,
 ):
     """
@@ -121,6 +122,7 @@ def generate_loki_data(
         end_time (datetime): The end time for data generation.
         time_step_seconds (int): The duration of each log entry in seconds.
         config (Dict[str, Any]): Configuration dictionary loaded from file.
+        scenario_name (str): Name of the test scenario for Loki labeling.
         reverse_timestamps (bool): If True, sort timestamps in descending order
             (newest first, oldest last). If False, sort in ascending order
             (oldest first, newest last). Default is True (descending).
@@ -138,6 +140,7 @@ def generate_loki_data(
     logger.debug(f"Time range in epoch seconds: {start_epoch} to {end_epoch}")
 
     log_data_list = []  # This list will hold all our data points
+    last_end_of_step_epoch = None  # Track last entry's end epoch
 
     # Loop through the time range and generate data points
     for current_epoch in range(
@@ -164,13 +167,13 @@ def generate_loki_data(
             "end_time": end_str
         })
 
+        # Track the last end epoch
+        last_end_of_step_epoch = end_of_step_epoch
+
     # Add final entry that ends at end_epoch (current time)
-    if log_data_list and end_epoch > start_epoch:
+    if log_data_list and end_epoch > start_epoch and last_end_of_step_epoch:
         # Calculate start of final entry based on end of last generated entry
-        last_entry_end = log_data_list[-1]["end_time"]
-        # Parse the last entry's end time to get the epoch
-        last_end_dt = datetime.fromisoformat(last_entry_end)
-        final_start_epoch = int(last_end_dt.timestamp()) + 1
+        final_start_epoch = last_end_of_step_epoch + 1
         final_nanoseconds = int(final_start_epoch * 1_000_000_000)
 
         # Only add if the final entry would have a valid duration
@@ -222,8 +225,11 @@ def generate_loki_data(
 
         # Validate required fields
         # metadata is optional for generation; name is not a log-type field
-        required_for_item = set(required_fields) - {"name", "metadata"}
-        missing = required_for_item - set(log_type_config)
+        required_for_item = [
+            f for f in required_fields
+            if f not in ("name", "metadata")
+        ]
+        missing = [f for f in required_for_item if f not in log_type_config]
         if missing:
             logger.error(
                 f"Missing required fields in {type_key!r} config: {missing}"
@@ -255,7 +261,10 @@ def generate_loki_data(
             "qty": qty_list,
             "price": price_list,
             "groupby": groupby.copy(),
-            "metadata": log_type_config.get("metadata", {})
+            "metadata": log_type_config.get("metadata", {}),
+            "mutate": log_type_config.get("mutate"),
+            "factor": log_type_config.get("factor"),
+            "offset": log_type_config.get("offset")
         }
 
     # --- Step 3: Load template and render ---
@@ -333,11 +342,15 @@ def generate_loki_data(
 
         log_types_list.append(log_types_with_dates)
 
-    # Get loki_stream configuration
+    # Get loki_stream configuration and add scenario
     loki_stream = config.get("loki_stream", {})
     if not loki_stream:
         logger.warning("No loki_stream configuration found, using defaults")
         loki_stream = {"service": "cloudkitty"}
+
+    # Add scenario name to loki_stream labels
+    loki_stream["scenario"] = scenario_name
+    logger.info(f"Adding scenario label: {scenario_name}")
 
     # Build template context with generic log type information
     template_context = {
@@ -371,6 +384,31 @@ def generate_loki_data(
             f"Delete '{output_path}' and fix the template or data."
         )
         sys.exit(1)
+
+
+def _str_to_bool(value: str) -> bool:
+    """
+    Convert string to boolean.
+
+    Args:
+        value: String representation of boolean.
+
+    Returns:
+        Boolean value.
+
+    Raises:
+        argparse.ArgumentTypeError: If value cannot be converted.
+    """
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif value.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError(
+            f"Boolean value expected. Got: {value}"
+        )
 
 
 def main():
@@ -415,8 +453,10 @@ def main():
     )
     parser.add_argument(
         "--debug",
-        action="store_true",
-        help="Enable debug level logging for verbose output."
+        type=_str_to_bool,
+        default=False,
+        metavar="BOOL",
+        help="Enable debug level logging for verbose output (true/false)."
     )
     args = parser.parse_args()
 
@@ -429,7 +469,11 @@ def main():
         config = load_config(args.test)
     except (FileNotFoundError, ValueError) as e:
         logger.critical(f"Failed to load config: {e}")
-        return
+        sys.exit(1)
+
+    # Derive scenario name from test file path
+    scenario_name = args.test.stem
+    logger.info(f"Derived scenario name from test file: {scenario_name}")
 
     # Get generation parameters from config
     generation_config = config.get("generation", {})
@@ -450,14 +494,17 @@ def main():
             end_time=end_time_utc,
             time_step_seconds=step_seconds,
             config=config,
+            scenario_name=scenario_name,
             reverse_timestamps=args.reverse,
         )
     except FileNotFoundError:
         logger.error(
             "Process aborted because the template file was not found."
         )
+        sys.exit(1)
     except Exception as e:
         logger.critical(f"A critical, unhandled error stopped the script: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
