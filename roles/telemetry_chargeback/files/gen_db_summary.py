@@ -118,11 +118,11 @@ def _apply_mutate(qty: float, mutate: str) -> float:
     elif mutate_upper == "FLOOR":
         return math.floor(qty)
     elif mutate_upper == "NUMBOOL":
-        # If qty equals 0, leave it at 0. Else, set it to 1.
-        return 0.0 if qty == 0 else 1.0
+        # If qty near 0, set it at 0. Else, set it to 1.
+        return 0.0 if abs(qty) < 1e-9 else 1.0
     elif mutate_upper == "NOTNUMBOOL":
-        # If qty equals 0, set it to 1. Else, set it to 0.
-        return 1.0 if qty == 0 else 0.0
+        # If qty near 0, set it to 1. Else, set it to 0.
+        return 1.0 if abs(qty) < 1e-9 else 0.0
     else:  # NONE or any unrecognized value
         return qty
 
@@ -175,8 +175,9 @@ def _parse_numeric(value: Any, default: float = 0) -> float:
 
 def aggregate_rates_by_type(
     pairs: list[tuple[str, str]],
-) -> tuple[dict, float]:
-    sums: defaultdict[str, float] = defaultdict(float)
+) -> tuple[dict, float, dict]:
+    rate_sums: defaultdict[str, float] = defaultdict(float)
+    qty_sums: defaultdict[str, float] = defaultdict(float)
     for _, log_str in pairs:
         try:
             entry = json.loads(log_str)
@@ -196,20 +197,34 @@ def aggregate_rates_by_type(
         except (TypeError, ValueError):
             continue
 
-        # Apply mutate transformation
+        # Track raw qty sum (before any transformation)
+        qty_sums[mtype] += qty
+
+        # Apply mutate transformation for rating calculation
         qty_mutated = _apply_mutate(qty, mutate)
 
         # Apply factor and offset
         qty_rate = qty_mutated * factor + offset
 
         # Calculate rate
-        sums[mtype] += qty_rate * price
-    by_types = {k: {"Rate": round(v, 4)} for k, v in sorted(sums.items())}
-    total = sum(sums.values())
-    return by_types, total
+        rate_sums[mtype] += qty_rate * price
+
+    by_types = {
+        k: {"Rate": round(v, 4)} for k, v in sorted(rate_sums.items())
+    }
+    qty_by_types = {
+        k: {"qty_sum": round(v, 4)} for k, v in sorted(qty_sums.items())
+    }
+    total = sum(rate_sums.values())
+    return by_types, total, qty_by_types
 
 
 def build_summary(pairs: list[tuple[str, str]]) -> dict[str, Any]:
+    # Early exit if no pairs
+    if not pairs:
+        print("Error: No log entries to summarize", file=sys.stderr)
+        sys.exit(1)
+
     log_count = len(pairs)
     per_ts = Counter(ts for ts, _ in pairs)
     n_ts = len(per_ts)
@@ -218,36 +233,52 @@ def build_summary(pairs: list[tuple[str, str]]) -> dict[str, Any]:
     if counts and len(set(counts)) > 1:
         mps = "ERROR"
 
-    if pairs:
-        first = json.loads(pairs[0][1])
-        last = json.loads(pairs[-1][1])
-        time_block = {
-            "begin_step": {
-                "nanosec": int(pairs[0][0]),
-                "begin": first.get("start"),
-                "end": first.get("end"),
-            },
-            "end_step": {
-                "nanosec": int(pairs[-1][0]),
-                "begin": last.get("start"),
-                "end": last.get("end"),
-            },
-        }
-    else:
-        empty = {"nanosec": None, "begin": None, "end": None}
-        time_block = {"begin_step": empty.copy(), "end_step": empty.copy()}
+    # Parse first and last entries (guaranteed to exist after early exit check)
+    first = json.loads(pairs[0][1])
+    last = json.loads(pairs[-1][1])
 
-    by_types, total_r = aggregate_rates_by_type(pairs)
+    time_block = {
+        "begin_step": {
+            "nanosec": int(pairs[0][0]),
+            "begin": first.get("start"),
+            "end": first.get("end"),
+        },
+        "end_step": {
+            "nanosec": int(pairs[-1][0]),
+            "begin": last.get("start"),
+            "end": last.get("end"),
+        },
+    }
+
+    # Get aggregated data by type
+    by_types, total_r, qty_by_types = aggregate_rates_by_type(pairs)
+
+    # Get overall time range for by_type entries
+    begin_time = first.get("start")
+    end_time = last.get("end")
+
+    # Build flat list of entries
+    rate_list = []
+    for type_name in sorted(by_types.keys()):
+        entry = {
+            "Begin": begin_time,
+            "End": end_time,
+            "Qty": qty_by_types.get(type_name, {}).get("qty_sum", 0.0),
+            "Rate": by_types[type_name]["Rate"],
+            "Type": type_name,
+        }
+        rate_list.append(entry)
+
     return {
         "time": time_block,
-        "data_log": {
+        "data_summary": {
             "total_timesteps": n_ts,
             "metrics_per_step": mps,
             "log_count": log_count,
+            "total_rating": round(total_r, 4),
         },
-        "rate": {
-            "by_types": by_types,
-            "total": {"Rating": round(total_r, 4)},
+        "by_type": {
+            "rate": rate_list,
         },
     }
 
@@ -264,10 +295,36 @@ def write_yaml(path: Path, doc: dict[str, Any]) -> None:
         )
 
 
+def _str_to_bool(value: str) -> bool:
+    """
+    Convert string to boolean.
+
+    Args:
+        value: String representation of boolean.
+
+    Returns:
+        Boolean value.
+
+    Raises:
+        argparse.ArgumentTypeError: If value cannot be converted.
+    """
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif value.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError(
+            f"Boolean value expected. Got: {value}"
+        )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "Summarize Loki JSON log entries to YAML (time, data_log, rate)."
+            "Summarize Loki JSON log entries to YAML "
+            "(time, data_summary, by_type)."
         ),
     )
     parser.add_argument(
@@ -282,11 +339,21 @@ def main() -> None:
     )
     parser.add_argument(
         "--debug",
+        type=_str_to_bool,
+        default=False,
+        metavar="BOOL",
+        help=(
+            "Enable debug mode: write <stem>_diff.txt with one "
+            "[ts,log] JSON per line (true/false)."
+        ),
+    )
+    parser.add_argument(
+        "--debug_dir",
         type=Path,
         default=None,
         metavar="DIR",
         help=(
-            "If set, write <stem>_diff.txt with one [ts,log] JSON per line."
+            "Directory for debug output. Required when --debug is enabled."
         ),
     )
     args = parser.parse_args()
@@ -299,23 +366,23 @@ def main() -> None:
     out_path = args.output or (args.json.parent / f"{stem}_total.yml")
     pairs = extract_and_sort(args.json)
 
-    dbg = str(args.debug).strip() if args.debug is not None else ""
-    if dbg and dbg != ".":
-        args.debug.mkdir(parents=True, exist_ok=True)
-        dbg_file = args.debug / f"{args.json.stem}_diff.txt"
+    if args.debug:
+        # Require debug directory when debug mode is enabled
+        if not args.debug_dir:
+            print(
+                "Error: --debug_dir is required when --debug is enabled",
+                file=sys.stderr
+            )
+            sys.exit(1)
+        debug_dir = args.debug_dir
+        debug_dir.mkdir(parents=True, exist_ok=True)
+        dbg_file = debug_dir / f"{args.json.stem}_diff.txt"
         with dbg_file.open("w", encoding="utf-8") as f:
             for ts, log_str in pairs:
                 print(json.dumps([ts, log_str], ensure_ascii=False), file=f)
 
     doc = build_summary(pairs)
     write_yaml(out_path, doc)
-
-    if doc["data_log"]["metrics_per_step"] == "ERROR":
-        per_ts = Counter(ts for ts, _ in pairs)
-        exp = next(iter(per_ts.values()), 0)
-        for ts in sorted(per_ts, key=int):
-            if per_ts[ts] != exp:
-                print(ts, per_ts[ts], file=sys.stdout)
 
 
 if __name__ == "__main__":
