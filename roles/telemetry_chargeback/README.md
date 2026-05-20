@@ -300,7 +300,6 @@ Apache 2.0
 
 Author Information
 ------------------
-
 Alex Yefimov, Red Hat
 
 **Project:** RHOSO (Red Hat OpenStack Services on OpenShift)  
