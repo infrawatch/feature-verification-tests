@@ -10,24 +10,28 @@
     path: "{{ cloudkitty_data_file }}"
   register: file_preexists
 
-- name: "Generate Synthetic Data for {{ scenario_name }}"
+- name: "TEST Generate Synthetic Data for {{ scenario_name }}"
   ansible.builtin.command:
     cmd: >
       python3 "{{ cloudkitty_synth_script }}"
       --tmpl "{{ cloudkitty_data_template }}"
       -t "{{ cloudkitty_test_file }}"
       -o "{{ cloudkitty_data_file }}"
+      --debug "{{ cloudkitty_debug }}"
   register: cloudkitty_data_file_output
   when: not file_preexists.stat.exists | bool
   changed_when: cloudkitty_data_file_output.rc == 0
+  any_errors_fatal: true
 
-- name: "Generate chargeback rating from synthetic data file {{ scenario_name }}"
+- name: "TEST Generate chargeback rating from synthetic data file {{ scenario_name }}"
   ansible.builtin.command:
     cmd: >
       python3 "{{ cloudkitty_summary_script }}"
       -j "{{ cloudkitty_data_file }}"
       -o "{{ cloudkitty_synth_totals_file }}"
-      --debug "{{ cloudkitty_debug_dir }}"
+      --debug "{{ cloudkitty_debug }}"
+      --debug_dir "{{ cloudkitty_debug_dir }}"
   register: cloudkitty_synth_totals_file_output
   when: not file_preexists.stat.exists | bool
   changed_when: cloudkitty_synth_totals_file_output.rc == 0
+  any_errors_fatal: true
