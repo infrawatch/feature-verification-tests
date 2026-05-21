@@ -26,8 +26,8 @@
 
   rescue:
     - name: "Log failure"
-      ansible.builtin.debug:
-        msg: "Running test scenarios loop failed."
+      ansible.builtin.fail:
+        msg: "Running test scenarios loop failed. Please check logs"
 
   always:
     - name: "Cleanup after job run"
