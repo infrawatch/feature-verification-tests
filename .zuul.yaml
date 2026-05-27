@@ -1,8 +1,31 @@
 ---
+- nodeset:
+    name: telemetry-operator-all-the-features
+    # Use a larger crc with the nodeset for the parent job to account
+    # for openshift monitoring and autoscaling features being deployed.
+    # Original nodeset: centos-9-medium-centos-9-crc-cloud-ocp-4-20-1-3xl
+    # Defined in: openstack-k8s-operators/ci-framework
+    #   Job: cifmw-podified-multinode-edpm-base-crc
+    nodes:
+      - name: controller
+        label: cloud-centos-9-stream-tripleo-medium
+      - name: compute-0
+        label: cloud-centos-9-stream-tripleo
+      - name: crc
+        label: crc-cloud-ocp-4-20-1-4xl
+    groups:
+      - name: computes
+        nodes:
+          - compute-0
+      - name: ocps
+        nodes:
+          - crc
+
 - job:
     name: functional-tests-osp18
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
     parent: telemetry-operator-multinode-autoscaling
+    nodeset: telemetry-operator-all-the-features
     description: |
       Run autoscaling functional tests, tempest tests, metrics
       functional tests, graphing functional tests and logging functional tests on
@@ -115,7 +138,6 @@
 
 - job:
     name: feature-verification-tests-noop
-    parent: noop
     description: |
       A job that always passes. Runs when there's a change to jobs that don't
       need full zuul to run but still need to report a pass.
@@ -126,6 +148,7 @@
     name: functional-periodic-telemetry-with-ceph
     parent: podified-multinode-hci-deployment-crc-1comp-backends
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
+    nodeset: telemetry-operator-all-the-features
     description: |
       Deploy OpenStack with Telemetry and Ceph. Run metric-verification with volume pool metric tests
     extra-vars: *functional_autoscaling_extra_vars
@@ -218,4 +241,3 @@
               # case the job definition changes.
               - ^roles/telemetry_verify_metrics/tasks/verify_ceilometer_volume_pool_metrics.yml$
               - ^.zuul.yaml$
-

@@ -25,6 +25,13 @@
     common_pod_list:
       - ceilometer-0
 
+- name: Verify ceilometer compute agent TLS configuration (OSPRH-27068)
+  ansible.builtin.include_tasks:
+    file: check_compute_tls.yml
+  loop: "{{ groups['computes'] }}"
+  loop_control:
+    loop_var: compute_node
+
 - block:
     - name: Create an image
       ansible.builtin.shell: |
