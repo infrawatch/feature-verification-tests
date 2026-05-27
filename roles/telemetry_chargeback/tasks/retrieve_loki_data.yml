@@ -1,7 +1,7 @@
 ---
 - name: "Expected Count {{ scenario_name }}"
   ansible.builtin.debug:
-    msg: "Input file has {{ synth_data_rates.data_log.log_count }} data entries that Loki has to return"
+    msg: "Input file has {{ synth_data_rates.data_summary.log_count }} data entries that Loki has to return"
 
 # Query Loki
 - name: "Retrieve Logs from Loki via API {{ scenario_name }}"
@@ -22,7 +22,7 @@
         - loki_response.status == 200
         - loki_response.json.status == 'success'
         - loki_response.json.data.result | length > 0
-        - (loki_response.json.data.result | map(attribute='values') | map('length') | sum) >= (synth_data_rates.data_log.log_count | int)
+        - (loki_response.json.data.result | map(attribute='values') | map('length') | sum) >= (synth_data_rates.data_summary.log_count | int)
       retries: 25
       delay: 60
 
@@ -40,12 +40,12 @@
         that:
           - loki_response.json.status == 'success'
           - loki_response.json.data.result | length > 0
-          - actual_count | int == (synth_data_rates.data_log.log_count | int)
+          - actual_count | int == (synth_data_rates.data_summary.log_count | int)
         fail_msg: >-
           Query did not return all data entries. Expected
-          {{ synth_data_rates.data_log.log_count }} log entries, but Loki
+          {{ synth_data_rates.data_summary.log_count }} log entries, but Loki
           only returned {{ actual_count }}
-        success_msg: "Query returned all data entries. Input file had {{ synth_data_rates.data_log.log_count }} entries and Loki returned {{ actual_count }}"
+        success_msg: "Query returned all data entries. Input file had {{ synth_data_rates.data_summary.log_count }} entries and Loki returned {{ actual_count }}"
 
   rescue:
     - name: "Debug failure"
