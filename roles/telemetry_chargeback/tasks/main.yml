@@ -15,19 +15,23 @@
   ansible.builtin.set_fact:
     found_files: "{{ found_files_raw.files | map(attribute='path') | map('basename') | map('regex_replace', '\\.yml$', '') | list }}"
 
+- name: "Determine which scenarios to run"
+  ansible.builtin.set_fact:
+    scenarios_to_run: "{{ cloudkitty_test_scenarios if cloudkitty_test_scenarios | length > 0 else found_files }}"
+
 - name: "Run scenario file through workflow"
   block:
     - name: "Process and Loop if files exist"
       ansible.builtin.include_tasks: run_test_scenarios.yml
-      loop: "{{ found_files }}"
+      loop: "{{ scenarios_to_run }}"
       loop_control:
         loop_var: scenario_name
-      when: found_files | length > 0
+      when: scenarios_to_run | length > 0
 
   rescue:
     - name: "Log failure"
-      ansible.builtin.debug:
-        msg: "Running test scenarios loop failed."
+      ansible.builtin.fail:
+        msg: "Running test scenarios loop failed. Please check logs"
 
   always:
     - name: "Cleanup after job run"
