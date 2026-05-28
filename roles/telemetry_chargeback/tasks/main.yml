@@ -13,16 +13,17 @@
 
 - name: "Extract only the filenames into a clean list"
   ansible.builtin.set_fact:
-    found_files: "{{ found_files_raw.files | map(attribute='path') | map('basename') | map('regex_replace', '\\.yml$', '') | list }}"
+    found_files: "{{ found_files_raw.files | map(attribute='path') | map('basename') | list }}"
 
 - name: "Determine which scenarios to run"
   ansible.builtin.set_fact:
-    scenarios_to_run: "{{ cloudkitty_test_scenarios if cloudkitty_test_scenarios | length > 0 else found_files }}"
+    scenarios_to_run: "{{ (cloudkitty_test_scenarios if cloudkitty_test_scenarios | length > 0 else found_files) | map('regex_replace', '\\.yml$', '') | list }}"
+
 
 - name: "Run scenario file through workflow"
   block:
     - name: "Process and Loop if files exist"
-      ansible.builtin.include_tasks: run_test_scenarios.yml
+      ansible.builtin.include_tasks: "run_test_scenarios.yml"
       loop: "{{ scenarios_to_run }}"
       loop_control:
         loop_var: scenario_name
@@ -35,4 +36,4 @@
 
   always:
     - name: "Cleanup after job run"
-      ansible.builtin.include_tasks: cleanup_ck.yml
+      ansible.builtin.include_tasks: "cleanup_ck.yml"
