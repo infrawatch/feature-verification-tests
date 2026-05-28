@@ -66,6 +66,18 @@
       register: cmd_output
       failed_when: cmd_output.rc != 0
 
+    - name: "RHELOSP-144480 Check that the alert was created"
+      ansible.builtin.command:
+        cmd: |
+          curl -k {{ prom_auth_string }} https://{{ prom_url }}/api/v1/rules
+      register: cmd_output
+      retries: 30
+      delay: 10
+      changed_when: true
+      # when there are no rules, there is still a response and rc == 0
+      # e.g.  {\"status\":\"success\",\"data\":{\"groups\":[]}}
+      until: '"FVT_TESTING Collectd metrics receive rate is zero" in cmd_output.stdout'
+
     - name: "RHELOSP-148697 Interrupt metrics flow by preventing the QDR from running"
       ansible.builtin.shell:
         cmd: |
