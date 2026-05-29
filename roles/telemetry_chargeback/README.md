@@ -51,6 +51,7 @@ Role Variables
 | `openstackpod` | `"openstackclient"` | OpenStack client pod name for exec/cp operations |
 | `lookback` | `6` | Days to look back for Loki query time range |
 | `limit` | `50` | Limit for Loki query results |
+| `cloudkitty_test_scenarios` | `["test_static.yml", "test_dyn_basic.yml"]` | List of test scenario files to run (can be overridden via extra-vars) |
 
 How It Works
 ------------
@@ -67,8 +68,9 @@ The role executes the following workflow:
    - Retrieves certificates from secrets/configmaps
    - Configures Loki push/query URLs
 
-3. **Test Scenario Discovery**
-   - Automatically finds all `test_*.yml` files in `files/` directory
+3. **Test Scenario Selection**
+   - Uses scenarios defined in `cloudkitty_test_scenarios` variable
+   - Can be overridden via extra-vars to run specific scenarios
 
 4. **Scenario Execution Loop** (for each discovered scenario)
    - Generates synthetic Loki log data (`gen_synth_loki_data.py`)
@@ -204,7 +206,7 @@ When `--debug` is enabled, the script writes a `<stem>_diff.txt` file containing
 Scenario Configuration
 ----------------------
 
-Test scenarios are defined in YAML files located in the `files/` directory. Any file matching the pattern `test_*.yml` will be automatically discovered and executed.
+Test scenarios are defined in YAML files located in the `files/` directory. The scenarios to run are specified by the `cloudkitty_test_scenarios` variable.
 
 ### Available Scenarios
 
@@ -265,7 +267,7 @@ This role has no direct hard dependencies on other Ansible roles.
 Example Playbook
 ----------------
 
-**Basic usage (auto-discover scenarios):**
+**Basic usage (runs default scenarios):**
 ```yaml
 - name: "Run chargeback tests"
   hosts: controllers
@@ -293,6 +295,27 @@ Example Playbook
         lookback: 10
 ```
 
+**Run specific test scenarios:**
+```yaml
+- name: "Run chargeback tests with specific scenarios"
+  hosts: controllers
+  gather_facts: false
+
+  tasks:
+    - name: "Run chargeback validation with custom scenarios"
+      ansible.builtin.import_role:
+        name: telemetry_chargeback
+      vars:
+        cloudkitty_test_scenarios:
+          - "test_static.yml"
+```
+
+**Run custom scenarios via extra-vars:**
+```bash
+ansible-playbook playbook.yml \
+  -e '{"cloudkitty_test_scenarios": ["test_static.yml", "test_custom.yml"]}'
+```
+
 License
 -------
 
@@ -303,5 +326,5 @@ Author Information
 
 Alex Yefimov, Red Hat
 
-**Project:** RHOSO (Red Hat OpenStack Services on OpenShift)  
+**Project:** RHOSO (Red Hat OpenStack Services on OpenShift)
 **Component:** Telemetry - CloudKitty Chargeback

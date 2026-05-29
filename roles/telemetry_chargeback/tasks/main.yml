@@ -5,11 +5,12 @@
 - name: "Setup Loki Environment"
   ansible.builtin.include_tasks: "setup_loki_env.yml"
 
-- name: "Determine which scenarios to run"
+# Scenario name is file name without extension
+- name: "Generate clean list of scenario names"
   ansible.builtin.set_fact:
     scenarios_to_run: "{{ cloudkitty_test_scenarios | map('regex_replace', '\\.yml$', '') | list }}"
 
-- name: "Run scenario file through workflow"
+- name: "Run scenarios through workflow"
   block:
     - name: "Process and Loop if files exist"
       ansible.builtin.include_tasks: "run_test_scenarios.yml"
