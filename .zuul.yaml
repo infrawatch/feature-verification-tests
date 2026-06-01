@@ -82,6 +82,8 @@
       - roles/test_sensubility/.*
       - roles/test_snmp_traps/.*
       - roles/test_verify_email/.*
+    post-run:
+      - test.yaml
 
 - job:
     name: functional-tests-on-osp18
