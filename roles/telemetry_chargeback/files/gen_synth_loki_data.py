@@ -140,7 +140,6 @@ def generate_loki_data(
     logger.debug(f"Time range in epoch seconds: {start_epoch} to {end_epoch}")
 
     log_data_list = []  # This list will hold all our data points
-    last_end_of_step_epoch = None  # Track last entry's end epoch
 
     # Loop through the time range and generate data points
     for current_epoch in range(
@@ -167,13 +166,13 @@ def generate_loki_data(
             "end_time": end_str
         })
 
-        # Track the last end epoch
-        last_end_of_step_epoch = end_of_step_epoch
-
     # Add final entry that ends at end_epoch (current time)
-    if log_data_list and end_epoch > start_epoch and last_end_of_step_epoch:
+    if log_data_list and end_epoch > start_epoch:
         # Calculate start of final entry based on end of last generated entry
-        final_start_epoch = last_end_of_step_epoch + 1
+        last_entry_end = log_data_list[-1]["end_time"]
+        # Parse the last entry's end time to get the epoch
+        last_end_dt = datetime.fromisoformat(last_entry_end)
+        final_start_epoch = int(last_end_dt.timestamp()) + 1
         final_nanoseconds = int(final_start_epoch * 1_000_000_000)
 
         # Only add if the final entry would have a valid duration
@@ -225,11 +224,8 @@ def generate_loki_data(
 
         # Validate required fields
         # metadata is optional for generation; name is not a log-type field
-        required_for_item = [
-            f for f in required_fields
-            if f not in ("name", "metadata")
-        ]
-        missing = [f for f in required_for_item if f not in log_type_config]
+        required_for_item = set(required_fields) - {"name", "metadata"}
+        missing = required_for_item - set(log_type_config)
         if missing:
             logger.error(
                 f"Missing required fields in {type_key!r} config: {missing}"
