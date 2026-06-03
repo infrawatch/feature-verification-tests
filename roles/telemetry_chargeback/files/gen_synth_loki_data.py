@@ -127,6 +127,9 @@ def generate_loki_data(
             (newest first, oldest last). If False, sort in ascending order
             (oldest first, newest last). Default is True (descending).
     """
+    # Hardcoded gap between consecutive time steps (in seconds)
+    time_step_gap = 1
+
     # Hardcoded constant for invalid timestamps
     invalid_timestamp = "INVALID_TIMESTAMP"
 
@@ -148,7 +151,9 @@ def generate_loki_data(
         time_step_seconds
     ):
         end_of_step_epoch = min(
-            current_epoch + time_step_seconds - 1, end_epoch - 1)
+            current_epoch + time_step_seconds - time_step_gap,
+            end_epoch - time_step_gap
+        )
 
         # Prepare replacement values
         nanoseconds = int(current_epoch * 1_000_000_000)
@@ -182,7 +187,9 @@ def generate_loki_data(
                 "start_time": _format_timestamp(
                     final_start_epoch, invalid_timestamp
                 ),
-                "end_time": _format_timestamp(end_epoch - 1, invalid_timestamp)
+                "end_time": _format_timestamp(
+                    end_epoch - time_step_gap, invalid_timestamp
+                )
             })
 
     logger.info(f"Generated {len(log_data_list)} data points to be rendered.")
@@ -443,7 +450,7 @@ def main():
         "--descending",
         action="store_true",
         dest="reverse",
-        default=True,
+        default=False,
         help="Sort timestamps in descending order: newest first, oldest last "
              "(default behavior)."
     )
@@ -453,6 +460,15 @@ def main():
         default=False,
         metavar="BOOL",
         help="Enable debug level logging for verbose output (true/false)."
+    )
+    parser.add_argument(
+        "--end_time",
+        type=str,
+        default=None,
+        metavar="TIMESTAMP",
+        help="End timestamp for data generation in ISO 8601 format "
+             "(e.g., '2024-01-15T10:30:00Z'). "
+             "If not provided, uses current UTC time."
     )
     args = parser.parse_args()
 
@@ -477,9 +493,31 @@ def main():
     step_seconds = generation_config.get("step_seconds", 300)
 
     # Define the time range for data generation
-    end_time_utc = datetime.now(timezone.utc)
+    # Parse end_time if provided, otherwise use current UTC time
+    if args.end_time and args.end_time.strip():
+        try:
+            # Parse ISO 8601 timestamp
+            end_time_utc = datetime.fromisoformat(
+                args.end_time.replace('Z', '+00:00')
+            )
+            logger.info(f"Using provided end_time: {end_time_utc}")
+        except ValueError:
+            logger.error(
+                f"Invalid end_time format: {args.end_time}. "
+                f"Expected ISO 8601 format."
+            )
+            sys.exit(1)
+    else:
+        end_time_utc = datetime.now(timezone.utc)
+        logger.debug(f"Using current UTC time as end_time: {end_time_utc}")
     start_time_utc = end_time_utc - timedelta(days=days)
     logger.debug(f"Time range calculated: {start_time_utc} to {end_time_utc}")
+
+    # Output oldest start_time to stdout for Ansible capture
+    print(
+        f"oldest_start_time="
+        f"{start_time_utc.replace(microsecond=0).isoformat()}"
+    )
 
     # Run the generator
     try:
