@@ -5,24 +5,19 @@
 - name: "Setup Loki Environment"
   ansible.builtin.include_tasks: "setup_loki_env.yml"
 
-- name: "Find test files"
-  ansible.builtin.find:
-    paths: "{{ cloudkitty_scenario_dir }}"
-    patterns: "test_*.yml"
-  register: found_files_raw
-
-- name: "Extract only the filenames into a clean list"
+# Scenario name is file name without extension
+- name: "Generate clean list of scenario names"
   ansible.builtin.set_fact:
-    found_files: "{{ found_files_raw.files | map(attribute='path') | map('basename') | map('regex_replace', '\\.yml$', '') | list }}"
+    scenarios_to_run: "{{ cloudkitty_test_scenarios | map('regex_replace', '\\.yml$', '') | list }}"
 
-- name: "Run scenario file through workflow"
+- name: "Run scenarios through workflow"
   block:
     - name: "Process and Loop if files exist"
-      ansible.builtin.include_tasks: run_test_scenarios.yml
-      loop: "{{ found_files }}"
+      ansible.builtin.include_tasks: "run_test_scenarios.yml"
+      loop: "{{ scenarios_to_run }}"
       loop_control:
         loop_var: scenario_name
-      when: found_files | length > 0
+      when: scenarios_to_run | length > 0
 
   rescue:
     - name: "Log failure"
@@ -31,4 +26,4 @@
 
   always:
     - name: "Cleanup after job run"
-      ansible.builtin.include_tasks: cleanup_ck.yml
+      ansible.builtin.include_tasks: "cleanup_ck.yml"
