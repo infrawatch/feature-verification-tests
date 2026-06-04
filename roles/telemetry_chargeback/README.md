@@ -51,7 +51,7 @@ Role Variables
 | `openstackpod` | `"openstackclient"` | OpenStack client pod name for exec/cp operations |
 | `lookback` | `6` | Days to look back for Loki query time range |
 | `limit` | `50` | Limit for Loki query results |
-| `cloudkitty_test_scenarios` | `["test_static.yml", "test_dyn_basic.yml"]` | List of test scenario files to run (can be overridden via extra-vars) |
+| `cloudkitty_test_scenarios` | `["test_static.yml", "test_dyn_basic.yml"]` | List of test scenario files to run|
 
 How It Works
 ------------
@@ -70,7 +70,6 @@ The role executes the following workflow:
 
 3. **Test Scenario Selection**
    - Uses scenarios defined in `cloudkitty_test_scenarios` variable
-   - Can be overridden via extra-vars to run specific scenarios
 
 4. **Scenario Execution Loop** (for each discovered scenario)
    - Generates synthetic Loki log data (`gen_synth_loki_data.py`)
