@@ -471,6 +471,10 @@ def main():
     scenario_name = args.test.stem
     logger.info(f"Derived scenario name from test file: {scenario_name}")
 
+    # Derive scenario name from test file path
+    scenario_name = args.test.stem
+    logger.info(f"Derived scenario name from test file: {scenario_name}")
+
     # Get generation parameters from config
     generation_config = config.get("generation", {})
     days = generation_config.get("days", 30)
