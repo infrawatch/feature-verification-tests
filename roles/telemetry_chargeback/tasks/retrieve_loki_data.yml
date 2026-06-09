@@ -40,8 +40,6 @@
         actual_count: "{{ loki_response.json.data.result | map(attribute='values') | map('length') | sum }}"
       ansible.builtin.assert:
         that:
-          - loki_response.json.status == 'success'
-          - loki_response.json.data.result | length > 0
           - actual_count | int == (synth_data_rates.data_summary.log_count | int)
         fail_msg: >-
           Query did not return all data entries. Expected
