@@ -31,7 +31,9 @@
     cloudkitty_data_file_output.stdout is defined and
     cloudkitty_data_file_output.stdout | length > 0
 
-- name: "TEST Generate chargeback rating from synthetic data file {{ scenario_name }}"
+- name: >-
+    TEST Generate chargeback rating from synthetic data file
+    {{ scenario_name }}
   ansible.builtin.command:
     cmd: >
       python3 "{{ cloudkitty_summary_script }}"
