@@ -35,3 +35,10 @@
   when: not file_preexists.stat.exists | bool
   changed_when: cloudkitty_synth_totals_file_output.rc == 0
   any_errors_fatal: true
+
+# Load synthetic metrics summary for validation
+- name: "Load synthetic metrics summary for {{ scenario_name }}"
+  ansible.builtin.include_vars:
+    file: "{{ cloudkitty_synth_totals_file }}"
+    name: synth_data_rates
+  when: cloudkitty_synth_totals_file_output is defined
