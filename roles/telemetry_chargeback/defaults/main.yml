@@ -3,7 +3,7 @@
 openstack_cmd: "openstack"
 
 # Debug mode set
-cloudkitty_debug: true
+cloudkitty_debug: false
 cloudkitty_debug_dir: "{{ (cloudkitty_debug | bool) | ternary(artifacts_dir_zuul + '/debug_ck_db', '') }}"
 
 # Directory paths
@@ -30,4 +30,4 @@ lookback: 6
 limit: 50
 
 # List of test scenario files to run
-cloudkitty_test_scenarios: ["debug_1.yml" , "debug_2.yml"]
+cloudkitty_test_scenarios: ["test_static.yml" , "test_static2.yml"]
