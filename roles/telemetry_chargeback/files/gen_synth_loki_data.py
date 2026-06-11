@@ -128,7 +128,7 @@ def generate_loki_data(
             (oldest first, newest last). Default is True (descending).
     """
     # Hardcoded gap between consecutive time steps (in seconds)
-    time_step_gap = 1
+    time_step_gap = 0
 
     # Hardcoded constant for invalid timestamps
     invalid_timestamp = "INVALID_TIMESTAMP"
@@ -450,7 +450,7 @@ def main():
         "--descending",
         action="store_true",
         dest="reverse",
-        default=False,
+        default=True,
         help="Sort timestamps in descending order: newest first, oldest last "
              "(default behavior)."
     )
