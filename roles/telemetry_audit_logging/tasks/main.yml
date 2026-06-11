@@ -1,0 +1,12 @@
+---
+- name: "Setup Loki route URLs for audit log queries"
+  ansible.builtin.include_tasks: setup_loki_env.yml
+
+- name: "Verify audit logging for each OpenStack service"
+  ansible.builtin.include_tasks: verify_service_audit_logs.yml
+  loop: "{{ audit_logging_services }}"
+  loop_control:
+    loop_var: audit_service
+
+- name: "Verify audit events are separated into the audit Loki stack"
+  ansible.builtin.include_tasks: verify_loki_separation.yml

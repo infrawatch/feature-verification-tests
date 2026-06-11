@@ -1,0 +1,42 @@
+---
+openstack_cmd: "oc rsh openstackclient openstack"
+audit_logging_openstack_namespace: openstack
+audit_logging_namespace: openshift-logging
+audit_logging_default_loki_route: logging-loki
+audit_logging_loki_route: logging-loki-audit
+audit_logging_loki_tenant: application
+audit_logging_cadf_event_pattern: "http://schemas.dmtf.org/cloud/audit/1.0/event"
+audit_logging_loki_logql_query: >-
+  {log_type="application"} |= "http://schemas.dmtf.org/cloud/audit/1.0/event"
+audit_logging_loki_query_retries: 6
+audit_logging_loki_query_delay: 10
+audit_logging_propagation_delay: 30
+
+# Verify steps from the manual audit logging guide for each service.
+# Disabling Barbican and Nova testing since those services still not enabled in CI
+
+audit_logging_services:
+#  - name: barbican
+#    trigger_args: "secret list"
+#    pod_pattern: barbican-api
+
+  - name: cinder
+    trigger_args: "volume list"
+    pod_pattern: cinder-api
+
+  - name: glance
+    trigger_args: "image list"
+    pod_pattern: glance-default
+
+  - name: keystone
+    trigger_args: "project list"
+    pod_label_selector: "service=keystone"
+    pod_pattern: keystone
+
+  - name: neutron
+    trigger_args: "network list"
+    pod_pattern: neutron
+
+#  - name: nova
+#    trigger_args: "server list"
+#    pod_pattern: nova-api
