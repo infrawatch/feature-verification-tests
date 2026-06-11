@@ -13,7 +13,9 @@
     common_pod_status_str: "Running"
     common_pod_nspace: openstack
     common_pod_list:
-      - kube-state-metrics-0
+      - name: "kube-state-metrics-0"
+        nspace: "openstack"
+        status_str: "Running"
 
 - name: |
     TEST Use openstack observabilityclient to verify to verify health reporting related metrics from kube-state-metrics are stored in Prometheus

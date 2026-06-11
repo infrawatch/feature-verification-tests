@@ -20,10 +20,14 @@
   ansible.builtin.include_role:
     name: common
   vars:
-    common_pod_status_str: "Running"
-    common_pod_nspace: openstack
+    # common_pod_test_id: RHOSO-1242
+    # common_pod_status_str: "Running"
+    # common_pod_nspace: openstack
     common_pod_list:
-      - ceilometer-0
+      - name: "ceilometer-0"
+        nspace: "openstack"
+        status_str: "Running"
+        test_id: "RHOSO-1242"
 
 - name: |
     TEST Use openstack observabilityclient to verify ceilometer ipmi metrics are stored in prometheus

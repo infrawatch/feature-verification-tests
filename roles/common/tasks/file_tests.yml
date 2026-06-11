@@ -1,11 +1,12 @@
 ---
-- name: Get stats for file - "{{ item }}"
+- name: Get stats for file - "{{ file.name }}"
   ansible.builtin.stat:
-    path: "{{ item }}"
+    path: "{{ file.name }}"
   register: fstats
 
 - name: |
-    TEST Verify the file {{ item }} exists
+    TEST Verify the file {{ file.name }} exists
+    {{ file.test_id }}
   ansible.builtin.assert:
     that:
       - fstats.stat.exists
