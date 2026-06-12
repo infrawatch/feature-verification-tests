@@ -446,7 +446,7 @@ def main():
         "--descending",
         action="store_true",
         dest="reverse",
-        default=False,
+        default=True,
         help="Sort timestamps in descending order: newest first, oldest last "
              "(default behavior)."
     )
