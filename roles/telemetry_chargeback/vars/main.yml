@@ -11,3 +11,13 @@ cloudkitty_loki_data_suffix: "-loki_data.json"
 cloudkitty_synth_totals_metrics_suffix: "-synth_metrics_summary.yml"
 cloudkitty_loki_totals_metrics_suffix: "-loki_metrics_summary.yml"
 cloudkitty_loki_totals_suffix: "-rating.yml"
+
+cloudkitty_data_file: >-
+  {{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_data_suffix }}
+cloudkitty_synth_totals_file: >-
+  {{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}
+cloudkitty_test_file: >-
+   {{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml
+
+# initialize var
+previous_end_time: ""
