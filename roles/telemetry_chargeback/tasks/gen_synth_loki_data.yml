@@ -13,11 +13,6 @@
     path: "{{ cloudkitty_data_file }}"
   register: file_preexists
 
-- name: "Initialize previous_end_time if not set"
-  ansible.builtin.set_fact:
-    previous_end_time: ""
-  when: previous_end_time is not defined
-
 - name: "TEST Generate Synthetic Data for {{ scenario_name }}"
   ansible.builtin.command:
     cmd: >
@@ -32,7 +27,7 @@
   changed_when: cloudkitty_data_file_output.rc == 0
   any_errors_fatal: true
 
-- name: "Set end_time parameter value for {{ scenario_name }}"
+- name: "Set end_time parameter value for next test scenario"
   ansible.builtin.set_fact:
     previous_end_time: >-
       {{ cloudkitty_data_file_output.stdout | regex_replace('^oldest_start_time=', '') }}

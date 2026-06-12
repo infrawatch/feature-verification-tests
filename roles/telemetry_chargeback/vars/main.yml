@@ -11,3 +11,6 @@ cloudkitty_loki_data_suffix: "-loki_data.json"
 cloudkitty_synth_totals_metrics_suffix: "-synth_metrics_summary.yml"
 cloudkitty_loki_totals_metrics_suffix: "-loki_metrics_summary.yml"
 cloudkitty_loki_totals_suffix: "-rating.yml"
+
+# initialize var
+previous_end_time: ""

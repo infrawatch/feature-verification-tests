@@ -11,10 +11,10 @@ log_types:
     type: ceilometer_image_size
     unit: MiB
     description: null
-    qty: 20.6
-    price: 0.02
+    qty: 0.02
+    price: 20.6
     groupby:
-      resource: tenant-01
+      resource: tenant-03
       project: null
       user: null
     metadata:
@@ -25,10 +25,10 @@ log_types:
     type: instance
     unit: instance
     description: null
-    qty: 1.0
-    price: 0.3
+    qty: 0.3
+    price: 1.0
     groupby:
-      resource: tenant-02
+      resource: tenant-04
       project: null
       user: null
     metadata:
