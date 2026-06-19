@@ -1,13 +1,4 @@
 ---
-- name: "Set variables dynamically for {{ scenario_name }}"
-  ansible.builtin.set_fact:
-    cloudkitty_data_file: >-
-      {{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_data_suffix }}
-    cloudkitty_synth_totals_file: >-
-      {{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}
-    cloudkitty_test_file: >-
-      {{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml
-
 - name: "Check for preexisting output file"
   ansible.builtin.stat:
     path: "{{ cloudkitty_data_file }}"
