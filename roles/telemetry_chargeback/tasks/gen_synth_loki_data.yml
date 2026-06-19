@@ -1,17 +1,13 @@
 ---
-- name: "Set variables dynamically for {{ scenario_name }}"
-  ansible.builtin.set_fact:
-    cloudkitty_data_file: >-
-      {{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_data_suffix }}
-    cloudkitty_synth_totals_file: >-
-      {{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}
-    cloudkitty_test_file: >-
-      {{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml
-
 - name: "Check for preexisting output file"
   ansible.builtin.stat:
     path: "{{ cloudkitty_data_file }}"
   register: file_preexists
+
+- name: "Initialize previous_end_time if not set"
+  ansible.builtin.set_fact:
+    previous_end_time: ""
+  when: previous_end_time is not defined
 
 - name: "TEST Generate Synthetic Data for {{ scenario_name }}"
   ansible.builtin.command:
@@ -27,7 +23,7 @@
   changed_when: cloudkitty_data_file_output.rc == 0
   any_errors_fatal: true
 
-- name: "Set end_time parameter value for next test scenario"
+- name: "Set end_time parameter value for {{ scenario_name }}"
   ansible.builtin.set_fact:
     previous_end_time: >-
       {{ cloudkitty_data_file_output.stdout | regex_replace('^oldest_start_time=', '') }}
@@ -35,9 +31,7 @@
     cloudkitty_data_file_output.stdout is defined and
     cloudkitty_data_file_output.stdout | length > 0
 
-- name: >-
-    TEST Generate chargeback rating from synthetic data file
-    {{ scenario_name }}
+- name: "TEST Generate chargeback rating from synthetic data file {{ scenario_name }}"
   ansible.builtin.command:
     cmd: >
       python3 "{{ cloudkitty_summary_script }}"
