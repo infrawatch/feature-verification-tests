@@ -1,4 +1,17 @@
 ---
+- name: "Set scenario-specific LogQL query for {{ scenario_name }}"
+  ansible.builtin.set_fact:
+    scenario_logql_query: '{service="cloudkitty", scenario="{{ scenario_name }}"}'
+
+- name: "Debug: Show Loki query parameters for {{ scenario_name }}"
+  ansible.builtin.debug:
+    msg:
+      - "Query: {{ scenario_logql_query }}"
+      - "Start time (nanosec): {{ synth_data_rates.time.begin_step.nanosec }}"
+      - "Start time (human): {{ synth_data_rates.time.begin_step.begin }}"
+      - "Expected log count: {{ synth_data_rates.data_summary.log_count }}"
+  when: cloudkitty_debug | bool
+
 - name: "Expected Count {{ scenario_name }}"
   ansible.builtin.debug:
     msg: "Input file has {{ synth_data_rates.data_summary.log_count }} data entries that Loki has to return"
@@ -8,7 +21,7 @@
   block:
     - name: "Query Loki API"
       ansible.builtin.uri:
-        url: "{{ loki_query_url }}?query={{ logql_query | urlencode }}&start={{ synth_data_rates.time.begin_step.nanosec }}&limit={{ limit }}"
+        url: "{{ loki_query_url }}?query={{ scenario_logql_query | urlencode }}&start={{ synth_data_rates.time.begin_step.nanosec }}&limit={{ limit }}"
         method: GET
         client_cert: "{{ cert_dir }}/tls.crt"
         client_key: "{{ cert_dir }}/tls.key"
@@ -35,7 +48,7 @@
         mode: '0644'
 
     # Validate
-    - name: "Verify Data Integrity {{ scenario_name }}"
+    - name: "TEST Verify Data Integrity {{ scenario_name }}"
       vars:
         actual_count: "{{ loki_response.json.data.result | map(attribute='values') | map('length') | sum }}"
       ansible.builtin.assert:
@@ -48,7 +61,7 @@
         success_msg: "Query returned all data entries. Input file had {{ synth_data_rates.data_summary.log_count }} entries and Loki returned {{ actual_count }}"
 
     # Only runs if retrieval was successful
-    - name: "Generate chargeback stats from Loki-retrieved data file: {{ scenario_name }}"
+    - name: "TEST Generate chargeback stats from Loki-retrieved data file: {{ scenario_name }}"
       ansible.builtin.command:
         cmd: >
           python3 "{{ cloudkitty_summary_script }}"
