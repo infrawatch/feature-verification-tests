@@ -11,10 +11,11 @@
     scenarios_to_run: "{{ cloudkitty_test_scenarios | map('regex_replace', '\\.yml$', '') | list }}"
 
 - name: "Run scenarios through workflow"
+# Test scenarios run in time sequence using "cloudkitty_test_scenarios" list order
   block:
     - name: "Process and Loop if files exist"
       ansible.builtin.include_tasks: "run_test_scenarios.yml"
-      loop: "{{ scenarios_to_run }}"
+      loop: "{{ scenarios_to_run | reverse | list }}"
       loop_control:
         loop_var: scenario_name
       when: scenarios_to_run | length > 0
