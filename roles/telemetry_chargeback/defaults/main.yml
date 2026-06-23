@@ -30,4 +30,4 @@ lookback: 6
 limit: 50
 
 # List of test scenario files to run
-cloudkitty_test_scenarios: ["test_static.yml" , "test_static2.yml"]
+cloudkitty_test_scenarios: ["test_static.yml" ,"test_dyn_basic.yml"]
