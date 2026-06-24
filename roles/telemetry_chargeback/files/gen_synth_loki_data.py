@@ -127,10 +127,6 @@ def generate_loki_data(
             (newest first, oldest last). If False, sort in ascending order
             (oldest first, newest last). Default is True (descending).
     """
-    # Hardcoded gap between consecutive time steps (in seconds)
-    time_step_gap = 0
-
-    # Hardcoded constant for invalid timestamps
     invalid_timestamp = "INVALID_TIMESTAMP"
 
     # --- Step 1: Generate the data structure first ---
@@ -151,8 +147,8 @@ def generate_loki_data(
         time_step_seconds
     ):
         end_of_step_epoch = min(
-            current_epoch + time_step_seconds - time_step_gap,
-            end_epoch - time_step_gap
+            current_epoch + time_step_seconds,
+            end_epoch
         )
 
         # Prepare replacement values
@@ -188,7 +184,7 @@ def generate_loki_data(
                     final_start_epoch, invalid_timestamp
                 ),
                 "end_time": _format_timestamp(
-                    end_epoch - time_step_gap, invalid_timestamp
+                    end_epoch, invalid_timestamp
                 )
             })
 
