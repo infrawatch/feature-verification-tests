@@ -5,9 +5,6 @@
 - name: "Load data to Loki: {{ scenario_name }}"
   ansible.builtin.include_tasks: "load_loki_data.yml"
 
-- name: "Get total rate from Loki: {{ scenario_name }}"
-  ansible.builtin.include_tasks: "loki_rate.yml"
-
 # diff uploaded data totals vs download data totals
 - name: "Check synthetic totals file exists"
   ansible.builtin.stat:
@@ -51,3 +48,6 @@
       FAILED! {{ scenario_name }} - Files differ:
       {{ yaml_diff.stdout }}
     success_msg: "PASSED! {{ scenario_name }} - Data totals are identical."
+
+- name: "Get total rate from Loki: {{ scenario_name }}"
+  ansible.builtin.include_tasks: "loki_rate.yml"    
