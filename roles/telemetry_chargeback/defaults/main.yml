@@ -13,6 +13,10 @@ cert_dir: "{{ cifmw_basedir }}/ck-certs"
 local_cert_dir: "{{ cifmw_basedir }}/flush_certs"
 remote_cert_dir: "osp-certs"
 
+# Output file paths
+cloudkitty_data_file: "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_data_suffix }}"
+cloudkitty_synth_totals_file: "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}"
+
 # Cloudkitty certificates and secrets
 cert_secret_name: "cert-cloudkitty-client-internal"
 client_secret: "secret/cloudkitty-lokistack-gateway-client-http"
