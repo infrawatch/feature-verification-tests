@@ -6,11 +6,11 @@ cloudkitty_data_template: "{{ role_path }}/templates/loki_data_templ.j2"
 cloudkitty_summary_script: "{{ role_path }}/files/gen_db_summary.py"
 
 # File naming conventions (internal standardization)
-cloudkitty_synth_data_suffix: "-synth_data.json"
-cloudkitty_loki_data_suffix: "-loki_data.json"
-cloudkitty_synth_totals_metrics_suffix: "-synth_metrics_summary.yml"
-cloudkitty_loki_totals_metrics_suffix: "-loki_metrics_summary.yml"
-cloudkitty_loki_totals_suffix: "-rating.yml"
+cloudkitty_synth_data_suffix: "-data_synth.json"
+cloudkitty_loki_data_suffix: "-data_loki.json"
+cloudkitty_synth_totals_metrics_suffix: "-metrics_summary_synth.yml"
+cloudkitty_loki_totals_metrics_suffix: "-metrics_summary_loki.yml"
+cloudkitty_loki_totals_suffix: "-rate_totals.yml"
 
 cloudkitty_data_file: >-
   {{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_data_suffix }}
