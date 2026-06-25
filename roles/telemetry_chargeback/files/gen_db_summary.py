@@ -200,11 +200,6 @@ def aggregate_rates_by_type(
         # Track raw qty sum (before any transformation)
         qty_sums[mtype] += qty
 
-        # CRITICAL FIX: Follow CloudKitty methodology - conversion BEFORE
-        # mutation. Per CloudKitty docs, "Quantity mutation is done AFTER
-        # conversion"
-        # https://docs.openstack.org/cloudkitty/2025.2/admin/configuration/collector.html
-
         # Step 1: Apply factor and offset (unit conversion)
         qty_converted = qty * factor + offset
 
