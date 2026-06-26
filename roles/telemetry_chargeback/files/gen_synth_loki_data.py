@@ -437,13 +437,15 @@ def main():
 
     # --- Optional Utility Arguments ---
     parser.add_argument(
-        "--ascending",
-        action="store_false",
-        dest="reverse",
-        help="Sort timestamps in ascending order: oldest first, newest last."
+        "--sort",
+        choices=["ascending", "descending"],
+        default="descending",
+        help="Sort order for timestamps. 'ascending' generates oldest first, "
+             "newest last. 'descending' generates newest first, oldest last. "
+             "Default: %(default)s."
     )
     parser.add_argument(
-        "--descending",
+        "--debug",
         action="store_true",
         dest="reverse",
         default=True,
@@ -524,8 +526,8 @@ def main():
             end_time=end_time_utc,
             time_step_seconds=step_seconds,
             config=config,
+            sort=args.sort,
             scenario_name=scenario_name,
-            reverse_timestamps=args.reverse,
         )
     except FileNotFoundError:
         logger.error(

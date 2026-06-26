@@ -202,6 +202,19 @@ python3 gen_db_summary.py \
 **Debug Output:**
 When `--debug` is enabled, the script writes a `<stem>_diff.txt` file containing one JSON array per line: `[timestamp, log_entry]`. This is useful for troubleshooting data quality issues or timestamp ordering problems.
 
+
+### Synthetic Data Scripts
+
+**gen_synth_loki_data.py** — Generates Loki-format JSON from a scenario YAML and template. By default, timestamps in the output are in descending order (newest first, oldest last). Use `--sort=ascending` to generate in chronological order (oldest first, newest last).
+
+| Option | Description |
+|--------|--------------|
+| `--tmpl` | Path to the Jinja2 template (e.g. `loki_data_templ.j2`). |
+| `-t`, `--test` | Path to the scenario YAML (e.g. `test_dyn_basic.yml`). |
+| `-o`, `--output` | Path to the output JSON file. |
+| `--sort` | Sort order for timestamps: `ascending` (oldest first, newest last) or `descending` (newest first, oldest last). Default: `descending`. |
+| `--debug` | Enable debug logging. |
+
 Scenario Configuration
 ----------------------
 
