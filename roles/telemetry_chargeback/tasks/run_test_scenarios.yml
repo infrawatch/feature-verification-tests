@@ -5,49 +5,8 @@
 - name: "Load data to Loki: {{ scenario_name }}"
   ansible.builtin.include_tasks: "load_loki_data.yml"
 
-# diff uploaded data totals vs download data totals
-- name: "Check synthetic totals file exists"
-  ansible.builtin.stat:
-    path: "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}"
-  register: synth_totals_stat
-
-- name: "Check Loki totals file exists"
-  ansible.builtin.stat:
-    path: "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_loki_totals_metrics_suffix }}"
-  register: loki_totals_stat
-
-- name: "TEST Totals files exist {{ scenario_name }}"
-  ansible.builtin.assert:
-    that:
-      - synth_totals_stat.stat.exists | default(false)
-      - loki_totals_stat.stat.exists | default(false)
-    fail_msg: |
-      FAILED! Required file(s) missing for scenario {{ scenario_name }}:
-      - {{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}
-      - {{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_loki_totals_metrics_suffix }}
-    success_msg: |
-      PASSED! Required file(s) exist {{ scenario_name }}:
-      - {{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}
-      - {{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_loki_totals_metrics_suffix }}
-
-- name: "Diff synthetic totals vs Loki totals {{ scenario_name }}"
-  ansible.builtin.command:
-    cmd: >
-      diff
-      {{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}
-      {{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_loki_totals_metrics_suffix }}
-  register: yaml_diff
-  failed_when: false
-  changed_when: false
-
-- name: "TEST Compare synthetic data vs Loki data results {{ scenario_name }}"
-  ansible.builtin.assert:
-    that:
-      - yaml_diff.rc == 0
-    fail_msg: |
-      FAILED! {{ scenario_name }} - Files differ:
-      {{ yaml_diff.stdout }}
-    success_msg: "PASSED! {{ scenario_name }} - Data totals are identical."
+- name: "Diff Loki DB upload vs download {{ scenario_name }}"
+  ansible.builtin.include_tasks: "loki_diff_db_upload-vs-download.yml"
 
 - name: "Get total rate from Loki: {{ scenario_name }}"
   ansible.builtin.include_tasks: "loki_rate.yml"    

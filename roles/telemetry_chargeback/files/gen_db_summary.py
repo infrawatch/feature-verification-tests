@@ -282,9 +282,7 @@ def build_summary(pairs: list[tuple[str, str]]) -> dict[str, Any]:
             "log_count": log_count,
             "total_rating": round(total_r, 4),
         },
-        "by_type": {
-            "rate": rate_list,
-        },
+        "rate_by_type": rate_list,
     }
 
 
