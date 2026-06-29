@@ -44,7 +44,7 @@
     - name: "Save Loki Data to JSON file"
       ansible.builtin.copy:
         content: "{{ loki_response.json | to_json }}"
-        dest: "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_loki_data_suffix }}"
+        dest: "{{ cloudkitty_loki_data_file }}"
         mode: '0644'
 
     # Validate
@@ -65,8 +65,8 @@
       ansible.builtin.command:
         cmd: >
           python3 "{{ cloudkitty_summary_script }}"
-          -j "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_loki_data_suffix }}"
-          -o "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_loki_totals_metrics_suffix }}"
+          -j "{{ cloudkitty_loki_data_file }}"
+          -o "{{ cloudkitty_loki_totals_metrics_file }}"
           --debug "{{ cloudkitty_debug }}"
           --debug_dir "{{ cloudkitty_debug_dir }}"
       register: synth_rating_info

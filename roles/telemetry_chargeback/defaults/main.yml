@@ -31,3 +31,17 @@ limit: 50
 
 # List of test scenario files to run
 cloudkitty_test_scenarios: ["test_static.yml" , "test_dyn_basic.yml"]
+
+# Output file paths
+# ALL variables using {{ artifacts_dir_zuul }} must be defined in defaults/main.yml
+
+# Scenario-specific output files
+cloudkitty_data_file: "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_data_suffix }}"
+cloudkitty_synth_totals_file: "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}"
+cloudkitty_loki_data_file: "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_loki_data_suffix }}"
+cloudkitty_loki_totals_metrics_file: "{{ artifacts_dir_zuul }}/{{ scenario_name }}{{ cloudkitty_loki_totals_metrics_suffix }}"
+
+# Total rate output files (loki_total_rate prefix)
+cloudkitty_loki_totals_file: "{{ artifacts_dir_zuul }}/loki_total_rate{{ cloudkitty_loki_data_suffix }}"
+cloudkitty_rate_summary_file: "{{ artifacts_dir_zuul }}/loki_total_rate{{ cloudkitty_loki_totals_metrics_suffix }}"
+cloudkitty_rating_by_type_file: "{{ artifacts_dir_zuul }}/loki_total_rate{{ cloudkitty_loki_totals_suffix }}"
