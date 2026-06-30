@@ -6,7 +6,7 @@
 
 - name: "Check Loki totals file exists"
   ansible.builtin.stat:
-    path: "{{ cloudkitty_loki_totals_metrics_file }}"
+    path: "{{ cloudkitty_loki_summary_metrics_file }}"
   register: loki_totals_stat
 
 - name: "TEST Totals files exist {{ scenario_name }}"
@@ -17,18 +17,18 @@
     fail_msg: |
       FAILED! Required file(s) missing for scenario {{ scenario_name }}:
       - {{ cloudkitty_synth_totals_file }}
-      - {{ cloudkitty_loki_totals_metrics_file }}
+      - {{ cloudkitty_loki_summary_metrics_file }}
     success_msg: |
       PASSED! Required file(s) exist {{ scenario_name }}:
       - {{ cloudkitty_synth_totals_file }}
-      - {{ cloudkitty_loki_totals_metrics_file }}
+      - {{ cloudkitty_loki_summary_metrics_file }}
 
 - name: "Diff synthetic totals vs Loki totals {{ scenario_name }}"
   ansible.builtin.command:
     cmd: >
       diff
       {{ cloudkitty_synth_totals_file }}
-      {{ cloudkitty_loki_totals_metrics_file }}
+      {{ cloudkitty_loki_summary_metrics_file }}
   register: yaml_diff
   failed_when: false
   changed_when: false
