@@ -13,12 +13,11 @@ audit_logging_loki_query_delay: 10
 audit_logging_propagation_delay: 30
 
 # Verify steps from the manual audit logging guide for each service.
-# Disabling Barbican and Nova testing since those services still not enabled in CI
 
 audit_logging_services:
-#  - name: barbican
-#    trigger_args: "secret list"
-#    pod_pattern: barbican-api
+  - name: barbican
+    trigger_args: "secret list"
+    pod_pattern: barbican-api
 
   - name: cinder
     trigger_args: "volume list"
@@ -37,6 +36,6 @@ audit_logging_services:
     trigger_args: "network list"
     pod_pattern: neutron
 
-#  - name: nova
-#    trigger_args: "server list"
-#    pod_pattern: nova-api
+  - name: nova
+    trigger_args: "server list"
+    pod_pattern: nova-api
