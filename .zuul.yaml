@@ -164,7 +164,6 @@
         - podman_exporter
         - rabbitmq
         - openstack_network_exporter
-        - kepler
         - mariadb
         - volume_pool
         - ovn
