@@ -139,7 +139,6 @@ can be set at the play level.
                 - ceilometer_agent_compute
                 - ceilometer_agent_ipmi
                 - node_exporter
-                - kepler
                 - openstack_network_exporter
 
       - name: "Verify Endpoint"
