@@ -1,0 +1,109 @@
+---
+# This task retrieves ALL CloudKitty logs for the current month from Loki
+# and generates a comprehensive rate summary. It runs at the end of the role
+# to capture all data ingested during test scenarios.
+
+- name: "Calculate current month time range"
+  ansible.builtin.set_fact:
+    current_month_start: "{{ lookup('pipe', 'date -u +%Y-%m-01T00:00:00Z') }}"
+    current_month_start_ns: "{{ lookup('pipe', 'date -u -d \"$(date -u +%Y-%m-01)\" +%s') | int * 1000000000 }}"
+    current_month_end_ns: "{{ lookup('pipe', 'date -u -d \"$(date -u +%Y-%m-01) +1 month -1 second\" +%s') | int * 1000000000 + 999999999 }}"
+
+- name: "Set LogQL query for all CloudKitty data in current month"
+  ansible.builtin.set_fact:
+    total_rate_logql_query: '{service="cloudkitty"}'
+
+- name: "Debug: Show Loki query parameters for total_rate"
+  ansible.builtin.debug:
+    msg:
+      - "Query: {{ total_rate_logql_query }}"
+      - "Start time (nanosec): {{ current_month_start_ns }}"
+      - "Start time (human): {{ current_month_start }}"
+      - "End time (nanosec): {{ current_month_end_ns }}"
+      - "Limit: {{ limit }}"
+  when: cloudkitty_debug | bool
+
+# Query Loki for all data in current month
+- name: "TEST retrieve Logs from Loki via API loki total_rate"
+  block:
+    - name: "Query Loki API for current month data"
+      ansible.builtin.uri:
+        url: "{{ loki_query_url }}?query={{ total_rate_logql_query | urlencode }}&start={{ current_month_start_ns }}&end={{ current_month_end_ns }}&limit={{ limit }}"
+        method: GET
+        client_cert: "{{ cert_dir }}/tls.crt"
+        client_key: "{{ cert_dir }}/tls.key"
+        ca_path: "{{ cert_dir }}/ca.crt"
+        validate_certs: false
+        return_content: true
+        body_format: json
+      register: loki_response
+      until:
+        - loki_response.status == 200
+        - loki_response.json.status == 'success'
+        - loki_response.json.data.result | length > 0
+      retries: 10
+      delay: 30
+
+    - name: "Count total log entries retrieved"
+      ansible.builtin.set_fact:
+        total_rate_log_count: "{{ loki_response.json.data.result | map(attribute='values') | map('length') | sum }}"
+
+    - name: "Display total log entries retrieved"
+      ansible.builtin.debug:
+        msg: "Retrieved {{ total_rate_log_count }} total log entries from Loki for current month ({{ current_month_start }})"
+
+    - name: "Save Loki Data to JSON file"
+      ansible.builtin.copy:
+        content: "{{ loki_response.json | to_json }}"
+        dest: "{{ cloudkitty_loki_totals_file }}"
+        mode: '0644'
+
+    - name: "TEST generate chargeback stats from Loki total_rate data"
+      ansible.builtin.command:
+        cmd: >
+          python3 "{{ cloudkitty_summary_script }}"
+          -j "{{ cloudkitty_loki_totals_file }}"
+          -o "{{ cloudkitty_rate_summary_file }}"
+          --debug "{{ cloudkitty_debug }}"
+          --debug_dir "{{ cloudkitty_debug_dir }}"
+      register: total_rate_summary
+      changed_when: total_rate_summary.rc == 0
+
+  rescue:
+    - name: "Report Retrieval Failure for total_rate"
+      ansible.builtin.fail:
+        msg:
+          - "Failed to retrieve Loki total_rate data for current month"
+          - "Query: {{ total_rate_logql_query }}"
+          - "Start time: {{ current_month_start }}"
+          - "Status: {{ loki_response.status | default('Unknown') }}"
+          - "Message: {{ loki_response.msg | default('Request failed') }}"
+
+# Get CloudKitty rating data for comparison
+- name: "Get Rate and Qty by type from CloudKitty"
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} rating summary get -f yaml -g type"
+  register: cost_totals_by_type
+  changed_when: false
+  failed_when: cost_totals_by_type.rc != 0
+
+- name: "Print CloudKitty rating by type"
+  ansible.builtin.debug:
+    var: cost_totals_by_type.stdout
+
+- name: "Save CloudKitty rating by type to file"
+  ansible.builtin.copy:
+    content: "{{ cost_totals_by_type.stdout }}"
+    dest: "{{ artifacts_dir_zuul }}/loki_total_rate{{ cloudkitty_loki_totals_suffix }}"
+    mode: '0644'
+
+- name: "Get Rate and Qty Summary from CloudKitty"
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} rating summary get -f yaml"
+  register: cost_totals_summary
+  changed_when: false
+  failed_when: cost_totals_summary.rc != 0
+
+- name: "Print CloudKitty rating summary"
+  ansible.builtin.debug:
+    var: cost_totals_summary.stdout
