@@ -4,3 +4,7 @@
 
 - name: "Load data to Loki: {{ scenario_name }}"
   ansible.builtin.include_tasks: "load_loki_data.yml"
+
+- name: "Diff Loki DB upload vs download {{ scenario_name }}"
+  ansible.builtin.include_tasks: "loki_diff_db_upload-vs-download.yml"
+
