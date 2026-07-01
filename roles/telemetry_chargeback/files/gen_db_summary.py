@@ -200,14 +200,19 @@ def aggregate_rates_by_type(
         # Track raw qty sum (before any transformation)
         qty_sums[mtype] += qty
 
-        # Apply mutate transformation for rating calculation
-        qty_mutated = _apply_mutate(qty, mutate)
+        # CRITICAL FIX: Follow CloudKitty methodology - conversion BEFORE
+        # mutation. Per CloudKitty docs, "Quantity mutation is done AFTER
+        # conversion"
+        # https://docs.openstack.org/cloudkitty/2025.2/admin/configuration/collector.html
 
-        # Apply factor and offset
-        qty_rate = qty_mutated * factor + offset
+        # Step 1: Apply factor and offset (unit conversion)
+        qty_converted = qty * factor + offset
 
-        # Calculate rate
-        rate_sums[mtype] += qty_rate * price
+        # Step 2: Apply mutate transformation (happens AFTER conversion)
+        qty_mutated = _apply_mutate(qty_converted, mutate)
+
+        # Step 3: Calculate rate
+        rate_sums[mtype] += qty_mutated * price
 
     by_types = {
         k: {"Rate": round(v, 4)} for k, v in sorted(rate_sums.items())
@@ -277,9 +282,7 @@ def build_summary(pairs: list[tuple[str, str]]) -> dict[str, Any]:
             "log_count": log_count,
             "total_rating": round(total_r, 4),
         },
-        "by_type": {
-            "rate": rate_list,
-        },
+        "rate_by_type": rate_list,
     }
 
 

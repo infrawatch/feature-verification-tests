@@ -4,7 +4,6 @@ cloudkitty_scenario_dir: "{{ role_path }}/files"
 cloudkitty_synth_script: "{{ role_path }}/files/gen_synth_loki_data.py"
 cloudkitty_data_template: "{{ role_path }}/templates/loki_data_templ.j2"
 cloudkitty_summary_script: "{{ role_path }}/files/gen_db_summary.py"
-cloudkitty_test_file: "{{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml"
 
 # File naming conventions (internal standardization)
 cloudkitty_synth_data_suffix: "-synth_data.json"
@@ -12,6 +11,10 @@ cloudkitty_loki_data_suffix: "-loki_data.json"
 cloudkitty_synth_totals_metrics_suffix: "-synth_metrics_summary.yml"
 cloudkitty_loki_totals_metrics_suffix: "-loki_metrics_summary.yml"
 cloudkitty_loki_totals_suffix: "-rating.yml"
+
+# Test scenario file path (does NOT use artifacts_dir_zuul, so stays in vars)
+cloudkitty_test_file: >-
+  {{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml
 
 # initialize var
 previous_end_time: ""
