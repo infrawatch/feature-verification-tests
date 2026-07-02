@@ -20,6 +20,9 @@
         loop_var: scenario_name
       when: scenarios_to_run | length > 0
 
+    - name: "Get total rate from Loki: {{ scenario_name }}"
+      ansible.builtin.include_tasks: "loki_total_rate.yml"     
+
   rescue:
     - name: "Log failure"
       ansible.builtin.fail:
