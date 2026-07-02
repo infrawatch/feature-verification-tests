@@ -22,8 +22,41 @@
           - crc
 
 - job:
+    name: telemetry-container-image-content-provider
+    parent: cifmw-base-minimal
+    description: |
+      Build sg-core, prometheus-podman-exporter and mysqld-exporter
+      container images from the current change and serve them from
+      a local registry for dependent jobs.
+    required-projects:
+      - name: github.com/openstack-k8s-operators/ci-framework
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/sg-core
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/prometheus-podman-exporter
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/mysqld_exporter
+        override-checkout: main
+    run:
+      - ci/playbooks/container-image-content-provider.yml
+    vars:
+      container_images:
+        - src: "{{ ansible_user_dir }}/src/github.com/openstack-k8s-operators/sg-core"
+          name: sg-core
+          update_var: cifmw_update_containers_ceilometersgcoreImage
+        - src: "{{ ansible_user_dir }}/src/github.com/openstack-k8s-operators/prometheus-podman-exporter"
+          name: prometheus-podman-exporter
+          update_var: cifmw_update_containers_edpmpodmanexporterImage
+        - src: "{{ ansible_user_dir }}/src/github.com/openstack-k8s-operators/mysqld_exporter"
+          name: mysqld-exporter
+          update_var: cifmw_update_containers_ceilometermysqldexporterImage
+
+- job:
     name: functional-tests-osp18
-    dependencies: ["telemetry-openstack-meta-content-provider-master"]
+    dependencies: 
+      - name: telemetry-openstack-meta-content-provider-master
+      - name: telemetry-container-image-content-provider
+        soft: true
     parent: telemetry-operator-multinode-autoscaling
     nodeset: telemetry-operator-all-the-features
     description: |
@@ -37,7 +70,10 @@
       content_provider_dlrn_md5_hash: ''
     vars:
       patch_observabilityclient: true
-      cifmw_update_containers: false
+      # Enable update containers so that we have updated containers for mysqld_exporter, prometheus-podman-exporter and sg-core
+      cifmw_update_containers: true
+      # Don't update openstack service containers since we don't have a content provider which would provide these images
+      cifmw_update_containers_openstack: false
       crc_enable_monitoring: true
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
@@ -65,6 +101,12 @@
       - name: github.com/openstack-k8s-operators/openstack-must-gather
         override-checkout: main
       - name: github.com/openstack-k8s-operators/telemetry-operator
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/sg-core
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/prometheus-podman-exporter
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/mysqld_exporter
         override-checkout: main
     irrelevant-files: &irrelevant_files
       - .github/.*
@@ -191,6 +233,12 @@
       - name: github.com/openstack-k8s-operators/telemetry-operator
         override-checkout: main
       - name: github.com/infrawatch/feature-verification-tests
+      - name: github.com/openstack-k8s-operators/sg-core
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/prometheus-podman-exporter
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/mysqld_exporter
+        override-checkout: main
     vars:
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
@@ -232,6 +280,11 @@
       jobs:
         - telemetry-openstack-meta-content-provider-master:
             override-checkout: main
+        - telemetry-container-image-content-provider:
+            files:
+              - ^ci/playbooks/container-image-build.yml$
+              - ^ci/playbooks/container-image-content-provider.yml$
+              - ^.zuul.yaml$
         - functional-chargeback-tests-osp18:
             files:
               - ^roles/telemetry_chargeback/.*$
