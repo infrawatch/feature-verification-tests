@@ -12,8 +12,8 @@
 - name: "TEST Totals files exist {{ scenario_name }}"
   ansible.builtin.assert:
     that:
-      - synth_totals_stat.stat.exists | default(false)
-      - loki_totals_stat.stat.exists | default(false)
+      - synth_totals_stat.stat.exists 
+      - loki_totals_stat.stat.exists 
     fail_msg: |
       FAILED! Required file(s) missing for scenario {{ scenario_name }}:
       - {{ cloudkitty_synth_totals_file }}
