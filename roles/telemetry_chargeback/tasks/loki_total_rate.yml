@@ -3,11 +3,11 @@
 # and generates a comprehensive rate summary. It runs at the end of the role
 # to capture all data ingested during test scenarios.
 
-- name: "Calculate current month time range"
+- name: "Calculate current month time range (start to now)"
   ansible.builtin.set_fact:
     current_month_start: "{{ lookup('pipe', 'date -u +%Y-%m-01T00:00:00Z') }}"
     current_month_start_ns: "{{ lookup('pipe', 'date -u -d \"$(date -u +%Y-%m-01)\" +%s') | int * 1000000000 }}"
-    current_month_end_ns: "{{ lookup('pipe', 'date -u -d \"$(date -u +%Y-%m-01) +1 month -1 second\" +%s') | int * 1000000000 + 999999999 }}"
+    current_month_end_ns: "{{ ansible_date_time.epoch | int * 1000000000 }}"
 
 - name: "Set LogQL query for all CloudKitty data in current month"
   ansible.builtin.set_fact:
@@ -94,7 +94,7 @@
 - name: "Save CloudKitty rating by type to file"
   ansible.builtin.copy:
     content: "{{ cost_totals_by_type.stdout }}"
-    dest: "{{ artifacts_dir_zuul }}/loki_total_rate{{ cloudkitty_loki_totals_suffix }}"
+    dest: "{{ cloudkitty_rating_by_type_file }}"
     mode: '0644'
 
 - name: "Get Rate and Qty Summary from CloudKitty"
