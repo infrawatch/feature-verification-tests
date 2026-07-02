@@ -504,8 +504,8 @@ def main():
             )
             sys.exit(1)
     else:
-        end_time_utc = datetime.now(timezone.utc)
-        logger.debug(f"Using current UTC time as end_time: {end_time_utc}")
+        end_time_utc = datetime.now(timezone.utc) - timedelta(hours=2)
+        logger.debug(f"Using current UTC time minus 2 hours as end_time: {end_time_utc}")
     start_time_utc = end_time_utc - timedelta(days=days)
     logger.debug(f"Time range calculated: {start_time_utc} to {end_time_utc}")
 
