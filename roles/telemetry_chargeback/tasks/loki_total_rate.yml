@@ -28,7 +28,10 @@
   block:
     - name: "Query Loki API for current month data"
       ansible.builtin.uri:
-        url: "{{ loki_query_url }}?query={{ total_rate_logql_query | urlencode }}&start={{ current_month_start_ns }}&end={{ current_month_end_ns }}&limit={{ limit }}"
+        url: >-
+          {{ loki_query_url }}?query={{ total_rate_logql_query | urlencode }}
+          &start={{ current_month_start_ns }}&end={{ current_month_end_ns }}
+          &limit={{ limit }}
         method: GET
         client_cert: "{{ cert_dir }}/tls.crt"
         client_key: "{{ cert_dir }}/tls.key"
