@@ -3,8 +3,8 @@
 
 # Time range configuration
 generation:
-  days: 1
-  step_seconds: 14400
+  days: 10
+  step_seconds: 600
 
 # Log type definitions (single "type" = identifier and value pushed to output)
 log_types:
