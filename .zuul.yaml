@@ -126,31 +126,6 @@
       - roles/test_verify_email/.*
 
 - job:
-    name: functional-tests-on-osp18
-    parent: functional-tests-osp18
-    extra-vars: *functional_autoscaling_extra_vars
-    description: |
-      functional-tests-on-osp18 is an alias of functional-tests-osp18,
-      temporary added until openstack-k8s-operators/telemetry-operator updates
-      references of functional-tests-on-osp18 jobs.
-
-- job:
-    name: functional-autoscaling-tests-osp18
-    parent: functional-tests-osp18
-    description: |
-      functional-autoscaling-tests-osp18 is an alias of functional-tests-osp18,
-      temporary added until openstack-k8s-operators/telemetry-operator updates
-      references of functional-tests-osp18.
-
-- job:
-    name: functional-graphing-tests-osp18
-    parent: functional-tests-osp18
-    description: |
-      functional-graphing-tests-osp18 is an alias of functional-tests-osp18,
-      temporary added until openstack-k8s-operators/telemetry-operator updates
-      references of functional-tests-osp18.
-
-- job:
     name: functional-logging-tests-osp18
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
     parent: telemetry-operator-multinode-logging
@@ -169,14 +144,6 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
-
-- job:
-    name: functional-metric-verification-tests-osp18
-    parent: functional-tests-osp18
-    extra-vars: *functional_autoscaling_extra_vars
-    description: |
-      Run the autoscaling functional tests, tempest tests and metrics
-      functional tests on osp18+patched versions of adoh and heat.
 
 - job:
     name: feature-verification-tests-noop
