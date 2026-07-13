@@ -5,17 +5,13 @@
 - name: "Setup Loki Environment"
   ansible.builtin.include_tasks: "setup_loki_env.yml"
 
-# Scenario name is file name without extension
-- name: "Generate clean list of scenario names"
-  ansible.builtin.set_fact:
-    scenarios_to_run: "{{ cloudkitty_test_scenarios | map('regex_replace', '\\.yml$', '') | list }}"
-
 - name: "Run scenarios through workflow"
-# Test scenarios run in time sequence using "cloudkitty_test_scenarios" list order
+# Test scenarios run in time sequence using
+# "cloudkitty_test_scenarios" list order
   block:
     - name: "Process and Loop if files exist"
       ansible.builtin.include_tasks: "run_test_scenarios.yml"
-      loop: "{{ scenarios_to_run | reverse | list }}"
+      loop: "{{ cloudkitty_test_scenarios | reverse | list }}"
       loop_control:
         loop_var: scenario_name
       when: scenarios_to_run | length > 0
