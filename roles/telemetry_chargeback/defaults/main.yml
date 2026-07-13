@@ -30,7 +30,7 @@ lookback: 6
 limit: 50
 
 # List of test scenario files to run
-cloudkitty_test_scenarios: ["test_static", "test_dyn_basic"]
+cloudkitty_test_scenarios: ["test_static.yml" , "test_dyn_basic.yml"]
 
 # Output file paths
 # ALL variables using {{ artifacts_dir_zuul }} should be defined in defaults/main.yml
