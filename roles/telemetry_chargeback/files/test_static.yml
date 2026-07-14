@@ -1,9 +1,10 @@
 # Scenario configuration for synthetic Loki log data generation
+# This version uses 'factor' for realistic CloudKitty unit conversions
 
 # Time range configuration
 generation:
   days: 1
-  step_seconds: 7200
+  step_seconds: 600
 
 # Log type definitions
 log_types:
@@ -11,7 +12,10 @@ log_types:
     type: ceilometer_image_size
     unit: MiB
     description: null
-    qty: 20.6
+    # 20.6 MiB in bytes
+    qty: 21595750
+    # Convert bytes to MiB
+    factor: 1/1048576
     price: 0.02
     groupby:
       resource: tenant-01
@@ -26,6 +30,7 @@ log_types:
     unit: instance
     description: null
     qty: 1.0
+    factor: 1
     price: 0.3
     groupby:
       resource: tenant-02

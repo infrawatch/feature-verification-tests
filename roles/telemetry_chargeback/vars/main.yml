@@ -18,3 +18,4 @@ cloudkitty_test_file: >-
 
 # initialize var
 previous_end_time: ""
+total_rate_job: 0

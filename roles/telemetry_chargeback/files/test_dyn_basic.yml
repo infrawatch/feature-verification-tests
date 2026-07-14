@@ -1,34 +1,20 @@
 ---
 # Scenario configuration for synthetic Loki log data generation
+# This version uses 'factor' for realistic CloudKitty unit conversions
 
 # Time range configuration
 generation:
   days: 1
-  step_seconds: 14400
+  step_seconds: 600
 
 # Log type definitions (single "type" = identifier and value pushed to output)
 log_types:
-  - type: ceilometer_image_size
-    description: "Size of ceilometer image"
-    unit: MiB
-    qty:
-      - 10000
-    price:
-      - 0.10
-    groupby:
-      resource: tenant-01
-      user: null
-      project: null
-    metadata:
-      container_format: bare
-      disk_format: qcow2
-
   - type: ceilometer_image_test
     description: "Size of ceilometer test"
     unit: B
-#   factor: 1
     qty:
       - 10000
+    factor: 1
     price:
       - 0.10
     groupby:
@@ -45,6 +31,7 @@ log_types:
     alt_name: instance
     qty:
       - 1
+    factor: 1
     price:
       - 5.00
     groupby:
@@ -60,6 +47,7 @@ log_types:
     unit: ip
     qty:
       - 5
+    factor: 1
     price:
       - 1.00
     groupby:
@@ -70,25 +58,14 @@ log_types:
       state: null
     mutate: NUMBOOL
 
-  - type: ceilometer_disk_ephemeral_size
-    description: "Max at each timestep"
-    unit: GiB
-    qty:
-      - 0.0
-    price:
-      - 0.0
-    groupby:
-      resource: tenant-01
-      user: null
-      project: null
-    metadata:
-      type: null
-
   - type: ceilometer_disk_root_size
     description: null
     unit: GiB
+    # 10000 GiB in bytes
     qty:
-      - 10000
+      - 10737418240000
+    # Convert bytes to GiB
+    factor: 1/1073741824
     price:
       - 0.10
     groupby:
@@ -103,6 +80,7 @@ log_types:
     unit: B
     qty:
       - 0.0
+    factor: 1
     price:
       - 0.0
     groupby:
@@ -117,6 +95,7 @@ log_types:
     unit: B
     qty:
       - 0.0
+    factor: 1
     price:
       - 0.0
     groupby:
