@@ -280,7 +280,7 @@ def build_summary(pairs: list[tuple[str, str]]) -> dict[str, Any]:
             "total_timesteps": n_ts,
             "metrics_per_step": mps,
             "log_count": log_count,
-            "total_rating": round(total_r, 4),
+            "total_rate_scenario": round(total_r, 4),
         },
         "rate_by_type": rate_list,
     }
