@@ -18,7 +18,8 @@
   block:
     - name: "Process and Loop if files exist"
       ansible.builtin.include_tasks: "run_test_scenarios.yml"
-      loop: "{{  cloudkitty_test_scenarios| reverse | list }}"
+      loop: "{{ scenarios_to_run | reverse | list }}"
+>>>>>>> 2e22bad9f81324c561989353b9db63d58e411f43
       loop_control:
         loop_var: scenario_name
       when: scenarios_to_run | length > 0
