@@ -8,3 +8,8 @@
 - name: "Diff Loki DB upload vs download {{ scenario_name }}"
   ansible.builtin.include_tasks: "loki_diff_db_upload-vs-download.yml"
 
+- name: "Accumulate total rate for job: {{ scenario_name }}"
+  ansible.builtin.set_fact:
+    total_rate_job: >-
+      {{ (total_rate_job | float) +
+         (synth_data_rates.data_summary.total_rate_scenario | float) }}

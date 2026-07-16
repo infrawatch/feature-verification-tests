@@ -5,16 +5,24 @@
 - name: "Setup Loki Environment"
   ansible.builtin.include_tasks: "setup_loki_env.yml"
 
+# Scenario names are already without extension, use them directly
+- name: "Set scenarios to run"
+  ansible.builtin.set_fact:
+    scenarios_to_run: "{{ cloudkitty_test_scenarios }}"
+
 - name: "Run scenarios through workflow"
 # Test scenarios run in time sequence using
 # "cloudkitty_test_scenarios" list order
   block:
     - name: "Process and Loop if files exist"
       ansible.builtin.include_tasks: "run_test_scenarios.yml"
-      loop: "{{ cloudkitty_test_scenarios | reverse | list }}"
+      loop: "{{ scenarios_to_run | reverse | list }}"
       loop_control:
         loop_var: scenario_name
       when: scenarios_to_run | length > 0
+
+    - name: "Get total rate from Loki: {{ scenario_name }}"
+      ansible.builtin.include_tasks: "loki_total_rate.yml"
 
   rescue:
     - name: "Log failure"

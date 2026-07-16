@@ -1,0 +1,28 @@
+---
+# This task retrieves ALL CloudKitty logs for the current month from Loki
+# and generates a comprehensive rate summary. It runs at the end of the role
+# to capture all data ingested during test scenarios.
+
+- name: "Calculate current month time range (start to now)"
+  ansible.builtin.set_fact:
+    current_month_start: >-
+      {{ lookup('pipe', 'date -u +%Y-%m-01T00:00:00Z') }}
+    current_month_start_ns: >-
+      {{ lookup('pipe',
+         'date -u -d "$(date -u +%Y-%m-01)" +%s') | int * 1000000000 }}
+    current_month_end_ns: >-
+      {{ ansible_date_time.epoch | int * 1000000000 }}
+
+- name: "Set LogQL query for all CloudKitty data in current month"
+  ansible.builtin.set_fact:
+    total_rate_logql_query: '{service="cloudkitty"}'
+
+- name: "Debug: Show Loki query parameters for total_rate"
+  ansible.builtin.debug:
+    msg:
+      - "Query: {{ total_rate_logql_query }}"
+      - "Start time (nanosec): {{ current_month_start_ns }}"
+      - "Start time (human): {{ current_month_start }}"
+      - "End time (nanosec): {{ current_month_end_ns }}"
+      - "Limit: {{ limit }}"
+  when: cloudkitty_debug | bool

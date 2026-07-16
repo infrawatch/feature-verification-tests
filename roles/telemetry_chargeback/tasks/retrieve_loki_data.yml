@@ -3,12 +3,19 @@
   ansible.builtin.set_fact:
     scenario_logql_query: '{service="cloudkitty", scenario="{{ scenario_name }}"}'
 
+- name: "Calculate Loki query start and end times in nanoseconds"
+  ansible.builtin.set_fact:
+    loki_query_start_nanosec: "{{ ((synth_data_rates.time.begin_step.begin | to_datetime('%Y-%m-%dT%H:%M:%S%z')).strftime('%s') | int * 1000000000) }}"
+    loki_query_end_nanosec: "{{ ((synth_data_rates.time.end_step.end | to_datetime('%Y-%m-%dT%H:%M:%S%z')).strftime('%s') | int * 1000000000) }}"
+
 - name: "Debug: Show Loki query parameters for {{ scenario_name }}"
   ansible.builtin.debug:
     msg:
       - "Query: {{ scenario_logql_query }}"
-      - "Start time (nanosec): {{ synth_data_rates.time.begin_step.nanosec }}"
+      - "Start time (nanosec): {{ loki_query_start_nanosec }}"
       - "Start time (human): {{ synth_data_rates.time.begin_step.begin }}"
+      - "End time (nanosec): {{ loki_query_end_nanosec }}"
+      - "End time (human): {{ synth_data_rates.time.end_step.end }}"
       - "Expected log count: {{ synth_data_rates.data_summary.log_count }}"
   when: cloudkitty_debug | bool
 
@@ -21,7 +28,7 @@
   block:
     - name: "Query Loki API"
       ansible.builtin.uri:
-        url: "{{ loki_query_url }}?query={{ scenario_logql_query | urlencode }}&start={{ synth_data_rates.time.begin_step.nanosec }}&limit={{ limit }}"
+        url: "{{ loki_query_url }}?query={{ scenario_logql_query | urlencode }}&start={{ loki_query_start_nanosec }}&end={{ loki_query_end_nanosec }}&limit={{ limit }}"
         method: GET
         client_cert: "{{ cert_dir }}/tls.crt"
         client_key: "{{ cert_dir }}/tls.key"
