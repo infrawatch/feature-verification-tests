@@ -484,6 +484,8 @@ def main():
             )
             sys.exit(1)
     else:
+        # Use 2-hour offset to prevent synthetic data from overlapping with
+        # real-time CloudKitty data collection during test execution
         end_time_utc = datetime.now(timezone.utc) - timedelta(hours=2)
         logger.debug(
             f"Using current UTC time minus 2 hours as end_time: "
