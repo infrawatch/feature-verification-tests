@@ -141,9 +141,10 @@ def generate_loki_data(
     log_data_list = []  # This list will hold all our data points
 
     # Loop through the time range and generate data points
+    # Generate timesteps that exactly divide the time range
     for current_epoch in range(
         start_epoch,
-        end_epoch - time_step_seconds,
+        end_epoch,
         time_step_seconds
     ):
         end_of_step_epoch = min(
@@ -166,27 +167,6 @@ def generate_loki_data(
             "start_time": start_str,
             "end_time": end_str
         })
-
-    # Add final entry that ends at end_epoch (current time)
-    if log_data_list and end_epoch > start_epoch:
-        # Calculate start of final entry based on end of last generated entry
-        last_entry_end = log_data_list[-1]["end_time"]
-        # Parse the last entry's end time to get the epoch
-        last_end_dt = datetime.fromisoformat(last_entry_end)
-        final_start_epoch = int(last_end_dt.timestamp()) + 1
-        final_nanoseconds = int(final_start_epoch * 1_000_000_000)
-
-        # Only add if the final entry would have a valid duration
-        if final_start_epoch < end_epoch:
-            log_data_list.append({
-                "nanoseconds": final_nanoseconds,
-                "start_time": _format_timestamp(
-                    final_start_epoch, invalid_timestamp
-                ),
-                "end_time": _format_timestamp(
-                    end_epoch, invalid_timestamp
-                )
-            })
 
     logger.info(f"Generated {len(log_data_list)} data points to be rendered.")
 
@@ -504,8 +484,11 @@ def main():
             )
             sys.exit(1)
     else:
-        end_time_utc = datetime.now(timezone.utc)
-        logger.debug(f"Using current UTC time as end_time: {end_time_utc}")
+        end_time_utc = datetime.now(timezone.utc) - timedelta(hours=2)
+        logger.debug(
+            f"Using current UTC time minus 2 hours as end_time: "
+            f"{end_time_utc}"
+        )
     start_time_utc = end_time_utc - timedelta(days=days)
     logger.debug(f"Time range calculated: {start_time_utc} to {end_time_utc}")
 
