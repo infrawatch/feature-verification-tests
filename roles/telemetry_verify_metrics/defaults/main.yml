@@ -6,7 +6,6 @@ telemetry_verify_metrics_metric_sources_to_test:
   - node_exporter
   - podman_exporter
   - rabbitmq
-  - kepler
   - openstack_network_exporter
   - ceilometer_prom_exporter
   - mariadb

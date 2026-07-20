@@ -127,7 +127,6 @@ def generate_loki_data(
             (newest first, oldest last). If False, sort in ascending order
             (oldest first, newest last). Default is True (descending).
     """
-    # Hardcoded constant for invalid timestamps
     invalid_timestamp = "INVALID_TIMESTAMP"
 
     # --- Step 1: Generate the data structure first ---
@@ -142,13 +141,16 @@ def generate_loki_data(
     log_data_list = []  # This list will hold all our data points
 
     # Loop through the time range and generate data points
+    # Generate timesteps that exactly divide the time range
     for current_epoch in range(
         start_epoch,
-        end_epoch - time_step_seconds,
+        end_epoch,
         time_step_seconds
     ):
         end_of_step_epoch = min(
-            current_epoch + time_step_seconds - 1, end_epoch - 1)
+            current_epoch + time_step_seconds,
+            end_epoch
+        )
 
         # Prepare replacement values
         nanoseconds = int(current_epoch * 1_000_000_000)
@@ -165,25 +167,6 @@ def generate_loki_data(
             "start_time": start_str,
             "end_time": end_str
         })
-
-    # Add final entry that ends at end_epoch (current time)
-    if log_data_list and end_epoch > start_epoch:
-        # Calculate start of final entry based on end of last generated entry
-        last_entry_end = log_data_list[-1]["end_time"]
-        # Parse the last entry's end time to get the epoch
-        last_end_dt = datetime.fromisoformat(last_entry_end)
-        final_start_epoch = int(last_end_dt.timestamp()) + 1
-        final_nanoseconds = int(final_start_epoch * 1_000_000_000)
-
-        # Only add if the final entry would have a valid duration
-        if final_start_epoch < end_epoch:
-            log_data_list.append({
-                "nanoseconds": final_nanoseconds,
-                "start_time": _format_timestamp(
-                    final_start_epoch, invalid_timestamp
-                ),
-                "end_time": _format_timestamp(end_epoch - 1, invalid_timestamp)
-            })
 
     logger.info(f"Generated {len(log_data_list)} data points to be rendered.")
 
@@ -454,6 +437,15 @@ def main():
         metavar="BOOL",
         help="Enable debug level logging for verbose output (true/false)."
     )
+    parser.add_argument(
+        "--end_time",
+        type=str,
+        default=None,
+        metavar="TIMESTAMP",
+        help="End timestamp for data generation in ISO 8601 format "
+             "(e.g., '2024-01-15T10:30:00Z'). "
+             "If not provided, uses current UTC time."
+    )
     args = parser.parse_args()
 
     if args.debug:
@@ -477,9 +469,36 @@ def main():
     step_seconds = generation_config.get("step_seconds", 300)
 
     # Define the time range for data generation
-    end_time_utc = datetime.now(timezone.utc)
+    # Parse end_time if provided, otherwise use current UTC time
+    if args.end_time and args.end_time.strip():
+        try:
+            # Parse ISO 8601 timestamp
+            end_time_utc = datetime.fromisoformat(
+                args.end_time.replace('Z', '+00:00')
+            )
+            logger.info(f"Using provided end_time: {end_time_utc}")
+        except ValueError:
+            logger.error(
+                f"Invalid end_time format: {args.end_time}. "
+                f"Expected ISO 8601 format."
+            )
+            sys.exit(1)
+    else:
+        # Use 2-hour offset to prevent synthetic data from overlapping with
+        # real-time CloudKitty data collection during test execution
+        end_time_utc = datetime.now(timezone.utc) - timedelta(hours=2)
+        logger.debug(
+            f"Using current UTC time minus 2 hours as end_time: "
+            f"{end_time_utc}"
+        )
     start_time_utc = end_time_utc - timedelta(days=days)
     logger.debug(f"Time range calculated: {start_time_utc} to {end_time_utc}")
+
+    # Output oldest start_time to stdout for Ansible capture
+    print(
+        f"oldest_start_time="
+        f"{start_time_utc.replace(microsecond=0).isoformat()}"
+    )
 
     # Run the generator
     try:

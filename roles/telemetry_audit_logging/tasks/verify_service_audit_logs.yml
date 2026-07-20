@@ -1,0 +1,15 @@
+---
+- name: "Generate API activity for {{ audit_service.name }}"
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} {{ audit_service.trigger_args }}"
+  register: audit_trigger
+  changed_when: false
+  failed_when: audit_trigger.rc != 0
+
+- name: "TEST Check {{ audit_service.name }} API pod logs for CADF audit events"
+  ansible.builtin.shell:
+    cmd: |
+      oc logs $(oc get pod{% if audit_service.pod_label_selector is defined %} -l {{ audit_service.pod_label_selector }}{% endif %} -n {{ audit_logging_openstack_namespace }} -o name | grep {{ audit_service.pod_pattern }} | head -1) | grep "{{ audit_logging_cadf_event_pattern }}"
+  register: audit_pod_logs
+  changed_when: false
+  failed_when: audit_pod_logs.rc != 0
