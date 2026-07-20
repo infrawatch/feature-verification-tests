@@ -14,7 +14,7 @@
       loop: "{{ cloudkitty_test_scenarios | reverse | list }}"
       loop_control:
         loop_var: scenario_name
-      when: scenarios_to_run | length > 0
+      when: cloudkitty_test_scenarios | length > 0
 
   rescue:
     - name: "Log failure"
