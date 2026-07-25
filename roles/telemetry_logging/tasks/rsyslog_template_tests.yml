@@ -1,0 +1,18 @@
+---
+- name: Read rsyslog config file on compute node
+  ansible.builtin.command:
+    cmd: cat /etc/rsyslog.d/10-telemetry.conf
+  register: rsyslog_conf
+  changed_when: false
+  failed_when: rsyslog_conf.rc != 0
+
+- name: |
+    TEST Verify rsyslog config contains a valid template format
+  ansible.builtin.assert:
+    that:
+      - "'template=\"RSYSLOG_TraditionalFileFormat\"' in rsyslog_conf.stdout or 'template=\"RSYSLOG_SyslogProtocol23Format\"' in rsyslog_conf.stdout"
+    success_msg: "rsyslog config contains a valid template format"
+    fail_msg: >-
+      /etc/rsyslog.d/10-telemetry.conf does not contain a valid template= parameter.
+      Expected either RSYSLOG_TraditionalFileFormat or RSYSLOG_SyslogProtocol23Format.
+      Got: {{ rsyslog_conf.stdout }}
