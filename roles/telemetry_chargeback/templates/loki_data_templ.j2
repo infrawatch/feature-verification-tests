@@ -1,4 +1,4 @@
-{"streams": [{ "stream": { "service": "{{ loki_stream.service }}", "scenario": "{{ loki_stream.scenario }}" }, "values": [
+{"streams": [{ "stream": { "service": "{{ loki_stream.service }}" }, "values": [
 {%- for item in log_data %}
 {%- set outer_idx = loop.index0 %}
 {%- set is_last_outer = loop.last %}
@@ -11,12 +11,11 @@
     "unit": entry_data.unit,
     "description": entry_data.description,
     "qty": entry_data.qty,
+    "unit_cost": entry_data.unit_cost,
     "price": entry_data.price,
     "groupby": entry_data.groupby,
     "metadata": entry_data.metadata,
-    "mutate": entry_data.get("mutate"),
-    "factor": entry_data.get("factor"),
-    "offset": entry_data.get("offset")
+    "mutate": entry_data.get("mutate")
 } -%}
 [
 "{{ item.nanoseconds }}",
