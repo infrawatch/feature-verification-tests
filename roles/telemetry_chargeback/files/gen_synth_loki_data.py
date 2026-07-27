@@ -10,6 +10,32 @@ from typing import Dict, Any, List, Union
 from jinja2 import Environment
 
 
+def _apply_mutate(qty: float, mutate) -> float:
+    """
+    Apply mutate transformation to qty value.
+
+    Args:
+        qty: The quantity value to transform.
+        mutate: The mutation type (NONE, CEIL, FLOOR, NUMBOOL, NOTNUMBOOL).
+
+    Returns:
+        The transformed quantity.
+    """
+    import math
+    mutate_upper = mutate.upper() if isinstance(mutate, str) else "NONE"
+
+    if mutate_upper == "CEIL":
+        return math.ceil(qty)
+    elif mutate_upper == "FLOOR":
+        return math.floor(qty)
+    elif mutate_upper == "NUMBOOL":
+        return 0.0 if abs(qty) < 1e-9 else 1.0
+    elif mutate_upper == "NOTNUMBOOL":
+        return 1.0 if abs(qty) < 1e-9 else 0.0
+    else:
+        return qty
+
+
 def _get_value_for_step(
     values: List[Union[int, float]],
     step_idx: int,
@@ -109,7 +135,6 @@ def generate_loki_data(
     end_time: datetime,
     time_step_seconds: int,
     config: Dict[str, Any],
-    scenario_name: str,
     reverse_timestamps: bool = True,
 ):
     """
@@ -122,7 +147,6 @@ def generate_loki_data(
         end_time (datetime): The end time for data generation.
         time_step_seconds (int): The duration of each log entry in seconds.
         config (Dict[str, Any]): Configuration dictionary loaded from file.
-        scenario_name (str): Name of the test scenario for Loki labeling.
         reverse_timestamps (bool): If True, sort timestamps in descending order
             (newest first, oldest last). If False, sort in ascending order
             (oldest first, newest last). Default is True (descending).
@@ -227,23 +251,24 @@ def generate_loki_data(
                 f"groupby must be a dictionary for {type_key!r}"
             )
 
-        # Ensure qty and price are lists for step-based distribution
+        # Ensure qty and unit_cost are lists for step-based distribution
         qty_val = log_type_config["qty"]
-        price_val = log_type_config["price"]
+        unit_cost_val = log_type_config["unit_cost"]
         qty_list = qty_val if isinstance(qty_val, list) else [qty_val]
-        price_list = price_val if isinstance(price_val, list) else [price_val]
+        unit_cost_list = (
+            unit_cost_val if isinstance(unit_cost_val, list)
+            else [unit_cost_val]
+        )
 
         log_types[type_key] = {
             "type": type_key,
             "unit": log_type_config["unit"],
             "description": log_type_config.get("description"),
             "qty": qty_list,
-            "price": price_list,
+            "unit_cost": unit_cost_list,
             "groupby": groupby.copy(),
             "metadata": log_type_config.get("metadata", {}),
-            "mutate": log_type_config.get("mutate"),
-            "factor": log_type_config.get("factor"),
-            "offset": log_type_config.get("offset")
+            "mutate": log_type_config.get("mutate")
         }
 
     # --- Step 3: Load template and render ---
@@ -310,26 +335,32 @@ def generate_loki_data(
             log_type_with_dates = log_type_data.copy()
             log_type_with_dates["groupby"] = log_type_data["groupby"].copy()
             log_type_with_dates["groupby"].update(date_fields)
-            # Select qty and price based on step index distribution
-            log_type_with_dates["qty"] = _get_value_for_step(
+            # Select qty and unit_cost based on step index distribution
+            qty = _get_value_for_step(
                 log_type_data["qty"], idx, num_steps
             )
-            log_type_with_dates["price"] = _get_value_for_step(
-                log_type_data["price"], idx, num_steps
+            unit_cost = _get_value_for_step(
+                log_type_data["unit_cost"], idx, num_steps
             )
+
+            # Calculate price: apply mutate to qty, then multiply by
+            # unit_cost (matches CK dataframe Price field)
+            mutate = log_type_data.get("mutate")
+            qty_mutated = _apply_mutate(qty, mutate)
+            price = unit_cost * qty_mutated
+
+            log_type_with_dates["qty"] = qty
+            log_type_with_dates["unit_cost"] = unit_cost
+            log_type_with_dates["price"] = price
             log_types_with_dates[log_type_name] = log_type_with_dates
 
         log_types_list.append(log_types_with_dates)
 
-    # Get loki_stream configuration and add scenario
+    # Get loki_stream configuration
     loki_stream = config.get("loki_stream", {})
     if not loki_stream:
         logger.warning("No loki_stream configuration found, using defaults")
         loki_stream = {"service": "cloudkitty"}
-
-    # Add scenario name to loki_stream labels
-    loki_stream["scenario"] = scenario_name
-    logger.info(f"Adding scenario label: {scenario_name}")
 
     # Build template context with generic log type information
     template_context = {
@@ -459,13 +490,14 @@ def main():
         logger.critical(f"Failed to load config: {e}")
         sys.exit(1)
 
-    # Derive scenario name from test file path
-    scenario_name = args.test.stem
-    logger.info(f"Derived scenario name from test file: {scenario_name}")
-
     # Get generation parameters from config
     generation_config = config.get("generation", {})
-    days = generation_config.get("days", 30)
+    days_raw = generation_config.get("days", 30)
+    if isinstance(days_raw, str) and '/' in days_raw:
+        num, den = days_raw.split('/')
+        days = float(num.strip()) / float(den.strip())
+    else:
+        days = float(days_raw)
     step_seconds = generation_config.get("step_seconds", 300)
 
     # Define the time range for data generation
@@ -484,11 +516,9 @@ def main():
             )
             sys.exit(1)
     else:
-        # Use 2-hour offset to prevent synthetic data from overlapping with
-        # real-time CloudKitty data collection during test execution
-        end_time_utc = datetime.now(timezone.utc) - timedelta(hours=2)
+        end_time_utc = datetime.now(timezone.utc)
         logger.debug(
-            f"Using current UTC time minus 2 hours as end_time: "
+            f"Using current UTC time as end_time: "
             f"{end_time_utc}"
         )
     start_time_utc = end_time_utc - timedelta(days=days)
@@ -509,7 +539,6 @@ def main():
             end_time=end_time_utc,
             time_step_seconds=step_seconds,
             config=config,
-            scenario_name=scenario_name,
             reverse_timestamps=args.reverse,
         )
     except FileNotFoundError:
