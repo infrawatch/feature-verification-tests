@@ -57,3 +57,25 @@
     cmd: |
       oc extract {{ ca_configmap }} --to={{ local_cert_dir }} --confirm -n {{ cloudkitty_namespace }}
   changed_when: true
+
+# Wait for Loki gossip ring to converge before ingesting data.
+# When the ring hasn't converged, ingesters accept writes but are
+# invisible to queriers, causing queries to return empty results.
+- name: "Wait for Loki ring to converge"
+  ansible.builtin.uri:
+    url: "https://cloudkitty-lokistack-ingester-http.{{ cloudkitty_namespace }}.svc:3100/ring"
+    method: GET
+    client_cert: "{{ cert_dir }}/tls.crt"
+    client_key: "{{ cert_dir }}/tls.key"
+    ca_path: "{{ cert_dir }}/ca.crt"
+    validate_certs: false
+    return_content: true
+  register: ring_response
+  until:
+    - ring_response.status == 200
+    - "'JOINING' not in ring_response.content"
+    - "'PENDING' not in ring_response.content"
+    - "'LEAVING' not in ring_response.content"
+  retries: 20
+  delay: 15
+  changed_when: false
