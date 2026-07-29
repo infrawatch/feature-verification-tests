@@ -61,21 +61,33 @@
 # Wait for Loki gossip ring to converge before ingesting data.
 # When the ring hasn't converged, ingesters accept writes but are
 # invisible to queriers, causing queries to return empty results.
+# Uses oc exec because the ingester service DNS is only resolvable
+# from inside the cluster.
+- name: "Create cert directory in OpenStack Client pod"
+  ansible.builtin.command:
+    cmd: "oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} -- mkdir -p {{ remote_cert_dir }}"
+  changed_when: false
+
+- name: "Copy certificates to OpenStack Client pod"
+  ansible.builtin.command:
+    cmd: "oc cp {{ local_cert_dir }}/. {{ cloudkitty_namespace }}/{{ openstackpod }}:{{ remote_cert_dir }}/"
+  changed_when: false
+
 - name: "Wait for Loki ring to converge"
-  ansible.builtin.uri:
-    url: "https://cloudkitty-lokistack-ingester-http.{{ cloudkitty_namespace }}.svc:3100/ring"
-    method: GET
-    client_cert: "{{ cert_dir }}/tls.crt"
-    client_key: "{{ cert_dir }}/tls.key"
-    ca_path: "{{ cert_dir }}/ca.crt"
-    validate_certs: false
-    return_content: true
+  ansible.builtin.command:
+    cmd: >
+      oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} --
+      curl -s
+      --cert {{ remote_cert_dir }}/tls.crt
+      --key {{ remote_cert_dir }}/tls.key
+      --cacert {{ remote_cert_dir }}/service-ca.crt
+      https://cloudkitty-lokistack-ingester-http.{{ cloudkitty_namespace }}.svc:3100/ring
   register: ring_response
   until:
-    - ring_response.status == 200
-    - "'JOINING' not in ring_response.content"
-    - "'PENDING' not in ring_response.content"
-    - "'LEAVING' not in ring_response.content"
+    - ring_response.rc == 0
+    - "'JOINING' not in ring_response.stdout"
+    - "'PENDING' not in ring_response.stdout"
+    - "'LEAVING' not in ring_response.stdout"
   retries: 20
   delay: 15
   changed_when: false
