@@ -4,15 +4,13 @@ openstack_cmd: "openstack"
 
 # Debug mode set
 cloudkitty_debug: false
-cloudkitty_debug_dir: "{{ (cloudkitty_debug | bool) | ternary(artifacts_dir_zuul + '/debug_ck_db', '') }}"
+cloudkitty_debug_dir: "{{ (cloudkitty_debug | bool) | ternary(ck_artifacts_dir + '/debug_ck_db', '') }}"
 
 # Directory paths
-logs_dir_zuul: "{{ cifmw_basedir }}/logs"
-artifacts_dir_zuul: "{{ cifmw_basedir }}/artifacts"
+ck_artifacts_dir: "{{ cifmw_basedir }}/artifacts"
 cert_dir: "{{ cifmw_basedir }}/ck-certs"
 local_cert_dir: "{{ cifmw_basedir }}/flush_certs"
 remote_cert_dir: "osp-certs"
-artifacts_dir: "{{ artifacts_dir_zuul }}"
 
 # Cloudkitty certificates and secrets
 cert_secret_name: "cert-cloudkitty-client-internal"
@@ -34,13 +32,13 @@ limit: 1500
 cloudkitty_test_scenarios: ["test_static", "test_dyn_basic"]
 
 # Scenario-specific output files
-cloudkitty_data_file: "{{ artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_synth_data_suffix }}"
-cloudkitty_loki_data_file: "{{ artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_loki_data_suffix }}"
-cloudkitty_synth_totals_file: "{{ artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}"
-cloudkitty_loki_summary_metrics_file: "{{ artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_loki_totals_metrics_suffix }}"
+cloudkitty_data_file: "{{ ck_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_synth_data_suffix }}"
+cloudkitty_loki_data_file: "{{ ck_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_loki_data_suffix }}"
+cloudkitty_synth_totals_file: "{{ ck_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}"
+cloudkitty_loki_summary_metrics_file: "{{ ck_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_loki_totals_metrics_suffix }}"
 
 # Total rate output files (loki_total_rate prefix)
-cloudkitty_loki_totals_file: "{{ artifacts_dir }}/loki_totals{{ cloudkitty_loki_data_suffix }}"
-cloudkitty_loki_rating_summary_file: "{{ artifacts_dir }}/loki_total_rate{{ cloudkitty_loki_totals_metrics_suffix }}"
-cloudkitty_loki_rating_by_type_file: "{{ artifacts_dir }}/loki_rating_by_type.yml"
-cloudkitty_loki_rating_dataframes_file: "{{ artifacts_dir }}/loki_rating_dataframes.yml"
+cloudkitty_loki_totals_file: "{{ ck_artifacts_dir }}/loki_totals{{ cloudkitty_loki_data_suffix }}"
+cloudkitty_loki_rating_summary_file: "{{ ck_artifacts_dir }}/loki_total_rate{{ cloudkitty_loki_totals_metrics_suffix }}"
+cloudkitty_loki_rating_by_type_file: "{{ ck_artifacts_dir }}/loki_rating_by_type.yml"
+cloudkitty_loki_rating_dataframes_file: "{{ ck_artifacts_dir }}/loki_rating_dataframes.yml"
