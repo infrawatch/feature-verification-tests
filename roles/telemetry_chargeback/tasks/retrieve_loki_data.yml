@@ -1,14 +1,21 @@
 ---
-- name: "Set scenario-specific LogQL query for {{ scenario_name }}"
+- name: "Set LogQL query for {{ scenario_name }}"
   ansible.builtin.set_fact:
-    scenario_logql_query: '{service="cloudkitty", scenario="{{ scenario_name }}"}'
+    scenario_logql_query: '{service="cloudkitty"}'
+
+- name: "Calculate Loki query start and end times in nanoseconds"
+  ansible.builtin.set_fact:
+    scenario_start_ns: "{{ ((synth_data_rates.time.begin_step.begin | to_datetime('%Y-%m-%dT%H:%M:%S%z')).strftime('%s') | int * 1000000000) }}"
+    scenario_end_ns: "{{ ((synth_data_rates.time.end_step.end | to_datetime('%Y-%m-%dT%H:%M:%S%z')).strftime('%s') | int * 1000000000) }}"
 
 - name: "Debug: Show Loki query parameters for {{ scenario_name }}"
   ansible.builtin.debug:
     msg:
       - "Query: {{ scenario_logql_query }}"
-      - "Start time (nanosec): {{ synth_data_rates.time.begin_step.nanosec }}"
+      - "Start time (nanosec): {{ scenario_start_ns }}"
       - "Start time (human): {{ synth_data_rates.time.begin_step.begin }}"
+      - "End time (nanosec): {{ scenario_end_ns }}"
+      - "End time (human): {{ synth_data_rates.time.end_step.end }}"
       - "Expected log count: {{ synth_data_rates.data_summary.log_count }}"
   when: cloudkitty_debug | bool
 
@@ -21,7 +28,7 @@
   block:
     - name: "Query Loki API"
       ansible.builtin.uri:
-        url: "{{ loki_query_url }}?query={{ scenario_logql_query | urlencode }}&start={{ synth_data_rates.time.begin_step.nanosec }}&limit={{ limit }}"
+        url: "{{ loki_query_url }}?query={{ scenario_logql_query | urlencode }}&start={{ scenario_start_ns }}&end={{ scenario_end_ns }}&limit={{ limit }}"
         method: GET
         client_cert: "{{ cert_dir }}/tls.crt"
         client_key: "{{ cert_dir }}/tls.key"
@@ -58,7 +65,10 @@
           Query did not return all data entries. Expected
           {{ synth_data_rates.data_summary.log_count }} log entries, but Loki
           only returned {{ actual_count }}
-        success_msg: "Query returned all data entries. Input file had {{ synth_data_rates.data_summary.log_count }} entries and Loki returned {{ actual_count }}"
+        success_msg: >-
+          Query returned all data entries. Input file had
+          {{ synth_data_rates.data_summary.log_count }} entries and Loki
+          returned {{ actual_count }}
 
     # Only runs if retrieval was successful
     - name: "TEST Generate chargeback stats from Loki-retrieved data file: {{ scenario_name }}"
