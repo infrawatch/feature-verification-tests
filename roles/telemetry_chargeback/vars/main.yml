@@ -12,7 +12,7 @@ cloudkitty_synth_totals_metrics_suffix: "-synth_metrics_summary.yml"
 cloudkitty_loki_totals_metrics_suffix: "-loki_metrics_summary.yml"
 cloudkitty_loki_totals_suffix: "-rating.yml"
 
-# Test scenario file path (uses role_path, not ck_artifacts_dir)
+# Test scenario file path (uses role_path, not cloudkitty_artifacts_dir)
 cloudkitty_test_file: >-
   {{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml
 
