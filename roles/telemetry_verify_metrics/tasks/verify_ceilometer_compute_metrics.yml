@@ -75,6 +75,72 @@
       until: result.rc == 0 and "ceilometer_power_state" in result.stdout
       changed_when: false
 
+    - name: Stop the server to verify stopped instance metrics
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} server stop fvt_testing_server
+      register: result
+      changed_when: result.rc == 0
+      failed_when: result.rc >= 1
+
+    - name: Wait for server to reach SHUTOFF state
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} server show fvt_testing_server -c status -f value
+      register: result
+      delay: 5
+      retries: 12
+      until: result.rc == 0 and "SHUTOFF" in result.stdout
+      changed_when: false
+
+    - name: |
+        TEST Verify ceilometer_power_state metric is reported for stopped instance
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} metric show ceilometer_power_state
+      register: result
+      delay: 30
+      retries: 10
+      until: result.rc == 0 and "ceilometer_power_state" in result.stdout
+      changed_when: false
+
+    - name: |
+        TEST Verify ceilometer_vcpus metric is reported for stopped instance
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} metric show ceilometer_vcpus
+      register: result
+      delay: 30
+      retries: 10
+      until: result.rc == 0 and "ceilometer_vcpus" in result.stdout
+      changed_when: false
+
+    - name: |
+        TEST Verify ceilometer_memory metric is reported for stopped instance
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} metric show ceilometer_memory
+      register: result
+      delay: 30
+      retries: 10
+      until: result.rc == 0 and "ceilometer_memory" in result.stdout
+      changed_when: false
+
+    - name: |
+        TEST Verify ceilometer_disk_device_capacity metric is reported for stopped instance
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} metric show ceilometer_disk_device_capacity
+      register: result
+      delay: 30
+      retries: 10
+      until: result.rc == 0 and "ceilometer_disk_device_capacity" in result.stdout
+      changed_when: false
+
+    - name: |
+        TEST Verify ceilometer_disk_device_usage metric is reported for stopped instance
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} metric show ceilometer_disk_device_usage
+      register: result
+      delay: 30
+      retries: 10
+      until: result.rc == 0 and "ceilometer_disk_device_usage" in result.stdout
+      changed_when: false
+
   always:
     - name: Delete the server
       ansible.builtin.shell: |
