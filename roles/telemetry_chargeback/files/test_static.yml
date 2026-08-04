@@ -1,9 +1,10 @@
 # Scenario configuration for synthetic Loki log data generation
+# Scenario configuration for CloudKitty chargeback testing
 
 # Time range configuration
 generation:
-  days: 1
-  step_seconds: 7200
+  days: 1/24
+  step_seconds: 300
 
 # Log type definitions
 log_types:
@@ -11,10 +12,10 @@ log_types:
     type: ceilometer_image_size
     unit: MiB
     description: null
-    qty: 20.6
-    price: 0.02
+    qty: 2324
+    unit_cost: 0.00009
     groupby:
-      resource: tenant-01
+      resource: cloudkitty
       project: null
       user: null
     metadata:
@@ -26,9 +27,9 @@ log_types:
     unit: instance
     description: null
     qty: 1.0
-    price: 0.3
+    unit_cost: 0.3
     groupby:
-      resource: tenant-02
+      resource: cloudkitty
       project: null
       user: null
     metadata:
@@ -41,7 +42,7 @@ required_fields:
   - type
   - unit
   - qty
-  - price
+  - unit_cost
   - groupby
   - metadata
 

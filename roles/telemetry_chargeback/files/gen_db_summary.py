@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Parse Loki JSON (or text) into [timestep, log_entry] pairs, then emit a YAML
-summary: time, data_log, and rate (per-type Σ(qty×price) and total Rating).
+summary: time, data_log, and rate (per-type Σ(price) and total Rating).
 
 Same CLI as gen_synth_loki_metrics_totals.py (-j, -o, --debug).
 """
@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -18,7 +17,7 @@ from typing import Any, Optional
 import yaml
 
 REQUIRED_KEYS = frozenset(
-    {"start", "end", "type", "unit", "qty", "price", "groupby"}
+    {"start", "end", "type", "unit", "qty", "unit_cost", "price", "groupby"}
 )
 
 
@@ -100,45 +99,12 @@ def extract_and_sort(json_path: Path) -> list[tuple[str, str]]:
     return pairs
 
 
-def _apply_mutate(qty: float, mutate: str) -> float:
-    """
-    Apply mutate transformation to qty value.
-
-    Args:
-        qty: The quantity value to transform.
-        mutate: The mutation type (NONE, CEIL, FLOOR, NUMBOOL, NOTNUMBOOL).
-
-    Returns:
-        The transformed quantity.
-    """
-    mutate_upper = mutate.upper() if isinstance(mutate, str) else "NONE"
-
-    if mutate_upper == "CEIL":
-        return math.ceil(qty)
-    elif mutate_upper == "FLOOR":
-        return math.floor(qty)
-    elif mutate_upper == "NUMBOOL":
-        # If qty near 0, set it at 0. Else, set it to 1.
-        return 0.0 if abs(qty) < 1e-9 else 1.0
-    elif mutate_upper == "NOTNUMBOOL":
-        # If qty near 0, set it to 1. Else, set it to 0.
-        return 1.0 if abs(qty) < 1e-9 else 0.0
-    else:  # NONE or any unrecognized value
-        return qty
-
-
 def _parse_numeric(value: Any, default: float = 0) -> float:
     """
-    Parse a numeric value, supporting fractions like '1/1048576'.
-
-    This function handles the 'factor' field in scenario YAML files which uses
-    fraction notation (e.g., '1/1048576' to convert bytes to MiB) to match
-    CloudKitty/chargeback documentation standards. Without this parser,
-    fraction strings would cause ValueError when passed to float(), silently
-    dropping metrics from the output summary.
+    Parse a numeric value from JSON entry fields.
 
     Args:
-        value: The value to parse (can be number, string, or fraction string)
+        value: The value to parse (can be number or string)
         default: Default value if parsing fails
 
     Returns:
@@ -146,30 +112,13 @@ def _parse_numeric(value: Any, default: float = 0) -> float:
     """
     if value is None:
         return default
-
-    # If it's already a number, convert directly
     if isinstance(value, (int, float)):
         return float(value)
-
-    # If it's a string, check for fraction notation (e.g., "1/1048576")
     if isinstance(value, str):
-        value = value.strip()
-        if '/' in value:
-            try:
-                parts = value.split('/')
-                if len(parts) == 2:
-                    numerator = float(parts[0].strip())
-                    denominator = float(parts[1].strip())
-                    if denominator != 0:
-                        return numerator / denominator
-            except (ValueError, ZeroDivisionError):
-                pass
-        # Try direct conversion
         try:
-            return float(value)
+            return float(value.strip())
         except ValueError:
             pass
-
     return default
 
 
@@ -191,28 +140,14 @@ def aggregate_rates_by_type(
         try:
             qty = _parse_numeric(entry.get("qty"), 0)
             price = _parse_numeric(entry.get("price"), 0)
-            factor = _parse_numeric(entry.get("factor"), 1)
-            offset = _parse_numeric(entry.get("offset"), 0)
-            mutate = entry.get("mutate", "NONE")
         except (TypeError, ValueError):
             continue
 
-        # Track raw qty sum (before any transformation)
         qty_sums[mtype] += qty
 
-        # CRITICAL FIX: Follow CloudKitty methodology - conversion BEFORE
-        # mutation. Per CloudKitty docs, "Quantity mutation is done AFTER
-        # conversion"
-        # https://docs.openstack.org/cloudkitty/2025.2/admin/configuration/collector.html
-
-        # Step 1: Apply factor and offset (unit conversion)
-        qty_converted = qty * factor + offset
-
-        # Step 2: Apply mutate transformation (happens AFTER conversion)
-        qty_mutated = _apply_mutate(qty_converted, mutate)
-
-        # Step 3: Calculate rate
-        rate_sums[mtype] += qty_mutated * price
+        # Price is already the computed cost for this entry
+        # (unit_cost * qty_mutated), matching CK dataframe Price field
+        rate_sums[mtype] += price
 
     by_types = {
         k: {"Rate": round(v, 4)} for k, v in sorted(rate_sums.items())
