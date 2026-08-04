@@ -37,9 +37,8 @@ Role Variables
 |----------|---------------|-------------|
 | `openstack_cmd` | `"openstack"` | OpenStack CLI command (customize if not in PATH) |
 | `cloudkitty_debug` | `false` | Enable debug mode for CloudKitty operations |
-| `cloudkitty_debug_dir` | `"{{ (cloudkitty_debug \| bool) \| ternary(artifacts_dir_zuul + '/debug_ck_db', '') }}"` | Directory for debug output (auto-set based on debug flag) |
-| `logs_dir_zuul` | `"{{ cifmw_basedir }}/logs"` | Directory for log files |
-| `artifacts_dir_zuul` | `"{{ cifmw_basedir }}/artifacts"` | Directory for generated artifacts and test output |
+| `cloudkitty_debug_dir` | `"{{ (cloudkitty_debug \| bool) \| ternary(cloudkitty_artifacts_dir + '/debug_ck_db', '') }}"` | Directory for debug output (auto-set based on debug flag) |
+| `cloudkitty_artifacts_dir` | `"{{ cifmw_basedir }}/artifacts"` | Directory for generated artifacts and test output |
 | `cert_dir` | `"{{ cifmw_basedir }}/ck-certs"` | Directory for CloudKitty client certificates |
 | `local_cert_dir` | `"{{ cifmw_basedir }}/flush_certs"` | Local directory for flush certificates (cleaned up after run) |
 | `remote_cert_dir` | `"osp-certs"` | Remote directory inside OpenStack pod for certificates |
@@ -50,8 +49,8 @@ Role Variables
 | `cloudkitty_namespace` | `"openstack"` | Kubernetes namespace where CloudKitty is deployed |
 | `openstackpod` | `"openstackclient"` | OpenStack client pod name for exec/cp operations |
 | `lookback` | `6` | Days to look back for Loki query time range |
-| `limit` | `50` | Limit for Loki query results |
-| `cloudkitty_test_scenarios` | `["test_static.yml", "test_dyn_basic.yml"]` | List of test scenario files to run|
+| `limit` | `1500` | Limit for Loki query results |
+| `cloudkitty_test_scenarios` | `["test_static", "test_dyn_basic"]` | List of test scenario files to run|
 
 How It Works
 ------------
