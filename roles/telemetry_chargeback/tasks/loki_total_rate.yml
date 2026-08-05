@@ -30,7 +30,7 @@
       - "Limit: {{ limit }}"
 
 # Query Loki for all data in current month
-- name: "TEST retrieve Logs from Loki via API loki total_rate"
+- name: "TEST Retrieve Logs from Loki via API loki total_rate"
   block:
     - name: "Query Loki API for current month data"
       ansible.builtin.uri:
@@ -56,7 +56,7 @@
         dest: "{{ cloudkitty_loki_totals_file }}"
         mode: '0644'
 
-    - name: "TEST generate chargeback stats from Loki total_rate data"
+    - name: "TEST Generate chargeback stats from Loki total_rate data"
       ansible.builtin.command:
         cmd: >
           python3 "{{ cloudkitty_summary_script }}"
