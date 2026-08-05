@@ -1,0 +1,35 @@
+---
+# Display scenario contribution before accumulation
+- name: "Display total_rate_scenario for {{ scenario_name }}"
+  ansible.builtin.debug:
+    msg: >-
+      Scenario '{{ scenario_name }}'
+      total_rate_scenario: {{ synth_data_rates.data_summary.total_rate_scenario | float }}
+      (current running total: {{ total_rate_job | float }})
+
+# Accumulate total rate
+- name: "Accumulate total rate for job: {{ scenario_name }}"
+  ansible.builtin.set_fact:
+    total_rate_job: >-
+      {{ (total_rate_job | float) +
+         (synth_data_rates.data_summary.total_rate_scenario | float) }}
+
+# Track earliest begin time across all scenarios
+- name: "Update earliest begin time for job: {{ scenario_name }}"
+  ansible.builtin.set_fact:
+    job_earliest_start_time: >-
+      {{ synth_data_rates.time.begin_step.begin
+         if (job_earliest_start_time == '' or
+             synth_data_rates.time.begin_step.begin <
+             job_earliest_start_time)
+         else job_earliest_start_time }}
+
+# Track latest end time across all scenarios
+- name: "Update latest end time for job: {{ scenario_name }}"
+  ansible.builtin.set_fact:
+    job_latest_end_time: >-
+      {{ synth_data_rates.time.end_step.end
+         if (job_latest_end_time == '' or
+             synth_data_rates.time.end_step.end >
+             job_latest_end_time)
+         else job_latest_end_time }}
