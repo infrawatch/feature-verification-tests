@@ -1,9 +1,9 @@
 telemetry_chargeback
 ===================
 
-The **`telemetry_chargeback`** role validates and tests the **RHOSO CloudKitty** chargeback feature. It performs CloudKitty configuration validation and generates synthetic test data for chargeback scenario testing.
+The **`telemetry_chargeback`** role validates and tests the **RHOSO CloudKitty** chargeback feature. It generates synthetic Loki log data, pushes it to Loki, retrieves it back, and asserts that CloudKitty's rating matches the expected synthetic totals within a configurable tolerance.
 
-**Note:** This role contains tests specific to the CloudKitty feature. Generic OpenStack tests (deployment validation, basic networking) should be placed in a common role.
+**Note:** This role contains tests specific to the CloudKitty feature. Generic OpenStack tests (deployment validation, basic networking) should be placed in the common role.
 
 Requirements
 ------------
@@ -24,7 +24,7 @@ This role must be run **after** successful deployment of:
 
 * **OpenStack (RHOSO):** Functional cloud environment
 * **CloudKitty:** Chargeback service installed, configured, and running
-* **Loki/OpenShift** (optional): Required only for Loki integration features
+* **Loki/OpenShift:** Required for data ingestion and retrieval
   * Control host needs `oc` CLI access
   * CloudKitty Loki stack (route, certificates, ingester) deployed
 
@@ -35,228 +35,246 @@ Role Variables
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
-| `openstack_cmd` | `"openstack"` | OpenStack CLI command (customize if not in PATH) |
+| `openstack_cmd` | `"openstack"` | OpenStack CLI command |
 | `cloudkitty_debug` | `false` | Enable debug mode for CloudKitty operations |
-| `cloudkitty_debug_dir` | `"{{ (cloudkitty_debug \| bool) \| ternary(artifacts_dir_zuul + '/debug_ck_db', '') }}"` | Directory for debug output (auto-set based on debug flag) |
-| `logs_dir_zuul` | `"{{ cifmw_basedir }}/logs"` | Directory for log files |
-| `artifacts_dir_zuul` | `"{{ cifmw_basedir }}/artifacts"` | Directory for generated artifacts and test output |
+| `cloudkitty_debug_dir` | `"{{ ... }}"` | Directory for debug output (auto-set based on debug flag) |
+| `cloudkitty_artifacts_dir` | `"{{ cifmw_basedir }}/artifacts"` | Directory for generated artifacts and test output |
 | `cert_dir` | `"{{ cifmw_basedir }}/ck-certs"` | Directory for CloudKitty client certificates |
-| `local_cert_dir` | `"{{ cifmw_basedir }}/flush_certs"` | Local directory for flush certificates (cleaned up after run) |
+| `local_cert_dir` | `"{{ cifmw_basedir }}/flush_certs"` | Local directory for flush certificates |
 | `remote_cert_dir` | `"osp-certs"` | Remote directory inside OpenStack pod for certificates |
 | `cert_secret_name` | `"cert-cloudkitty-client-internal"` | OpenShift secret name for client certificates |
 | `client_secret` | `"secret/cloudkitty-lokistack-gateway-client-http"` | Secret for flush client certificates |
 | `ca_configmap` | `"cm/cloudkitty-lokistack-ca-bundle"` | ConfigMap for CA bundle |
-| `logql_query` | `"{{ loki_query \| default('{service=\"cloudkitty\"}') }}"` | LogQL query for Loki (overridable via `loki_query` variable) |
+| `logql_query` | `'{service="cloudkitty"}'` | LogQL query for Loki (overridable via `loki_query`) |
 | `cloudkitty_namespace` | `"openstack"` | Kubernetes namespace where CloudKitty is deployed |
-| `openstackpod` | `"openstackclient"` | OpenStack client pod name for exec/cp operations |
-| `lookback` | `6` | Days to look back for Loki query time range |
-| `limit` | `50` | Limit for Loki query results |
-| `cloudkitty_test_scenarios` | `["test_static.yml", "test_dyn_basic.yml"]` | List of test scenario files to run|
+| `openstackpod` | `"openstackclient"` | OpenStack client pod name |
+| `limit` | `1500` | Maximum entries for Loki query results |
+| `cloudkitty_test_scenarios` | `["test_static", "test_dyn_basic"]` | List of test scenario names (without `.yml` extension) |
+
+#### Scenario-Specific Output Files
+
+These are derived from `cloudkitty_artifacts_dir` and the internal file suffixes:
+
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `cloudkitty_data_file` | `<artifacts>/<scenario>-synth_data.json` | Per-scenario synthetic data output |
+| `cloudkitty_loki_data_file` | `<artifacts>/<scenario>-loki_data.json` | Per-scenario Loki retrieved data |
+| `cloudkitty_synth_totals_file` | `<artifacts>/<scenario>-synth_metrics_summary.yml` | Per-scenario synthetic metrics summary |
+| `cloudkitty_loki_summary_metrics_file` | `<artifacts>/<scenario>-loki_metrics_summary.yml` | Per-scenario Loki metrics summary |
+
+#### Total Rate Output Files
+
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `cloudkitty_loki_totals_file` | `<artifacts>/loki_totals-loki_data.json` | Aggregate Loki data for current month |
+| `cloudkitty_loki_rating_summary_file` | `<artifacts>/loki_total_rate-loki_metrics_summary.yml` | Aggregate Loki rating summary |
+| `cloudkitty_loki_rating_by_type_file` | `<artifacts>/loki_rating_by_type.yml` | CloudKitty rating breakdown by type |
+| `cloudkitty_loki_rating_dataframes_file` | `<artifacts>/loki_rating_dataframes.yml` | CloudKitty rating dataframes |
 
 How It Works
 ------------
 
 The role executes the following workflow:
 
-1. **CloudKitty Validation** (`chargeback_tests.yml`)
-   - Enables the hashmap rating module
-   - Sets priority to 100
-   - Validates module state
+### 1. CloudKitty Validation (`chargeback_tests.yml`)
+- Verifies CloudKitty pods are running
+- Validates endpoints and services
+- Enables the hashmap rating module (priority 100)
+- Validates module state
 
-2. **Loki Environment Setup** (`setup_loki_env.yml`)
-   - Extracts Loki route information from OpenShift
-   - Retrieves certificates from secrets/configmaps
-   - Configures Loki push/query URLs
+### 2. Loki Environment Setup (`setup_loki_env.yml`)
+- Extracts Loki route information from OpenShift
+- Retrieves certificates from secrets/configmaps
+- Configures Loki push/query URLs
+- Waits for Loki gossip ring to converge (via `oc exec` inside the cluster) before data ingestion
 
-3. **Test Scenario Selection**
-   - Uses scenarios defined in `cloudkitty_test_scenarios` variable
+### 3. Test Scenario Loop (`run_test_scenarios.yml`)
 
-4. **Scenario Execution Loop** (for each discovered scenario)
-   - Generates synthetic Loki log data (`gen_synth_loki_data.py`)
-   - Calculates expected chargeback metrics (`gen_db_summary.py`)
-   - Loads metrics for validation
+Scenarios are processed sequentially in reverse list order. For each scenario:
 
-5. **Cleanup** (`cleanup_ck.yml`)
-   - Removes temporary certificate directories
-   - Always runs (even on failure) via block/rescue/always structure
+**a. Generate Synthetic Data** (`gen_synth_loki_data.yml`)
+- Runs `gen_synth_loki_data.py` to produce Loki-format JSON
+- Runs `gen_db_summary.py` to calculate expected metrics summary
+- Chains scenario end times via `previous_scenario_end_time`
 
+**b. Load Data to Loki** (`load_loki_data.yml`)
+- POSTs synthetic JSON to the Loki push API (`ingest_loki_data.yml`)
+- Flushes Loki ingester to persist data (`flush_loki_data.yml`)
+
+**c. Retrieve and Validate** (`retrieve_loki_data.yml`, `loki_diff_db_upload-vs-download.yml`)
+- Queries Loki to retrieve the ingested data (retries up to 20 times, 60s delay)
+- Asserts all expected log entries are returned
+- Generates metrics summary from retrieved data
+- Compares synthetic vs Loki-retrieved summaries via `diff`
+
+**d. Accumulate Job Statistics** (`job_scenario_stats.yml`)
+- Accumulates `total_rate_job` across scenarios
+- Tracks `job_earliest_start_time` and `job_latest_end_time`
+
+### 4. Rating Comparison (`loki_total_rate.yml`)
+
+After all scenarios complete:
+
+- Queries Loki for all CloudKitty data in the current month
+- Generates a comprehensive rate summary from retrieved data
+- Retrieves CloudKitty rating summary (`rating summary get`) and dataframes via API v2
+- Compares accumulated synthetic rating against CloudKitty's rating
+- **Asserts match within configurable tolerance** (default 0.5%)
+
+The assertion uses the formula:
+```
+tolerance = (synth_rating + ck_rating) * rating_tolerance_pct / 2
+pass if |synth_rating - ck_rating| < tolerance
+```
+
+### 5. Cleanup (`cleanup_ck.yml`)
+- Removes temporary certificate directories (`local_cert_dir`)
+- Always runs (even on failure) via block/rescue/always structure
+
+Price Calculation
+-----------------
+
+The role's price calculation matches CloudKitty's internal computation:
+
+```
+price = unit_cost * _apply_mutate(qty, mutate)
+```
+
+Where `_apply_mutate` applies one of:
+- **NONE** (default): No transformation, use qty as-is
+- **CEIL**: Round qty up to nearest integer
+- **FLOOR**: Round qty down to nearest integer
+- **NUMBOOL**: 1.0 if qty > 0, else 0.0
+- **NOTNUMBOOL**: 0.0 if qty > 0, else 1.0
+
+The `price` field in each log entry is pre-computed at generation time, and `gen_db_summary.py` sums these prices directly to get the total rating per type and overall.
 
 Python Scripts
 --------------
 
-The role includes two Python scripts for synthetic data generation and metrics calculation.
-
 ### gen_synth_loki_data.py
 
-**Purpose:** Generates synthetic Loki-format JSON log data from scenario YAML files.
-
-**Description:**
-This script reads a scenario configuration file (YAML), processes time-series data according to the specified parameters, and renders it through a Jinja2 template to produce Loki-compatible JSON output. It supports metric transformations, date field injection, and configurable timestamp ordering.
+Generates synthetic Loki-format JSON log data from scenario YAML files and a Jinja2 template.
 
 **Usage:**
 ```bash
 python3 gen_synth_loki_data.py --tmpl <template> -t <scenario> -o <output> [options]
 ```
 
-**Required Arguments:**
-| Argument | Description |
-|----------|-------------|
-| `--tmpl PATH` | Path to Jinja2 template file (e.g., `loki_data_templ.j2`) |
-| `-t, --test PATH` | Path to scenario YAML file (e.g., `test_dyn_basic.yml`) |
-| `-o, --output PATH` | Path for output JSON file |
+| Argument | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `--tmpl PATH` | Yes | - | Path to Jinja2 template file |
+| `-t, --test PATH` | Yes | - | Path to scenario YAML file |
+| `-o, --output PATH` | Yes | - | Path for output JSON file |
+| `--end_time TIMESTAMP` | No | Current UTC | End timestamp in ISO 8601 format (e.g., `2024-01-15T10:30:00Z`) |
+| `--ascending` | No | - | Sort timestamps oldest-first |
+| `--descending` | No | Yes | Sort timestamps newest-first |
+| `--debug BOOL` | No | `false` | Enable debug logging |
 
-**Optional Arguments:**
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `--ascending` | - | Sort timestamps in ascending order (oldest first, newest last) |
-| `--descending` | **Yes** | Sort timestamps in descending order (newest first, oldest last) |
-| `--debug` | `False` | Enable debug logging to stdout |
+**Output:** Each log entry contains: `start`, `end`, `type`, `unit`, `description`, `qty`, `unit_cost`, `price`, `groupby`, `metadata`, `mutate`.
 
-**Output:**
-- Loki-compatible JSON file with timestamped log entries
-- Each entry contains: type, unit, description, qty, price, groupby, metadata
-- Optional transformation fields: mutate, factor, offset
-
-**Example:**
-```bash
-python3 gen_synth_loki_data.py \
-  --tmpl templates/loki_data_templ.j2 \
-  -t files/test_dyn_basic.yml \
-  -o artifacts/test_dyn_basic-synth_data.json \
-  --descending
-```
+The script outputs the `oldest_start_time` to stdout for scenario chaining via `previous_scenario_end_time`.
 
 ### gen_db_summary.py
 
-**Purpose:** Parses Loki JSON log data and generates YAML summary with rating calculations.
-
-**Description:**
-This script extracts timestamped log entries from Loki JSON (either from synthetic generation or Loki query results), sorts them chronologically, applies chargeback transformations (mutate, factor, offset), and calculates per-type and total ratings. The output is a structured YAML summary suitable for validation and comparison.
+Parses Loki JSON log data and generates a YAML summary with per-type and total rating. Applies mutate, factor, and offset transformations to calculate rates.
 
 **Usage:**
 ```bash
-python3 gen_db_summary.py -j <input_json> [-o <output>] [--debug] [--debug_dir <dir>]
+python3 gen_db_summary.py -j <input_json> [-o <output>] [--debug BOOL] [--debug_dir DIR]
 ```
 
-**Required Arguments:**
-| Argument | Description |
-|----------|-------------|
-| `-j, --json PATH` | Input JSON file (Loki format or synthetic data) |
-
-**Optional Arguments:**
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `-o, --output PATH` | `<input_stem>_total.yml` | Output YAML file path |
-| `--debug` | `False` | Enable debug mode (writes `<stem>_diff.txt` file) |
-| `--debug_dir DIR` | Output directory | Directory for debug files (defaults to output file's directory) |
+| Argument | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `-j, --json PATH` | Yes | - | Input JSON file (Loki format) |
+| `-o, --output PATH` | No | `<stem>_total.yml` | Output YAML file |
+| `--debug BOOL` | No | `false` | Write debug diff file |
+| `--debug_dir DIR` | No | None | Directory for debug files (required when `--debug` is enabled) |
 
 **Output YAML Structure:**
 ```yaml
 time:
-  begin_step:
-    nanosec: <timestamp_ns>
-    begin: <ISO_timestamp>
-    end: <ISO_timestamp>
-  end_step:
-    nanosec: <timestamp_ns>
-    begin: <ISO_timestamp>
-    end: <ISO_timestamp>
-
+  begin_step: {nanosec, begin, end}
+  end_step: {nanosec, begin, end}
 data_summary:
   total_timesteps: <count>
-  metrics_per_step: <count_or_ERROR>
+  metrics_per_step: <count>
   log_count: <total_entries>
-  total_rating: <sum_of_all_rates>
-
-by_type:
-  rate:
-    - Begin: <ISO_timestamp>
-      End: <ISO_timestamp>
-      Qty: <quantity_sum>
-      Rate: <calculated_rate>
-      Type: <metric_type>
+  total_rate_scenario: <sum_of_all_prices>
+rate_by_type:
+  - {Begin, End, Qty, Rate, Type}
 ```
-
-**Rating Calculation:**
-For each log entry:
-1. Apply `mutate` transformation to `qty` (CEIL, FLOOR, NUMBOOL, NOTNUMBOOL)
-2. Apply linear transformation: `qty_transformed = qty_mutated * factor + offset`
-3. Calculate rate: `rate = qty_transformed * price`
-4. Sum rates by type and overall
-
-**Supported Transformations:**
-- `CEIL`: Round quantity up to nearest integer
-- `FLOOR`: Round quantity down to nearest integer
-- `NUMBOOL`: Convert to 1 if qty > 0, else 0
-- `NOTNUMBOOL`: Convert to 0 if qty > 0, else 1
-- `NONE`: No transformation
-
-**Example:**
-```bash
-python3 gen_db_summary.py \
-  -j artifacts/test_dyn_basic-synth_data.json \
-  -o artifacts/test_dyn_basic-synth_metrics_summary.yml \
-  --debug --debug_dir artifacts/debug
-```
-
-**Debug Output:**
-When `--debug` is enabled, the script writes a `<stem>_diff.txt` file containing one JSON array per line: `[timestamp, log_entry]`. This is useful for troubleshooting data quality issues or timestamp ordering problems.
 
 Scenario Configuration
 ----------------------
 
-Test scenarios are defined in YAML files located in the `files/` directory. The scenarios to run are specified by the `cloudkitty_test_scenarios` variable.
+Test scenarios are YAML files in the `files/` directory, referenced by name (without `.yml` extension) in `cloudkitty_test_scenarios`.
 
 ### Available Scenarios
 
 | File | Description |
 |------|-------------|
-| `test_static.yml` | Static test scenario with predefined constant values |
-| `test_dyn_basic.yml` | Dynamic test scenario with variable values over time, includes NUMBOOL transformations |
+| `test_static.yml` | Static scenario with constant qty/unit_cost values, 2 metric types, 1-hour window |
+| `test_dyn_basic.yml` | Dynamic scenario with 6 metric types including NUMBOOL mutations, 1-hour window |
 
 ### Scenario File Structure
 
-Each scenario file must define:
-
 ```yaml
-# Time range configuration
 generation:
-  days: <number>              # Number of days to generate
-  step_seconds: <seconds>     # Time step interval
+  days: 1/24              # Time window (fractional: 1/24 = 1 hour)
+  step_seconds: 300        # Time step interval in seconds
 
-# Validation configuration
+log_types:
+  - type: ceilometer_image_size
+    unit: MiB
+    description: null
+    qty: 2324              # Scalar or list for step-based distribution
+    unit_cost: 0.00009     # Scalar or list for step-based distribution
+    groupby:
+      resource: cloudkitty
+      project: null
+      user: null
+    metadata:
+      container_format: bare
+    mutate: NUMBOOL        # Optional: NONE, CEIL, FLOOR, NUMBOOL, NOTNUMBOOL
+
 required_fields:
   - type
   - unit
   - qty
-  - price
+  - unit_cost
   - groupby
 
-# Date field injection
 date_fields:
   - week_of_the_year
   - day_of_the_year
   - month
   - year
 
-# Loki stream metadata
 loki_stream:
   service: cloudkitty
 ```
 
-### Field Details
+When `qty` or `unit_cost` is a list, values are distributed evenly across time steps (e.g., 4 values over 12 steps = 3 steps per value).
 
-**groupby fields:**
-- `resource`: Tenant/resource identifier (e.g., `tenant-01`, `tenant-02`)
-- `user`: User identifier (null for unspecified)
-- `project`: Project identifier (null for unspecified)
+Task Files
+----------
 
-**Transformation fields:**
-- `mutate`: Type of transformation to apply to quantity
-- `factor`: Multiplier applied after mutation (e.g., `1/1048576` for byte-to-MiB conversion)
-- `offset`: Value added after factor multiplication
-
-**Note:** Use consistent `resource` values by metric type across scenario files to ensure proper aggregation.
+| File | Description |
+|------|-------------|
+| `main.yml` | Entry point: validation, setup, scenario loop, rating comparison, cleanup |
+| `chargeback_tests.yml` | CloudKitty pod, endpoint, service, and module validation |
+| `setup_loki_env.yml` | Loki route discovery, certificate extraction, and ring convergence check |
+| `run_test_scenarios.yml` | Per-scenario orchestration (generate, load, retrieve, stats) |
+| `gen_synth_loki_data.yml` | Runs gen_synth_loki_data.py and gen_db_summary.py |
+| `load_loki_data.yml` | Coordinates ingest, flush, and retrieve operations |
+| `ingest_loki_data.yml` | POSTs synthetic data to Loki push API |
+| `flush_loki_data.yml` | Flushes Loki ingester via internal API |
+| `retrieve_loki_data.yml` | Queries Loki API with retries and validates data integrity |
+| `loki_diff_db_upload-vs-download.yml` | Compares synthetic vs Loki-retrieved data via diff |
+| `job_scenario_stats.yml` | Accumulates rate and tracks time range across scenarios |
+| `loki_total_rate.yml` | Monthly Loki query, CK rating retrieval, and rating assertion |
+| `cleanup_ck.yml` | Removes temporary certificate directories |
 
 Dependencies
 ------------
@@ -291,7 +309,7 @@ Example Playbook
       vars:
         cloudkitty_namespace: "my-custom-namespace"
         cloudkitty_debug: true
-        lookback: 10
+        rating_tolerance_pct: 0.01
 ```
 
 **Run specific test scenarios:**
@@ -306,13 +324,7 @@ Example Playbook
         name: telemetry_chargeback
       vars:
         cloudkitty_test_scenarios:
-          - "test_static.yml"
-```
-
-**Run custom scenarios via extra-vars:**
-```bash
-ansible-playbook playbook.yml \
-  -e '{"cloudkitty_test_scenarios": ["test_static.yml", "test_custom.yml"]}'
+          - "test_static"
 ```
 
 License

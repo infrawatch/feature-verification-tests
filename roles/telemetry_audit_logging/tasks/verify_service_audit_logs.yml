@@ -6,6 +6,10 @@
   changed_when: false
   failed_when: audit_trigger.rc != 0
 
+- name: "Wait for {{ audit_service.name }} audit events to be written to pod logs"
+  ansible.builtin.pause:
+    seconds: "{{ audit_logging_propagation_delay }}"
+
 - name: "TEST Check {{ audit_service.name }} API pod logs for CADF audit events"
   ansible.builtin.shell:
     cmd: |
