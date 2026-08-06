@@ -40,7 +40,8 @@
   delay: "{{ audit_logging_loki_query_delay }}"
   failed_when: false
 
-- name: "TEST Verify audit Loki contains CADF audit events"
+- name: |
+    TEST Verify audit Loki contains CADF audit events
   ansible.builtin.assert:
     that:
       - audit_loki_query.rc == 0
