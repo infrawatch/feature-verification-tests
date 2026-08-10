@@ -19,7 +19,7 @@
   ansible.builtin.set_fact:
     job_earliest_start_time: >-
       {{ synth_data_rates.time.begin_step.begin
-         if (job_earliest_start_time == '' or
+         if (job_earliest_start_time == '1970-01-01T00:00:00Z' or
              synth_data_rates.time.begin_step.begin <
              job_earliest_start_time)
          else job_earliest_start_time }}
@@ -29,7 +29,7 @@
   ansible.builtin.set_fact:
     job_latest_end_time: >-
       {{ synth_data_rates.time.end_step.end
-         if (job_latest_end_time == '' or
+         if (job_latest_end_time == '1970-01-01T00:00:00Z' or
              synth_data_rates.time.end_step.end >
              job_latest_end_time)
          else job_latest_end_time }}
