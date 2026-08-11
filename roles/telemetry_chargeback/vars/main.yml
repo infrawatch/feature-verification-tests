@@ -16,8 +16,8 @@ cloudkitty_loki_totals_suffix: "-rating.yml"
 cloudkitty_test_file: "{{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml"
 
 # initialize var
-previous_scenario_end_time: '1970-01-01T00:00:00Z'
+previous_scenario_end_time: 0
 total_rate_job: 0
 rating_tolerance_pct: 0.005
-job_earliest_start_time: '1970-01-01T00:00:00Z'
-job_latest_end_time: '1970-01-01T00:00:00Z'
+job_earliest_start_time: 0
+job_latest_end_time: 0
