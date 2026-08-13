@@ -4,11 +4,6 @@
     path: "{{ cloudkitty_data_file }}"
   register: file_preexists
 
-- name: "Initialize previous_scenario_end_time if not set"
-  ansible.builtin.set_fact:
-    previous_scenario_end_time: ""
-  when: previous_scenario_end_time is not defined
-
 - name: "TEST Generate Synthetic Data for {{ scenario_name }}"
   ansible.builtin.command:
     cmd: >
