@@ -46,6 +46,9 @@
     {{ openstack_cmd }} stack show {{ stack_name }};
   register: result
   until: '"CREATE_COMPLETE" in result.stdout'
+  failed_when: >-
+    "CREATE_FAILED" in result.stdout or
+    "DELETE" in result.stdout
   timeout: 30
   retries: 20
 
@@ -60,7 +63,9 @@
   timeout: 30
   retries: 20
   until: '"CREATE_COMPLETE" in result.stdout'
-  #failed_when: '"CREATE_COMPLETE" not in result.stdout'
+  failed_when: >-
+    "CREATE_FAILED" in result.stdout or
+    "DELETE" in result.stdout
 
 - name: |
     TEST Verify ceilometer cpu metrics exist
