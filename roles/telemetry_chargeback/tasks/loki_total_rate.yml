@@ -1,7 +1,7 @@
 ---
 # This task retrieves ALL CloudKitty logs for the current month from Loki
-# and generates a comprehensive rate summary. It runs at the end of the role
-# to capture all data ingested during test scenarios.
+# and generates a comprehensive rate summary. It runs after each scenario
+# to validate the accumulated rating, enabling early failure detection.
 
 - name: "Calculate current month time range (start to now)"
   ansible.builtin.set_fact:
@@ -30,7 +30,7 @@
       - "Limit: {{ limit }}"
 
 # Query Loki for all data in current month
-- name: "TEST Retrieve Logs from Loki via API loki total_rate"
+- name: "TEST Retrieve Logs from Loki via API for all scenarios in current month"
   block:
     - name: "Query Loki API for current month data"
       ansible.builtin.uri:
@@ -56,7 +56,7 @@
         dest: "{{ cloudkitty_loki_totals_file }}"
         mode: '0644'
 
-    - name: "TEST Generate chargeback stats from Loki total_rate data"
+    - name: "TEST Generate chargeback stats from Loki total_rate data for all scenarios"
       ansible.builtin.command:
         cmd: >
           python3 "{{ cloudkitty_summary_script }}"
@@ -78,7 +78,7 @@
           - "Message: {{ loki_response.msg | default('Request failed') }}"
 
 # Display accumulated total rate for job
-- name: "Display accumulated total rate for job"
+- name: "Display accumulated rating for job"
   ansible.builtin.debug:
     msg: "Total rate for entire job across all scenarios: {{ total_rate_job }}"
 
@@ -145,7 +145,7 @@
     rating_diff: "{{ (synth_rating | float - ck_rating | float) | abs | round(4) }}"
     rating_tolerance: "{{ (synth_rating | float + ck_rating | float) * rating_tolerance_pct / 2 | round(4) }}"
 
-- name: "TEST Assert synthetic rating matches CloudKitty rating"
+- name: "TEST Assert synthetic rating matches CloudKitty rating for all scenarios"
   ansible.builtin.assert:
     that:
       - rating_diff | float < rating_tolerance | float
