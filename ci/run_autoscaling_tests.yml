@@ -52,9 +52,9 @@
         - name: Patch observabilityclient into openstackclient
           ansible.builtin.shell:
             cmd: |
-              oc exec openstackclient -- python3 -m ensurepip --upgrade
-              oc exec openstackclient -- python3 -m pip install --upgrade aodhclient
-              oc exec openstackclient -- python3 -m pip install --upgrade python-observabilityclient
+              oc exec -n openstack openstackclient -- python3 -m ensurepip --upgrade
+              oc exec -n openstack openstackclient -- python3 -m pip install --upgrade aodhclient
+              oc exec -n openstack openstackclient -- python3 -m pip install --upgrade python-observabilityclient
           when: patch_observabilityclient | default(false) | bool
           tags:
             - setup

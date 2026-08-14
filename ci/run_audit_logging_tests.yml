@@ -1,0 +1,51 @@
+---
+- name: "Verify all the applicable projects, pods & services for audit logging"
+  hosts: "{{ cifmw_target_hook_host | default('localhost')  }}"
+  gather_facts: true
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+    - vars/osp18_env.yml
+  vars:
+    common_pod_status_str: "Running"
+    common_pod_nspace: openshift-logging
+    common_pod_list:
+      - logging-loki-audit-distributor
+      # pod tests expect only one instance of a pod, there are two of this one
+      #- logging-loki-audit-gateway
+      - logging-loki-audit-index-gateway
+      - logging-loki-audit-ingester
+      - logging-loki-audit-querier
+      - logging-loki-audit-query-frontend
+      - collector-with-cadf-to-loki-audit
+
+    common_project_list:
+      - openshift-logging
+      - openshift
+
+    common_service_nspace: openshift-logging
+    common_service_list:
+      - logging-loki-audit-distributor-grpc
+      - logging-loki-audit-distributor-http
+      - logging-loki-audit-gateway-http
+      - logging-loki-audit-gossip-ring
+      - logging-loki-audit-index-gateway-grpc
+      - logging-loki-audit-index-gateway-http
+      - logging-loki-audit-ingester-grpc
+      - logging-loki-audit-ingester-http
+      - logging-loki-audit-querier-grpc
+      - logging-loki-audit-querier-http
+      - logging-loki-audit-query-frontend-grpc
+      - logging-loki-audit-query-frontend-http
+
+  tasks:
+    - name: "Verify audit logging infrastructure components"
+      ansible.builtin.import_role:
+        name: common
+
+    - name: "Verify audit logging for OpenStack services"
+      ansible.builtin.import_role:
+        name: telemetry_audit_logging

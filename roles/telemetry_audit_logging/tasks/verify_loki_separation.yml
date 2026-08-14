@@ -1,0 +1,52 @@
+---
+- name: "Wait for audit events to reach Loki"
+  ansible.builtin.pause:
+    seconds: "{{ audit_logging_propagation_delay }}"
+
+- name: "Query default Loki for CADF audit events"
+  ansible.builtin.shell:
+    cmd: |
+      curl -sk \
+        -H "Authorization: Bearer $(oc whoami --show-token)" \
+        "{{ audit_default_loki_query_url }}" \
+        --data-urlencode 'query={{ audit_logging_loki_logql_query }}'
+  register: audit_default_loki_query
+  changed_when: false
+  failed_when: audit_default_loki_query.rc != 0
+
+- name: "TEST Verify default Loki does not contain CADF audit events"
+  ansible.builtin.assert:
+    that:
+      - (audit_default_loki_query.stdout | from_json).data.result | length == 0
+    fail_msg: >-
+      FAILED: Default Loki ({{ audit_logging_default_loki_route }}) returned CADF audit events.
+      Audit events should only be forwarded to {{ audit_logging_loki_route }}.
+    success_msg: >-
+      SUCCESS: Default Loki does not contain CADF audit events.
+
+- name: "Query audit Loki for CADF audit events"
+  ansible.builtin.shell:
+    cmd: |
+      curl -sk \
+        -H "Authorization: Bearer $(oc whoami --show-token)" \
+        "{{ audit_loki_query_url }}" \
+        --data-urlencode 'query={{ audit_logging_loki_logql_query }}'
+  register: audit_loki_query
+  changed_when: false
+  until: >
+    audit_loki_query.rc == 0 and
+    (audit_loki_query.stdout | from_json).data.result | length > 0
+  retries: "{{ audit_logging_loki_query_retries }}"
+  delay: "{{ audit_logging_loki_query_delay }}"
+  failed_when: false
+
+- name: "TEST Verify audit Loki contains CADF audit events"
+  ansible.builtin.assert:
+    that:
+      - audit_loki_query.rc == 0
+      - (audit_loki_query.stdout | from_json).data.result | length > 0
+    fail_msg: >-
+      FAILED: Audit Loki ({{ audit_logging_loki_route }}) did not return CADF audit events.
+      LogQL: {{ audit_logging_loki_logql_query }}
+    success_msg: >-
+      SUCCESS: Audit Loki contains CADF audit events.

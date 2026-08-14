@@ -1,0 +1,161 @@
+---
+# This task retrieves ALL CloudKitty logs for the current month from Loki
+# and generates a comprehensive rate summary. It runs at the end of the role
+# to capture all data ingested during test scenarios.
+
+- name: "Calculate current month time range (start to now)"
+  ansible.builtin.set_fact:
+    month_start: >-
+      {{ lookup('pipe', 'date -u +%Y-%m-01T00:00:00Z') }}
+    month_start_ns: >-
+      {{ (lookup('pipe', 'date -u +%Y-%m-01T00:00:00Z') |
+         to_datetime('%Y-%m-%dT%H:%M:%S%z')).strftime('%s') | int * 1000000000 }}
+    month_end: >-
+      {{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%S%z') }}
+    month_end_ns: >-
+      {{ ansible_date_time.epoch | int * 1000000000 }}
+
+- name: "Set LogQL query for all CloudKitty data in current month"
+  ansible.builtin.set_fact:
+    total_rate_logql_query: '{service="cloudkitty"}'
+
+- name: "Debug: Show Loki query parameters for total_rate"
+  ansible.builtin.debug:
+    msg:
+      - "Query: {{ total_rate_logql_query }}"
+      - "Start time (nanosec): {{ month_start_ns }}"
+      - "End time (nanosec): {{ month_end_ns }}"
+      - "Start time (human): {{ month_start }}"
+      - "End time (human): {{ month_end }}"
+      - "Limit: {{ limit }}"
+
+# Query Loki for all data in current month
+- name: "TEST Retrieve Logs from Loki via API loki total_rate"
+  block:
+    - name: "Query Loki API for current month data"
+      ansible.builtin.uri:
+        url: "{{ loki_query_url }}?query={{ total_rate_logql_query | urlencode }}&start={{ month_start_ns }}&end={{ month_end_ns }}&limit={{ limit }}"
+        method: GET
+        client_cert: "{{ cert_dir }}/tls.crt"
+        client_key: "{{ cert_dir }}/tls.key"
+        ca_path: "{{ cert_dir }}/ca.crt"
+        validate_certs: false
+        return_content: true
+        body_format: json
+      register: loki_response
+      until:
+        - loki_response.status == 200
+        - loki_response.json.status == 'success'
+        - loki_response.json.data.result | length > 0
+      retries: 10
+      delay: 30
+
+    - name: "Save Loki Data to JSON file"
+      ansible.builtin.copy:
+        content: "{{ loki_response.json | to_json }}"
+        dest: "{{ cloudkitty_loki_totals_file }}"
+        mode: '0644'
+
+    - name: "TEST Generate chargeback stats from Loki total_rate data"
+      ansible.builtin.command:
+        cmd: >
+          python3 "{{ cloudkitty_summary_script }}"
+          -j "{{ cloudkitty_loki_totals_file }}"
+          -o "{{ cloudkitty_loki_rating_summary_file }}"
+          --debug "{{ cloudkitty_debug }}"
+          --debug_dir "{{ cloudkitty_debug_dir }}"
+      register: total_rate_summary
+      changed_when: total_rate_summary.rc == 0
+
+  rescue:
+    - name: "Report Retrieval Failure for total_rate"
+      ansible.builtin.fail:
+        msg:
+          - "Failed to retrieve Loki total_rate data for current month"
+          - "Query: {{ total_rate_logql_query }}"
+          - "Start time: {{ month_start }}"
+          - "Status: {{ loki_response.status | default('Unknown') }}"
+          - "Message: {{ loki_response.msg | default('Request failed') }}"
+
+# Display accumulated total rate for job
+- name: "Display accumulated total rate for job"
+  ansible.builtin.debug:
+    msg: "Total rate for entire job across all scenarios: {{ total_rate_job }}"
+
+# Get CloudKitty rating data for comparison
+- name: "Get Rate and Qty by type from CloudKitty"
+  ansible.builtin.command:
+    cmd: >-
+      {{ openstack_cmd }} --rating-api-version 2
+      rating summary get -f yaml -g type
+  register: cost_totals_by_type
+  changed_when: false
+  failed_when: cost_totals_by_type.rc != 0
+
+- name: "Print CloudKitty rating by type"
+  ansible.builtin.debug:
+    var: cost_totals_by_type.stdout
+
+- name: "Save CloudKitty rating by type to file"
+  ansible.builtin.copy:
+    content: "{{ cost_totals_by_type.stdout }}"
+    dest: "{{ cloudkitty_loki_rating_by_type_file }}"
+    mode: '0644'
+
+- name: "TEST Get Rate and Qty Summary from CloudKitty"
+  ansible.builtin.command:
+    cmd: >-
+      {{ openstack_cmd }} --rating-api-version 2
+      rating summary get -f yaml
+      -b "{{ job_earliest_start_time }}"
+      -e "{{ job_latest_end_time }}"
+  register: cost_totals_summary
+  changed_when: false
+  failed_when: cost_totals_summary.rc != 0
+
+- name: "Print CloudKitty rating summary"
+  ansible.builtin.debug:
+    var: cost_totals_summary.stdout
+
+- name: "Get CloudKitty dataframes from Loki"
+  ansible.builtin.command:
+    cmd: >-
+      {{ openstack_cmd }} --rating-api-version 2
+      rating dataframes get -f yaml
+      -b "{{ job_earliest_start_time }}"
+      -e "{{ job_latest_end_time }}"
+  register: cost_dataframes
+  changed_when: false
+  failed_when: cost_dataframes.rc != 0
+
+- name: "Save CloudKitty dataframes to file"
+  ansible.builtin.copy:
+    content: "{{ cost_dataframes.stdout }}"
+    dest: "{{ cloudkitty_loki_rating_dataframes_file }}"
+    mode: '0644'
+
+# Compare synthetic data rating against CloudKitty rating
+- name: "Parse ratings for comparison"
+  ansible.builtin.set_fact:
+    synth_rating: "{{ total_rate_job | float | round(4) }}"
+    ck_rating: "{{ (cost_totals_summary.stdout | from_yaml)[0].Rate | float | round(4) }}"
+
+- name: "Calculate tolerance"
+  ansible.builtin.set_fact:
+    rating_diff: "{{ (synth_rating | float - ck_rating | float) | abs | round(4) }}"
+    rating_tolerance: "{{ (synth_rating | float + ck_rating | float) * rating_tolerance_pct / 2 | round(4) }}"
+
+- name: "TEST Assert synthetic rating matches CloudKitty rating"
+  ansible.builtin.assert:
+    that:
+      - rating_diff | float < rating_tolerance | float
+    fail_msg: |
+      FAILED -
+      Synthetic rating ({{ synth_rating }}) does NOT match
+      CloudKitty rating ({{ ck_rating }}).
+      Difference: {{ rating_diff }} exceeds {{ rating_tolerance_pct | float * 100 }}% tolerance: {{ rating_tolerance }}
+    success_msg: >-
+      PASSED -
+      Ratings match within {{ rating_tolerance_pct | float * 100 }}% tolerance.
+      Synthetic: {{ synth_rating }}, CK: {{ ck_rating }},
+      Diff: {{ rating_diff }}, Tolerance: {{ rating_tolerance }}

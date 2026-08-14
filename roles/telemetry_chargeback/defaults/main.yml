@@ -1,0 +1,44 @@
+---
+# OpenStack CLI command
+openstack_cmd: "openstack"
+
+# Debug mode set
+cloudkitty_debug: false
+cloudkitty_debug_dir: "{{ (cloudkitty_debug | bool) | ternary(cloudkitty_artifacts_dir + '/debug_ck_db', '') }}"
+
+# Directory paths
+cloudkitty_artifacts_dir: "{{ cifmw_basedir }}/artifacts"
+cert_dir: "{{ cifmw_basedir }}/ck-certs"
+local_cert_dir: "{{ cifmw_basedir }}/flush_certs"
+remote_cert_dir: "osp-certs"
+
+# Cloudkitty certificates and secrets
+cert_secret_name: "cert-cloudkitty-client-internal"
+client_secret: "secret/cloudkitty-lokistack-gateway-client-http"
+ca_configmap: "cm/cloudkitty-lokistack-ca-bundle"
+
+# LogQL Query
+logql_query: "{{ loki_query | default('{service=\"cloudkitty\"}') }}"
+
+# OpenShift/Kubernetes settings
+cloudkitty_namespace: "openstack"
+openstackpod: "openstackclient"
+
+# Time window settings
+limit: 1500
+
+# List of test scenario files to run (names without .yml extension)
+# The .yml extension is added automatically in vars/main.yml
+cloudkitty_test_scenarios: ["test_static", "test_dyn_basic"]
+
+# Scenario-specific output files
+cloudkitty_data_file: "{{ cloudkitty_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_synth_data_suffix }}"
+cloudkitty_loki_data_file: "{{ cloudkitty_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_loki_data_suffix }}"
+cloudkitty_synth_totals_file: "{{ cloudkitty_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}"
+cloudkitty_loki_summary_metrics_file: "{{ cloudkitty_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_loki_totals_metrics_suffix }}"
+
+# Total rate output files (loki_total_rate prefix)
+cloudkitty_loki_totals_file: "{{ cloudkitty_artifacts_dir }}/loki_totals{{ cloudkitty_loki_data_suffix }}"
+cloudkitty_loki_rating_summary_file: "{{ cloudkitty_artifacts_dir }}/loki_total_rate{{ cloudkitty_loki_totals_metrics_suffix }}"
+cloudkitty_loki_rating_by_type_file: "{{ cloudkitty_artifacts_dir }}/loki_rating_by_type.yml"
+cloudkitty_loki_rating_dataframes_file: "{{ cloudkitty_artifacts_dir }}/loki_rating_dataframes.yml"

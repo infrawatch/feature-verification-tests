@@ -1,0 +1,25 @@
+---
+- name: "Get default Loki route host"
+  ansible.builtin.command:
+    cmd: >
+      oc get route {{ audit_logging_default_loki_route }}
+      -n {{ audit_logging_namespace }}
+      -o jsonpath={.spec.host}
+  register: audit_default_loki_route
+  changed_when: false
+
+- name: "Get audit Loki route host"
+  ansible.builtin.command:
+    cmd: >
+      oc get route {{ audit_logging_loki_route }}
+      -n {{ audit_logging_namespace }}
+      -o jsonpath={.spec.host}
+  register: audit_loki_route
+  changed_when: false
+
+- name: "Set Loki query URLs"
+  ansible.builtin.set_fact:
+    audit_default_loki_query_url: >-
+      https://{{ audit_default_loki_route.stdout }}/api/logs/v1/{{ audit_logging_loki_tenant }}/loki/api/v1/query_range
+    audit_loki_query_url: >-
+      https://{{ audit_loki_route.stdout }}/api/logs/v1/{{ audit_logging_loki_tenant }}/loki/api/v1/query_range

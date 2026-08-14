@@ -35,7 +35,7 @@
     - name: "Generate an access token for prometheus"
       ansible.builtin.shell:
         cmd: |
-          oc create token stf-prometheus-reader
+          oc create token stf-prometheus-reader --duration=24h
       register: prom_token_out
       changed_when: false
 

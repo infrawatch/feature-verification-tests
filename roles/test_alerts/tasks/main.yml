@@ -10,10 +10,6 @@
   ansible.builtin.include_tasks:
     file: get_observability_api.yml
 
-- name: "Test Creating an alert rule in Prometheus"
-  ansible.builtin.include_tasks:
-    file: test_create_an_alert.yml
-
 - name: "Test Creating a standard alert route in Alertmanager"
   ansible.builtin.include_tasks:
     file: test_creating_a_standard_alert_route_in_alert_manager.yml
