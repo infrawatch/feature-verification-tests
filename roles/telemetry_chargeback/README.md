@@ -39,13 +39,8 @@ Role Variables
 |----------|---------------|-------------|
 | `openstack_cmd` | `"openstack"` | OpenStack CLI command |
 | `cloudkitty_debug` | `false` | Enable debug mode for CloudKitty operations |
-
-#### Directory Paths
-
-| Variable | Default Value | Description |
-|----------|---------------|-------------|
+| `cloudkitty_debug_dir` | `"{{ (cloudkitty_debug \| bool) \| ternary(cloudkitty_artifacts_dir + '/debug_ck_db', '') }}"` | Directory for debug output (auto-set based on debug flag) |
 | `cloudkitty_artifacts_dir` | `"{{ cifmw_basedir }}/artifacts"` | Directory for generated artifacts and test output |
-| `cloudkitty_logs_dir` | `"{{ cifmw_basedir }}/logs"` | Directory for log files |
 | `cert_dir` | `"{{ cifmw_basedir }}/ck-certs"` | Directory for CloudKitty client certificates |
 | `local_cert_dir` | `"{{ cifmw_basedir }}/flush_certs"` | Local directory for flush certificates |
 | `remote_cert_dir` | `"osp-certs"` | Remote directory inside OpenStack pod for certificates |
@@ -65,88 +60,12 @@ Role Variables
 | `cert_secret_name` | `"cert-cloudkitty-client-internal"` | OpenShift secret name for client certificates |
 | `client_secret` | `"secret/cloudkitty-lokistack-gateway-client-http"` | Secret for flush client certificates |
 | `ca_configmap` | `"cm/cloudkitty-lokistack-ca-bundle"` | ConfigMap for CA bundle |
-
-#### Loki Query Settings
-
-| Variable | Default Value | Description |
-|----------|---------------|-------------|
-| `logql_query` | `"{{ loki_query \| default('{service=\"cloudkitty\"}') }}"` | LogQL query for Loki (overridable via `loki_query`) |
-| `limit` | `1500` | Maximum entries for Loki query results |
-
-#### Test Scenarios
-
-| Variable | Default Value | Description |
-|----------|---------------|-------------|
-| `cloudkitty_test_scenarios` | `["test_static", "test_dyn_basic"]` | List of test scenario names (without `.yml` extension) |
-
-### Internal Variables (vars/main.yml)
-
-#### Paths to Scripts and Templates
-
-| Variable | Value | Description |
-|----------|-------|-------------|
-| `cloudkitty_scenario_dir` | `"{{ role_path }}/files"` | Directory containing scenario YAML files |
-| `cloudkitty_synth_script` | `"{{ role_path }}/files/gen_synth_loki_data.py"` | Path to synthetic data generation script |
-| `cloudkitty_data_template` | `"{{ role_path }}/templates/loki_data_templ.j2"` | Path to Jinja2 template for log generation |
-| `cloudkitty_summary_script` | `"{{ role_path }}/files/gen_db_summary.py"` | Path to metrics summary script |
-
-#### File Naming Suffixes (Internal Standardization)
-
-| Variable | Value | Description |
-|----------|-------|-------------|
-| `cloudkitty_synth_data_suffix` | `"-synth_data.json"` | Suffix for synthetic data JSON files |
-| `cloudkitty_loki_data_suffix` | `"-loki_data.json"` | Suffix for Loki query result files |
-| `cloudkitty_synth_totals_metrics_suffix` | `"-synth_metrics_summary.yml"` | Suffix for synthetic metrics summary |
-| `cloudkitty_loki_totals_metrics_suffix` | `"-loki_metrics_summary.yml"` | Suffix for Loki metrics summary |
-
-#### Test Scenario File Path
-
-| Variable | Value | Description |
-|----------|-------|-------------|
-| `cloudkitty_test_file` | `"{{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml"` | Full path to scenario YAML file |
-
-#### Loop Control Variable
-
-| Variable | Scope | Description |
-|----------|-------|-------------|
-| `scenario_name` | Per-iteration | Current scenario name being processed (set by loop) |
-
-### Output Variables (defaults/main.yml - Artifact Paths)
-
-#### Scenario-Specific Output Files
-
-These are derived from `cloudkitty_artifacts_dir` and the internal file suffixes:
-
-| Variable | Value | Description |
-|----------|-------|-------------|
-| `cloudkitty_data_file` | `"{{ cloudkitty_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_synth_data_suffix }}"` | Synthetic JSON data file per scenario |
-| `cloudkitty_loki_data_file` | `"{{ cloudkitty_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_loki_data_suffix }}"` | Loki query result file per scenario |
-| `cloudkitty_synth_totals_file` | `"{{ cloudkitty_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_synth_totals_metrics_suffix }}"` | Synthetic metrics summary per scenario |
-| `cloudkitty_loki_summary_metrics_file` | `"{{ cloudkitty_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_loki_totals_metrics_suffix }}"` | Loki metrics summary per scenario |
-
-#### Total Rate Output Files
-
-| Variable | Value | Description |
-|----------|-------|-------------|
-| `cloudkitty_loki_totals_file` | `"{{ cloudkitty_artifacts_dir }}/loki_total_rate{{ cloudkitty_loki_data_suffix }}"` | Monthly Loki data aggregation |
-| `cloudkitty_rate_summary_file` | `"{{ cloudkitty_artifacts_dir }}/loki_total_rate{{ cloudkitty_loki_totals_metrics_suffix }}"` | Monthly rating summary |
-| `cloudkitty_rating_by_type_file` | `"{{ cloudkitty_artifacts_dir }}/loki_total_rate.yml"` | CloudKitty rating breakdown by type |
-
-### Runtime Variables (Computed During Execution)
-
-These variables are set during task execution and used for scenario chaining and data flow:
-
-| Variable | Set By | Used By | Description |
-|----------|--------|---------|-------------|
-| `previous_end_time` | `gen_synth_loki_data.yml` | `gen_synth_loki_data.py` | End time of previous scenario, used as start time for current scenario |
-| `cloudkitty_data_file_output` | `gen_synth_loki_data.yml` (register) | `gen_synth_loki_data.yml` | Output from synthetic data generation script |
-| `synth_data_rates` | `gen_synth_loki_data.yml` (from YAML) | `retrieve_loki_data.yml` | Parsed synthetic metrics summary (timestamp and log counts) |
-| `scenario_logql_query` | `retrieve_loki_data.yml` | `retrieve_loki_data.yml` | LogQL query specific to current scenario |
-| `loki_base_url` | `setup_loki_env.yml` | All Loki tasks | Base URL for Loki API |
-| `loki_push_url` | `setup_loki_env.yml` | `ingest_loki_data.yml` | Loki push/ingest API endpoint |
-| `loki_query_url` | `setup_loki_env.yml` | `retrieve_loki_data.yml` | Loki query API endpoint |
-| `ingester_flush_url` | `setup_loki_env.yml` | `flush_loki_data.yml` | Loki ingester flush endpoint |
-| `loki_response` | `retrieve_loki_data.yml` (register) | `retrieve_loki_data.yml` | HTTP response from Loki query |
+| `logql_query` | `"{{ loki_query \| default('{service=\"cloudkitty\"}') }}"` | LogQL query for Loki (overridable via `loki_query` variable) |
+| `cloudkitty_namespace` | `"openstack"` | Kubernetes namespace where CloudKitty is deployed |
+| `openstackpod` | `"openstackclient"` | OpenStack client pod name for exec/cp operations |
+| `lookback` | `6` | Days to look back for Loki query time range |
+| `limit` | `1500` | Limit for Loki query results |
+| `cloudkitty_test_scenarios` | `["test_static", "test_dyn_basic"]` | List of test scenario files to run|
 
 How It Works
 ------------
