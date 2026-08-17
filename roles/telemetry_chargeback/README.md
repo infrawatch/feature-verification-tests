@@ -33,15 +33,30 @@ Role Variables
 
 ### User-Configurable Variables (defaults/main.yml)
 
+#### OpenStack CLI & Debug Settings
+
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
-| `openstack_cmd` | `"openstack"` | OpenStack CLI command (customize if not in PATH) |
+| `openstack_cmd` | `"openstack"` | OpenStack CLI command |
 | `cloudkitty_debug` | `false` | Enable debug mode for CloudKitty operations |
 | `cloudkitty_debug_dir` | `"{{ (cloudkitty_debug \| bool) \| ternary(cloudkitty_artifacts_dir + '/debug_ck_db', '') }}"` | Directory for debug output (auto-set based on debug flag) |
 | `cloudkitty_artifacts_dir` | `"{{ cifmw_basedir }}/artifacts"` | Directory for generated artifacts and test output |
 | `cert_dir` | `"{{ cifmw_basedir }}/ck-certs"` | Directory for CloudKitty client certificates |
-| `local_cert_dir` | `"{{ cifmw_basedir }}/flush_certs"` | Local directory for flush certificates (cleaned up after run) |
+| `local_cert_dir` | `"{{ cifmw_basedir }}/flush_certs"` | Local directory for flush certificates |
 | `remote_cert_dir` | `"osp-certs"` | Remote directory inside OpenStack pod for certificates |
+| `cloudkitty_debug_dir` | `"{{ (cloudkitty_debug \| bool) \| ternary(cloudkitty_artifacts_dir + '/debug_ck_db', '') }}"` | Directory for debug output (auto-set based on debug flag) |
+
+#### OpenShift/Kubernetes Settings
+
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `cloudkitty_namespace` | `"openstack"` | Kubernetes namespace where CloudKitty is deployed |
+| `openstackpod` | `"openstackclient"` | OpenStack client pod name |
+
+#### CloudKitty Certificates & Secrets
+
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
 | `cert_secret_name` | `"cert-cloudkitty-client-internal"` | OpenShift secret name for client certificates |
 | `client_secret` | `"secret/cloudkitty-lokistack-gateway-client-http"` | Secret for flush client certificates |
 | `ca_configmap` | `"cm/cloudkitty-lokistack-ca-bundle"` | ConfigMap for CA bundle |
@@ -306,6 +321,7 @@ Example Playbook
       vars:
         cloudkitty_test_scenarios:
           - "test_static.yml"
+          - "test_dyn_basic.yml"
 ```
 
 **Run custom scenarios via extra-vars:**
