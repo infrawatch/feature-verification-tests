@@ -4,10 +4,10 @@ post_ctlplane_deploy_99_modify_openstackversions:
   type: playbook
 
 
-# For custom tempest version...
-cifmw_test_operator_tempest_registry: quay.io
-# Registry's namespace where to pull tempest container. Default value: `{{ cifmw_test_operator_default_namespace }}`
-cifmw_test_operator_tempest_namespace: raukadah
-cifmw_test_operator_tempest_image: openstack-tempest
-# Tag for the `cifmw_test_operator_tempest_image`. Default value: `{{ cifmw_test_operator_default_image_tag }}`
-cifmw_test_operator_tempest_image_tag: master-latest
+## For custom tempest version...
+#cifmw_test_operator_tempest_registry: quay.io
+## Registry's namespace where to pull tempest container. Default value: `{{ cifmw_test_operator_default_namespace }}`
+#cifmw_test_operator_tempest_namespace: raukadah
+#cifmw_test_operator_tempest_image: openstack-tempest
+## Tag for the `cifmw_test_operator_tempest_image`. Default value: `{{ cifmw_test_operator_default_image_tag }}`
+#cifmw_test_operator_tempest_image_tag: master-latest

@@ -83,7 +83,7 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-logging-test.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-functional-test.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
+        # - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: &required_projects
@@ -274,9 +274,13 @@
         #- feature-verification-tests-noop:
         #    files: *irrelevant_files
         # Tomorrow, create a second variant that selects the registry and tags.
-        # For now, I've modified the patch file template directly.
+        - s2i-openstack-container-content-provider
+          # rename the job for 19, with the only diffs being cp
         - functional-tests-osp18:
-            dependencies: []
+            vars:
+              patch_observabilityclient: false
+            dependencies:
+              - s2i-openstack-container-content-provider
         #- functional-logging-tests-osp18:
         #    irrelevant-files: *irrelevant_files
         #    files:
