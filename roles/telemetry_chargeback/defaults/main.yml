@@ -38,7 +38,7 @@ cloudkitty_synth_totals_file: "{{ cloudkitty_artifacts_dir }}/{{ scenario_name }
 cloudkitty_loki_summary_metrics_file: "{{ cloudkitty_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_loki_totals_metrics_suffix }}"
 
 # Total rate output files (loki_total_rate prefix)
-cloudkitty_loki_totals_file: "{{ cloudkitty_artifacts_dir }}/loki_totals{{ cloudkitty_loki_data_suffix }}"
-cloudkitty_loki_rating_summary_file: "{{ cloudkitty_artifacts_dir }}/loki_total_rate{{ cloudkitty_loki_totals_metrics_suffix }}"
-cloudkitty_loki_rating_by_type_file: "{{ cloudkitty_artifacts_dir }}/loki_rating_by_type.yml"
-cloudkitty_loki_rating_dataframes_file: "{{ cloudkitty_artifacts_dir }}/loki_rating_dataframes.yml"
+cloudkitty_loki_totals_file: "{{ cloudkitty_artifacts_dir }}/loki_totals_{{ scenario_name }}{{ cloudkitty_loki_data_suffix }}"
+cloudkitty_loki_rating_summary_file: "{{ cloudkitty_artifacts_dir }}/loki_summary_rating_{{ scenario_name }}{{ cloudkitty_loki_totals_metrics_suffix }}"
+cloudkitty_loki_rating_by_type_file: "{{ cloudkitty_artifacts_dir }}/loki_rating_by_type_{{ scenario_name }}.yml"
+cloudkitty_loki_rating_dataframes_file: "{{ cloudkitty_artifacts_dir }}/loki_rating_dataframes_{{ scenario_name }}.yml"

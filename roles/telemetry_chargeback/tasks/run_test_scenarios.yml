@@ -10,3 +10,6 @@
 
 - name: "Update job scenario statistics for {{ scenario_name }}"
   ansible.builtin.include_tasks: "job_scenario_stats.yml"
+
+- name: "Get total rate from Loki {{ scenario_name }}"
+  ansible.builtin.include_tasks: "loki_total_rate.yml"  
