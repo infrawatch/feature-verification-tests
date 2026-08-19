@@ -18,6 +18,6 @@ cloudkitty_test_file: "{{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml"
 # initialize var
 previous_scenario_end_time: ""
 total_rate_job: 0
-rating_tolerance_pct: 0.005
+rating_tolerance_pct: 0.001
 job_earliest_start_time: 0
 job_latest_end_time: 0

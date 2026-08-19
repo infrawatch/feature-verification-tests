@@ -108,14 +108,19 @@
       delay: 5
       register: instance_count2
       until: instance_count2.stdout_lines | length == 3
-      
+
     - name: Ensure Scaling Up instance result is set
       ansible.builtin.set_fact:
-        scaling_up_success: "{{ instance_count2.stdout_lines | length == 3 }}"
+        scaling_up_success: true
 
     - name: Debug scaling_up_success
       ansible.builtin.debug:
         var: scaling_up_success
+
+  rescue:
+    - name: "TEST Scaling Up instance - marking scale-up as failed"
+      ansible.builtin.set_fact:
+        scaling_up_success: false
 
 
 - name: Stop the busy process
@@ -123,10 +128,15 @@
     sshpass -p gocubsgo ssh cirros@{{ item | trim }} "sudo killall yes"
   register: kill_busy_process
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
+  ignore_errors: true
 
 - name:  TEST Scaling down instance
-  when: scaling_up_success | bool
   block:
+    - name: "TEST Scaling down instance"
+      ansible.builtin.fail:
+        msg: "Scale-down tests cannot run: scale-up did not succeed"
+      when: not (scaling_up_success | default(false) | bool)
+
     - name: |
         TEST Verify cpu low alarm has been triggered
       ansible.builtin.shell: |
