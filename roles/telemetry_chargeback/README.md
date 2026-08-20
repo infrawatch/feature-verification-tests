@@ -65,7 +65,7 @@ Role Variables
 | `openstackpod` | `"openstackclient"` | OpenStack client pod name for exec/cp operations |
 | `lookback` | `6` | Days to look back for Loki query time range |
 | `limit` | `1500` | Limit for Loki query results |
-| `cloudkitty_test_scenarios` | `["test_01_dyn_basic", "test_02_dyn_varying_qty", "test_03_mutate_ceil_floor", "test_04_notnumbool_zero", "test_05_static"]` | List of test scenario files to run (without .yml extension) |
+| `cloudkitty_test_scenarios` | `["test_static", "test_dyn_basic"]` | List of test scenario files to run|
 
 How It Works
 ------------
@@ -216,46 +216,6 @@ python3 gen_db_summary.py \
 **Debug Output:**
 When `--debug` is enabled, the script writes a `<stem>_diff.txt` file containing one JSON array per line: `[timestamp, log_entry]`. This is useful for troubleshooting data quality issues or timestamp ordering problems.
 
-CloudKitty Data Retention Constraint
--------------------------------------
-
-**IMPORTANT:** CloudKitty has a **2-hour data retention window**. Any database entries older than 2 hours from the current time are automatically trimmed and will not be included in rating calculations.
-
-### Critical Constraint: Wall-Clock Execution Time
-
-The 2-hour window is based on **current time**, not data timestamp ranges. Since test scenarios execute sequentially, older scenario data ages out during job execution. The solution is **fast execution** - reduce the number of timesteps so all scenarios complete before any data reaches the 2-hour age threshold.
-
-### Current Test Timing (Verified Working Configuration)
-
-| Scenario | Duration | Timesteps | Cumulative |
-|----------|----------|-----------|-----------|
-| test_01_dyn_basic | 20 min | 5 | 20 min |
-| test_02_dyn_varying_qty | 20 min | 5 | 40 min |
-| test_03_mutate_ceil_floor | 20 min | 5 | 60 min |
-| test_04_notnumbool_zero | 20 min | 5 | 80 min |
-| test_05_static | 20 min | 5 | **100 min** |
-
-**Total: 100 minutes cumulative** (fits comfortably within 2-hour / 120-minute limit)
-
-### Configuration (defaults/main.yml)
-
-Each scenario uses:
-- `days: 1/72` (20-minute time window per scenario)
-- `step_seconds: 240` (4-minute intervals)
-- Results in 5 timesteps per scenario
-- 25 total timesteps across all scenarios
-
-This fast execution ensures all test data stays within CloudKitty's retention window and enables accurate rating validation across the entire test suite.
-
-### Note for Future Modifications
-
-If modifying scenario timing parameters:
-- **Priority: Minimize execution time** to prevent data aging out of retention window
-- Calculate timesteps per scenario: `(days_fraction × 86400) / step_seconds`
-- Example: `1/72 day = 1200 seconds`, with 240s steps = 5 steps per scenario
-- Example: `1/96 day = 900 seconds`, with 60s steps = 15 steps per scenario (slower execution, higher risk)
-- Fewer timesteps = faster job = safer from data trimming
-
 Scenario Configuration
 ----------------------
 
@@ -265,11 +225,8 @@ Test scenarios are defined in YAML files located in the `files/` directory. The 
 
 | File | Description |
 |------|-------------|
-| `test_01_dyn_basic.yml` | Dynamic test scenario with variable values over time, includes NUMBOOL transformations |
-| `test_02_dyn_varying_qty.yml` | Tests multi-value qty and unit_cost distribution across timesteps |
-| `test_03_mutate_ceil_floor.yml` | Validates CEIL and FLOOR mutate transformations with fractional quantities |
-| `test_04_notnumbool_zero.yml` | Tests NOTNUMBOOL mutate and zero-price aggregation handling |
-| `test_05_static.yml` | Static test scenario with predefined constant values |
+| `test_static.yml` | Static test scenario with predefined constant values |
+| `test_dyn_basic.yml` | Dynamic test scenario with variable values over time, includes NUMBOOL transformations |
 
 ### Scenario File Structure
 
