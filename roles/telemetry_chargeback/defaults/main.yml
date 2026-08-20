@@ -29,7 +29,7 @@ limit: 1500
 
 # List of test scenario files to run (names without .yml extension)
 # The .yml extension is added automatically in vars/main.yml
-cloudkitty_test_scenarios: ["test_static", "test_dyn_basic"]
+cloudkitty_test_scenarios: ["test_01_dyn_basic", "test_02_dyn_varying_qty", "test_03_mutate_ceil_floor", "test_04_notnumbool_zero", "test_05_static"]
 
 # Scenario-specific output files
 cloudkitty_data_file: "{{ cloudkitty_artifacts_dir }}/{{ scenario_name }}{{ cloudkitty_synth_data_suffix }}"
