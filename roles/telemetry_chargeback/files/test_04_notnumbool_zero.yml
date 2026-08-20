@@ -1,0 +1,64 @@
+---
+# Scenario: Validate NOTNUMBOOL mutate and zero-price aggregation
+# Tests the inverse boolean transform and whether CloudKitty handles
+# zero-rate types correctly in its rating summary.
+#
+# Expected per-step prices:
+#   notnumbool_nonzero: NOTNUMBOOL(5)=0, price = 10.00 * 0 = 0.00
+#   notnumbool_zero:    NOTNUMBOOL(0)=1, price =  7.50 * 1 = 7.50
+#   baseline_metric:    no mutate,        price =  1.00 * 1 = 1.00
+#
+# baseline_metric ensures total_rate > 0 to avoid tolerance math edge cases.
+
+generation:
+  days: 1/72
+  step_seconds: 240
+
+log_types:
+  - type: notnumbool_nonzero
+    description: "NOTNUMBOOL with nonzero qty produces zero price"
+    unit: ip
+    qty: 5
+    unit_cost: 10.00
+    mutate: NOTNUMBOOL
+    groupby:
+      resource: cloudkitty
+      project: null
+      user: null
+
+  - type: notnumbool_zero
+    description: "NOTNUMBOOL with zero qty produces rated entry"
+    unit: ip
+    qty: 0
+    unit_cost: 7.50
+    mutate: NOTNUMBOOL
+    groupby:
+      resource: cloudkitty
+      project: null
+      user: null
+
+  - type: baseline_metric
+    description: "Non-zero baseline so total_rate is not zero"
+    unit: instance
+    qty: 1
+    unit_cost: 1.00
+    groupby:
+      resource: cloudkitty
+      project: null
+      user: null
+
+required_fields:
+  - type
+  - unit
+  - qty
+  - unit_cost
+  - groupby
+
+date_fields:
+  - week_of_the_year
+  - day_of_the_year
+  - month
+  - year
+
+loki_stream:
+  service: cloudkitty
