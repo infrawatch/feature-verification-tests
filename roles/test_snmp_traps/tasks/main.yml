@@ -19,6 +19,8 @@
   when:
     - prom_auth_string is not defined
     - prom_url is not defined
+    - am_url is not defined
+    - am_auth_string is not defined
 
 - name: "Get the observability strategy and set the observability_api"
   ansible.builtin.include_role:
@@ -88,17 +90,28 @@
             sleep 5
           done
       changed_when: false
+      async: 3600
+      poll: 0
+      register: qdr_interrupt
 
     - name: Verify the alert is firing in Alertmanager
-      ansible.builtin.shell: >-
-        oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c
-        'curl -k -H "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
-        https://default-alertmanager-proxy:9095/api/v1/alerts' | grep 'active'
+      ansible.builtin.shell:
+        cmd: >-
+          curl -k {{ am_auth_string }} -g https://{{ am_url }}/api/v2/alerts
       register: alert_status
       retries: 30
       delay: 10
       changed_when: false
       until: '"FVT_TESTING Collectd metrics receive rate is zero" in alert_status.stdout'
+
+    - name: "Wait for QDR interrupt loop to finish"
+      ansible.builtin.async_status:
+        jid: "{{ qdr_interrupt.ansible_job_id }}"
+      register: qdr_job
+      until: qdr_job.finished
+      retries: 120
+      delay: 5
+      changed_when: false
 
     - name: RHELOSP-144481 Check for snmpTraps logs
       ansible.builtin.shell: >
