@@ -28,6 +28,39 @@ This role must be run **after** successful deployment of:
   * Control host needs `oc` CLI access
   * CloudKitty Loki stack (route, certificates, ingester) deployed
 
+### Resource Limitations
+
+**CloudKitty Data Relevance Window**
+
+CloudKitty rating does not use data older than approximately **2 hours**. If test data is pushed too far into the past, it becomes irrelevant for CloudKitty rating calculations. This is a critical constraint when running multiple test scenarios:
+
+- **Cumulative test execution time** must remain under ~75 minutes (to provide safety margin)
+- **Test scenario timing** is configured conservatively:
+  - `days: 1/72` per scenario (20-minute data window per scenario)
+  - `step_seconds: 240` (4-minute intervals)
+  - Results in 5 timesteps per scenario
+- **Multi-scenario execution**: With 5 test scenarios, total cumulative data spans ~25 timesteps
+- **Loki query limits**:
+  - `limit: 1500` results per query (controls result set size)
+  - `lookback: 6` days (time range window for historical queries)
+
+**Why This Matters**
+
+If test scenarios execute too slowly:
+1. Earlier scenario data becomes older than 2 hours
+2. CloudKitty rating ignores that aged-out data
+3. Rating summary calls return zero or incomplete rates
+4. Tests fail with validation errors
+
+**Timing Modification Guidelines**
+
+If you need to modify test timing:
+1. Monitor **wall-clock execution time** of the entire test run
+2. Keep total execution time under 75 minutes
+3. Adjust `step_seconds` (larger = fewer data points, faster) or `days` (smaller = shorter window)
+4. Test changes on a test environment before merging
+5. Document rationale for any timing changes
+
 Role Variables
 --------------
 
@@ -225,8 +258,11 @@ Test scenarios are defined in YAML files located in the `files/` directory. The 
 
 | File | Description |
 |------|-------------|
-| `test_static.yml` | Static test scenario with predefined constant values |
-| `test_dyn_basic.yml` | Dynamic test scenario with variable values over time, includes NUMBOOL transformations |
+| `test_01_dyn_basic.yml` | Dynamic metrics with NUMBOOL transformations |
+| `test_02_dyn_varying_qty.yml` | Multi-value quantity/cost distribution |
+| `test_03_mutate_ceil_floor.yml` | CEIL and FLOOR transformation validation |
+| `test_04_notnumbool_zero.yml` | NOTNUMBOOL and zero-price aggregation |
+| `test_05_static.yml` | Static resource allocation |
 
 ### Scenario File Structure
 
@@ -320,14 +356,17 @@ Example Playbook
         name: telemetry_chargeback
       vars:
         cloudkitty_test_scenarios:
-          - "test_static.yml"
-          - "test_dyn_basic.yml"
+          - "test_01_dyn_basic"
+          - "test_02_dyn_varying_qty"
+          - "test_03_mutate_ceil_floor"
+          - "test_04_notnumbool_zero"
+          - "test_05_static"
 ```
 
 **Run custom scenarios via extra-vars:**
 ```bash
 ansible-playbook playbook.yml \
-  -e '{"cloudkitty_test_scenarios": ["test_static.yml", "test_custom.yml"]}'
+  -e '{"cloudkitty_test_scenarios": ["test_01_dyn_basic", "test_05_static"]}'
 ```
 
 License
