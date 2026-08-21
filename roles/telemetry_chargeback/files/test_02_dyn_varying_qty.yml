@@ -1,0 +1,57 @@
+---
+# Scenario: Validate multi-value qty and unit_cost distribution
+# Tests _get_value_for_step() with lists longer than 1 element.
+# Values are distributed evenly across all time steps.
+#
+# With 10 steps (20min / 120s):
+#   varying_compute qty [1, 4, 2]:
+#     Cycles through [1, 4, 2] pattern across 10 steps
+#   varying_cost_storage unit_cost [0.001, 0.005, 0.001]:
+#     Cycles through [0.001, 0.005, 0.001] pattern across 10 steps
+
+generation:
+  days: 1/72
+  step_seconds: 240
+
+log_types:
+  - type: varying_compute
+    description: "Qty varies across time steps"
+    unit: instance
+    qty:
+      - 1
+      - 4
+      - 2
+    unit_cost: 0.50
+    groupby:
+      resource: cloudkitty
+      project: null
+      user: null
+
+  - type: varying_cost_storage
+    description: "Unit cost varies across time steps"
+    unit: GiB
+    qty: 100
+    unit_cost:
+      - 0.001
+      - 0.005
+      - 0.001
+    groupby:
+      resource: cloudkitty
+      project: null
+      user: null
+
+required_fields:
+  - type
+  - unit
+  - qty
+  - unit_cost
+  - groupby
+
+date_fields:
+  - week_of_the_year
+  - day_of_the_year
+  - month
+  - year
+
+loki_stream:
+  service: cloudkitty
