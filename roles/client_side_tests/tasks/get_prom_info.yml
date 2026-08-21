@@ -57,3 +57,25 @@
 - name: "Set the prom URL"
   ansible.builtin.set_fact:
     prom_url: "{{ prom_route.stdout }}"
+
+- name: Get the alertmanager URL
+  ansible.builtin.shell:
+    cmd: |
+      oc get route/default-alertmanager-proxy -ojson | jq '.spec.host' | sed 's/"//g'
+  register: alert_manager_route
+  changed_when: false
+
+- name: Set the alertmanager URL
+  ansible.builtin.set_fact:
+    alert_manager_url: "{{ alert_manager_route.stdout }}"
+
+- name: Generate an access token for alertmanager proxy access
+  ansible.builtin.shell:
+    cmd: |
+      oc create token prometheus-stf --duration=24h
+  register: alert_manager_token
+  changed_when: false
+
+- name: Set alertmanager auth string
+  ansible.builtin.set_fact:
+    alert_manager_auth_string: '-H "Authorization: Bearer {{ alert_manager_token.stdout }}"'
