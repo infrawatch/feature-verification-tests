@@ -1,0 +1,51 @@
+---
+# Scenario: Validate CEIL and FLOOR mutate transformations
+# Tests that rounding qty before multiplication matches CloudKitty's
+# per-step mutate behavior. Floating-point divergence is most likely here.
+#
+# Expected per-step prices:
+#   ceil_test_metric:  CEIL(2.3) * 10.00 = 30.00
+#   floor_test_metric: FLOOR(7.8) * 5.00  = 35.00
+
+generation:
+  days: 1/72
+  step_seconds: 240
+
+log_types:
+  - type: ceil_test_metric
+    description: "CEIL mutate - fractional qty rounds up"
+    unit: GiB
+    qty: 2.3
+    unit_cost: 10.00
+    mutate: CEIL
+    groupby:
+      resource: cloudkitty
+      project: null
+      user: null
+
+  - type: floor_test_metric
+    description: "FLOOR mutate - fractional qty rounds down"
+    unit: GiB
+    qty: 7.8
+    unit_cost: 5.00
+    mutate: FLOOR
+    groupby:
+      resource: cloudkitty
+      project: null
+      user: null
+
+required_fields:
+  - type
+  - unit
+  - qty
+  - unit_cost
+  - groupby
+
+date_fields:
+  - week_of_the_year
+  - day_of_the_year
+  - month
+  - year
+
+loki_stream:
+  service: cloudkitty
