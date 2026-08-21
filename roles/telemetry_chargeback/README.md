@@ -28,6 +28,39 @@ This role must be run **after** successful deployment of:
   * Control host needs `oc` CLI access
   * CloudKitty Loki stack (route, certificates, ingester) deployed
 
+### Resource Limitations
+
+**CloudKitty Data Retention Window**
+
+CloudKitty has a **2-hour data retention window** for rating data. This is a critical constraint when running multiple test scenarios:
+
+- **Cumulative test execution time** must remain under ~75 minutes (to provide safety margin)
+- **Test scenario timing** is configured conservatively:
+  - `days: 1/72` per scenario (20-minute data window per scenario)
+  - `step_seconds: 240` (4-minute intervals)
+  - Results in 5 timesteps per scenario
+- **Multi-scenario execution**: With 5 test scenarios (test_static, test_dyn_basic, etc.), total cumulative data spans ~25 timesteps
+- **Loki query limits**:
+  - `limit: 1500` results per query (controls result set size)
+  - `lookback: 6` days (time range window for historical queries)
+
+**Why This Matters**
+
+If test scenarios execute too slowly:
+1. Earlier scenario data ages out of the 2-hour window
+2. Loki queries fail to retrieve data for validation
+3. Rating summary calls return zero rates
+4. Tests fail with data consistency errors
+
+**Timing Modification Guidelines**
+
+If you need to modify test timing:
+1. Monitor **wall-clock execution time** of the entire test run
+2. Keep total execution time under 75 minutes
+3. Adjust `step_seconds` (larger = fewer data points, faster) or `days` (smaller = shorter window)
+4. Test changes on a test environment before merging
+5. Document rationale for any timing changes
+
 Role Variables
 --------------
 
