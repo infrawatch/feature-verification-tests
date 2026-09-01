@@ -19,6 +19,8 @@
   when:
     - prom_auth_string is not defined
     - prom_url is not defined
+    - alert_manager_url is not defined
+    - alert_manager_auth_string is not defined
 
 - name: "Get the observability strategy and set the observability_api"
   ansible.builtin.include_role:
@@ -90,10 +92,9 @@
       changed_when: false
 
     - name: Verify the alert is firing in Alertmanager
-      ansible.builtin.shell: >-
-        oc exec -it prometheus-default-0 -c prometheus -- /bin/sh -c
-        'curl -k -H "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
-        https://default-alertmanager-proxy:9095/api/v1/alerts' | grep 'active'
+      ansible.builtin.shell:
+        cmd: >-
+          curl -k {{ alert_manager_auth_string }} -g https://{{ alert_manager_url }}/api/v2/alerts | grep 'active'
       register: alert_status
       retries: 30
       delay: 10
