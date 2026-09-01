@@ -1,4 +1,31 @@
 ---
-post_ctlplane_deploy_99_modify_openstackversions:
-  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/use-master-containers.yml"
-  type: playbook
+# Use the update_containers role to set container images for telemetry services
+# This runs after operators are installed but before services are deployed
+cifmw_update_containers: true
+
+# Don't update all OpenStack services - only update the specific ones we specify
+cifmw_update_containers_openstack: false
+
+# Specify custom container images for telemetry services
+# Using s2i-built containers from quay.io/openstack-s2i-containers:master-latest
+cifmw_update_containers_custom_images:
+  # Aodh (Telemetry Alarming)
+  aodhAPIImage: quay.io/openstack-s2i-containers/openstack-aodh-api:master-latest
+  aodhEvaluatorImage: quay.io/openstack-s2i-containers/openstack-aodh-api:master-latest
+  aodhListenerImage: quay.io/openstack-s2i-containers/openstack-aodh-api:master-latest
+  aodhNotifierImage: quay.io/openstack-s2i-containers/openstack-aodh-api:master-latest
+
+  # Ceilometer (Telemetry Metering)
+  ceilometerCentralImage: quay.io/openstack-s2i-containers/openstack-ceilometer-central:master-latest
+  ceilometerComputeImage: quay.io/openstack-s2i-containers/openstack-ceilometer-compute:master-latest
+  ceilometerIpmiImage: quay.io/openstack-s2i-containers/openstack-ceilometer-compute:master-latest
+  ceilometerNotificationImage: quay.io/openstack-s2i-containers/openstack-ceilometer-central:master-latest
+
+  # CloudKitty (Rating/Billing)
+  cloudkittyAPIImage: quay.io/openstack-s2i-containers/openstack-cloudkitty-api:master-latest
+  cloudkittyProcImage: quay.io/openstack-s2i-containers/openstack-cloudkitty-api:master-latest
+
+  # Heat (Orchestration)
+  heatAPIImage: quay.io/openstack-s2i-containers/openstack-heat-api:master-latest
+  heatCfnapiImage: quay.io/openstack-s2i-containers/openstack-heat-api-cfn:master-latest
+  heatEngineImage: quay.io/openstack-s2i-containers/openstack-heat-engine:master-latest
