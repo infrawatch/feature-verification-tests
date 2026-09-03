@@ -66,6 +66,27 @@
       changed_when: false
 
     - name: |
+        TEST Verify ceilometer_cpu metric has expected labels from sg-core genLabels (OSPRH-28760)
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} metric show ceilometer_cpu -f yaml
+      register: cpu_labels_result
+      delay: 30
+      retries: 10
+      until: >-
+        cpu_labels_result.rc == 0
+        and "counter:" in cpu_labels_result.stdout
+        and "project:" in cpu_labels_result.stdout
+        and "project_name:" in cpu_labels_result.stdout
+        and "user:" in cpu_labels_result.stdout
+        and "user_name:" in cpu_labels_result.stdout
+        and "unit:" in cpu_labels_result.stdout
+        and "resource:" in cpu_labels_result.stdout
+        and "vm_instance:" in cpu_labels_result.stdout
+        and "resource_name:" in cpu_labels_result.stdout
+        and "flavor_name:" in cpu_labels_result.stdout
+      changed_when: false
+
+    - name: |
         TEST Use openstack observabilityclient to verify ceilometer_power_state compute metrics are stored in prometheus
       ansible.builtin.shell: |
         {{ openstack_cmd }} metric show ceilometer_power_state
