@@ -7,6 +7,8 @@ module.exports = defineConfig({
     chromeWebSecurity: false,
     defaultCommandTimeout: 10000,
     pageLoadTimeout: 30000,
+    taskTimeout: 120000,
+    execTimeout: 120000,
     viewportWidth: 1280,
     viewportHeight: 720,
     video: true,

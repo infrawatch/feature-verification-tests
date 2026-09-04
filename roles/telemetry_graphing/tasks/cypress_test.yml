@@ -22,26 +22,26 @@
       ansible.builtin.file:
         path: "{{ cypress_tests_dir }}"
         state: directory
-        mode: '0755'  
+        mode: '0755'
 
     - name: Create cypress/integration directory
       ansible.builtin.file:
         path: "{{ cypress_integration_dir }}"
         state: directory
-        mode: '0755'  
-    
+        mode: '0755'
+
     - name: Add cypress.config.js
       ansible.builtin.copy:
-        src: "{{ role_path }}/files/cypress.config.js"  
+        src: "{{ role_path }}/files/cypress.config.js"
         dest: "{{ cypress_tests_dir }}/cypress.config.js"
-        mode: '0644' 
+        mode: '0644'
 
     - name: Add dashboard-openstack-cloud test
       ansible.builtin.template:
         src: "{{ role_path }}/files/dashboard-openstack-cloud.js.j2"
         dest: "{{ cypress_integration_dir }}/dashboard-openstack-cloud.js"
         mode: '0755'
-      
+
     - name: Create screenshot logs dir
       ansible.builtin.file:
         path: "{{ screenshots_dir }}"
@@ -55,33 +55,65 @@
   changed_when: false
 
 - name: Install Cypress as a dev dependency
-  ansible.builtin.command: npm install cypress --save-dev
+  ansible.builtin.command: npm install cypress@{{ cypress_version }} --save-dev
   args:
     chdir: "{{ cypress_tests_dir }}"
   changed_when: false
 
-- name: |
-    TEST Run Cypress tests
-  ansible.builtin.shell: |
-      Xvfb :99 -ac &
-      export DISPLAY=:99
-      npx cypress run
-  args:
-    chdir: "{{ cypress_tests_dir }}"
-  register: cypress_run
-  changed_when: false
+- name: Run Cypress dashboard tests
+  block:
+    - name: |
+        TEST Run Cypress tests
+      ansible.builtin.shell: |
+        set -euo pipefail
+        Xvfb :99 -ac &
+        xvfb_pid=$!
+        cleanup() {
+          kill "${xvfb_pid}" 2>/dev/null || true
+        }
+        trap cleanup EXIT
+        export DISPLAY=:99
+        timeout "{{ cypress_run_timeout }}" npx cypress run
+      args:
+        chdir: "{{ cypress_tests_dir }}"
+        executable: /bin/bash
+      register: cypress_run
+      changed_when: false
+      # Allow trap/cleanup to finish after timeout(1) returns 124.
+      failed_when: false
+      # Backstop if timeout(1) itself wedges; allow trap/cleanup to finish.
+      timeout: "{{ cypress_run_timeout + 60 }}"
+  always:
+    - name: Stop stray Cypress and Xvfb processes from graphing test
+      ansible.builtin.shell: |
+        pkill -f 'Xvfb :99' 2>/dev/null || true
+        pkill -f '{{ cypress_tests_dir }}/node_modules/.bin/cypress' 2>/dev/null || true
+      changed_when: false
+      failed_when: false
+
+- name: Check whether Cypress screenshots exist
+  ansible.builtin.stat:
+    path: "{{ cypress_tests_dir }}/cypress/screenshots/dashboard-openstack-cloud.js"
+  register: cypress_screenshots
 
 - name: Collect the screenshots
   ansible.builtin.copy:
     src: "{{ cypress_tests_dir }}/cypress/screenshots/dashboard-openstack-cloud.js/"
     dest: "{{ screenshots_dir }}"
     mode: '0644'
+  when: cypress_screenshots.stat.exists
+
+- name: Check whether Cypress videos exist
+  ansible.builtin.stat:
+    path: "{{ cypress_tests_dir }}/cypress/videos"
+  register: cypress_videos
 
 - name: Collect the videos
   ansible.builtin.copy:
     src: "{{ cypress_tests_dir }}/cypress/videos/"
     dest: "{{ screenshots_dir }}"
     mode: '0644'
+  when: cypress_videos.stat.exists
 
 - name: Show Cypress test output
   ansible.builtin.debug:
@@ -92,5 +124,10 @@
   ansible.builtin.assert:
     that:
       - cypress_run.rc == 0
-    fail_msg: "Some Cypress tests failed."
+    fail_msg: >-
+      Cypress tests failed with rc={{ cypress_run.rc }}.
+      {% if cypress_run.rc == 124 %}
+      The run exceeded the {{ cypress_run_timeout }}s timeout — the headless
+      OpenShift Console OAuth login likely hung in CI.
+      {% endif %}
     success_msg: "All Cypress tests passed successfully."
