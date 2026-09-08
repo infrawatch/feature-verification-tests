@@ -84,7 +84,7 @@
   delay: 30
   retries: 10
   changed_when: false
-  until: result.rc == 0 and item in result.stdout and ":1981" in result.stdout
+  until: result.rc == 0 and item in result.stdout and ":9105" in result.stdout
   loop: "{{ ovn_controller_metrics }}"
   when: ovn_controller_metric.stdout != ""
 
