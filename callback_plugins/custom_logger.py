@@ -21,7 +21,7 @@ DOCUMENTATION = '''
         - summary_results.log
     options:
         output_dir:
-            description: todo
+            description: Directory where log files will be written
             ini:
               - section: custom_logger
                 key: output_dir
@@ -29,6 +29,16 @@ DOCUMENTATION = '''
               - name: CUSTOM_LOGGER_OUTPUT_DIR
             default: "."
             type: path
+        test_id_prefixes:
+            description:
+                List of test ID prefixes to track
+            ini:
+              - section: custom_logger
+                key: test_id_prefixes
+            env:
+              - name: CUSTOM_LOGGER_TEST_ID_PREFIXES
+            default: ["RHELOSP", "RHOSO", "UI"]
+            type: list
 '''
 
 
@@ -47,6 +57,7 @@ class CallbackModule(CallbackBase):
         self.set_options()
 
         self.output_dir = self.get_option('output_dir')
+        self.test_id_prefixes = self.get_option('test_id_prefixes')
         self.results = {}
 
     def playbook_on_stats(self, stats):
@@ -58,37 +69,40 @@ class CallbackModule(CallbackBase):
     def log_task_result(self, host, result, task_name):
         # test_run_result.out only interested in the test
         # tasks, not setup or debug.
-        if ("RHELOSP" in task_name
-                or "RHOSO" in task_name
-                or "UI" in task_name):
-            if "RHELOSP" in task_name:
-                test_id = re.search(r'RHELOSP\S*', task_name).group(0)
-            elif "RHOSO" in task_name:
-                test_id = re.search(r'RHOSO\S*', task_name).group(0)
-            elif "UI" in task_name:
-                test_id = re.search(r'UI\S*', task_name).group(0)
+        # Find which prefix (if any) appears in the task name
+        test_id = None
+        for prefix in self.test_id_prefixes:
+            if prefix in task_name:
+                match = re.search(rf'{prefix}\S*', task_name)
+                if match:
+                    test_id = match.group(0)
+                    break  # Use first matching prefix
 
-            file_path = os.path.join(
-                self.output_dir, "test_run_result.out"
-            )
-            test_result_message = self.MSG_FORMAT.format(
-                task=test_id, status=result
-            )
-            with open(file_path, 'a') as f:
-                f.write(test_result_message)
+        # If no test ID found, this task is not tracked
+        if not test_id:
+            return
 
-            # Gather the result data to be used in the summary log.
-            if host not in self.results:
-                self.results[host] = {
-                    'passed': 0, 'failed': 0, 'skipped': 0,
-                    'failed_task_names': [],
-                    'ok_task_names': [],
-                }
-            if result == 'failed':
-                self.results[host]['failed_task_names'].append(task_name)
-            elif result == 'passed':
-                self.results[host]['ok_task_names'].append(task_name)
-            self.results[host][result] += 1
+        file_path = os.path.join(
+            self.output_dir, "test_run_result.out"
+        )
+        test_result_message = self.MSG_FORMAT.format(
+            task=test_id, status=result
+        )
+        with open(file_path, 'a') as f:
+            f.write(test_result_message)
+
+        # Gather the result data to be used in the summary log.
+        if host not in self.results:
+            self.results[host] = {
+                'passed': 0, 'failed': 0, 'skipped': 0,
+                'failed_task_names': [],
+                'ok_task_names': [],
+            }
+        if result == 'failed':
+            self.results[host]['failed_task_names'].append(task_name)
+        elif result == 'passed':
+            self.results[host]['ok_task_names'].append(task_name)
+        self.results[host][result] += 1
 
     def log_summary_results(self, host):
         file_path = os.path.join(
