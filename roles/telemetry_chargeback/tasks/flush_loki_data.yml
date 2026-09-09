@@ -16,7 +16,7 @@
       changed_when: true
 
     # flush loki
-    - name: "TEST Trigger Loki ingester flush"
+    - name: "TEST Trigger Loki ingester flush - {{ scenario_name }}"
       ansible.builtin.command:
         cmd: >
           oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} --
