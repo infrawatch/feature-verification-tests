@@ -23,6 +23,9 @@
 
 - job:
     name: telemetry-container-image-content-provider
+    branches:
+      # Match rhoso-* and 18-* branches
+      - ^(rhoso-|18-).*
     parent: cifmw-base-minimal
     description: |
       Build sg-core, prometheus-podman-exporter and mysqld-exporter
@@ -53,6 +56,9 @@
 
 - job:
     name: functional-tests-osp18
+    branches:
+      # Match rhoso-* and 18-* branches
+      - ^(rhoso-|18-).*
     dependencies: 
       - name: telemetry-openstack-meta-content-provider-master
       - name: telemetry-container-image-content-provider
@@ -127,6 +133,9 @@
 
 - job:
     name: functional-logging-tests-osp18
+    branches:
+      # Match rhoso-* and 18-* branches
+      - ^(rhoso-|18-).*
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
     parent: telemetry-operator-multinode-logging
     description: |
@@ -147,6 +156,9 @@
 
 - job:
     name: feature-verification-tests-noop
+    branches:
+      # Match rhoso-* and 18-* branches
+      - ^(rhoso-|18-).*
     description: |
       A job that always passes. Runs when there's a change to jobs that don't
       need full zuul to run but still need to report a pass.
@@ -155,6 +167,9 @@
 
 - job:
     name: functional-periodic-telemetry-with-ceph
+    branches:
+      # Match rhoso-* and 18-* branches
+      - ^(rhoso-|18-).*
     parent: podified-multinode-hci-deployment-crc-1comp-backends
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
     nodeset: telemetry-operator-all-the-features
@@ -189,6 +204,9 @@
 
 - job:
     name: functional-chargeback-tests-osp18
+    branches:
+      # Match rhoso-* and 18-* branches
+      - ^(rhoso-|18-).*
     parent: telemetry-operator-multinode-cloudkitty
     description: |
       Alias of telemetry-operator-multinode-cloudkitty for testing
@@ -216,6 +234,9 @@
 
 - job:
     name: functional-audit-logging-tests-osp18
+    branches:
+      # Match rhoso-* and 18-* branches
+      - ^(rhoso-|18-).*
     dependencies: ["telemetry-openstack-meta-content-provider-master"]
     parent: telemetry-operator-multinode-logging
     description: |
