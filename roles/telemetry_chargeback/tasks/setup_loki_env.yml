@@ -1,6 +1,16 @@
 ---
 # Setup Loki Environment
 
+# Define temporary certificate directories
+- name: "Set certificate directory paths"
+  ansible.builtin.set_fact:
+    # Temporary directory for extracted certificates from OpenShift secret
+    cert_dir: "{{ ansible_env.TMPDIR | default('/tmp') }}/ck-certs-{{ ansible_date_time.iso8601_basic_short }}"
+    # Temporary directory for local certificate copies
+    local_cert_dir: "{{ ansible_env.TMPDIR | default('/tmp') }}/flush_certs-{{ ansible_date_time.iso8601_basic_short }}"
+    # Directory path inside OpenStack Client pod for certificates
+    remote_cert_dir: "osp-certs"
+
 # Dynamic URL's
 - name: "Get Loki Public Route Host"
   ansible.builtin.command:
@@ -63,15 +73,8 @@
 # invisible to queriers, causing queries to return empty results.
 # Uses oc exec because the ingester service DNS is only resolvable
 # from inside the cluster.
-- name: "Create cert directory in OpenStack Client pod"
-  ansible.builtin.command:
-    cmd: "oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} -- mkdir -p {{ remote_cert_dir }}"
-  changed_when: false
-
 - name: "Copy certificates to OpenStack Client pod"
-  ansible.builtin.command:
-    cmd: "oc cp {{ local_cert_dir }}/. {{ cloudkitty_namespace }}/{{ openstackpod }}:{{ remote_cert_dir }}/"
-  changed_when: false
+  ansible.builtin.include_tasks: copy_certs_to_pod.yml
 
 - name: "Wait for Loki ring to converge"
   ansible.builtin.command:

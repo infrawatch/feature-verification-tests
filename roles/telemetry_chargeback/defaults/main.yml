@@ -8,9 +8,6 @@ cloudkitty_debug_dir: "{{ (cloudkitty_debug | bool) | ternary(cloudkitty_artifac
 
 # Directory paths
 cloudkitty_artifacts_dir: "{{ cifmw_basedir }}/artifacts"
-cert_dir: "{{ cifmw_basedir }}/ck-certs"
-local_cert_dir: "{{ cifmw_basedir }}/flush_certs"
-remote_cert_dir: "osp-certs"
 
 # Cloudkitty certificates and secrets
 cert_secret_name: "cert-cloudkitty-client-internal"
