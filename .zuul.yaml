@@ -53,7 +53,7 @@
 
 - job:
     name: functional-tests-osp18
-    dependencies: 
+    dependencies:
       - name: telemetry-openstack-meta-content-provider-master
       - name: telemetry-container-image-content-provider
         soft: true
@@ -132,6 +132,8 @@
     description: |
       Run the logging functional tests and tempest smoketests on osp18
     extra-vars: *functional_autoscaling_extra_vars
+    pre-run:
+      - ci/playbooks/enable-loki-ingress.yml
     vars:
       cifmw_update_containers: false
       cifmw_extras:
@@ -193,6 +195,8 @@
     description: |
       Alias of telemetry-operator-multinode-cloudkitty for testing
     irrelevant-files: []
+    pre-run:
+      - ci/playbooks/enable-loki-ingress.yml
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
       - zuul: github.com/infrawatch/feature-verification-tests
