@@ -134,6 +134,11 @@
     extra-vars: *functional_autoscaling_extra_vars
     pre-run:
       - ci/playbooks/enable-loki-ingress.yml
+    post-run:
+      - role: add-authorized-keys
+        public_keys:
+          - public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCWIPE/ytrVItaJBwYOtjsSsyti7Ja46DvPYRCf95PB8zXq13gaB65+y7x+s/8sU6BDt2ZRtk0kpKpbOsJ7aJGc8NZ+2I6CR/wSorsdpjMNdGw8gwf4ZL1SnN/W4hseApT5qsexoJycRc3nxhIiS73kmxHoR9xs7Sv0zB3lfGtTQ9uWFhzdWaBKPcMedLMOTgvlbFp2sVYHoT8f7rtj8IXANDCm5W8jJPLfrBzlQSCv/0+A6SS3t1M/Jn08C/mel8EcxR1eI0d4vaneq0Phsv/+mJtKOW59tGY9v90nnz9lxjLtHthdyE/3lj+D8pal4vb6NManqUA3ITNRalp+L0MQjs5IwYw8KF2uEGtPdrYKAmedyyIH/d2oVG5Fbmx7bN/5mwwjL2CJ/pk30r9jGKKTdFK8eaVfgmbdz95QngW8HoIlv9Uf95pql/SwlOrPZGULo6jE9ReRkWZV28l03IvLozqHUO63HT+GDAZa8TFQ8TgdS60MeTLUzvw+0nULu0nYvMCnXUqW8NnyXh/7Inel4efGDIaBrMv7Xn7AwCexgcQSmhbhNqxO4DUYFn6C/EToPmAiB56M60W4RigMXdSXwfsUaN7W4bly0itO9o8MLm6SR2szMOf7ZMPqI17piL4GYZ/oF8lHw4nShHK/lzS+9T2wNmh4SnnQyeRLJrhNBw== rhosjenkins-v2"
+        when: not zuul_success | bool
     vars:
       cifmw_update_containers: false
       cifmw_extras:
@@ -197,6 +202,11 @@
     irrelevant-files: []
     pre-run:
       - ci/playbooks/enable-loki-ingress.yml
+    post-run:
+      - role: add-authorized-keys
+        public_keys:
+          - public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCWIPE/ytrVItaJBwYOtjsSsyti7Ja46DvPYRCf95PB8zXq13gaB65+y7x+s/8sU6BDt2ZRtk0kpKpbOsJ7aJGc8NZ+2I6CR/wSorsdpjMNdGw8gwf4ZL1SnN/W4hseApT5qsexoJycRc3nxhIiS73kmxHoR9xs7Sv0zB3lfGtTQ9uWFhzdWaBKPcMedLMOTgvlbFp2sVYHoT8f7rtj8IXANDCm5W8jJPLfrBzlQSCv/0+A6SS3t1M/Jn08C/mel8EcxR1eI0d4vaneq0Phsv/+mJtKOW59tGY9v90nnz9lxjLtHthdyE/3lj+D8pal4vb6NManqUA3ITNRalp+L0MQjs5IwYw8KF2uEGtPdrYKAmedyyIH/d2oVG5Fbmx7bN/5mwwjL2CJ/pk30r9jGKKTdFK8eaVfgmbdz95QngW8HoIlv9Uf95pql/SwlOrPZGULo6jE9ReRkWZV28l03IvLozqHUO63HT+GDAZa8TFQ8TgdS60MeTLUzvw+0nULu0nYvMCnXUqW8NnyXh/7Inel4efGDIaBrMv7Xn7AwCexgcQSmhbhNqxO4DUYFn6C/EToPmAiB56M60W4RigMXdSXwfsUaN7W4bly0itO9o8MLm6SR2szMOf7ZMPqI17piL4GYZ/oF8lHw4nShHK/lzS+9T2wNmh4SnnQyeRLJrhNBw== rhosjenkins-v2"
+        when: not zuul_success | bool
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
       - zuul: github.com/infrawatch/feature-verification-tests
