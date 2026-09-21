@@ -1,0 +1,13 @@
+---
+# Copy certificates to OpenStack Client pod
+# This task is included by setup_loki_env.yml and flush_loki_data.yml
+
+- name: "Create certificate directory in OpenStack Client pod"
+  ansible.builtin.command:
+    cmd: "oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} -- mkdir -p {{ remote_cert_dir }}"
+  changed_when: false
+
+- name: "Copy certificates to OpenStack Client pod"
+  ansible.builtin.command:
+    cmd: "oc cp {{ local_cert_dir }}/. {{ cloudkitty_namespace }}/{{ openstackpod }}:{{ remote_cert_dir }}/"
+  changed_when: false
