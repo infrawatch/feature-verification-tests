@@ -48,25 +48,36 @@
   loop:
     - "{{ cert_dir }}"
     - "{{ local_cert_dir }}"
-  when: item is defined
 
 - name: "Extract Certificates from OpenShift Secret"
   ansible.builtin.command:
     cmd: |
       oc extract secret/{{ cert_secret_name }} --to={{ cert_dir }} --confirm -n {{ cloudkitty_namespace }}
   changed_when: true
+  register: extract_secret
+  retries: 3
+  delay: 5
+  until: extract_secret.rc == 0
 
 - name: "Extract Client Certificates"
   ansible.builtin.command:
     cmd: |
       oc extract {{ client_secret }} --to={{ local_cert_dir }} --confirm -n {{ cloudkitty_namespace }}
   changed_when: true
+  register: extract_client
+  retries: 3
+  delay: 5
+  until: extract_client.rc == 0
 
 - name: "Extract CA Bundle"
   ansible.builtin.command:
     cmd: |
       oc extract {{ ca_configmap }} --to={{ local_cert_dir }} --confirm -n {{ cloudkitty_namespace }}
   changed_when: true
+  register: extract_ca
+  retries: 3
+  delay: 5
+  until: extract_ca.rc == 0
 
 # Wait for Loki gossip ring to converge before ingesting data.
 # When the ring hasn't converged, ingesters accept writes but are
