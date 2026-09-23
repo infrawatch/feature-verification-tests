@@ -11,6 +11,13 @@
     # Directory path inside OpenStack Client pod for certificates
     remote_cert_dir: "osp-certs"
 
+- name: "Debug certificate directory paths"
+  ansible.builtin.debug:
+    msg:
+      - "cert_dir: {{ cert_dir }}"
+      - "local_cert_dir: {{ local_cert_dir }}"
+      - "remote_cert_dir: {{ remote_cert_dir }}"
+
 # Dynamic URL's
 - name: "Get Loki Public Route Host"
   ansible.builtin.command:
@@ -78,6 +85,18 @@
   retries: 3
   delay: 5
   until: extract_ca.rc == 0
+
+- name: "Verify certificates were extracted"
+  ansible.builtin.command:
+    cmd: "find {{ cert_dir }} {{ local_cert_dir }} -type f"
+  register: cert_files
+  changed_when: false
+
+- name: "Debug extracted certificate files"
+  ansible.builtin.debug:
+    msg: |
+      Certificate files found:
+      {{ cert_files.stdout }}
 
 # Wait for Loki gossip ring to converge before ingesting data.
 # When the ring hasn't converged, ingesters accept writes but are
