@@ -5,9 +5,9 @@
 - name: "Set certificate directory paths"
   ansible.builtin.set_fact:
     # Temporary directory for extracted certificates from OpenShift secret
-    cert_dir: "{{ ansible_env.TMPDIR | default('/tmp') }}/ck-certs-{{ ansible_date_time.iso8601_basic_short }}"
+    cert_dir: "/tmp/ck-certs-{{ ansible_date_time.epoch }}"
     # Temporary directory for local certificate copies
-    local_cert_dir: "{{ ansible_env.TMPDIR | default('/tmp') }}/flush_certs-{{ ansible_date_time.iso8601_basic_short }}"
+    local_cert_dir: "/tmp/flush_certs-{{ ansible_date_time.epoch }}"
     # Directory path inside OpenStack Client pod for certificates
     remote_cert_dir: "osp-certs"
 
