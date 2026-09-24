@@ -1,11 +1,3 @@
-- name: Verify mariadb scrapeconfig exists
-  ansible.builtin.include_role:
-    name: common
-  vars:
-    common_cr_list:
-      - kind: scrapeconfigs.monitoring.rhobs
-        name: telemetry-mysqld-exporter
-
 - name: TEST Get galera CR names
   ansible.builtin.shell: |
     oc get galeras -o custom-columns=NAME:.metadata.name --no-headers
@@ -13,14 +5,21 @@
   changed_when: false
   failed_when: cr_names.rc >= 1 or cr_names.stdout == ""
 
+- name: Get galera pod names
+  ansible.builtin.command: |
+    oc get pods -l app=galera -o custom-columns=NAME:.metadata.name --no-headers
+  register: pod_names
+  changed_when: false
+  failed_when: pod_names.rc >= 1 or pod_names.stdout == ""
+
 - name: Create galera pod list
   ansible.builtin.set_fact:
-    galera_pod_list: "{{ galera_pod_list | default([]) + [item + '-galera-0'] }}"
-  loop: "{{ cr_names.stdout_lines }}"
- 
+    galera_pod_list: "{{ galera_pod_list | default([]) + [item] }}"
+  loop: "{{ pod_names.stdout_lines }}"
+
 - name: List galera pod names
   ansible.builtin.debug:
-    msg: "galara pod name ... {{ item }}"
+    msg: "galera pod name ... {{ item }}"
   loop: "{{ galera_pod_list }}"
 
 - name: Verify galera and mysqld-exporter pods are running
@@ -31,24 +30,94 @@
     common_pod_nspace: openstack
     common_pod_list: "{{ galera_pod_list + ['mysqld-exporter-0'] }}"
 
+- name: Verify mariadb scrapeconfig exists and pods are running
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_cr_list:
+      - kind: scrapeconfigs.monitoring.rhobs
+        name: telemetry-mysqld-exporter
+    common_pod_list: "{{ galera_pod_list + ['mysqld-exporter-0'] }}"
+    common_pod_status_str: "Running"
+    common_pod_nspace: openstack
+
 - name: Setup mTLS certs for metric endpoint access
   ansible.builtin.include_tasks:
     file: setup_mtls_certs.yml
 
-- name: TEST Check mariadb metric endpoints
+# TODO: Task can be deleted in the future. The fixed scrapeconfig was targeted for FR7
+- name: Detect if we're working with fixed scrapeconfigs
   ansible.builtin.shell: |
-    oc rsh openstackclient curl --fail --cert /tmp/mtls/tls.crt --key /tmp/mtls/tls.key "https://mysqld-exporter.openstack.svc:9104/probe?target={{ item }}.openstack.svc:3306&auth_module=client.{{ item }}.openstack.svc"
-  register: result
+    # The old scrapeconfig derived auth_module from __address__ with a regex containing a colon.
+    # This pattern is absent in the new one, which uses the "galera" label instead.
+    oc get scrapeconfig telemetry-mysqld-exporter -oyaml | grep -F '(.*):(.*)'
+  register: scrapeconfig_regex_grep_result
   changed_when: false
-  failed_when: result.rc >= 1
-  loop: "{{ cr_names.stdout_lines }}"
+  failed_when: false
 
-- name: TEST Use openstack observabilityclient to verify mariadb metrics are stored in prometheus
-  ansible.builtin.shell: |
-    {{ openstack_cmd }} metric query --disable-rbac mysql_version_info{instance=\'{{ item }}.openstack.svc:3306\'}
-  register: result
-  delay: 30
-  retries: 10
-  changed_when: false
-  until: result.rc == 0 and "mysql_version_info" in result.stdout
-  loop: "{{ cr_names.stdout_lines }}"
+# TODO: Block can be deleted in the future. The fix was targeted for FR7
+- name: Perform tests without fixed galera scrapeconfigs
+  when: scrapeconfig_regex_grep_result.rc == 0
+  block:
+  - name: TEST Check mariadb metric endpoints
+    ansible.builtin.shell: |
+      oc rsh openstackclient curl --fail --cert /tmp/mtls/tls.crt --key /tmp/mtls/tls.key "https://mysqld-exporter.openstack.svc:9104/probe?target={{ item }}.openstack.svc:3306&auth_module=client.{{ item }}.openstack.svc"
+    register: result
+    changed_when: false
+    failed_when: result.rc >= 1
+    loop: "{{ cr_names.stdout_lines }}"
+
+  - name: |
+      TEST Use openstack observabilityclient to verify mariadb metrics are stored in prometheus
+    ansible.builtin.shell: |
+      {{ openstack_cmd }} metric query --disable-rbac mysql_version_info{instance=\'{{ item }}.openstack.svc:3306\'}
+    register: result
+    delay: 30
+    retries: 10
+    changed_when: false
+    until: result.rc == 0 and "mysql_version_info" in result.stdout
+    loop: "{{ cr_names.stdout_lines }}"
+
+- name: Perform tests with fixed galera scrapeconfigs
+  when: scrapeconfig_regex_grep_result.rc >= 1
+  block:
+  - name: Retrieve galera pod IPs
+    ansible.builtin.command: |
+      oc get pods {{ item }} -ojsonpath --template \{.status.podIP\}
+    register: galera_pod_ips
+    changed_when: false
+    failed_when: galera_pod_ips.rc >= 1
+    loop: "{{ galera_pod_list }}"
+
+  - name: TEST Check mariadb metric endpoints
+    ansible.builtin.shell: |
+      GALERA_NAME=$(echo "{{ item.item }}" | sed 's/-galera-[0-9]*$//')
+      oc rsh openstackclient curl --fail --cert /tmp/mtls/tls.crt --key /tmp/mtls/tls.key "https://mysqld-exporter.openstack.svc:9104/probe?target={{ item.stdout }}.openstack.svc:3306&auth_module=client.${GALERA_NAME}.openstack.svc"
+    register: curl_result
+    changed_when: false
+    failed_when: curl_result.rc >= 1
+    loop: "{{ galera_pod_ips.results }}"
+
+  - name: Retrieve how many galera pods are configured to be scraped
+    ansible.builtin.shell: |
+      oc get scrapeconfigs/telemetry-mysqld-exporter -ojsonpath --template '{.spec.staticConfigs}' | jq 'length'
+    register: pods_being_scraped
+    changed_when: false
+
+  - name: |
+      TEST Verify all galera pods are configured to be scraped
+    ansible.builtin.assert:
+      that: pods_being_scraped.stdout | int == galera_pod_list | length
+      success_msg: "All galera pods are configured to be scraped. ScrapeConfig appears to be correct."
+      fail_msg: "ScrapeConfig is configured to scrape {{ pods_being_scraped.stdout }} pods, but there are {{ galera_pod_list | length }} galera pods running."
+
+  - name: |
+      TEST Use openstack observabilityclient to verify mariadb metrics are stored in prometheus
+    ansible.builtin.command: |
+      {{ openstack_cmd }} metric query --disable-rbac mysql_version_info{pod=\'{{ item }}\'}
+    register: result
+    delay: 30
+    retries: 10
+    changed_when: false
+    until: result.rc == 0 and "mysql_version_info" in result.stdout
+    loop: "{{ galera_pod_list }}"
