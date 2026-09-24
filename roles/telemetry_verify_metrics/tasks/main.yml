@@ -1,4 +1,5 @@
 ---
+#test
 - name: Verify OpenStack is deployed correctly
   ansible.builtin.include_role:
     name: common
