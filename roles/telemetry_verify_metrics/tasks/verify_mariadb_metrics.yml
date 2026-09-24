@@ -33,7 +33,7 @@
 
 - name: TEST Check mariadb metric endpoints
   ansible.builtin.shell: |
-    oc rsh openstackclient curl https://mysqld-exporter.openstack.svc:9104/probe?{{ item }}.openstack.svc.3306&auth_module=client.{{ item }}.openstack.svc
+    oc rsh openstackclient curl "https://mysqld-exporter.openstack.svc:9104/probe?{{ item }}.openstack.svc.3306&auth_module=client.{{ item }}.openstack.svc"
   register: result
   changed_when: false
   failed_when: result.rc >= 1
