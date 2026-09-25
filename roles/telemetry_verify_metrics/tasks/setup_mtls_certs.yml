@@ -1,0 +1,10 @@
+---
+- name: Setup mTLS client certs in openstackclient pod
+  ansible.builtin.shell: |
+    TMPDIR=$(mktemp -d)
+    oc extract secret/cert-metric-storage-prometheus-client --to=$TMPDIR --keys=tls.crt,tls.key
+    oc exec -i openstackclient -- mkdir -p /tmp/mtls
+    oc cp $TMPDIR/tls.crt openstackclient:/tmp/mtls/tls.crt
+    oc cp $TMPDIR/tls.key openstackclient:/tmp/mtls/tls.key
+    rm -rf $TMPDIR
+  changed_when: false
