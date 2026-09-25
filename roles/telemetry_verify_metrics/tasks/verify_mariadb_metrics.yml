@@ -31,9 +31,13 @@
     common_pod_nspace: openstack
     common_pod_list: "{{ galera_pod_list + ['mysqld-exporter-0'] }}"
 
+- name: Setup mTLS certs for metric endpoint access
+  ansible.builtin.include_tasks:
+    file: setup_mtls_certs.yml
+
 - name: TEST Check mariadb metric endpoints
   ansible.builtin.shell: |
-    oc rsh openstackclient curl "https://mysqld-exporter.openstack.svc:9104/probe?{{ item }}.openstack.svc.3306&auth_module=client.{{ item }}.openstack.svc"
+    oc rsh openstackclient curl --fail --cert /tmp/mtls/tls.crt --key /tmp/mtls/tls.key "https://mysqld-exporter.openstack.svc:9104/probe?target={{ item }}.openstack.svc:3306&auth_module=client.{{ item }}.openstack.svc"
   register: result
   changed_when: false
   failed_when: result.rc >= 1
