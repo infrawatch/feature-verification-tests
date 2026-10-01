@@ -1,4 +1,8 @@
 ---
+# Pre-req checks for autoscaling. Each one gathers a result and is reported by
+# a TEST-prefixed assert, so a failure here names itself in the report instead
+# of only showing up as a pile of unexplained failures further down.
+
 # This doesn't work when using prom as the metrics backend
 # TODO: Add a metrics_backend option
 - name: Test service API endpoint(metric) for autoscaling
@@ -6,25 +10,42 @@
   ansible.builtin.shell: |
     #source ~/stackrc;
     {{ openstack_cmd }} endpoint list --service metric;
-  register: result
-  failed_when: result.rc >= 1
+  register: metric_endpoint
+  failed_when: metric_endpoint.rc >= 1
 
 - name: Test service API endpoint(alarm) for autoscaling
   ansible.builtin.shell: |
     #source ~/stackrc;
     {{ openstack_cmd }} endpoint list --service alarming;
-  register: result
-  failed_when: result.rc >= 1
+  register: alarm_endpoint
+  failed_when: false
+
+- name: |
+    TEST Verify the alarming service endpoint is available
+  ansible.builtin.assert:
+    that:
+      - alarm_endpoint.rc | default(1) == 0
+    success_msg: "the alarming service endpoint is registered"
+    fail_msg: "'openstack endpoint list --service alarming' failed, so aodh alarms cannot be used"
 
 - name: Test service API endpoint(heat) for autoscaling
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} endpoint list --service orchestration;
-  register: result
-  failed_when: result.rc >= 1
+  register: heat_endpoint
+  failed_when: false
+
+- name: |
+    TEST Verify the orchestration service endpoint is available
+  ansible.builtin.assert:
+    that:
+      - heat_endpoint.rc | default(1) == 0
+    success_msg: "the orchestration service endpoint is registered"
+    fail_msg: "'openstack endpoint list --service orchestration' failed, so no stack can be created"
 
   # need selection criteria to decide when to run these.
   # Need alternative for OSP18.
+  # NOTE: informational only, so it is not reported as a testcase.
 - name: Verify that the services are running on the overcloud
   ansible.builtin.shell: |
     # source ~/overcloudrc;
@@ -38,14 +59,32 @@
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} metric status --fit-width;
-  register: result
-  failed_when: result.rc >= 1
+  register: gnocchi_status
+  failed_when: gnocchi_status.rc >= 1
 
 # This works when using prometheus as the metrics backend
 - name: Verify that PROMETHEUS is enabled
   when: metrics_backend == "prometheus"
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric query up  --disable-rbac -c container -c value |grep -i "prometheus" |awk '{print $4}'
-  register: result
+    {{ openstack_cmd }} metric query up --disable-rbac -f value -c container -c value | grep -i "prometheus" | awk '{print $2}'
+  register: prometheus_status
   failed_when:
-    - result.stdout != "0"
+    - prometheus_status.stdout == "0"
+
+  # Only one of the two backend checks above actually ran; report whichever it
+  # was under a single name, so the testcase set does not depend on the backend.
+- name: Select the result of the backend that is in use
+  ansible.builtin.set_fact:
+    backend_status: "{{ (metrics_backend == 'gnocchi') | ternary(gnocchi_status, prometheus_status) }}"
+
+- name: |
+    TEST Verify the metrics backend is available
+  ansible.builtin.assert:
+    that:
+      - backend_status is not skipped
+      - backend_status is not failed
+    success_msg: "the {{ metrics_backend }} metrics backend is available"
+    fail_msg: >-
+      the {{ metrics_backend }} metrics backend is not available, so no autoscaling
+      metric can be collected
+
