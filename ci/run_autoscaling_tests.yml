@@ -6,7 +6,7 @@
     KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
     PATH: "{{ cifmw_path }}"
   vars_files:
-    - vars/common.yml
+    - vars/defaults.yml
     - vars/osp18_env.yml
   pre_tasks:
     - name: "Notify if autoscaling test is skipped by run_autoscaling_test false"
