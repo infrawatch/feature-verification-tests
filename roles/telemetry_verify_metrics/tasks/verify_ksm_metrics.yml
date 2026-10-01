@@ -15,15 +15,31 @@
     common_pod_list:
       - kube-state-metrics-0
 
-- name: |
-    TEST Use openstack observabilityclient to verify to verify health reporting related metrics from kube-state-metrics are stored in Prometheus
+- name: Query kube-state-metrics health reporting metrics
+  when: verify_metrics_prereqs_ok | bool
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac {{ item }}
-  register: result
+  register: ksm_result
   delay: 30
   retries: 10
-  until: result.rc == 0 and "{{ item }}" in result.stdout
   changed_when: false
+  ignore_errors: true
+  until: ksm_result.rc == 0 and item in ksm_result.stdout
   loop:
     - kube_pod_status_phase
     - kube_pod_status_ready
+
+- name: |
+    TEST Use openstack observabilityclient to verify to verify health reporting related metrics from kube-state-metrics are stored in Prometheus
+  ansible.builtin.assert:
+    that:
+      - ksm_result is not skipped
+      - ksm_result is not failed
+    success_msg: "the kube-state-metrics health reporting metrics are stored in prometheus"
+    fail_msg: >-
+      {{ (ksm_result is not skipped)
+         | ternary('kube-state-metrics metrics not found in prometheus: '
+                   ~ (ksm_result.results | default([])
+                      | selectattr('failed', 'defined') | selectattr('failed')
+                      | map(attribute='item') | list | join(', ')),
+                   verify_metrics_blocked_msg) }}
