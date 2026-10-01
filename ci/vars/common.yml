@@ -1,6 +1,13 @@
 ---
-fvt_dir: "{{ ansible_env.HOME }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}"
-logs_dir: "{{ ansible_env.HOME }}/ci-framework-data/tests/feature-verification-tests"
+# In CI this resolves to the zuul src_dir; locally it is the checkout the
+# playbook was run from. See ci/vars/defaults.yml.
+fvt_dir: >-
+  {%- if zuul is defined -%}
+  {{ lookup('env', 'HOME') }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}
+  {%- else -%}
+  {{ playbook_dir | dirname }}
+  {%- endif -%}
+logs_dir: "{{ lookup('env', 'HOME') }}/ci-framework-data/tests/feature-verification-tests"
 
 #
 # vars for setting container registry while working with meta content provider
