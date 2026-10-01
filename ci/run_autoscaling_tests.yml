@@ -39,9 +39,15 @@
 
   tasks:
     - block:
+        - name: Check whether the extra_vars parameters directory exists
+          ansible.builtin.stat:
+            path: "{{ fvt_basedir }}/artifacts/parameters"
+          register: fvt_parameters_dir
+
         - name: Include vars from the extra_vars files
           ansible.builtin.include_vars:
-            dir: "{{ cifmw_basedir }}/artifacts/parameters"
+            dir: "{{ fvt_basedir }}/artifacts/parameters"
+          when: fvt_parameters_dir.stat.isdir | default(false)
 
         - name: Create the instance the autoscaling tests scale from
           environment:
@@ -55,6 +61,7 @@
               {{ install_yamls_dir }}/devsetup
               {%- endif -%}
             target: edpm_deploy_instance
+          when: fvt_create_test_vm | bool
           tags:
             - setup
 
