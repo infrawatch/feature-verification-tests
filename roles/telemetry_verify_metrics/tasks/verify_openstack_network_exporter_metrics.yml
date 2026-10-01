@@ -18,12 +18,25 @@
   loop_control:
     loop_var: compute_node
 
-- name: |
-    TEST Use openstack observabilityclient to verify Openstack Network Exporter metrics are stored in prometheus
+- name: Query the openstack network exporter build info metric
+  when: verify_metrics_prereqs_ok | bool
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac ovs_build_info
-  register: result
+  register: one_result
   delay: 30
   retries: 10
   changed_when: false
-  until: result.rc == 0 and "ovs_build_info" in result.stdout
+  ignore_errors: true
+  until: one_result.rc == 0 and "ovs_build_info" in one_result.stdout
+
+- name: |
+    TEST Use openstack observabilityclient to verify Openstack Network Exporter metrics are stored in prometheus
+  ansible.builtin.assert:
+    that:
+      - one_result is not skipped
+      - one_result is not failed
+    success_msg: "ovs_build_info is stored in prometheus"
+    fail_msg: >-
+      {{ (one_result is not skipped)
+         | ternary('ovs_build_info was not found in prometheus',
+                   verify_metrics_blocked_msg) }}
