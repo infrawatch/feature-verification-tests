@@ -63,114 +63,242 @@
   loop_control:
     loop_var: compute_node
 
+# Every metric below is produced by the test instance, so the instance setup
+# latches compute_ok and the metric queries are gated on it. compute_ok is
+# source-local: the shared flag must not be latched by a single source, or a
+# failure here would block every source that runs after this one.
 - block:
     - name: Create an image
+      when: verify_metrics_prereqs_ok | bool
       ansible.builtin.shell: |
         curl -L -# http://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.img > /tmp/fvt_testing_image.img
         {{ openstack_cmd }} image create --container-format bare --disk-format qcow2 fvt_testing_image < /tmp/fvt_testing_image.img
-      register: result
-      changed_when: result.rc == 0
-      failed_when: result.rc >= 1
+      register: compute_image
+      changed_when: compute_image.rc == 0
+      ignore_errors: true
+
+    - name: Record whether the test image was created
+      ansible.builtin.set_fact:
+        compute_ok: "{{ verify_metrics_prereqs_ok | bool and not (compute_image is failed) }}"
 
     - name: Create a flavor
+      when: compute_ok | bool
       ansible.builtin.shell: |
         {{ openstack_cmd }} flavor create --ram 512 --vcpus 1 --disk 1 --ephemeral 1 fvt_testing_flavor
-      register: result
-      changed_when: result.rc == 0
-      failed_when: result.rc >=1
+      register: compute_flavor
+      changed_when: compute_flavor.rc == 0
+      ignore_errors: true
+
+    - name: Record whether the test flavor was created
+      ansible.builtin.set_fact:
+        compute_ok: "{{ compute_ok | bool and not (compute_flavor is failed) }}"
 
     - name: Create a server
+      when: compute_ok | bool
       ansible.builtin.shell: |
         {{ openstack_cmd }} server create --flavor fvt_testing_flavor --image fvt_testing_image --nic none --wait --os-compute-api-version 2.37 fvt_testing_server
-      register: result
-      changed_when: result.rc == 0
-      failed_when: result.rc >= 1
+      register: compute_server
+      changed_when: compute_server.rc == 0
+      ignore_errors: true
+
+    - name: Record whether the test server was created
+      ansible.builtin.set_fact:
+        compute_ok: "{{ compute_ok | bool and not (compute_server is failed) }}"
+
+      # Distinguishes "the shared Prometheus probe failed" from "this source's
+      # own test instance never came up", so the report says which.
+    - name: Set the blocked message for the compute metric checks
+      ansible.builtin.set_fact:
+        compute_blocked_msg: >-
+          {{ verify_metrics_prereqs_ok | bool
+             | ternary('BLOCKED: the test instance for ceilometer compute metrics was not created or stopped successfully',
+                       verify_metrics_blocked_msg) }}
+
+    - name: Query the ceilometer_cpu metric
+      when: compute_ok | bool
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} metric show ceilometer_cpu
+      register: cpu_metric
+      delay: 30
+      retries: 10
+      changed_when: false
+      ignore_errors: true
+      until: cpu_metric.rc == 0 and "ceilometer_cpu" in cpu_metric.stdout
 
     - name: |
         TEST Use openstack observabilityclient to verify ceilometer_cpu compute metrics are stored in prometheus
+      ansible.builtin.assert:
+        that:
+          - cpu_metric is not skipped
+          - cpu_metric is not failed
+        success_msg: "ceilometer_cpu is stored in prometheus"
+        fail_msg: >-
+          {{ (cpu_metric is not skipped)
+             | ternary('ceilometer_cpu was not found in prometheus', compute_blocked_msg) }}
+
+    - name: Query the ceilometer_power_state metric
+      when: compute_ok | bool
       ansible.builtin.shell: |
-        {{ openstack_cmd }} metric show ceilometer_cpu
-      register: result
+        {{ openstack_cmd }} metric show ceilometer_power_state
+      register: power_state_metric
       delay: 30
       retries: 10
-      until: result.rc == 0 and "ceilometer_cpu" in result.stdout
       changed_when: false
+      ignore_errors: true
+      until: power_state_metric.rc == 0 and "ceilometer_power_state" in power_state_metric.stdout
 
     - name: |
         TEST Use openstack observabilityclient to verify ceilometer_power_state compute metrics are stored in prometheus
-      ansible.builtin.shell: |
-        {{ openstack_cmd }} metric show ceilometer_power_state
-      register: result
-      delay: 30
-      retries: 10
-      until: result.rc == 0 and "ceilometer_power_state" in result.stdout
-      changed_when: false
+      ansible.builtin.assert:
+        that:
+          - power_state_metric is not skipped
+          - power_state_metric is not failed
+        success_msg: "ceilometer_power_state is stored in prometheus"
+        fail_msg: >-
+          {{ (power_state_metric is not skipped)
+             | ternary('ceilometer_power_state was not found in prometheus', compute_blocked_msg) }}
 
     - name: Stop the server to verify stopped instance metrics
+      when: compute_ok | bool
       ansible.builtin.shell: |
         {{ openstack_cmd }} server stop fvt_testing_server
-      register: result
-      changed_when: result.rc == 0
-      failed_when: result.rc >= 1
+      register: server_stop
+      changed_when: server_stop.rc == 0
+      ignore_errors: true
+
+    - name: Record whether the test server was stopped
+      ansible.builtin.set_fact:
+        compute_ok: "{{ compute_ok | bool and not (server_stop is failed) }}"
 
     - name: Wait for server to reach SHUTOFF state
+      when: compute_ok | bool
       ansible.builtin.shell: |
         {{ openstack_cmd }} server show fvt_testing_server -c status -f value
-      register: result
+      register: server_status
       delay: 5
       retries: 12
-      until: result.rc == 0 and "SHUTOFF" in result.stdout
       changed_when: false
+      ignore_errors: true
+      until: server_status.rc == 0 and "SHUTOFF" in server_status.stdout
+
+    - name: Record whether the test server reached SHUTOFF
+      ansible.builtin.set_fact:
+        compute_ok: "{{ compute_ok | bool and not (server_status is failed) }}"
+
+    - name: Query the ceilometer_power_state metric for the stopped instance
+      when: compute_ok | bool
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} metric show ceilometer_power_state
+      register: stopped_power_state_metric
+      delay: 30
+      retries: 10
+      changed_when: false
+      ignore_errors: true
+      until: stopped_power_state_metric.rc == 0 and "ceilometer_power_state" in stopped_power_state_metric.stdout
 
     - name: |
         TEST Verify ceilometer_power_state metric is reported for stopped instance
+      ansible.builtin.assert:
+        that:
+          - stopped_power_state_metric is not skipped
+          - stopped_power_state_metric is not failed
+        success_msg: "ceilometer_power_state is reported for the stopped instance"
+        fail_msg: >-
+          {{ (stopped_power_state_metric is not skipped)
+             | ternary('ceilometer_power_state was not reported for the stopped instance',
+                       compute_blocked_msg) }}
+
+    - name: Query the ceilometer_vcpus metric for the stopped instance
+      when: compute_ok | bool
       ansible.builtin.shell: |
-        {{ openstack_cmd }} metric show ceilometer_power_state
-      register: result
+        {{ openstack_cmd }} metric show ceilometer_vcpus
+      register: stopped_vcpus_metric
       delay: 30
       retries: 10
-      until: result.rc == 0 and "ceilometer_power_state" in result.stdout
       changed_when: false
+      ignore_errors: true
+      until: stopped_vcpus_metric.rc == 0 and "ceilometer_vcpus" in stopped_vcpus_metric.stdout
 
     - name: |
         TEST Verify ceilometer_vcpus metric is reported for stopped instance
+      ansible.builtin.assert:
+        that:
+          - stopped_vcpus_metric is not skipped
+          - stopped_vcpus_metric is not failed
+        success_msg: "ceilometer_vcpus is reported for the stopped instance"
+        fail_msg: >-
+          {{ (stopped_vcpus_metric is not skipped)
+             | ternary('ceilometer_vcpus was not reported for the stopped instance',
+                       compute_blocked_msg) }}
+
+    - name: Query the ceilometer_memory metric for the stopped instance
+      when: compute_ok | bool
       ansible.builtin.shell: |
-        {{ openstack_cmd }} metric show ceilometer_vcpus
-      register: result
+        {{ openstack_cmd }} metric show ceilometer_memory
+      register: stopped_memory_metric
       delay: 30
       retries: 10
-      until: result.rc == 0 and "ceilometer_vcpus" in result.stdout
       changed_when: false
+      ignore_errors: true
+      until: stopped_memory_metric.rc == 0 and "ceilometer_memory" in stopped_memory_metric.stdout
 
     - name: |
         TEST Verify ceilometer_memory metric is reported for stopped instance
+      ansible.builtin.assert:
+        that:
+          - stopped_memory_metric is not skipped
+          - stopped_memory_metric is not failed
+        success_msg: "ceilometer_memory is reported for the stopped instance"
+        fail_msg: >-
+          {{ (stopped_memory_metric is not skipped)
+             | ternary('ceilometer_memory was not reported for the stopped instance',
+                       compute_blocked_msg) }}
+
+    - name: Query the ceilometer_disk_device_capacity metric for the stopped instance
+      when: compute_ok | bool
       ansible.builtin.shell: |
-        {{ openstack_cmd }} metric show ceilometer_memory
-      register: result
+        {{ openstack_cmd }} metric show ceilometer_disk_device_capacity
+      register: stopped_disk_capacity_metric
       delay: 30
       retries: 10
-      until: result.rc == 0 and "ceilometer_memory" in result.stdout
       changed_when: false
+      ignore_errors: true
+      until: stopped_disk_capacity_metric.rc == 0 and "ceilometer_disk_device_capacity" in stopped_disk_capacity_metric.stdout
 
     - name: |
         TEST Verify ceilometer_disk_device_capacity metric is reported for stopped instance
+      ansible.builtin.assert:
+        that:
+          - stopped_disk_capacity_metric is not skipped
+          - stopped_disk_capacity_metric is not failed
+        success_msg: "ceilometer_disk_device_capacity is reported for the stopped instance"
+        fail_msg: >-
+          {{ (stopped_disk_capacity_metric is not skipped)
+             | ternary('ceilometer_disk_device_capacity was not reported for the stopped instance',
+                       compute_blocked_msg) }}
+
+    - name: Query the ceilometer_disk_device_usage metric for the stopped instance
+      when: compute_ok | bool
       ansible.builtin.shell: |
-        {{ openstack_cmd }} metric show ceilometer_disk_device_capacity
-      register: result
+        {{ openstack_cmd }} metric show ceilometer_disk_device_usage
+      register: stopped_disk_usage_metric
       delay: 30
       retries: 10
-      until: result.rc == 0 and "ceilometer_disk_device_capacity" in result.stdout
       changed_when: false
+      ignore_errors: true
+      until: stopped_disk_usage_metric.rc == 0 and "ceilometer_disk_device_usage" in stopped_disk_usage_metric.stdout
 
     - name: |
         TEST Verify ceilometer_disk_device_usage metric is reported for stopped instance
-      ansible.builtin.shell: |
-        {{ openstack_cmd }} metric show ceilometer_disk_device_usage
-      register: result
-      delay: 30
-      retries: 10
-      until: result.rc == 0 and "ceilometer_disk_device_usage" in result.stdout
-      changed_when: false
+      ansible.builtin.assert:
+        that:
+          - stopped_disk_usage_metric is not skipped
+          - stopped_disk_usage_metric is not failed
+        success_msg: "ceilometer_disk_device_usage is reported for the stopped instance"
+        fail_msg: >-
+          {{ (stopped_disk_usage_metric is not skipped)
+             | ternary('ceilometer_disk_device_usage was not reported for the stopped instance',
+                       compute_blocked_msg) }}
 
   always:
     - name: Delete the server

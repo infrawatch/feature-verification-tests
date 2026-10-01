@@ -1,4 +1,9 @@
 ---
+# Each metric check is a pair: a gather task gated on verify_metrics_prereqs_ok,
+# and a TEST-named assert that always runs so the testcase is always reported.
+# Once the flag is false the gathers are skipped outright and the asserts report
+# verify_metrics_blocked_msg instead of waiting out their retries.
+
 - name: Verify node exporter scrapeconfigs exist
   ansible.builtin.include_role:
     name: common
@@ -19,59 +24,108 @@
   loop_control:
     loop_var: compute_node
 
-- name: |
-    TEST Use openstack observabilityclient to verify Node Exporter metrics are stored in prometheus
+- name: Query the node exporter build info metric
+  when: verify_metrics_prereqs_ok | bool
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac node_exporter_build_info
-  register: result
+  register: build_info_metric
   delay: 30
   retries: 10
   changed_when: false
-  until: result.rc == 0 and "node_exporter_build_info" in result.stdout
+  ignore_errors: true
+  until: build_info_metric.rc == 0 and "node_exporter_build_info" in build_info_metric.stdout
+
+- name: |
+    TEST Use openstack observabilityclient to verify Node Exporter metrics are stored in prometheus
+  ansible.builtin.assert:
+    that:
+      - build_info_metric is not skipped
+      - build_info_metric is not failed
+    success_msg: "node_exporter_build_info is stored in prometheus"
+    fail_msg: >-
+      {{ (build_info_metric is not skipped)
+         | ternary('node_exporter_build_info was not found in prometheus',
+                   verify_metrics_blocked_msg) }}
+
+- name: Query the systemd unit state metric
+  when: verify_metrics_prereqs_ok | bool
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric show --disable-rbac node_systemd_unit_state
+  register: systemd_unit_metric
+  delay: 30
+  retries: 10
+  changed_when: false
+  ignore_errors: true
+  until: systemd_unit_metric.rc == 0 and "node_systemd_unit_state" in systemd_unit_metric.stdout
 
 - name: |
     TEST Use openstack observabilityclient to verify health reporting related metric from systemd collector is stored in prometheus
+  ansible.builtin.assert:
+    that:
+      - systemd_unit_metric is not skipped
+      - systemd_unit_metric is not failed
+    success_msg: "node_systemd_unit_state is stored in prometheus"
+    fail_msg: >-
+      {{ (systemd_unit_metric is not skipped)
+         | ternary('node_systemd_unit_state was not found in prometheus',
+                   verify_metrics_blocked_msg) }}
+
+- name: Query the filesystem size metric
+  when: verify_metrics_prereqs_ok | bool
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac node_systemd_unit_state
-  register: result
+    {{ openstack_cmd }} metric show --disable-rbac node_filesystem_size_bytes
+  register: filesystem_size_metric
   delay: 30
   retries: 10
   changed_when: false
-  until: result.rc == 0 and "node_systemd_unit_state" in result.stdout
+  ignore_errors: true
+  until: filesystem_size_metric.rc == 0 and "node_filesystem_size_bytes" in filesystem_size_metric.stdout
 
 - name: |
     TEST Use openstack observabilityclient to verify filesystem metrics from node exporter are stored in prometheus
-  ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac node_filesystem_size_bytes
-  register: result
-  delay: 30
-  retries: 10
-  changed_when: false
-  until: result.rc == 0 and "node_filesystem_size_bytes" in result.stdout
+  ansible.builtin.assert:
+    that:
+      - filesystem_size_metric is not skipped
+      - filesystem_size_metric is not failed
+    success_msg: "node_filesystem_size_bytes is stored in prometheus"
+    fail_msg: >-
+      {{ (filesystem_size_metric is not skipped)
+         | ternary('node_filesystem_size_bytes was not found in prometheus',
+                   verify_metrics_blocked_msg) }}
 
 - name: |
     Get the filesystem metrics
+  when: verify_metrics_prereqs_ok | bool
   ansible.builtin.command: |
     {{ openstack_cmd }} metric query --disable-rbac 'node_filesystem_size_bytes{mountpoint="/"}'
-  register: result
+  register: filesystem_query
   delay: 30
   retries: 10
   changed_when: false
-  until: result.rc == 0
+  ignore_errors: true
+  until: filesystem_query.rc == 0
 
 - name: |
     TEST Verify node exporter reports host filesystem mountpoints instead of container-internal ones
   ansible.builtin.assert:
     that:
-      - '"mountpoint" in result.stdout'
+      - filesystem_query is not skipped
+      - '"mountpoint" in filesystem_query.stdout | default("")'
     success_msg: "Node exporter correctly reports host filesystem mountpoints"
-    fail_msg: "Node exporter is not reporting host filesystem mountpoints"
+    fail_msg: >-
+      {{ (filesystem_query is not skipped)
+         | ternary('Node exporter is not reporting host filesystem mountpoints',
+                   verify_metrics_blocked_msg) }}
 
 - name: |
     TEST Verify node exporter filesystem metrics report a real filesystem type instead of overlay
   ansible.builtin.assert:
     that:
-      - '"overlay" not in result.stdout'
-      - '"fstype" in result.stdout'
+      - filesystem_query is not skipped
+      - '"overlay" not in filesystem_query.stdout | default("")'
+      - '"fstype" in filesystem_query.stdout | default("")'
     success_msg: "Node exporter correctly reports real filesystem types"
-    fail_msg: "Node exporter is reporting overlay filesystem type instead of the real one"
+    fail_msg: >-
+      {{ (filesystem_query is not skipped)
+         | ternary('Node exporter is reporting overlay filesystem type instead of the real one',
+                   verify_metrics_blocked_msg) }}
