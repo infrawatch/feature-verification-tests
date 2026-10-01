@@ -21,6 +21,46 @@
         condition_type: Ready
   tags: precheck
 
+  # Shared gate. Every per-source check below queries Prometheus through the
+  # openstackclient pod, so if this one cheap query does not work none of them
+  # can, and waiting out their 10x30s retry budgets only delays the verdict.
+  # ignore_errors is inherited as true from the import_role in the CI playbook,
+  # so it is overridden here to let the rescue latch the flag.
+  # Tagged for both precheck and test: a "--tags test" run still needs the gate,
+  # and when neither tag is selected the flag simply keeps its default of true.
+- name: Check that metrics can be queried from Prometheus
+  ignore_errors: false
+  tags:
+    - precheck
+    - test
+  block:
+    - name: Query the Prometheus up metric
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} metric query up --disable-rbac
+      register: prometheus_probe
+      changed_when: false
+      until: prometheus_probe.rc == 0
+      retries: 3
+      delay: 10
+  rescue:
+    - name: Record that metrics cannot be queried from Prometheus
+      ansible.builtin.set_fact:
+        verify_metrics_prereqs_ok: false
+
+- name: |
+    TEST Verify metrics can be queried from Prometheus
+  ansible.builtin.assert:
+    that:
+      - prometheus_probe.rc | default(1) == 0
+    success_msg: "the Prometheus up metric can be queried through observabilityclient"
+    fail_msg: >-
+      'openstack metric query up' failed, so no metric can be verified for any
+      source: check that the openstackclient pod is running, that
+      python-observabilityclient is installed in it, and that Prometheus is reachable
+  tags:
+    - precheck
+    - test
+
 - name: Verify RabbitMQ metrics are being exposed and stored
   ansible.builtin.include_tasks:
     file: verify_rabbitmq_metrics.yml

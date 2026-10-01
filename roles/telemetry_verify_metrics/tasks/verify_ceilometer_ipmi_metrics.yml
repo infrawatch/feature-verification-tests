@@ -25,12 +25,25 @@
     common_pod_list:
       - ceilometer-0
 
-- name: |
-    TEST Use openstack observabilityclient to verify ceilometer ipmi metrics are stored in prometheus
+- name: Query the ceilometer ipmi fan metric
+  when: verify_metrics_prereqs_ok | bool
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show ceilometer_hardware_ipmi_fan --disable-rbac
-  register: result
+  register: ipmi_result
   delay: 30
   retries: 10
-  until: result.rc == 0 and "ceilometer_hardware_ipmi" in result.stdout
   changed_when: false
+  ignore_errors: true
+  until: ipmi_result.rc == 0 and "ceilometer_hardware_ipmi" in ipmi_result.stdout
+
+- name: |
+    TEST Use openstack observabilityclient to verify ceilometer ipmi metrics are stored in prometheus
+  ansible.builtin.assert:
+    that:
+      - ipmi_result is not skipped
+      - ipmi_result is not failed
+    success_msg: "ceilometer_hardware_ipmi_fan is stored in prometheus"
+    fail_msg: >-
+      {{ (ipmi_result is not skipped)
+         | ternary('ceilometer_hardware_ipmi_fan was not found in prometheus',
+                   verify_metrics_blocked_msg) }}
