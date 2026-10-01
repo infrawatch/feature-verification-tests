@@ -7,9 +7,12 @@ cloudkitty_debug: false
 cloudkitty_debug_dir: "{{ (cloudkitty_debug | bool) | ternary(cloudkitty_artifacts_dir + '/debug_ck_db', '') }}"
 
 # Directory paths
-cloudkitty_artifacts_dir: "{{ cifmw_basedir }}/artifacts"
-cert_dir: "{{ cifmw_basedir }}/ck-certs"
-local_cert_dir: "{{ cifmw_basedir }}/flush_certs"
+# cifmw_basedir is supplied by ci-framework in CI; fall back to the same
+# location ci-framework uses by default so the role also runs locally.
+cloudkitty_basedir: "{{ cifmw_basedir | default(lookup('env', 'HOME') ~ '/ci-framework-data', true) }}"
+cloudkitty_artifacts_dir: "{{ cloudkitty_basedir }}/artifacts"
+cert_dir: "{{ cloudkitty_basedir }}/ck-certs"
+local_cert_dir: "{{ cloudkitty_basedir }}/flush_certs"
 remote_cert_dir: "osp-certs"
 
 # Cloudkitty certificates and secrets
