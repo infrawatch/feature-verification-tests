@@ -1,0 +1,24 @@
+---
+# Hook vars for the fail-fast demo job. The job deploys a healthy environment
+# as usual, then this hook breaks it on purpose and runs the telemetry tests
+# against the broken state.
+pre_tests_00_run_fail_fast_demo:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_fail_fast_demo.yml"
+  type: playbook
+  config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
+
+# The demo is expected to produce a report full of failures: that is the
+# artifact. The job's verdict comes from the two TEST asserts in
+# run_fail_fast_demo.yml (did it finish inside the budget, and did the blocked
+# checks report themselves), not from the count of failed testcases, so the
+# usual failure check has to be turned off here.
+check_failures: false
+
+post_tests_99_collect_results:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
+  type: playbook
+
+# Skip os_net_setup, as the functional test job does: the autoscaling tests
+# create their own network.
+cifmw_os_net_setup_config: []
+cifmw_run_tests: true

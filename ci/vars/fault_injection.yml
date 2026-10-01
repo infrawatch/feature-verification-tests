@@ -1,0 +1,53 @@
+---
+# Fault profiles for ci/run_fail_fast_demo.yml.
+#
+# Each profile describes a way to put the environment into a state where the
+# telemetry tests cannot possibly pass, so that a CI run demonstrates the
+# fail-fast behaviour: every TEST case still reported, reported as failed with a
+# BLOCKED message, and the whole suite finishing in minutes instead of hours.
+
+# Which profile to inject. Override with -e fvt_fault=<name>.
+fvt_fault: unreachable_openstackclient
+
+# Wall-clock budget, in seconds, that the whole demo run must fit into. The
+# point of the demo is the duration, so the job fails if fail-fast did not
+# actually save the time.
+fvt_fail_fast_budget: 600
+
+# Set true to run with the prereq flags forced true on the command line. Extra
+# vars outrank set_fact, so the latches become no-ops and the roles behave as
+# they did before the fail-fast change. This is the A/B baseline, and it takes
+# hours: only use it in a periodic job, never in a gate.
+fvt_fail_fast_baseline: false
+
+fvt_fault_profiles:
+  # Nothing is broken. Useful to confirm the demo playbook itself does not
+  # change the result on a healthy deployment.
+  none:
+    description: no fault injected
+    mutates_cluster: false
+
+  # Point openstack_cmd at a pod that does not exist. Every metric query and
+  # every openstack CLI call fails immediately, which is what a dead
+  # openstackclient pod looks like to these roles. Nothing on the cluster is
+  # touched, so this is the profile that is safe to run in a gate job.
+  unreachable_openstackclient:
+    description: openstack_cmd points at a non-existent pod
+    mutates_cluster: false
+    vars:
+      openstack_cmd: "oc rsh no-such-openstackclient openstack"
+
+  # Scale the metric-storage Prometheus down so the queries fail for real
+  # rather than by redirection. This mutates the cluster and is restored in the
+  # always block of the demo playbook, so keep it out of gate jobs.
+  prometheus_down:
+    description: scale the metric-storage prometheus StatefulSet to zero
+    mutates_cluster: true
+    break_cmd: oc scale -n openstack statefulset/prometheus-metric-storage --replicas=0
+    restore_cmd: oc scale -n openstack statefulset/prometheus-metric-storage --replicas=1
+
+# Checks that are legitimately not applicable rather than blocked, and so are
+# allowed to appear as <skipped> in the report. Today this is exactly the
+# rabbitmq scrapeconfig pair: the fixed and unfixed variants share a TEST name,
+# so whichever one does not apply is skipped.
+fvt_allowed_skips: 1

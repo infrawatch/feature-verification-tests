@@ -1,0 +1,178 @@
+---
+# Demonstrate, in CI, that the telemetry tests fail fast when their pre-reqs are
+# not met.
+#
+# A deliberately broken environment is the only way to show the win: on a
+# healthy deployment every check passes and the gates never fire. This playbook
+# injects a fault (see ci/vars/fault_injection.yml), runs the autoscaling and
+# verify-metrics roles against it, and fails the job if the suite did not finish
+# well inside its budget or if the blocked checks did not report themselves.
+#
+#   ansible-playbook -i inventory ci/run_fail_fast_demo.yml
+#   ansible-playbook -i inventory ci/run_fail_fast_demo.yml -e fvt_fault=prometheus_down
+#
+# For the A/B against the old behaviour, add -e fvt_fail_fast_baseline=true.
+# Extra vars outrank set_fact, so forcing the prereq flags true on the command
+# line turns every latch into a no-op and the roles run their full retry
+# budgets, which is what they did before the fail-fast change. That run takes
+# hours; it belongs in a periodic job, not a gate.
+
+- name: Demonstrate fail-fast behaviour against a broken environment
+  hosts: "{{ cifmw_target_hook_host | default('localhost') }}"
+  gather_facts: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+    - vars/osp18_env.yml
+    - vars/fault_injection.yml
+  tasks:
+    - name: Include vars from the extra_vars files
+      ansible.builtin.include_vars:
+        dir: "{{ cifmw_basedir }}/artifacts/parameters"
+      when: cifmw_basedir is defined
+
+    - name: Select the fault profile
+      ansible.builtin.set_fact:
+        fvt_profile: "{{ fvt_fault_profiles[fvt_fault] }}"
+
+    - name: Report what is about to be broken
+      ansible.builtin.debug:
+        msg: >-
+          Injecting fault '{{ fvt_fault }}' ({{ fvt_profile.description }}).
+          Fail-fast is {{ fvt_fail_fast_baseline | bool | ternary('DISABLED (baseline run)', 'enabled') }}.
+
+      # set_fact rather than a vars: block on the imports, because set_fact
+      # outranks the play vars that vars/osp18_env.yml provides, and because a
+      # templated vars: on import_role is evaluated too late to be reliable.
+    - name: Apply the fault variables
+      ansible.builtin.set_fact: "{{ fvt_profile.vars | default({}) }}"
+      when: fvt_profile.vars is defined
+
+    - name: Run the tests against the broken environment
+      block:
+        - name: Break the environment
+          ansible.builtin.command:
+            cmd: "{{ fvt_profile.break_cmd }}"
+          when: fvt_profile.break_cmd is defined
+          changed_when: true
+
+          # Give the cluster a moment to actually reach the broken state, so
+          # the first check does not race the change.
+        - name: Wait for the fault to take effect
+          ansible.builtin.pause:
+            seconds: 30
+          when: fvt_profile.mutates_cluster | bool
+
+        - name: Note the start time
+          ansible.builtin.set_fact:
+            fvt_started_at: "{{ now(fmt='%s') | int }}"
+
+        - name: Run the autoscaling tests
+          ansible.builtin.import_role:
+            name: telemetry_autoscaling
+          ignore_errors: true
+
+        - name: Run the verify metrics tests
+          ansible.builtin.import_role:
+            name: telemetry_verify_metrics
+          ignore_errors: true
+
+        - name: Note the end time
+          ansible.builtin.set_fact:
+            fvt_duration: "{{ (now(fmt='%s') | int) - (fvt_started_at | int) }}"
+
+      always:
+        - name: Restore the environment
+          ansible.builtin.command:
+            cmd: "{{ fvt_profile.restore_cmd }}"
+          when: fvt_profile.restore_cmd is defined
+          changed_when: true
+
+    - name: Report the duration
+      ansible.builtin.debug:
+        msg: >-
+          The suite finished in {{ fvt_duration }}s against a '{{ fvt_fault }}' environment
+          (budget {{ fvt_fail_fast_budget }}s).
+
+      # This is the assertion the demo exists to make. Without fail-fast these
+      # two roles spend on the order of four hours working through retry
+      # budgets before reaching the same verdict.
+    - name: |
+        TEST Verify the suite fails fast when the pre-reqs are not met
+      ansible.builtin.assert:
+        that:
+          - (fvt_duration | int) < (fvt_fail_fast_budget | int)
+        success_msg: >-
+          the suite reached its verdict in {{ fvt_duration }}s, inside the
+          {{ fvt_fail_fast_budget }}s budget
+        fail_msg: >-
+          the suite took {{ fvt_duration }}s against a broken environment, over the
+          {{ fvt_fail_fast_budget }}s budget: a gate is probably missing, or a check
+          is burning its retries before the flag is latched
+      when: not (fvt_fail_fast_baseline | bool)
+
+- name: Check that the blocked checks reported themselves
+  hosts: "{{ cifmw_target_hook_host | default('localhost') }}"
+  gather_facts: true
+  vars_files:
+    - vars/common.yml
+    - vars/fault_injection.yml
+  tasks:
+      # grep exits 1 when it matches nothing, which is a perfectly normal
+      # outcome here (and the one the assert below exists to catch), so the
+      # counts are taken with "|| true" rather than letting the task fail with
+      # no message.
+    - name: Summarise the JUnit reports
+      # cmd: rather than the free-form shorthand: the BLOCKED pattern contains a
+      # double quote, and the free-form parser treats that as an unbalanced
+      # quote and refuses to load the playbook.
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          echo "blocked=$(grep -ho 'BLOCKED[^"]*' {{ logs_dir }}/*.xml 2>/dev/null | wc -l || true)"
+          echo "skipped=$(grep -ho '<skipped' {{ logs_dir }}/*.xml 2>/dev/null | wc -l || true)"
+          echo "cases=$(grep -ho '<testcase ' {{ logs_dir }}/*.xml 2>/dev/null | wc -l || true)"
+      register: fvt_report_summary
+      changed_when: false
+      failed_when: false
+
+    - name: Show the report summary
+      ansible.builtin.debug:
+        var: fvt_report_summary.stdout_lines
+
+    - name: Parse the report summary
+      ansible.builtin.set_fact:
+        fvt_counts: "{{ dict(fvt_report_summary.stdout_lines | map('split', '=') | list) }}"
+
+      # The point of the whole change: a check that could not run is reported
+      # as a failure carrying a reason, not silently skipped or omitted.
+    - name: |
+        TEST Verify blocked checks are reported as failures with a reason
+      ansible.builtin.assert:
+        that:
+          - fvt_counts.blocked | int > 0
+        success_msg: >-
+          {{ fvt_counts.blocked }} of {{ fvt_counts.cases }} testcases were reported as
+          failed with a BLOCKED reason
+        fail_msg: >-
+          no testcase carried a BLOCKED reason, so either the gates did not fire or the
+          blocked checks were skipped or omitted instead of reported
+
+      # Some checks are legitimately not applicable rather than blocked: the two
+      # rabbitmq scrapeconfig variants share a TEST name, so exactly one of them
+      # is always skipped. Anything beyond that allowance is a reporting
+      # regression, because a skipped testcase reads as "not run".
+    - name: |
+        TEST Verify no check was silently skipped
+      ansible.builtin.assert:
+        that:
+          - fvt_counts.skipped | int <= (fvt_allowed_skips | int)
+        success_msg: >-
+          {{ fvt_counts.skipped }} skipped testcase(s), within the allowance of
+          {{ fvt_allowed_skips }}
+        fail_msg: >-
+          {{ fvt_counts.skipped }} testcases were reported as skipped, over the allowance
+          of {{ fvt_allowed_skips }}: a blocked check must be reported as failed so that
+          it stays visible in the report
