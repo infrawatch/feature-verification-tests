@@ -20,6 +20,8 @@
   ansible.builtin.shell: |
     {{ openstack_cmd }} volume backend pool list
   register: result
+  delay: 10
+  retries: 6
   until: result.rc == 0 and result.stdout_lines | length > 0
   changed_when: false
 
