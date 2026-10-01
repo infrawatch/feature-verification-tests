@@ -1,0 +1,41 @@
+---
+#
+# Defaults that let the ci/run_*.yml playbooks run outside of CI.
+#
+# The playbooks use the fvt_* names below rather than the cifmw_* names
+# directly. In CI the cifmw_* vars are supplied by ci-framework (as extra vars
+# or via the artifacts/parameters files) and are picked up here unchanged; when
+# they are absent, each var falls back to something sensible for a local run.
+#
+# lookup('env', ...) is used instead of ansible_env so that these also resolve
+# in plays that run with gather_facts: no. The values are resolved on the
+# Ansible controller, which matches how the cifmw_* vars are passed in CI.
+#
+
+# Path to the kubeconfig for the OpenShift cluster under test.
+fvt_kubeconfig: >-
+  {{ cifmw_openshift_kubeconfig |
+     default(lookup('env', 'KUBECONFIG') |
+             default(lookup('env', 'HOME') ~ '/.kube/config', true), true) }}
+
+# PATH the tests run with. Must contain the oc binary.
+fvt_path: "{{ cifmw_path | default(lookup('env', 'PATH'), true) }}"
+
+# Base directory for CI artifacts and test parameters.
+fvt_basedir: >-
+  {{ cifmw_basedir | default(lookup('env', 'HOME') ~ '/ci-framework-data', true) }}
+
+# Checkout of this repository. In CI this is the zuul src_dir; locally the
+# playbooks live in <repo>/ci, so the repo root is the parent of playbook_dir.
+fvt_src_dir: "{{ playbook_dir | dirname }}"
+
+# Credentials used by the Grafana/console UI (graphing) tests.
+fvt_ocp_user: "{{ cifmw_openshift_user | default('kubeadmin', true) }}"
+fvt_ocp_password: >-
+  {{ cifmw_openshift_password | default(lookup('env', 'OCP_PASSWORD'), true) }}
+
+# CI creates the VM the autoscaling tests scale from, using install_yamls.
+# Off by default locally: provide the VM yourself, or set this to true and
+# point install_yamls_dir at a checkout.
+fvt_create_test_vm: "{{ zuul is defined }}"
+install_yamls_dir: "{{ lookup('env', 'HOME') ~ '/install_yamls' }}"
