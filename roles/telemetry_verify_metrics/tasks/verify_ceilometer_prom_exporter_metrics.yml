@@ -9,6 +9,8 @@
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-ceilometer-ipmi-prom-exporter
 
+  # This talks to the prometheus pod directly rather than through
+  # openstackclient, so it is not gated on the shared probe.
 - name: Get the prometheus targets for the exporters
   ansible.builtin.shell: |
     oc exec -i prometheus-metric-storage-0 -c prometheus -- curl -k 'https://metric-storage-prometheus:9090/api/v1/targets' | jq | grep {{ exporter.port }}
