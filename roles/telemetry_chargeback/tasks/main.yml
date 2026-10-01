@@ -1,4 +1,12 @@
 ---
+# ci-framework creates this directory in CI, but it will not exist on a
+# workstation running the tests directly.
+- name: "Ensure the artifacts directory exists"
+  ansible.builtin.file:
+    path: "{{ cloudkitty_artifacts_dir }}"
+    state: directory
+    mode: "0755"
+
 - name: "Validate Chargeback Feature deployed correctly"
   ansible.builtin.include_tasks: "chargeback_tests.yml"
 
