@@ -3,9 +3,11 @@
   hosts: computes
   gather_facts: true
   ignore_errors: true
+  vars_files:
+    - vars/defaults.yml
   environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
+    KUBECONFIG: "{{ fvt_kubeconfig }}"
+    PATH: "{{ fvt_path }}"
   vars:
     journal_list:
       - ceilometer_agent_compute
@@ -26,9 +28,11 @@
   gather_facts: true
   become: true
   ignore_errors: true
+  vars_files:
+    - vars/defaults.yml
   environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
+    KUBECONFIG: "{{ fvt_kubeconfig }}"
+    PATH: "{{ fvt_path }}"
   vars:
     common_container_list:
       - ceilometer_agent_compute
