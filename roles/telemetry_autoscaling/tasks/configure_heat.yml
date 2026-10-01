@@ -2,7 +2,9 @@
 # TODO(efoley) Consider a heat stack to create the pre-reqs for the autoscaling example.
 # i.e. create the sec group, network, etc
 - name: Create the generic archive policy for autoscaling
-  when: metrics_backend == "gnocchi"
+  when:
+    - metrics_backend == "gnocchi"
+    - autoscaling_prereqs_ok | bool
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} metric archive-policy create generic \
@@ -10,39 +12,104 @@
     --definition timespan:'4:00:00',granularity:'0:01:00',points:240 \
     --aggregation-method 'rate:mean' \
     --aggregation-method 'mean';
-  register: result
-  failed_when: result.rc >= 1
+  register: archive_policy_create
+  failed_when: archive_policy_create.rc >= 1
+
+- name: Record whether the archive policy was created
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (archive_policy_create is failed) }}"
 
 - name: Verify that the archive policy was created
-  when: metrics_backend == "gnocchi"
+  when:
+    - metrics_backend == "gnocchi"
+    - autoscaling_prereqs_ok | bool
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} metric archive-policy show generic;
-  register: result
-  failed_when: result.rc >= 1
+  register: archive_policy_show
+  failed_when: archive_policy_show.rc >= 1
+
+- name: Record whether the archive policy is present
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (archive_policy_show is failed) }}"
 
 - name: Create "vnf" directory under templates
+  when: autoscaling_prereqs_ok | bool
   ansible.builtin.shell: |
     mkdir -p $HOME/templates/autoscaling/vnf/
 
   # TODO: Pass the parameters correctly. When I tried to pass the parameters
   # into the template.yaml file, they weren't passed to the instance initially.
-- name: |
-    TEST configure heat template automatically scaling instances
+- name: Write the instance heat template
+  when: autoscaling_prereqs_ok | bool
   ansible.builtin.template:
     src: instance.yaml.j2
     dest: ~/templates/autoscaling/vnf/instance.yaml
+  register: instance_template
 
 - name: |
-    TEST Create resource reference in the heat template
+    TEST configure heat template automatically scaling instances
+  ansible.builtin.assert:
+    that:
+      - instance_template is not skipped
+      - instance_template is not failed
+    success_msg: "instance.yaml was written from instance.yaml.j2"
+    fail_msg: >-
+      {{ (instance_template is not skipped)
+         | ternary('instance.yaml could not be written from instance.yaml.j2',
+                   autoscaling_blocked_msg) }}
+  register: test_instance_template
+
+- name: Record whether the instance template was written
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (test_instance_template is failed) }}"
+
+- name: Write the resource registry
+  when: autoscaling_prereqs_ok | bool
   ansible.builtin.copy:
     dest: ~/templates/autoscaling/vnf/resources.yaml
     content: |
       resource_registry:
         "OS::Nova::Server::VNF": ./instance.yaml
+  register: resources_file
 
 - name: |
-    TEST Create template heat control instances
+    TEST Create resource reference in the heat template
+  ansible.builtin.assert:
+    that:
+      - resources_file is not skipped
+      - resources_file is not failed
+    success_msg: "resources.yaml was written with the OS::Nova::Server::VNF registry entry"
+    fail_msg: >-
+      {{ (resources_file is not skipped)
+         | ternary('resources.yaml could not be written',
+                   autoscaling_blocked_msg) }}
+  register: test_resources_file
+
+- name: Record whether the resource registry was written
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (test_resources_file is failed) }}"
+
+- name: Write the stack template
+  when: autoscaling_prereqs_ok | bool
   ansible.builtin.template:
     dest: ~/templates/autoscaling/vnf/template.yaml
     src: template.yaml.j2
+  register: stack_template
+
+- name: |
+    TEST Create template heat control instances
+  ansible.builtin.assert:
+    that:
+      - stack_template is not skipped
+      - stack_template is not failed
+    success_msg: "template.yaml was written from template.yaml.j2"
+    fail_msg: >-
+      {{ (stack_template is not skipped)
+         | ternary('template.yaml could not be written from template.yaml.j2',
+                   autoscaling_blocked_msg) }}
+  register: test_stack_template
+
+- name: Record whether the stack template was written
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (test_stack_template is failed) }}"
