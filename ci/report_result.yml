@@ -3,6 +3,7 @@
   hosts:
      - controller
   vars_files:
+    - vars/defaults.yml
     - vars/common.yml
   tasks:
     - name: Check whether the log dir exists
@@ -21,6 +22,7 @@
   hosts: controller
   gather_facts: true
   vars_files:
+    - vars/defaults.yml
     - vars/common.yml
   pre_tasks:
     - name: Stop play early if we do not want to check the failures
