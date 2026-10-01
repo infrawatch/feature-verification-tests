@@ -3,9 +3,10 @@
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
   environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
+    KUBECONFIG: "{{ fvt_kubeconfig }}"
+    PATH: "{{ fvt_path }}"
   vars_files:
+    - vars/defaults.yml
     - vars/common.yml
     - vars/osp18_env.yml
   pre_tasks:
@@ -39,13 +40,26 @@
 
   tasks:
     - block:
+        - name: Check whether the extra_vars parameters directory exists
+          ansible.builtin.stat:
+            path: "{{ fvt_basedir }}/artifacts/parameters"
+          register: fvt_parameters_dir
+
         - name: Include vars from the extra_vars files
           ansible.builtin.include_vars:
-            dir: "{{ cifmw_basedir }}/artifacts/parameters"
+            dir: "{{ fvt_basedir }}/artifacts/parameters"
+          when: fvt_parameters_dir.stat.isdir | default(false)
 
-        - community.general.make:
-            chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
+        - name: Create the instance the autoscaling tests scale from
+          community.general.make:
+            chdir: >-
+              {%- if zuul is defined -%}
+              {{ lookup('env', 'HOME') }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup
+              {%- else -%}
+              {{ install_yamls_dir }}/devsetup
+              {%- endif -%}
             target: edpm_deploy_instance
+          when: fvt_create_test_vm | bool
           tags:
             - setup
 
@@ -78,6 +92,10 @@
             tasks_from: post_teardown
 
         - name: Delete test_0 VM
-          ansible.builtin.shell:
-            cmd: |
-              {{ openstack_cmd }} server delete test_0
+          ansible.builtin.command:
+            cmd: "{{ openstack_cmd }} server delete test_0"
+          register: fvt_delete_test_0
+          changed_when: fvt_delete_test_0.rc == 0
+          # The VM is absent when the tests were not run against a locally
+          # created instance; that is not a failure.
+          failed_when: false
