@@ -73,9 +73,8 @@ Role Variables
 | `openstack_cmd` | `"openstack"` | OpenStack CLI command |
 | `cloudkitty_debug` | `false` | Enable debug mode for CloudKitty operations |
 | `cloudkitty_debug_dir` | `"{{ (cloudkitty_debug \| bool) \| ternary(cloudkitty_artifacts_dir + '/debug_ck_db', '') }}"` | Directory for debug output (auto-set based on debug flag) |
-| `cloudkitty_artifacts_dir` | `"{{ cifmw_basedir }}/artifacts"` | Directory for generated artifacts and test output |
-| `cert_dir` | `"{{ cifmw_basedir }}/ck-certs"` | Directory for CloudKitty client certificates |
-| `local_cert_dir` | `"{{ cifmw_basedir }}/flush_certs"` | Local directory for flush certificates |
+| `cloudkitty_artifacts_dir` | `"{{ cloudkitty_basedir }}/artifacts"` | Directory for generated artifacts and test output |
+| `local_cert_dir` | `"{{ cloudkitty_basedir }}/flush_certs"` | Local directory for flush certificates |
 | `remote_cert_dir` | `"osp-certs"` | Remote directory inside OpenStack pod for certificates |
 | `loki_gateway_service` | `"cloudkitty-lokistack-gateway-http"` | Internal Loki Gateway Service name |
 | `loki_gateway_port` | `8080` | Internal Loki Gateway Service port |
