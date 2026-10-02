@@ -32,6 +32,21 @@
   loop_control:
     loop_var: compute_node
 
+- name: Setup mTLS certs for metric endpoint access
+  ansible.builtin.include_tasks:
+    file: setup_mtls_certs.yml
+
+- name: |
+    TEST Verify ceilometer prometheus exporter listens on port 9101 with TLS on {{ compute_node }}
+  ansible.builtin.shell: |
+    oc rsh openstackclient curl --fail --cert /tmp/mtls/tls.crt --key /tmp/mtls/tls.key "https://{{ compute_node }}:9101/metrics"
+  register: result
+  changed_when: false
+  failed_when: result.rc >= 1
+  loop: "{{ groups['computes'] }}"
+  loop_control:
+    loop_var: compute_node
+
 - block:
     - name: Create an image
       ansible.builtin.shell: |
