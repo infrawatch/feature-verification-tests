@@ -15,6 +15,7 @@ cloudkitty_loki_totals_suffix: "-rating.yml"
 # Test scenario file path (uses role_path, not cloudkitty_artifacts_dir)
 cloudkitty_test_file: "{{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml"
 
+
 # initialize var
 previous_scenario_end_time: ""
 total_rate_job: 0
