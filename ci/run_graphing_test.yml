@@ -3,12 +3,13 @@
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
   environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
+    KUBECONFIG: "{{ fvt_kubeconfig }}"
+    PATH: "{{ fvt_path }}"
   vars:
-    USERNAME: "{{ cifmw_openshift_user }}"
-    PASSWORD: "{{ cifmw_openshift_password }}"
+    USERNAME: "{{ fvt_ocp_user }}"
+    PASSWORD: "{{ fvt_ocp_password }}"
   vars_files:
+    - vars/defaults.yml
     - vars/common.yml
   pre_tasks:
     - name: "Notify if graphing test is skipped by run_graphing_test false"
@@ -19,6 +20,13 @@
     - name: "Skip graphing test by run_graphing_test false"
       ansible.builtin.meta: end_play
       when: not run_graphing_test | default(true) | bool
+
+    - name: "Check that console credentials are available"
+      ansible.builtin.fail:
+        msg: >-
+          No OpenShift console password available. Pass it with
+          -e cifmw_openshift_password=<password> or export OCP_PASSWORD.
+      when: PASSWORD | default('', true) | length == 0
 
     - name: "Get OpenStackControlPlane telemetry dashboardsEnabled status"
       ansible.builtin.command: >
