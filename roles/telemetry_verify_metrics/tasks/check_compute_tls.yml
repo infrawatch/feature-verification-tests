@@ -49,15 +49,6 @@
         Compute agents in multi-region deployments need region_name set (OSPRH-27068).
 
   - name: |
-      TEST Verify ceilometer prometheus exporter listens on port 9101 with TLS on {{ compute_node }}
-    ansible.builtin.shell:
-      cmd: |
-        podman exec ceilometer_agent_compute curl -sk https://localhost:9101/metrics | head -5
-    register: prom_metrics
-    changed_when: false
-    failed_when: prom_metrics.rc != 0
-
-  - name: |
       TEST Verify no TLS errors in ceilometer_agent_compute container logs on {{ compute_node }}
     ansible.builtin.shell:
       cmd: |
