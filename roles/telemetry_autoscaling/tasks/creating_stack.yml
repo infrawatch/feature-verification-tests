@@ -1,9 +1,21 @@
 ---
+# Each verification here is a pair:
+#   1. a gather task/block, gated on autoscaling_prereqs_ok, that does the work
+#   2. a TEST-named assert that always runs, so the testcase is always reported
+# Once the flag is false the gathers are skipped outright and the asserts report
+# autoscaling_blocked_msg instead of waiting out their retries.
+
 - name: Copy the templates to openstackclient pod
+  when: autoscaling_prereqs_ok | bool
   ansible.builtin.shell: |
     oc cp $HOME/templates/autoscaling/vnf/template.yaml openstackclient:/tmp
     oc cp $HOME/templates/autoscaling/vnf/resources.yaml openstackclient:/tmp
     oc cp $HOME/templates/autoscaling/vnf/instance.yaml openstackclient:/tmp
+  register: copy_templates
+
+- name: Record whether the templates were copied to the openstackclient pod
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (copy_templates is failed) }}"
 
   # template location was $HOME/templates/autoscaling/vnf/
 - name: "[temp] Set the location to copy the template to"
@@ -16,122 +28,259 @@
   # Temperority use the install_yamls/devinstall make edpm_deploy_instance to make these resources.
   # This maketarget uses the devsetup/scripts/edpm-deploy-instance.sh script
   # TODO: Either update the test to create the required resources, or add checks to make sure they exist.
-- ansible.builtin.set_fact:
+- name: Set the stack parameters
+  ansible.builtin.set_fact:
     stack_image: cirros
     stack_flavor: m1.small
     #stack_keyname:
     stack_network: private
     stack_external_network: public
 
-- name: |
-    TEST create stack
-  ansible.builtin.shell: |
-    #source ~/overcloudrc;
-    {{ openstack_cmd }} stack create \
-    -t {{ template_location }}/template.yaml \
-    -e {{ template_location }}/resources.yaml \
-    {{ stack_name }};
-  register: result
-  failed_when: result.rc >= 1
+  # ignore_errors is inherited as true from the import_role in the CI playbook,
+  # so it is overridden here to let the rescue latch the prereq flag.
+- name: Create the stack
+  when: autoscaling_prereqs_ok | bool
+  ignore_errors: false
+  block:
+    - name: Run the stack create
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} stack create \
+        -t {{ template_location }}/template.yaml \
+        -e {{ template_location }}/resources.yaml \
+        {{ stack_name }};
+      register: stack_create
+      failed_when: stack_create.rc >= 1
+  rescue:
+    - name: Record that the stack create failed
+      ansible.builtin.set_fact:
+        autoscaling_prereqs_ok: false
 
 - name: Print the result
   ansible.builtin.debug:
-    var: result
+    var: stack_create
 
+- name: |
+    TEST create stack
+  ansible.builtin.assert:
+    that:
+      - stack_create is not skipped
+      - stack_create is not failed
+    success_msg: "stack create for {{ stack_name }} was accepted"
+    fail_msg: >-
+      {{ (stack_create is not skipped)
+         | ternary('stack create for ' ~ stack_name ~ ' returned a non-zero exit code',
+                   autoscaling_blocked_msg) }}
+
+- name: Wait for the stack to reach CREATE_COMPLETE
+  when: autoscaling_prereqs_ok | bool
+  ignore_errors: false
+  block:
+    - name: Poll the stack status
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        {{ openstack_cmd }} stack show {{ stack_name }};
+      register: stack_show
+      until: '"CREATE_COMPLETE" in stack_show.stdout'
+      failed_when: >-
+        "CREATE_FAILED" in stack_show.stdout or
+        "DELETE" in stack_show.stdout
+      timeout: 30
+      retries: 20
+  rescue:
+    - name: Record that the stack did not reach CREATE_COMPLETE
+      ansible.builtin.set_fact:
+        autoscaling_prereqs_ok: false
 
 - name: |
     TEST verify stack was successfully created
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    {{ openstack_cmd }} stack show {{ stack_name }};
-  register: result
-  until: '"CREATE_COMPLETE" in result.stdout'
-  failed_when: >-
-    "CREATE_FAILED" in result.stdout or
-    "DELETE" in result.stdout
-  timeout: 30
-  retries: 20
+  ansible.builtin.assert:
+    that:
+      - stack_show is not skipped
+      - '"CREATE_COMPLETE" in stack_show.stdout | default("")'
+    success_msg: "stack {{ stack_name }} reached CREATE_COMPLETE"
+    fail_msg: >-
+      {{ (stack_show is not skipped)
+         | ternary('stack ' ~ stack_name ~ ' did not reach CREATE_COMPLETE',
+                   autoscaling_blocked_msg) }}
 
+- name: Wait for the stack resources to reach CREATE_COMPLETE
+  when: autoscaling_prereqs_ok | bool
+  ignore_errors: false
+  block:
+    - name: Poll the stack resource list
+      ansible.builtin.shell: |
+        export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
+        {{ openstack_cmd }} stack resource list $STACK_ID;
+      register: stack_resources
+      timeout: 30
+      retries: 20
+      until: '"CREATE_COMPLETE" in stack_resources.stdout'
+      failed_when: >-
+        "CREATE_FAILED" in stack_resources.stdout or
+        "DELETE" in stack_resources.stdout
+  rescue:
+    - name: Record that the stack resources did not reach CREATE_COMPLETE
+      ansible.builtin.set_fact:
+        autoscaling_prereqs_ok: false
 
 - name: |
     TEST Verify stack resources created
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
-    {{ openstack_cmd }} stack resource list $STACK_ID;
-  register: result
-  timeout: 30
-  retries: 20
-  until: '"CREATE_COMPLETE" in result.stdout'
-  failed_when: >-
-    "CREATE_FAILED" in result.stdout or
-    "DELETE" in result.stdout
+  ansible.builtin.assert:
+    that:
+      - stack_resources is not skipped
+      - '"CREATE_COMPLETE" in stack_resources.stdout | default("")'
+    success_msg: "all resources of stack {{ stack_name }} reached CREATE_COMPLETE"
+    fail_msg: >-
+      {{ (stack_resources is not skipped)
+         | ternary('the resources of stack ' ~ stack_name ~ ' did not reach CREATE_COMPLETE',
+                   autoscaling_blocked_msg) }}
+
+- name: Wait for the ceilometer cpu metric to appear
+  when: autoscaling_prereqs_ok | bool
+  ignore_errors: false
+  block:
+    - name: Poll the metric list
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        {{ openstack_cmd }} metric list
+      register: metric_list
+      retries: 12
+      delay: 10
+      until: '"ceilometer_cpu" in metric_list.stdout'
+  rescue:
+    - name: Record that the ceilometer cpu metric did not appear
+      ansible.builtin.set_fact:
+        autoscaling_prereqs_ok: false
 
 - name: |
     TEST Verify ceilometer cpu metrics exist
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    {{ openstack_cmd }} metric list
-  register: result
-  retries: 12
-  delay: 10
-  until: '"ceilometer_cpu" in result.stdout'
+  ansible.builtin.assert:
+    that:
+      - metric_list is not skipped
+      - '"ceilometer_cpu" in metric_list.stdout | default("")'
+    success_msg: "ceilometer_cpu is present in the metric list"
+    fail_msg: >-
+      {{ (metric_list is not skipped)
+         | ternary('ceilometer_cpu did not appear in the metric list',
+                   autoscaling_blocked_msg) }}
 
 - name: Print the result
   ansible.builtin.debug:
-    var: result
+    var: metric_list
 
-- name: |
-    TEST Verify that an instance was launched
+- name: List the servers belonging to the stack
+  when: autoscaling_prereqs_ok | bool
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
     {{ openstack_cmd }} server list --long | grep $STACK_ID;
-  register: result
-  failed_when: result.rc >= 1
+  register: stack_servers
+  failed_when: false
 
 - name: |
-    TEST Verify that alarms were created
+    TEST Verify that an instance was launched
+  ansible.builtin.assert:
+    that:
+      - stack_servers is not skipped
+      - stack_servers.rc | default(1) == 0
+    success_msg: "an instance was launched for stack {{ stack_name }}"
+    fail_msg: >-
+      {{ (stack_servers is not skipped)
+         | ternary('no instance was found for stack ' ~ stack_name,
+                   autoscaling_blocked_msg) }}
+  register: test_stack_servers
+
+- name: Record whether an instance was launched
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (test_stack_servers is failed) }}"
+
+- name: List the alarms
+  when: autoscaling_prereqs_ok | bool
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} alarm list
-  register: result
-  failed_when: '"cpu_alarm_high" not in result.stdout or "cpu_alarm_low" not in result.stdout'
+  register: alarm_list
+  failed_when: false
 
-- name: Note the physical_resource_id values for the cpu_alarm_low resource
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
-    {{ openstack_cmd }} stack resource list $STACK_ID |grep -i cpu_alarm_low | awk '{print $4}'
-  register: physical_resource_id_low
+- name: |
+    TEST Verify that alarms were created
+  ansible.builtin.assert:
+    that:
+      - alarm_list is not skipped
+      - '"cpu_alarm_high" in alarm_list.stdout | default("")'
+      - '"cpu_alarm_low" in alarm_list.stdout | default("")'
+    success_msg: "both cpu_alarm_high and cpu_alarm_low were created"
+    fail_msg: >-
+      {{ (alarm_list is not skipped)
+         | ternary('cpu_alarm_high and/or cpu_alarm_low are missing from the alarm list',
+                   autoscaling_blocked_msg) }}
+  register: test_alarm_list
 
-- name: Note the physical_resource_id values for the cpu_alarm_high resource
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
-    {{ openstack_cmd }} stack resource list $STACK_ID |grep -i cpu_alarm_high | awk '{print $4}'
-  register: physical_resource_id_high
+- name: Record whether the alarms were created
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (test_alarm_list is failed) }}"
+
+- name: Compare the stack resource ids against the alarm ids
+  when: autoscaling_prereqs_ok | bool
+  block:
+    - name: Note the physical_resource_id values for the cpu_alarm_low resource
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
+        {{ openstack_cmd }} stack resource list $STACK_ID |grep -i cpu_alarm_low | awk '{print $4}'
+      register: physical_resource_id_low
+      failed_when: false
+
+    - name: Note the physical_resource_id values for the cpu_alarm_high resource
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
+        {{ openstack_cmd }} stack resource list $STACK_ID |grep -i cpu_alarm_high | awk '{print $4}'
+      register: physical_resource_id_high
+      failed_when: false
+
+    - name: Note the alarm id for cpu_alarm_low
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        {{ openstack_cmd }} alarm list |grep -i cpu_alarm_low | grep {{ stack_name }} | awk '{print $2}'
+      register: alarm_id_low
+      failed_when: false
+
+    - name: Note the alarm id for cpu_alarm_high
+      ansible.builtin.shell: |
+        # source ~/overcloudrc;
+        {{ openstack_cmd }} alarm list |grep -i cpu_alarm_high | grep {{ stack_name }} | awk '{print $2}'
+      register: alarm_id_high
+      failed_when: false
 
 - name: |
     TEST Verify resource id match alarm id low
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    {{ openstack_cmd }} alarm list |grep -i cpu_alarm_low | grep {{ stack_name }} | awk '{print $2}'
-  register: alarm_id_low
-  failed_when:
-    - physical_resource_id_low.stdout != alarm_id_low.stdout
+  ansible.builtin.assert:
+    that:
+      - alarm_id_low is not skipped
+      - physical_resource_id_low.stdout | default('low') == alarm_id_low.stdout | default('alarm')
+    success_msg: "the cpu_alarm_low physical_resource_id matches the alarm id"
+    fail_msg: >-
+      {{ (alarm_id_low is not skipped)
+         | ternary('the cpu_alarm_low physical_resource_id does not match the alarm id',
+                   autoscaling_blocked_msg) }}
 
 - name: |
     TEST Verify physical resource id match the alarm high
-  ansible.builtin.shell: |
-    # source ~/overcloudrc;
-    {{ openstack_cmd }} alarm list |grep -i cpu_alarm_high | grep {{ stack_name }} | awk '{print $2}'
-  register: alarm_id_high
-  failed_when:
-    - physical_resource_id_high.stdout != alarm_id_high.stdout
+  ansible.builtin.assert:
+    that:
+      - alarm_id_high is not skipped
+      - physical_resource_id_high.stdout | default('high') == alarm_id_high.stdout | default('alarm')
+    success_msg: "the cpu_alarm_high physical_resource_id matches the alarm id"
+    fail_msg: >-
+      {{ (alarm_id_high is not skipped)
+         | ternary('the cpu_alarm_high physical_resource_id does not match the alarm id',
+                   autoscaling_blocked_msg) }}
 
 - name: Verify that metric resources exist for the stack
-  when: metrics_backend == "gnocchi"
+  when:
+    - metrics_backend == "gnocchi"
+    - autoscaling_prereqs_ok | bool
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
@@ -140,17 +289,27 @@
     -c display_name -c launched_at \
     -c deleted_at --type instance \
     server_group="$STACK_ID"
-  register: result
-  failed_when: result.rc >= 1
+  register: gnocchi_resources
+  failed_when: gnocchi_resources.rc >= 1
+
+- name: Record whether the gnocchi metric resources exist
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (gnocchi_resources is failed) }}"
 
 # NOTE(jwysogla) we query a specific metric instead of existence of server_group='$STACK_ID' in general
 # which is a little different from the task above. We could also curl the Prometheus API directly to check
 # if there is a label with some value like this: "curl <prometheus>/api/v1/label/server_group/values | grep $STACK_ID"
 # but this isn't possible with the "openstack metric" command (at least not right now).
 - name: Verify that metric resources exist for the stack
-  when: metrics_backend == "prometheus"
+  when:
+    - metrics_backend == "prometheus"
+    - autoscaling_prereqs_ok | bool
   ansible.builtin.shell: |
     export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value);
     {{ openstack_cmd }} metric query "ceilometer_cpu{server_group='$STACK_ID'}"
-  register: result
-  failed_when: result.rc >= 1
+  register: prometheus_resources
+  failed_when: prometheus_resources.rc >= 1
+
+- name: Record whether the prometheus metric resources exist
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (prometheus_resources is failed) }}"
