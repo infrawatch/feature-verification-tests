@@ -9,14 +9,31 @@
       - kind: scrapeconfigs.monitoring.rhobs
         name: telemetry-ceilometer-ipmi-prom-exporter
 
-- name: Verify prometheus target for exporters
+  # This talks to the prometheus pod directly rather than through
+  # openstackclient, so it is not gated on the shared probe.
+- name: Get the prometheus targets for the exporters
   ansible.builtin.shell: |
     oc exec -i prometheus-metric-storage-0 -c prometheus -- curl -k 'https://metric-storage-prometheus:9090/api/v1/targets' | jq | grep {{ exporter.port }}
-  register: result
+  register: exporter_targets
   changed_when: false
-  failed_when: "'{{ exporter.port }}' not in result.stdout"
+  ignore_errors: true
+  failed_when: "'{{ exporter.port }}' not in exporter_targets.stdout"
   loop:
-    -  port: 9101 
-    -  port: 9102 
+    - port: 9101
+    - port: 9102
   loop_control:
     loop_var: exporter
+
+  # This file previously had no TEST task at all, so the ceilometer_prom_exporter
+  # source produced no testcase whatever the outcome.
+- name: |
+    TEST Verify prometheus target for exporters
+  ansible.builtin.assert:
+    that:
+      - exporter_targets is not failed
+    success_msg: "prometheus has targets on ports 9101 and 9102"
+    fail_msg: >-
+      prometheus has no target on port(s):
+      {{ exporter_targets.results | default([])
+         | selectattr('failed', 'defined') | selectattr('failed')
+         | map(attribute='exporter') | map(attribute='port') | list | join(', ') }}

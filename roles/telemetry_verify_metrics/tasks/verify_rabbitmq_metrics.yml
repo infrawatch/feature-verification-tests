@@ -48,6 +48,7 @@
       common_pod_nspace: openstack
 
   - name: Check rabbitmq metric endpoints
+    when: verify_metrics_prereqs_ok | bool
     ansible.builtin.command: |
       oc rsh openstackclient curl https://{{ item }}.openstack.svc:15691/metrics
     register: result
@@ -55,16 +56,32 @@
     failed_when: result.rc >= 1
     loop: "{{ cr_names.stdout_lines }}"
 
-  - name: |
-      TEST Use openstack observabilityclient to verify rabbitmq metrics are stored in prometheus
+  - name: Query the rabbitmq identity info metric by service
+    when: verify_metrics_prereqs_ok | bool
     ansible.builtin.command: |
       {{ openstack_cmd }} metric query rabbitmq_identity_info{instance=\'{{ item }}.openstack.svc:15691\'} --disable-rbac
-    register: result
+    register: rabbitmq_svc_result
     delay: 30
     retries: 10
     changed_when: false
-    until: result.rc == 0 and "rabbitmq_identity_info" in result.stdout
+    ignore_errors: true
+    until: rabbitmq_svc_result.rc == 0 and "rabbitmq_identity_info" in rabbitmq_svc_result.stdout
     loop: "{{ cr_names.stdout_lines }}"
+
+  - name: |
+      TEST Use openstack observabilityclient to verify rabbitmq metrics are stored in prometheus
+    ansible.builtin.assert:
+      that:
+        - rabbitmq_svc_result is not skipped
+        - rabbitmq_svc_result is not failed
+      success_msg: "rabbitmq_identity_info is stored in prometheus for every rabbitmq service"
+      fail_msg: >-
+        {{ (rabbitmq_svc_result is not skipped)
+           | ternary('rabbitmq_identity_info was not found in prometheus for: '
+                     ~ (rabbitmq_svc_result.results | default([])
+                        | selectattr('failed', 'defined') | selectattr('failed')
+                        | map(attribute='item') | list | join(', ')),
+                     verify_metrics_blocked_msg) }}
 
 - name: Perform tests with fixed rabbitmq scrapeconfigs
   when: scrapeconfig_regex_grep_result.rc >= 1
@@ -87,6 +104,7 @@
     loop: "{{ rabbitmq_pod_list }}"
 
   - name: Check rabbitmq metric endpoints
+    when: verify_metrics_prereqs_ok | bool
     ansible.builtin.command: |
       oc rsh openstackclient curl https://{{ item.stdout }}:15691/metrics --insecure
     register: curl_result
@@ -122,13 +140,29 @@
       success_msg: "All rabbitmq pods are configured to be scraped. ScrapeConfigs appear to be correct."
       fail_msg: "ScrapeConfigs are configured to scrape {{ pods_being_scraped.stdout }} pods, but there are {{ rabbitmq_pod_list | length }} rabbitmq pods running."
 
-  - name: |
-      TEST Use openstack observabilityclient to verify rabbitmq metrics are stored in prometheus
+  - name: Query the rabbitmq identity info metric by pod
+    when: verify_metrics_prereqs_ok | bool
     ansible.builtin.command: |
       {{ openstack_cmd }} metric query rabbitmq_identity_info{pod=\'{{ item }}\'} --disable-rbac
-    register: result
+    register: rabbitmq_pod_result
     delay: 30
     retries: 10
     changed_when: false
-    until: result.rc == 0 and "rabbitmq_identity_info" in result.stdout
+    ignore_errors: true
+    until: rabbitmq_pod_result.rc == 0 and "rabbitmq_identity_info" in rabbitmq_pod_result.stdout
     loop: "{{ rabbitmq_pod_list }}"
+
+  - name: |
+      TEST Use openstack observabilityclient to verify rabbitmq metrics are stored in prometheus
+    ansible.builtin.assert:
+      that:
+        - rabbitmq_pod_result is not skipped
+        - rabbitmq_pod_result is not failed
+      success_msg: "rabbitmq_identity_info is stored in prometheus for every rabbitmq pod"
+      fail_msg: >-
+        {{ (rabbitmq_pod_result is not skipped)
+           | ternary('rabbitmq_identity_info was not found in prometheus for: '
+                     ~ (rabbitmq_pod_result.results | default([])
+                        | selectattr('failed', 'defined') | selectattr('failed')
+                        | map(attribute='item') | list | join(', ')),
+                     verify_metrics_blocked_msg) }}

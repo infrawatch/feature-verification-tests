@@ -15,26 +15,66 @@
     common_pod_list:
       - ceilometer-0
 
-- name: |
-    TEST Use openstack CLI to verify a cinder volume is configured
+- name: List the cinder volume backend pools
+  when: verify_metrics_prereqs_ok | bool
   ansible.builtin.shell: |
     {{ openstack_cmd }} volume backend pool list
-  register: result
-  until: result.rc == 0 and result.stdout_lines | length > 0
+  register: volume_pool_list
+  delay: 10
+  retries: 6
   changed_when: false
+  ignore_errors: true
+  until: volume_pool_list.rc == 0 and volume_pool_list.stdout_lines | length > 0
 
 - name: |
-    TEST Use openstack observabilityclient to verify ceilometer volume pool metrics are stored in prometheus
+    TEST Use openstack CLI to verify a cinder volume is configured
+  ansible.builtin.assert:
+    that:
+      - volume_pool_list is not skipped
+      - volume_pool_list is not failed
+    success_msg: "at least one cinder volume backend pool is configured"
+    fail_msg: >-
+      {{ (volume_pool_list is not skipped)
+         | ternary('no cinder volume backend pool is configured',
+                   verify_metrics_blocked_msg) }}
+  register: test_volume_pool_list
+
+  # Without a pool there is nothing to produce pool metrics, so do not spend the
+  # 10 x 30s budget below finding that out again.
+  # Source-local: the shared flag must not be latched by a single source, or a
+  # failure here would block every source that runs after this one.
+- name: Record whether a volume pool is configured
+  ansible.builtin.set_fact:
+    volume_pool_ok: "{{ verify_metrics_prereqs_ok | bool and not (test_volume_pool_list is failed) }}"
+
+- name: Query the ceilometer volume pool metrics
   vars:
     volume_pool_metrics:
       - ceilometer_volume_provider_pool_capacity_allocated
       - ceilometer_volume_provider_pool_capacity_free
       - ceilometer_volume_provider_pool_capacity_total
+  when: volume_pool_ok | bool
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac {{ item }}
-  register: result
+  register: volume_pool_result
   delay: 30
   retries: 10
-  until: result.rc == 0 and item in result.stdout
   changed_when: false
+  ignore_errors: true
+  until: volume_pool_result.rc == 0 and item in volume_pool_result.stdout
   loop: "{{ volume_pool_metrics }}"
+
+- name: |
+    TEST Use openstack observabilityclient to verify ceilometer volume pool metrics are stored in prometheus
+  ansible.builtin.assert:
+    that:
+      - volume_pool_result is not skipped
+      - volume_pool_result is not failed
+    success_msg: "the ceilometer volume pool metrics are stored in prometheus"
+    fail_msg: >-
+      {{ (volume_pool_result is not skipped)
+         | ternary('ceilometer volume pool metrics not found in prometheus: '
+                   ~ (volume_pool_result.results | default([])
+                      | selectattr('failed', 'defined') | selectattr('failed')
+                      | map(attribute='item') | list | join(', ')),
+                   verify_metrics_blocked_msg) }}

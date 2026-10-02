@@ -17,7 +17,7 @@
   ansible.builtin.set_fact:
     galera_pod_list: "{{ galera_pod_list | default([]) + [item + '-galera-0'] }}"
   loop: "{{ cr_names.stdout_lines }}"
- 
+
 - name: List galera pod names
   ansible.builtin.debug:
     msg: "galara pod name ... {{ item }}"
@@ -31,20 +31,51 @@
     common_pod_nspace: openstack
     common_pod_list: "{{ galera_pod_list + ['mysqld-exporter-0'] }}"
 
-- name: TEST Check mariadb metric endpoints
+- name: Probe the mariadb metric endpoints
+  when: verify_metrics_prereqs_ok | bool
   ansible.builtin.shell: |
     oc rsh openstackclient curl https://mysqld-exporter.openstack.svc:9104/probe?{{ item }}.openstack.svc.3306&auth_module=client.{{ item }}.openstack.svc
-  register: result
+  register: mariadb_probe
   changed_when: false
-  failed_when: result.rc >= 1
+  ignore_errors: true
   loop: "{{ cr_names.stdout_lines }}"
 
-- name: TEST Use openstack observabilityclient to verify mariadb metrics are stored in prometheus
+- name: TEST Check mariadb metric endpoints
+  ansible.builtin.assert:
+    that:
+      - mariadb_probe is not skipped
+      - mariadb_probe is not failed
+    success_msg: "the mysqld-exporter probe endpoint responds for every galera instance"
+    fail_msg: >-
+      {{ (mariadb_probe is not skipped)
+         | ternary('the mysqld-exporter probe endpoint did not respond for: '
+                   ~ (mariadb_probe.results | default([])
+                      | selectattr('failed', 'defined') | selectattr('failed')
+                      | map(attribute='item') | list | join(', ')),
+                   verify_metrics_blocked_msg) }}
+
+- name: Query the mariadb version info metric
+  when: verify_metrics_prereqs_ok | bool
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric query --disable-rbac mysql_version_info{instance=\'{{ item }}.openstack.svc:3306\'}
-  register: result
+  register: mariadb_result
   delay: 30
   retries: 10
   changed_when: false
-  until: result.rc == 0 and "mysql_version_info" in result.stdout
+  ignore_errors: true
+  until: mariadb_result.rc == 0 and "mysql_version_info" in mariadb_result.stdout
   loop: "{{ cr_names.stdout_lines }}"
+
+- name: TEST Use openstack observabilityclient to verify mariadb metrics are stored in prometheus
+  ansible.builtin.assert:
+    that:
+      - mariadb_result is not skipped
+      - mariadb_result is not failed
+    success_msg: "mysql_version_info is stored in prometheus for every galera instance"
+    fail_msg: >-
+      {{ (mariadb_result is not skipped)
+         | ternary('mysql_version_info was not found in prometheus for: '
+                   ~ (mariadb_result.results | default([])
+                      | selectattr('failed', 'defined') | selectattr('failed')
+                      | map(attribute='item') | list | join(', ')),
+                   verify_metrics_blocked_msg) }}
