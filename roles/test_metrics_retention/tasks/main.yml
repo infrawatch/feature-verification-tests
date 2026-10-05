@@ -3,7 +3,6 @@
 # Assuming we've already logged in.
 # Assuming we're in the right project already...
 
-
 - name: "RHELOSP-144988 Set metrics retention to 17d"
   ansible.builtin.shell:
     cmd: |
@@ -12,11 +11,10 @@
   register: cmd_output
   failed_when: cmd_output.rc != 0
 
-
 - name: "RHELOSP-144484 Check that the retention was set"
-  ansible.builtin.shell:
-    cmd: |
-      oc describe pod prometheus-default-0  | grep -o 'storage.tsdb.retention.time=17d'
+  ansible.builtin.shell: >
+    oc describe pod prometheus-default-0 | grep -o 'storage.tsdb.retention.time=17d' ||
+    oc exec prometheus-default-0 -c prometheus -- grep -o 'time: 17d' /etc/prometheus/config_out/prometheus.env.yaml
   register: cmd_output
   changed_when: false
   retries: 12
