@@ -1,0 +1,31 @@
+---
+# Get Loki URL
+# Discovers the LokiStack Gateway service and constructs Loki API URLs.
+
+- name: "Check if LokiStack Querier service exists"
+  ansible.builtin.command:
+    cmd: |
+      oc get svc cloudkitty-lokistack-querier-http -n {{ cloudkitty_namespace }} -o name
+  register: loki_querier_svc
+  changed_when: false
+  failed_when: loki_querier_svc.rc != 0
+
+- name: "Set Loki URLs from querier service"
+  ansible.builtin.set_fact:
+    # Base querier URL (internal service DNS)
+    loki_querier_url: "https://cloudkitty-lokistack-querier-http.{{ cloudkitty_namespace }}.svc:3100"
+
+    # Loki API endpoints (direct to querier, bypassing observatorium gateway)
+    loki_push_url: "https://cloudkitty-lokistack-distributor-http.{{ cloudkitty_namespace }}.svc:3100/loki/api/v1/push"
+    loki_query_url: "https://cloudkitty-lokistack-querier-http.{{ cloudkitty_namespace }}.svc:3100/loki/api/v1/query_range"
+
+    # Internal ingester flush URL
+    ingester_flush_url: "https://cloudkitty-lokistack-ingester-http.{{ cloudkitty_namespace }}.svc:3100/flush"
+
+- name: "Debug: Loki URLs configured"
+  ansible.builtin.debug:
+    msg:
+      - "Loki Querier: {{ loki_querier_url }}"
+      - "Push URL:     {{ loki_push_url }}"
+      - "Query URL:    {{ loki_query_url }}"
+      - "Flush URL:    {{ ingester_flush_url }}"

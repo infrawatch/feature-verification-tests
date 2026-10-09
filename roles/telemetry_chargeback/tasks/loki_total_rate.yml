@@ -32,39 +32,48 @@
 # Query Loki for all data in current month
 - name: "TEST Retrieve Logs from Loki via API - {{ scenario_name }}"
   block:
-    - name: "Query Loki API for current month data - {{ scenario_name }}"
+    - name: "Set remote response file path for total_rate"
+      ansible.builtin.set_fact:
+        remote_total_rate_file: "/tmp/loki_total_rate_{{ scenario_name }}.json"
+
+    - name: "Query Loki API for current month data from inside the cluster - {{ scenario_name }}"
       ansible.builtin.command:
         cmd: >
           oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} --
-          curl -s -S --fail --get
-          --connect-timeout {{ loki_connect_timeout }}
-          --max-time {{ loki_request_timeout }}
-          --cert {{ loki_api_cert_dir }}/tls.crt
-          --key {{ loki_api_cert_dir }}/tls.key
-          --cacert {{ loki_api_cert_dir }}/service-ca.crt
-          --data-urlencode 'query={{ total_rate_logql_query }}'
-          --data-urlencode 'start={{ month_start_ns }}'
-          --data-urlencode 'end={{ month_end_ns }}'
-          --data-urlencode 'limit={{ limit }}'
-          {{ loki_query_url }}
-      register: loki_response
+          curl -s -w '\n%{http_code}'
+          --cert {{ remote_cert_dir }}/tls.crt
+          --key {{ remote_cert_dir }}/tls.key
+          --cacert {{ remote_cert_dir }}/service-ca.crt
+          -H "X-Scope-OrgID: cloudkitty"
+          -o {{ remote_total_rate_file }}
+          "{{ loki_query_url }}?query={{ total_rate_logql_query | urlencode }}&start={{ month_start_ns }}&end={{ month_end_ns }}&limit={{ limit }}"
+      register: loki_curl_response
       changed_when: false
-      until:
-        - loki_response.rc == 0
-        - (loki_response.stdout | from_json).status == 'success'
-        - (loki_response.stdout | from_json).data.result | length > 0
-      retries: "{{ loki_query_retries }}"
-      delay: "{{ loki_query_delay }}"
+      until: loki_curl_response.rc == 0 and loki_curl_response.stdout.strip().split('\n')[-1] == '200'
+      retries: 30
+      delay: 10
 
-    - name: "Parse Loki query response - {{ scenario_name }}"
+    - name: "Copy Loki total_rate response from pod to local - {{ scenario_name }}"
+      ansible.builtin.command:
+        cmd: "oc cp {{ cloudkitty_namespace }}/{{ openstackpod }}:{{ remote_total_rate_file }} {{ cloudkitty_loki_totals_file }}"
+      changed_when: false
+
+    - name: "Load Loki total_rate response JSON - {{ scenario_name }}"
+      ansible.builtin.slurp:
+        src: "{{ cloudkitty_loki_totals_file }}"
+      register: loki_response_raw
+
+    - name: "Parse Loki total_rate response - {{ scenario_name }}"
       ansible.builtin.set_fact:
-        loki_response_json: "{{ loki_response.stdout | from_json }}"
+        loki_response_json: "{{ loki_response_raw.content | b64decode | from_json }}"
 
-    - name: "Save Loki Data to JSON file - {{ scenario_name }}"
-      ansible.builtin.copy:
-        content: "{{ loki_response_json | to_json }}"
-        dest: "{{ cloudkitty_loki_totals_file }}"
-        mode: '0644'
+    - name: "Verify Loki total_rate response structure - {{ scenario_name }}"
+      ansible.builtin.assert:
+        that:
+          - loki_response_json.status == 'success'
+          - loki_response_json.data.result | length > 0
+        fail_msg: "Loki total_rate query validation failed"
+        success_msg: "Loki total_rate query successful"
 
     - name: "TEST Generate chargeback stats from Loki total_rate data - {{ scenario_name }}"
       ansible.builtin.command:
@@ -84,9 +93,9 @@
           - "Failed to retrieve Loki total_rate data for current month"
           - "Query: {{ total_rate_logql_query }}"
           - "Start time: {{ month_start }}"
-          - "Response: {{ loki_response.stdout | default('No response') }}"
-          - "Error: {{ loki_response.stderr | default('No error output') }}"
-          - "Message: {{ loki_response.msg | default('Request failed') }}"
+          - "HTTP Status: {{ loki_curl_response.stdout.strip().split('\n')[-1] | default('Unknown') }}"
+          - "Return Code: {{ loki_curl_response.rc | default('Unknown') }}"
+          - "Error: {{ loki_curl_response.stderr | default('No error output') }}"
 
 # Display accumulated total rate for job
 - name: "Display accumulated rating for job - {{ scenario_name }}"
