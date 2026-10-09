@@ -1,9 +1,9 @@
 ---
 # Verify Orchestration (heat) and telemetry services resources are ready for autoscaling
 #
-# Each CR check is a cheap "oc get" that gathers the status, followed by a
-# TEST-prefixed assert that reports it. Gathering with failed_when: false means
-# one unready CR no longer aborts the file, so all four are always reported.
+# These are cheap single oc calls, so they all run unconditionally: a complete
+# precheck diagnosis is worth more here than skipping a couple of seconds. Each
+# one latches autoscaling_prereqs_ok, which gates the expensive stages later on.
 
 - name: Verify that custom resource HEAT is ready
   ansible.builtin.command:
@@ -21,6 +21,11 @@
     fail_msg: >-
       the heat CR reports Ready={{ heat_cr.stdout | default('') | trim | default('<empty>', true) }},
       expected True
+  register: test_heat_cr
+
+- name: Record whether the heat CR is ready
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (test_heat_cr is failed) }}"
 
 - name: Verify that custom resource CEILOMETER is ready
   ansible.builtin.command:
@@ -38,6 +43,11 @@
     fail_msg: >-
       the ceilometer CR reports Ready={{ ceilometer_cr.stdout | default('') | trim | default('<empty>', true) }},
       expected True
+  register: test_ceilometer_cr
+
+- name: Record whether the ceilometer CR is ready
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (test_ceilometer_cr is failed) }}"
 
   # ignore_errors is inherited as true from the import_role in the CI playbook,
   # which would stop the rescue from ever running. Overriding it on the block
@@ -75,6 +85,11 @@
     fail_msg: >-
       the autoscaling CR reports Ready={{ autoscaling_cr.stdout | default('') | trim | default('<empty>', true) }},
       expected True
+  register: test_autoscaling_cr
+
+- name: Record whether the autoscaling CR is ready
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (test_autoscaling_cr is failed) }}"
 
 - name: Verify that custom resource METRICSTORAGE is ready
   ansible.builtin.command:
@@ -92,4 +107,8 @@
     fail_msg: >-
       the metric-storage CR reports Ready={{ metricstorage_cr.stdout | default('') | trim | default('<empty>', true) }},
       expected True
+  register: test_metricstorage_cr
 
+- name: Record whether the metricstorage CR is ready
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (test_metricstorage_cr is failed) }}"
