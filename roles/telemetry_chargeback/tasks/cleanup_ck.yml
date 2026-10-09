@@ -1,6 +1,16 @@
 ---
 ### cleans up after each test scenario
-- name: "Cleanup local certificates"
+- name: "Cleanup certificate directories"
   ansible.builtin.file:
-    path: "{{ local_cert_dir }}"
+    path: "{{ item }}"
     state: absent
+  loop:
+    - "{{ cert_dir | default('') }}"
+    - "{{ local_cert_dir | default('') }}"
+  when: item | length > 0
+
+- name: "Cleanup remote certificate directory in OpenStack Client pod"
+  ansible.builtin.command:
+    cmd: "oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} -- rm -rf {{ remote_cert_dir }}"
+  changed_when: false
+  failed_when: false
