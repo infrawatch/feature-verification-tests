@@ -84,7 +84,7 @@
         var: result
 
 
-- name:  TEST Scaling Up instance
+- name: TEST Scaling Up instance
   block:
     - name: |
         TEST Verify cpu high alarm has been triggered
@@ -98,6 +98,7 @@
       delay: 5
       register: result
       until: result.stdout == "alarm"
+      ignore_errors: false
 
     - name: |
         TEST Verify orchestration scaled up instances
@@ -108,19 +109,20 @@
       delay: 5
       register: instance_count2
       until: instance_count2.stdout_lines | length == 3
+      ignore_errors: false
 
     - name: Ensure Scaling Up instance result is set
       ansible.builtin.set_fact:
         scaling_up_success: true
 
-    - name: Debug scaling_up_success
-      ansible.builtin.debug:
-        var: scaling_up_success
-
   rescue:
     - name: "TEST Scaling Up instance - marking scale-up as failed"
       ansible.builtin.set_fact:
         scaling_up_success: false
+
+- name: Debug scaling_up_success
+  ansible.builtin.debug:
+    var: scaling_up_success
 
 
 - name: Stop the busy process
