@@ -3,31 +3,52 @@
 
 - name: "TEST Push data to Loki {{ scenario_name }}"
   block:
-    - name: "POST data to Loki"
-      ansible.builtin.uri:
-        # loki_push_url is configured in setup_loki_env.yml
-        url: "{{ loki_push_url }}"
-        method: POST
-        src: "{{ cloudkitty_data_file }}"
-        body_format: json
-        client_cert: "{{ cert_dir }}/tls.crt"
-        client_key: "{{ cert_dir }}/tls.key"
-        # Note: ca_path not required with validate_certs: false, but included for consistency with retrieve_loki_data.yml
-        ca_path: "{{ cert_dir }}/ca.crt"
-        validate_certs: false
-        status_code: 204
-        return_content: true
-      register: loki_response
+    - name: "Set remote data file path"
+      ansible.builtin.set_fact:
+        remote_data_file: "/tmp/loki_data_{{ scenario_name }}.json"
+
+    - name: "Copy data file to pod"
+      ansible.builtin.command:
+        cmd: "oc cp {{ cloudkitty_data_file }} {{ cloudkitty_namespace }}/{{ openstackpod }}:{{ remote_data_file }}"
+      changed_when: false
+
+    - name: "POST data to Loki from inside the cluster"
+      ansible.builtin.command:
+        cmd: >
+          oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} --
+          curl -s -w '\n%{http_code}'
+          --cert {{ remote_cert_dir }}/tls.crt
+          --key {{ remote_cert_dir }}/tls.key
+          --cacert {{ remote_cert_dir }}/service-ca.crt
+          -H "X-Scope-OrgID: cloudkitty"
+          -X POST
+          -H "Content-Type: application/json"
+          --data-binary @{{ remote_data_file }}
+          "{{ loki_push_url }}"
+      register: loki_push_response
+      changed_when: false
+      failed_when: loki_push_response.rc != 0 or loki_push_response.stdout.strip().split('\n')[-1] != '204'
+
+    - name: "Clean up remote data file"
+      ansible.builtin.command:
+        cmd: "oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} -- rm -f {{ remote_data_file }}"
+      changed_when: false
 
     - name: "Ingest Status Message"
       ansible.builtin.debug:
         msg: "Ingestion Successful for {{ scenario_name }}"
 
   rescue:
+    - name: "Clean up remote data file on failure"
+      ansible.builtin.command:
+        cmd: "oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} -- rm -f {{ remote_data_file }}"
+      changed_when: false
+      failed_when: false
+
     - name: "IngestionFailed"
       ansible.builtin.fail:
         msg:
           - "Scenario: {{ scenario_name }}"
-          - "Status: {{ loki_response.status | default('Unknown') }}"
-          - "Body: {{ loki_response.content | default('No Content') }}"
-          - "Message: {{ loki_response.msg | default('Request failed') }}"
+          - "HTTP Status: {{ loki_push_response.stdout.strip().split('\n')[-1] | default('Unknown') }}"
+          - "Return Code: {{ loki_push_response.rc | default('Unknown') }}"
+          - "Error: {{ loki_push_response.stderr | default('No error output') }}"
