@@ -2,9 +2,10 @@
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
   environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
+    KUBECONFIG: "{{ fvt_kubeconfig }}"
+    PATH: "{{ fvt_path }}"
   vars_files:
+    - vars/defaults.yml
     - vars/common.yml
     - vars/osp18_env.yml
   tasks:
