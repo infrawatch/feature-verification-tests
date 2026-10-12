@@ -8,11 +8,11 @@
     #   Job: cifmw-podified-multinode-edpm-base-crc
     nodes:
       - name: controller
-        label: cloud-centos-9-stream-tripleo-medium
+        label: cloud-centos-10-stream-tripleo-medium
       - name: compute-0
-        label: cloud-centos-9-stream-tripleo
+        label: cloud-centos-10-stream-tripleo
       - name: crc
-        label: crc-cloud-ocp-4-20-1-4xl
+        label: crc-cloud-ocp-4-22-1-4xl
     groups:
       - name: computes
         nodes:
