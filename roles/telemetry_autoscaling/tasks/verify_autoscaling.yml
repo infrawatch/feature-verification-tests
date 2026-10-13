@@ -1,7 +1,6 @@
 ---
-# Pre-req checks for autoscaling. Each one gathers a result and is reported by
-# a TEST-prefixed assert, so a failure here names itself in the report instead
-# of only showing up as a pile of unexplained failures further down.
+# Pre-req checks for autoscaling. Like test_services.yml these are cheap, so
+# they all run and each latches autoscaling_prereqs_ok.
 
 # This doesn't work when using prom as the metrics backend
 # TODO: Add a metrics_backend option
@@ -12,6 +11,10 @@
     {{ openstack_cmd }} endpoint list --service metric;
   register: metric_endpoint
   failed_when: metric_endpoint.rc >= 1
+
+- name: Record whether the metric endpoint is available
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (metric_endpoint is failed) }}"
 
 - name: Test service API endpoint(alarm) for autoscaling
   ansible.builtin.shell: |
@@ -27,6 +30,11 @@
       - alarm_endpoint.rc | default(1) == 0
     success_msg: "the alarming service endpoint is registered"
     fail_msg: "'openstack endpoint list --service alarming' failed, so aodh alarms cannot be used"
+  register: test_alarm_endpoint
+
+- name: Record whether the alarming endpoint is available
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (test_alarm_endpoint is failed) }}"
 
 - name: Test service API endpoint(heat) for autoscaling
   ansible.builtin.shell: |
@@ -42,10 +50,15 @@
       - heat_endpoint.rc | default(1) == 0
     success_msg: "the orchestration service endpoint is registered"
     fail_msg: "'openstack endpoint list --service orchestration' failed, so no stack can be created"
+  register: test_heat_endpoint
+
+- name: Record whether the orchestration endpoint is available
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (test_heat_endpoint is failed) }}"
 
   # need selection criteria to decide when to run these.
   # Need alternative for OSP18.
-  # NOTE: informational only, so it is not reported as a testcase.
+  # NOTE: informational only, so it does not latch the prereq flag.
 - name: Verify that the services are running on the overcloud
   ansible.builtin.shell: |
     # source ~/overcloudrc;
@@ -87,4 +100,8 @@
     fail_msg: >-
       the {{ metrics_backend }} metrics backend is not available, so no autoscaling
       metric can be collected
+  register: test_backend_status
 
+- name: Record whether the metrics backend is available
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (test_backend_status is failed) }}"
