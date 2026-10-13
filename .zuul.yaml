@@ -53,6 +53,9 @@
 
 - job:
     name: functional-tests-osp18
+    branches:
+      # Match rhoso-* and 18-* branches
+      - ^(rhoso-|18-).*
     dependencies: 
       - name: telemetry-openstack-meta-content-provider-master
       - name: telemetry-container-image-content-provider
@@ -73,7 +76,7 @@
       # Enable update containers so that we have updated containers for mysqld_exporter, prometheus-podman-exporter and sg-core
       cifmw_update_containers: true
       # Don't update openstack service containers since we don't have a content provider which would provide these images
-      cifmw_update_containers_openstack: false
+      cifmw_update_containers_openstack: true
       crc_enable_monitoring: true
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
@@ -83,7 +86,6 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-logging-test.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-functional-test.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: &required_projects
