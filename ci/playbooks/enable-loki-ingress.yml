@@ -1,0 +1,22 @@
+---
+- name: Enable LokiStack Gateway Ingress
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Set kubeconfig path
+      set_fact:
+        kubeconfig_path: "{{ ansible_user_dir }}/.crc/machines/crc/kubeconfig"
+
+    - name: Check if kubeconfig exists
+      stat:
+        path: "{{ kubeconfig_path }}"
+      register: kubeconfig_stat
+
+    - name: Enable LokiStack Gateway ingress
+      command: |
+        oc patch lokistack logging-loki --type=merge \
+          -p '{"spec": {"tenants": {"disableIngress": false}}}'
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      when: kubeconfig_stat.stat.exists
+      ignore_errors: true
