@@ -72,8 +72,7 @@
       patch_observabilityclient: true
       # Enable update containers so that we have updated containers for mysqld_exporter, prometheus-podman-exporter and sg-core
       cifmw_update_containers: true
-      # Don't update openstack service containers since we don't have a content provider which would provide these images
-      cifmw_update_containers_openstack: false
+      cifmw_update_containers_openstack: true
       crc_enable_monitoring: true
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
@@ -83,7 +82,6 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-logging-test.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-functional-test.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: &required_projects
@@ -133,7 +131,7 @@
       Run the logging functional tests and tempest smoketests on osp18
     extra-vars: *functional_autoscaling_extra_vars
     vars:
-      cifmw_update_containers: false
+      cifmw_update_containers: true
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-logging.yml"
@@ -163,8 +161,7 @@
     extra-vars: *functional_autoscaling_extra_vars
     vars:
       run_graphing_test: false
-      patch_observabilityclient: true
-      cifmw_update_containers: false
+      cifmw_update_containers: true
       telemetry_verify_metrics_metric_sources_to_test:
         - ceilometer_compute_agent
         - ceilometer_central_agent
@@ -183,7 +180,6 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-logging-test.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-functional-test.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
     irrelevant-files: *irrelevant_files
     required-projects: *required_projects
 
@@ -211,7 +207,6 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
         # Need a config for CK
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-cloudkitty-tempest.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-cloudkitty-fvt.yml"
 
 - job:
@@ -227,12 +222,11 @@
       - zuul: github.com/infrawatch/feature-verification-tests
     required-projects: *required_projects
     vars:
-      cifmw_update_containers: false
+      cifmw_update_containers: true
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-logging.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-audit-logging.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-audit-logging-fvt.yml"
 
@@ -273,7 +267,9 @@
               - telemetry-openstack-meta-content-provider-master
         - feature-verification-tests-noop:
             files: *irrelevant_files
-        - functional-tests-osp18
+        - s2i-deployment-test-telemetry:
+            dependencies:
+              - s2i-openstack-container-content-provider
         - functional-logging-tests-osp18:
             irrelevant-files: *irrelevant_files
             files:
