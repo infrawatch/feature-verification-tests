@@ -52,38 +52,30 @@
           update_var: cifmw_update_containers_ceilometermysqldexporterImage
 
 - job:
-    name: functional-tests-osp18
-    dependencies: 
-      - name: telemetry-openstack-meta-content-provider-master
+    name: functional-tests
+    dependencies:
       - name: telemetry-container-image-content-provider
         soft: true
     parent: telemetry-operator-multinode-autoscaling
     nodeset: telemetry-operator-all-the-features
+    abstract: true
     description: |
       Run autoscaling functional tests, tempest tests, metrics
-      functional tests, graphing functional tests and logging functional tests on
-      osp18+patched versions of aodh and heat.
-    extra-vars: &functional_autoscaling_extra_vars
-      # Override zuul meta content provider provided content_provider_dlrn_md5_hash
-      # var. As returned dlrn md5 hash comes from master release but job is using
-      # antelope content.
-      content_provider_dlrn_md5_hash: ''
+      functional tests, graphing functional tests and logging functional tests
     vars:
-      patch_observabilityclient: true
       # Enable update containers so that we have updated containers for mysqld_exporter, prometheus-podman-exporter and sg-core
       cifmw_update_containers: true
       # Don't update openstack service containers since we don't have a content provider which would provide these images
       cifmw_update_containers_openstack: false
       crc_enable_monitoring: true
-      cifmw_extras:
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
+      cifmw_extras_base:
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-10/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-logging.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-logging-test.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-functional-test.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: &required_projects
@@ -126,16 +118,42 @@
       - roles/test_verify_email/.*
 
 - job:
-    name: functional-logging-tests-osp18
-    dependencies: ["telemetry-openstack-meta-content-provider-master"]
+    name: functional-tests-osp19
+    dependencies:
+      - name: s2i-openstack-container-content-provider
+        soft: true
+      - name: telemetry-container-image-content-provider
+        soft: true
+    parent: functional-tests
+    description: |
+      Run autoscaling functional tests, tempest tests, metrics
+      functional tests, graphing functional tests and logging functional tests on
+      osp19
+    vars:
+      cifmw_crc_additional_insecure_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_crc_additional_allowed_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_set_containers_preserve_unlisted: true
+      cifmw_set_containers_images: >-
+        {{ (s2i_content_provider_os_custom_container_images |
+           dict2items |
+           json_query('[].{name: key, full_registry: value}'))
+           if s2i_content_provider_os_custom_container_images is defined else [] }}
+      cifmw_extras: "{{ [
+        cifmw_extras_base_extra | default([]),
+        cifmw_extras_scenario | default([])
+      ] | flatten }}"
+
+- job:
+    name: functional-logging-tests
     parent: telemetry-operator-multinode-logging
     description: |
-      Run the logging functional tests and tempest smoketests on osp18
+      Run the logging functional tests and tempest smoketests.
+    abstract: true
     extra-vars: *functional_autoscaling_extra_vars
     vars:
       cifmw_update_containers: false
       cifmw_extras:
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-10/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-logging.yml"
           # Use the tempest config we have for autoscaling tests
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
@@ -144,6 +162,22 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
+
+- job:
+    name: functional-logging-tests-osp19
+    parent: functional-logging-tests
+    dependencies:
+      - name: s2i-openstack-container-content-provider
+        soft: true
+    vars:
+      cifmw_crc_additional_insecure_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_crc_additional_allowed_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_set_containers_preserve_unlisted: true
+      cifmw_set_containers_images: >-
+        {{ (s2i_content_provider_os_custom_container_images |
+           dict2items |
+           json_query('[].{name: key, full_registry: value}'))
+           if s2i_content_provider_os_custom_container_images is defined else [] }}
 
 - job:
     name: feature-verification-tests-noop
@@ -177,8 +211,8 @@
         - volume_pool
         - ovn
       cifmw_extras:
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/multinode-ci.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-9/hci_ceph_backends.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-10/multinode-ci.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-10/hci_ceph_backends.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-telemetry-with-ceph.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-logging-test.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
@@ -188,7 +222,7 @@
     required-projects: *required_projects
 
 - job:
-    name: functional-chargeback-tests-osp18
+    name: functional-chargeback-tests
     parent: telemetry-operator-multinode-cloudkitty
     description: |
       Alias of telemetry-operator-multinode-cloudkitty for testing
@@ -207,19 +241,42 @@
       - name: github.com/openstack-k8s-operators/mysqld_exporter
         override-checkout: main
     vars:
-      cifmw_extras:
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
+      cifmw_extras_base:
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-10/multinode-ci.yml"
         # Need a config for CK
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-cloudkitty-tempest.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-cloudkitty-fvt.yml"
 
 - job:
-    name: functional-audit-logging-tests-osp18
-    dependencies: ["telemetry-openstack-meta-content-provider-master"]
-    parent: telemetry-operator-multinode-logging
+    name: functional-chargeback-tests-osp19
+    parent: functional-chargeback-tests
     description: |
-      Run audit logging functional tests on osp18
+      Alias of telemetry-operator-multinode-cloudkitty for testing
+    irrelevant-files: []
+    dependencies:
+      - name: s2i-openstack-container-content-provider
+        # use the s2i content provider if it is in the job graph.
+        soft: true
+    vars:
+      cifmw_crc_additional_insecure_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_crc_additional_allowed_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_set_containers_preserve_unlisted: true
+      cifmw_set_containers_images: >-
+        {{ (s2i_content_provider_os_custom_container_images |
+           dict2items |
+           json_query('[].{name: key, full_registry: value}'))
+           if s2i_content_provider_os_custom_container_images is defined else [] }}
+      cifmw_extras: "{{ [
+        cifmw_extras_base_extra | default([]),
+        cifmw_extras_scenario | default([])
+      ] | flatten }}"
+
+- job:
+    name: functional-audit-logging-tests
+    parent: telemetry-operator-multinode-logging
+    abstract: true
+    description: |
+      Run audit logging tests
     extra-vars: *functional_autoscaling_extra_vars
     irrelevant-files: []
     roles:
@@ -227,14 +284,36 @@
       - zuul: github.com/infrawatch/feature-verification-tests
     required-projects: *required_projects
     vars:
-      cifmw_update_containers: false
-      cifmw_extras:
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
+      cifmw_extras_base:
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-10/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-logging.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-audit-logging.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-audit-logging-fvt.yml"
+
+- job:
+    name: functional-audit-logging-tests-osp19
+    dependencies:
+      - name: s2i-openstack-container-content-provider
+        # use the s2i content provider if it is in the job graph.
+        soft: true
+    parent: functional-audit-logging-tests
+    description: |
+      Run audit logging functional tests on osp19
+    vars:
+      cifmw_crc_additional_insecure_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_crc_additional_allowed_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_set_containers_preserve_unlisted: true
+      cifmw_set_containers_images: >-
+        {{ (s2i_content_provider_os_custom_container_images |
+           dict2items |
+           json_query('[].{name: key, full_registry: value}'))
+           if s2i_content_provider_os_custom_container_images is defined else [] }}
+      cifmw_extras: "{{ [
+        cifmw_extras_base_extra | default([]),
+        cifmw_extras_scenario | default([])
+      ] | flatten }}"
+
 
 - project:
     name: infrawatch/feature-verification-tests
@@ -245,23 +324,19 @@
         - functional-periodic-telemetry-with-ceph
     github-check:
       jobs:
-        - telemetry-openstack-meta-content-provider-master:
-            override-checkout: main
         - telemetry-container-image-content-provider:
             files:
               - ^ci/playbooks/container-image-build.yml$
               - ^ci/playbooks/container-image-content-provider.yml$
               - ^.zuul.yaml$
-        - functional-chargeback-tests-osp18:
+        - functional-chargeback-tests-osp19:
             files:
               - ^roles/telemetry_chargeback/.*$
               - ^roles/common/.*$
               - ^ci/vars-cloudkitty-fvt.yml$
               - ^ci/report_result.yml$
               - ^.zuul.yaml$
-            dependencies:
-              - telemetry-openstack-meta-content-provider-master
-        - functional-audit-logging-tests-osp18:
+        - functional-audit-logging-tests-osp19:
             files:
               - ^roles/telemetry_audit_logging/.*$
               - ^roles/common/.*$
@@ -269,12 +344,10 @@
               - ^ci/run_audit_logging_tests.yml$
               - ^ci/report_result.yml$
               - ^.zuul.yaml$
-            dependencies:
-              - telemetry-openstack-meta-content-provider-master
         - feature-verification-tests-noop:
             files: *irrelevant_files
-        - functional-tests-osp18
-        - functional-logging-tests-osp18:
+        - functional-tests-osp19
+        - functional-logging-tests-osp19:
             irrelevant-files: *irrelevant_files
             files:
               - ^roles/telemetry_logging/.*$
@@ -285,10 +358,11 @@
               - ^ci/logging_tests_controller.yml$
               - ^ci/report_result.yml$
               - ^.zuul.yaml$
-        - functional-periodic-telemetry-with-ceph:
-            files:
-              # Run this job for changes to the volume_pool_metrics test changes as this is
-              # the only job, where those tests get executed and for changes to zuul.yaml in
-              # case the job definition changes.
-              - ^roles/telemetry_verify_metrics/tasks/verify_ceilometer_volume_pool_metrics.yml$
-              - ^.zuul.yaml$
+          # still on 18
+          #        - functional-periodic-telemetry-with-ceph:
+          #            files:
+          #              # Run this job for changes to the volume_pool_metrics test changes as this is
+          #              # the only job, where those tests get executed and for changes to zuul.yaml in
+          #              # case the job definition changes.
+          #              - ^roles/telemetry_verify_metrics/tasks/verify_ceilometer_volume_pool_metrics.yml$
+          #              - ^.zuul.yaml$
