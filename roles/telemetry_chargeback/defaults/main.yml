@@ -27,6 +27,10 @@ openstackpod: "openstackclient"
 # Time window settings
 limit: 1500
 
+# Scope API test variables (OSPRH-23754)
+ck_test_scope_id: "fvt_scope_api_test"
+ck_test_scope_timestamp: "2025-01-01T00:00:00+00:00"
+
 # List of test scenario files to run (names without .yml extension)
 # The .yml extension is added automatically in vars/main.yml
 cloudkitty_test_scenarios: ["test_01_dyn_basic", "test_02_dyn_varying_qty", "test_03_mutate_ceil_floor", "test_04_notnumbool_zero", "test_05_static"]
