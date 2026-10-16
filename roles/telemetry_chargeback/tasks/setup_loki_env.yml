@@ -1,34 +1,9 @@
 ---
 # Setup Loki Environment
 
-# Dynamic URL's
-- name: "Get Loki Public Route Host"
-  ansible.builtin.command:
-    cmd: |
-      oc get route cloudkitty-lokistack -n {{ cloudkitty_namespace }} -o "jsonpath={.spec.host}"
-  register: loki_route
-  changed_when: false
-
-- name: "Set Loki URLs"
-  ansible.builtin.set_fact:
-    # Base URL
-    loki_base_url: "https://{{ loki_route.stdout }}"
-
-    # Internal Flush URL(Service DNS: https://<service>.<namespace>.svc:3100/flush)
-    ingester_flush_url: "https://cloudkitty-lokistack-ingester-http.{{ cloudkitty_namespace }}.svc:3100/flush"
-
-- name: "Set Derived Loki URLs"
-  ansible.builtin.set_fact:
-    loki_push_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/push"
-    loki_query_url: "{{ loki_base_url }}/api/logs/v1/cloudkitty/loki/api/v1/query_range"
-
-- name: "Debug URLs"
-  ansible.builtin.debug:
-    msg:
-      - "Loki Route: {{ loki_base_url }}"
-      - "Push URL:   {{ loki_push_url }}"
-      - "Flush URL:  {{ ingester_flush_url }}"
-      - "Query URL:  {{ loki_query_url }}"
+# Discover Loki Gateway service and set URLs
+- name: "Get Loki URLs from LokiStack Gateway service"
+  ansible.builtin.include_tasks: "get_loki_url.yml"
 
 - name: "Ensure Certificate Directories Exist"
   ansible.builtin.file:
