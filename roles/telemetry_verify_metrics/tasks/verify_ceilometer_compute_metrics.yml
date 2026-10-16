@@ -25,6 +25,37 @@
     common_pod_list:
       - ceilometer-0
 
+- name: Setup mTLS certs for metric endpoint access
+  ansible.builtin.include_tasks:
+    file: setup_mtls_certs.yml
+
+- name: Get compute node names and ctlplane IPs from IPSet CRs
+  ansible.builtin.shell: |
+    oc get ipset -n openstack -o json | jq -c '
+      [ .items[] | {
+        name: .metadata.name,
+        ip: (.status.reservations[] | select(.network == "ctlplane") | .address)
+      } ]
+    '
+  register: compute_ipset_result
+  changed_when: false
+
+- name: Set compute nodes fact
+  ansible.builtin.set_fact:
+    compute_nodes: "{{ compute_ipset_result.stdout | from_json }}"
+
+- name: |
+    TEST Verify ceilometer prometheus exporter listens on port 9101 with TLS on {{ compute_node.name }}
+  ansible.builtin.shell: |
+    oc rsh openstackclient curl --fail --cert /tmp/mtls/tls.crt --key /tmp/mtls/tls.key "https://{{ compute_node.ip }}:9101/metrics"
+  register: result
+  changed_when: false
+  failed_when: result.rc >= 1
+  loop: "{{ compute_nodes }}"
+  loop_control:
+    loop_var: compute_node
+    label: "{{ compute_node.name }}"
+
 - name: Verify ceilometer compute agent TLS configuration (OSPRH-27068)
   ansible.builtin.include_tasks:
     file: check_compute_tls.yml
