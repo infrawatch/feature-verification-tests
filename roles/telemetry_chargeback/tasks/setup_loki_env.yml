@@ -11,15 +11,8 @@
     state: directory
     mode: '0700'  # Restricted for security
   loop:
-    - "{{ cert_dir }}"
     - "{{ local_cert_dir }}"
   when: item is defined
-
-- name: "Extract Certificates from OpenShift Secret"
-  ansible.builtin.command:
-    cmd: |
-      oc extract secret/{{ cert_secret_name }} --to={{ cert_dir }} --confirm -n {{ cloudkitty_namespace }}
-  changed_when: true
 
 - name: "Extract Client Certificates"
   ansible.builtin.command:
