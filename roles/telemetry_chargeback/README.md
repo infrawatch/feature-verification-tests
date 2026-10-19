@@ -74,7 +74,6 @@ Role Variables
 | `cloudkitty_debug` | `false` | Enable debug mode for CloudKitty operations |
 | `cloudkitty_debug_dir` | `"{{ (cloudkitty_debug \| bool) \| ternary(cloudkitty_artifacts_dir + '/debug_ck_db', '') }}"` | Directory for debug output (auto-set based on debug flag) |
 | `cloudkitty_artifacts_dir` | `"{{ cifmw_basedir }}/artifacts"` | Directory for generated artifacts and test output |
-| `cert_dir` | `"{{ cifmw_basedir }}/ck-certs"` | Directory for CloudKitty client certificates |
 | `local_cert_dir` | `"{{ cifmw_basedir }}/flush_certs"` | Local directory for flush certificates |
 | `remote_cert_dir` | `"osp-certs"` | Remote directory inside OpenStack pod for certificates |
 | `cloudkitty_debug_dir` | `"{{ (cloudkitty_debug \| bool) \| ternary(cloudkitty_artifacts_dir + '/debug_ck_db', '') }}"` | Directory for debug output (auto-set based on debug flag) |
