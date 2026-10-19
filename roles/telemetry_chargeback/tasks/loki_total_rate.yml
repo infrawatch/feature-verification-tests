@@ -40,7 +40,7 @@
       ansible.builtin.command:
         cmd: >
           oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} --
-          curl -s -w '\n%{http_code}'
+          curl -sS -w '%{http_code}\n%{size_download}'
           --cert {{ remote_cert_dir }}/tls.crt
           --key {{ remote_cert_dir }}/tls.key
           --cacert {{ remote_cert_dir }}/service-ca.crt
@@ -49,7 +49,7 @@
           "{{ loki_query_url }}?query={{ total_rate_logql_query | urlencode }}&start={{ month_start_ns }}&end={{ month_end_ns }}&limit={{ limit }}"
       register: loki_curl_response
       changed_when: false
-      until: loki_curl_response.rc == 0 and loki_curl_response.stdout.strip().split('\n')[-1] == '200'
+      until: loki_curl_response.rc == 0 and loki_curl_response.stdout_lines[0] == '200' and loki_curl_response.stdout_lines[-1] | int > 0
       retries: 30
       delay: 10
 
