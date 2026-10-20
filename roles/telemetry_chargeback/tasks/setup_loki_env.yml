@@ -1,6 +1,23 @@
 ---
 # Setup Loki Environment
 
+# Define temporary certificate directories
+- name: "Set certificate directory paths"
+  ansible.builtin.set_fact:
+    # Temporary directory for extracted certificates from OpenShift secret
+    cert_dir: "/tmp/ck-certs-{{ ansible_date_time.epoch }}"
+    # Temporary directory for local certificate copies
+    local_cert_dir: "/tmp/flush_certs-{{ ansible_date_time.epoch }}"
+    # Directory path inside OpenStack Client pod for certificates
+    remote_cert_dir: "osp-certs"
+
+- name: "Debug certificate directory paths"
+  ansible.builtin.debug:
+    msg:
+      - "cert_dir: {{ cert_dir }}"
+      - "local_cert_dir: {{ local_cert_dir }}"
+      - "remote_cert_dir: {{ remote_cert_dir }}"
+
 # Dynamic URL's
 - name: "Get Loki Public Route Host"
   ansible.builtin.command:
@@ -38,40 +55,56 @@
   loop:
     - "{{ cert_dir }}"
     - "{{ local_cert_dir }}"
-  when: item is defined
 
 - name: "Extract Certificates from OpenShift Secret"
   ansible.builtin.command:
     cmd: |
       oc extract secret/{{ cert_secret_name }} --to={{ cert_dir }} --confirm -n {{ cloudkitty_namespace }}
   changed_when: true
+  register: extract_secret
+  retries: 3
+  delay: 5
+  until: extract_secret.rc == 0
 
 - name: "Extract Client Certificates"
   ansible.builtin.command:
     cmd: |
       oc extract {{ client_secret }} --to={{ local_cert_dir }} --confirm -n {{ cloudkitty_namespace }}
   changed_when: true
+  register: extract_client
+  retries: 3
+  delay: 5
+  until: extract_client.rc == 0
 
 - name: "Extract CA Bundle"
   ansible.builtin.command:
     cmd: |
       oc extract {{ ca_configmap }} --to={{ local_cert_dir }} --confirm -n {{ cloudkitty_namespace }}
   changed_when: true
+  register: extract_ca
+  retries: 3
+  delay: 5
+  until: extract_ca.rc == 0
+
+- name: "Verify certificates were extracted"
+  ansible.builtin.command:
+    cmd: "find {{ cert_dir }} {{ local_cert_dir }} -type f"
+  register: cert_files
+  changed_when: false
+
+- name: "Debug extracted certificate files"
+  ansible.builtin.debug:
+    msg: |
+      Certificate files found:
+      {{ cert_files.stdout }}
 
 # Wait for Loki gossip ring to converge before ingesting data.
 # When the ring hasn't converged, ingesters accept writes but are
 # invisible to queriers, causing queries to return empty results.
 # Uses oc exec because the ingester service DNS is only resolvable
 # from inside the cluster.
-- name: "Create cert directory in OpenStack Client pod"
-  ansible.builtin.command:
-    cmd: "oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} -- mkdir -p {{ remote_cert_dir }}"
-  changed_when: false
-
 - name: "Copy certificates to OpenStack Client pod"
-  ansible.builtin.command:
-    cmd: "oc cp {{ local_cert_dir }}/. {{ cloudkitty_namespace }}/{{ openstackpod }}:{{ remote_cert_dir }}/"
-  changed_when: false
+  ansible.builtin.include_tasks: copy_certs_to_pod.yml
 
 - name: "Wait for Loki ring to converge"
   ansible.builtin.command:
