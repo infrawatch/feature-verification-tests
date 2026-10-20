@@ -17,6 +17,11 @@ cert_secret_name: "cert-cloudkitty-client-internal"
 client_secret: "secret/cloudkitty-lokistack-gateway-client-http"
 ca_configmap: "cm/cloudkitty-lokistack-ca-bundle"
 
+# Certificate storage configuration
+cert_dir: ""
+local_cert_dir: ""
+remote_cert_dir: "osp-certs"
+
 # LogQL Query
 logql_query: "{{ loki_query | default('{service=\"cloudkitty\"}') }}"
 
