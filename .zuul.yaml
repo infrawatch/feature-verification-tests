@@ -127,7 +127,9 @@
 
 - job:
     name: functional-logging-tests-osp18
-    dependencies: ["telemetry-openstack-meta-content-provider-master"]
+    dependencies:
+      - name: telemetry-openstack-meta-content-provider-master
+        soft: true
     parent: telemetry-operator-multinode-logging
     description: |
       Run the logging functional tests and tempest smoketests on osp18
@@ -156,7 +158,9 @@
 - job:
     name: functional-periodic-telemetry-with-ceph
     parent: podified-multinode-hci-deployment-crc-1comp-backends
-    dependencies: ["telemetry-openstack-meta-content-provider-master"]
+    dependencies:
+      - name: telemetry-openstack-meta-content-provider-master
+        soft: true
     nodeset: telemetry-operator-all-the-features
     description: |
       Deploy OpenStack with Telemetry and Ceph. Run metric-verification with volume pool metric tests
@@ -192,6 +196,9 @@
     parent: telemetry-operator-multinode-cloudkitty
     description: |
       Alias of telemetry-operator-multinode-cloudkitty for testing
+    dependencies:
+      - name: telemetry-openstack-meta-content-provider-master
+        soft: true
     irrelevant-files: []
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
@@ -216,7 +223,9 @@
 
 - job:
     name: functional-audit-logging-tests-osp18
-    dependencies: ["telemetry-openstack-meta-content-provider-master"]
+    dependencies:
+      - name: telemetry-openstack-meta-content-provider-master
+        soft: true
     parent: telemetry-operator-multinode-logging
     description: |
       Run audit logging functional tests on osp18
@@ -259,8 +268,6 @@
               - ^ci/vars-cloudkitty-fvt.yml$
               - ^ci/report_result.yml$
               - ^.zuul.yaml$
-            dependencies:
-              - telemetry-openstack-meta-content-provider-master
         - functional-audit-logging-tests-osp18:
             files:
               - ^roles/telemetry_audit_logging/.*$
@@ -269,8 +276,6 @@
               - ^ci/run_audit_logging_tests.yml$
               - ^ci/report_result.yml$
               - ^.zuul.yaml$
-            dependencies:
-              - telemetry-openstack-meta-content-provider-master
         - feature-verification-tests-noop:
             files: *irrelevant_files
         - functional-tests-osp18
