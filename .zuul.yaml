@@ -55,6 +55,7 @@
     name: functional-tests-osp18
     dependencies: 
       - name: telemetry-openstack-meta-content-provider-master
+        soft: true
       - name: telemetry-container-image-content-provider
         soft: true
     parent: telemetry-operator-multinode-autoscaling
@@ -254,13 +255,13 @@
         - functional-periodic-telemetry-with-ceph
     github-check:
       jobs:
-        - telemetry-openstack-meta-content-provider-master:
-            override-checkout: main
-        - telemetry-container-image-content-provider:
-            files:
-              - ^ci/playbooks/container-image-build.yml$
-              - ^ci/playbooks/container-image-content-provider.yml$
-              - ^.zuul.yaml$
+        #- telemetry-openstack-meta-content-provider-master:
+        #    override-checkout: main
+        #- telemetry-container-image-content-provider:
+        #    files:
+        #      - ^ci/playbooks/container-image-build.yml$
+        #      - ^ci/playbooks/container-image-content-provider.yml$
+        #      - ^.zuul.yaml$
         - functional-chargeback-tests-osp18:
             files:
               - ^roles/telemetry_chargeback/.*$
@@ -290,10 +291,10 @@
               - ^ci/logging_tests_controller.yml$
               - ^ci/report_result.yml$
               - ^.zuul.yaml$
-        - functional-periodic-telemetry-with-ceph:
-            files:
-              # Run this job for changes to the volume_pool_metrics test changes as this is
-              # the only job, where those tests get executed and for changes to zuul.yaml in
-              # case the job definition changes.
-              - ^roles/telemetry_verify_metrics/tasks/verify_ceilometer_volume_pool_metrics.yml$
-              - ^.zuul.yaml$
+        #- functional-periodic-telemetry-with-ceph:
+        #    files:
+        #      # Run this job for changes to the volume_pool_metrics test changes as this is
+        #      # the only job, where those tests get executed and for changes to zuul.yaml in
+        #      # case the job definition changes.
+        #      - ^roles/telemetry_verify_metrics/tasks/verify_ceilometer_volume_pool_metrics.yml$
+        #      - ^.zuul.yaml$
