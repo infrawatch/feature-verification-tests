@@ -90,19 +90,19 @@
     required-projects: &required_projects
       - name: github.com/infrawatch/service-telemetry-operator
       - name: github.com/openstack-k8s-operators/ci-framework
-        override-checkout: main
+        override-checkout: 18-stable
       - name: github.com/openstack-k8s-operators/install_yamls
-        override-checkout: main
+        override-checkout: 18-stable
       - name: github.com/openstack-k8s-operators/dataplane-operator
-        override-checkout: main
+        override-checkout: 18-stable
       - name: github.com/openstack-k8s-operators/infra-operator
-        override-checkout: main
+        override-checkout: 18-stable
       - name: github.com/openstack-k8s-operators/openstack-operator
-        override-checkout: main
+        override-checkout: 18-stable
       - name: github.com/openstack-k8s-operators/openstack-must-gather
-        override-checkout: main
+        override-checkout: 18-stable
       - name: github.com/openstack-k8s-operators/telemetry-operator
-        override-checkout: main
+        override-checkout: 18-stable
       - name: github.com/openstack-k8s-operators/sg-core
         override-checkout: main
       - name: github.com/openstack-k8s-operators/prometheus-podman-exporter
