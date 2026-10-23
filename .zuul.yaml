@@ -55,6 +55,7 @@
     name: functional-tests-osp18
     dependencies: 
       - name: telemetry-openstack-meta-content-provider-master
+        soft: true
       - name: telemetry-container-image-content-provider
         soft: true
     parent: telemetry-operator-multinode-autoscaling
@@ -91,17 +92,17 @@
       - name: github.com/openstack-k8s-operators/ci-framework
         override-checkout: main
       - name: github.com/openstack-k8s-operators/install_yamls
-        override-checkout: main
+        override-checkout: 18-stable
       - name: github.com/openstack-k8s-operators/dataplane-operator
-        override-checkout: main
+        override-checkout: 18-stable
       - name: github.com/openstack-k8s-operators/infra-operator
-        override-checkout: main
+        override-checkout: 18-stable
       - name: github.com/openstack-k8s-operators/openstack-operator
-        override-checkout: main
+        override-checkout: 18-stable
       - name: github.com/openstack-k8s-operators/openstack-must-gather
-        override-checkout: main
+        override-checkout: 18-stable
       - name: github.com/openstack-k8s-operators/telemetry-operator
-        override-checkout: main
+        override-checkout: 18-stable
       - name: github.com/openstack-k8s-operators/sg-core
         override-checkout: main
       - name: github.com/openstack-k8s-operators/prometheus-podman-exporter
@@ -127,7 +128,9 @@
 
 - job:
     name: functional-logging-tests-osp18
-    dependencies: ["telemetry-openstack-meta-content-provider-master"]
+    dependencies:
+      - name: telemetry-openstack-meta-content-provider-master
+        soft: true
     parent: telemetry-operator-multinode-logging
     description: |
       Run the logging functional tests and tempest smoketests on osp18
@@ -156,7 +159,9 @@
 - job:
     name: functional-periodic-telemetry-with-ceph
     parent: podified-multinode-hci-deployment-crc-1comp-backends
-    dependencies: ["telemetry-openstack-meta-content-provider-master"]
+    dependencies:
+      - name: telemetry-openstack-meta-content-provider-master
+        soft: true
     nodeset: telemetry-operator-all-the-features
     description: |
       Deploy OpenStack with Telemetry and Ceph. Run metric-verification with volume pool metric tests
@@ -192,31 +197,27 @@
     parent: telemetry-operator-multinode-cloudkitty
     description: |
       Alias of telemetry-operator-multinode-cloudkitty for testing
+    dependencies:
+      - name: telemetry-openstack-meta-content-provider-master
+        soft: true
     irrelevant-files: []
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
       - zuul: github.com/infrawatch/feature-verification-tests
-    required-projects:
-      - name: github.com/openstack-k8s-operators/telemetry-operator
-        override-checkout: main
-      - name: github.com/infrawatch/feature-verification-tests
-      - name: github.com/openstack-k8s-operators/sg-core
-        override-checkout: main
-      - name: github.com/openstack-k8s-operators/prometheus-podman-exporter
-        override-checkout: main
-      - name: github.com/openstack-k8s-operators/mysqld_exporter
-        override-checkout: main
+    required-projects: *required_projects
     vars:
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
         # Need a config for CK
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-cloudkitty-tempest.yml"
-        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-cloudkitty-fvt.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
 
 - job:
     name: functional-audit-logging-tests-osp18
-    dependencies: ["telemetry-openstack-meta-content-provider-master"]
+    dependencies:
+      - name: telemetry-openstack-meta-content-provider-master
+        soft: true
     parent: telemetry-operator-multinode-logging
     description: |
       Run audit logging functional tests on osp18
@@ -245,13 +246,13 @@
         - functional-periodic-telemetry-with-ceph
     github-check:
       jobs:
-        - telemetry-openstack-meta-content-provider-master:
-            override-checkout: main
-        - telemetry-container-image-content-provider:
-            files:
-              - ^ci/playbooks/container-image-build.yml$
-              - ^ci/playbooks/container-image-content-provider.yml$
-              - ^.zuul.yaml$
+        #- telemetry-openstack-meta-content-provider-master:
+        #    override-checkout: main
+        #- telemetry-container-image-content-provider:
+        #    files:
+        #      - ^ci/playbooks/container-image-build.yml$
+        #      - ^ci/playbooks/container-image-content-provider.yml$
+        #      - ^.zuul.yaml$
         - functional-chargeback-tests-osp18:
             files:
               - ^roles/telemetry_chargeback/.*$
@@ -259,8 +260,6 @@
               - ^ci/vars-cloudkitty-fvt.yml$
               - ^ci/report_result.yml$
               - ^.zuul.yaml$
-            dependencies:
-              - telemetry-openstack-meta-content-provider-master
         - functional-audit-logging-tests-osp18:
             files:
               - ^roles/telemetry_audit_logging/.*$
@@ -269,8 +268,6 @@
               - ^ci/run_audit_logging_tests.yml$
               - ^ci/report_result.yml$
               - ^.zuul.yaml$
-            dependencies:
-              - telemetry-openstack-meta-content-provider-master
         - feature-verification-tests-noop:
             files: *irrelevant_files
         - functional-tests-osp18
@@ -285,10 +282,10 @@
               - ^ci/logging_tests_controller.yml$
               - ^ci/report_result.yml$
               - ^.zuul.yaml$
-        - functional-periodic-telemetry-with-ceph:
-            files:
-              # Run this job for changes to the volume_pool_metrics test changes as this is
-              # the only job, where those tests get executed and for changes to zuul.yaml in
-              # case the job definition changes.
-              - ^roles/telemetry_verify_metrics/tasks/verify_ceilometer_volume_pool_metrics.yml$
-              - ^.zuul.yaml$
+        #- functional-periodic-telemetry-with-ceph:
+        #    files:
+        #      # Run this job for changes to the volume_pool_metrics test changes as this is
+        #      # the only job, where those tests get executed and for changes to zuul.yaml in
+        #      # case the job definition changes.
+        #      - ^roles/telemetry_verify_metrics/tasks/verify_ceilometer_volume_pool_metrics.yml$
+        #      - ^.zuul.yaml$
