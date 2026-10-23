@@ -26,38 +26,65 @@
 # Query Loki
 - name: "Retrieve Logs from Loki via API {{ scenario_name }}"
   block:
-    - name: "Query Loki API"
-      ansible.builtin.uri:
-        url: "{{ loki_query_url }}?query={{ scenario_logql_query | urlencode }}&start={{ scenario_start_ns }}&end={{ scenario_end_ns }}&limit={{ limit }}"
-        method: GET
-        client_cert: "{{ cert_dir }}/tls.crt"
-        client_key: "{{ cert_dir }}/tls.key"
-        ca_path: "{{ cert_dir }}/ca.crt"
-        # TODO: Enable validate_certs in production environments
-        validate_certs: false
-        return_content: true
-        body_format: json
-      register: loki_response
+    - name: "Show the Loki query URL"
+      ansible.builtin.debug:
+        msg: "{{ loki_query_url }}?query={{ scenario_logql_query | urlencode }}&start={{ scenario_start_ns }}&end={{ scenario_end_ns }}&limit={{ limit }}"
+
+    - name: "Set remote response file path"
+      ansible.builtin.set_fact:
+        remote_loki_response_file: "/tmp/loki_response_{{ scenario_name }}.json"
+
+    - name: "Query Loki API from inside the cluster"
+      ansible.builtin.command:
+        cmd: >
+          oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} --
+          curl -sS -w '%{http_code}\n%{size_download}'
+          --cert {{ remote_cert_dir }}/tls.crt
+          --key {{ remote_cert_dir }}/tls.key
+          --cacert {{ remote_cert_dir }}/service-ca.crt
+          -H "X-Scope-OrgID: cloudkitty"
+          -o {{ remote_loki_response_file }}
+          "{{ loki_query_url }}?query={{ scenario_logql_query | urlencode }}&start={{ scenario_start_ns }}&end={{ scenario_end_ns }}&limit={{ limit }}"
+      register: loki_curl_response
+      changed_when: false
       # Wait for Loki to return all expected log entries
-      until:
-        - loki_response.status == 200
-        - loki_response.json.status == 'success'
-        - loki_response.json.data.result | length > 0
-        # Verify Loki returned all expected log entries
-        - (loki_response.json.data.result | map(attribute='values') | map('length') | sum) >= (synth_data_rates.data_summary.log_count | int)
-      retries: 20
-      delay: 60
+      until: loki_curl_response.rc == 0 and loki_curl_response.stdout_lines[0] == '200' and loki_curl_response.stdout_lines[-1] | int > 0
+      retries: 6
+      delay: 10
 
-    - name: "Save Loki Data to JSON file"
-      ansible.builtin.copy:
-        content: "{{ loki_response.json | to_json }}"
-        dest: "{{ cloudkitty_loki_data_file }}"
-        mode: '0644'
+    - name: "Copy Loki response from pod to local"
+      ansible.builtin.command:
+        cmd: "oc cp {{ cloudkitty_namespace }}/{{ openstackpod }}:{{ remote_loki_response_file }} {{ cloudkitty_loki_data_file }}"
+      changed_when: false
 
-    # Validate
+    - name: "Load Loki response JSON"
+      ansible.builtin.slurp:
+        src: "{{ cloudkitty_loki_data_file }}"
+      register: loki_response_raw
+
+    - name: "Parse Loki response"
+      ansible.builtin.set_fact:
+        loki_response_json: "{{ loki_response_raw.content | b64decode | from_json }}"
+
+    - name: "Verify Loki response structure and data count"
+      vars:
+        actual_count: "{{ loki_response_json.data.result | map(attribute='values') | map('length') | sum }}"
+      ansible.builtin.assert:
+        that:
+          - loki_response_json.status == 'success'
+          - loki_response_json.data.result | length > 0
+          - actual_count | int >= (synth_data_rates.data_summary.log_count | int)
+        fail_msg: >-
+          Loki query validation failed. Expected at least
+          {{ synth_data_rates.data_summary.log_count }} log entries,
+          but got {{ actual_count }}
+        success_msg: >-
+          Loki query successful. Retrieved {{ actual_count }} log entries
+
+    # Validate exact count
     - name: "TEST Verify Data Integrity {{ scenario_name }}"
       vars:
-        actual_count: "{{ loki_response.json.data.result | map(attribute='values') | map('length') | sum }}"
+        actual_count: "{{ loki_response_json.data.result | map(attribute='values') | map('length') | sum }}"
       ansible.builtin.assert:
         that:
           - actual_count | int == (synth_data_rates.data_summary.log_count | int)
@@ -87,6 +114,6 @@
       ansible.builtin.fail:
         msg:
           - "Failed to retrieve Loki data for {{ scenario_name }}"
-          - "Status: {{ loki_response.status | default('Unknown') }}"
-          - "Body: {{ loki_response.content | default('No Content') }}"
-          - "Message: {{ loki_response.msg | default('Request failed') }}"
+          - "HTTP Status: {{ loki_curl_response.stdout.strip().split('\n')[-1] | default('Unknown') }}"
+          - "Return Code: {{ loki_curl_response.rc | default('Unknown') }}"
+          - "Error: {{ loki_curl_response.stderr | default('No error output') }}"
