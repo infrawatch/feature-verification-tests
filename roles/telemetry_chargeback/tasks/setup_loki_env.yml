@@ -5,7 +5,7 @@
 - name: "Get Loki Public Route Host"
   ansible.builtin.command:
     cmd: |
-      oc get route cloudkitty-lokistack -n {{ cloudkitty_namespace }} -o "jsonpath={.spec.host}"
+      oc get route cloudkitty-public -n {{ cloudkitty_namespace }} -o "jsonpath={.spec.host}"
   register: loki_route
   changed_when: false
 
