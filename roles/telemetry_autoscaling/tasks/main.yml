@@ -2,8 +2,10 @@
 # tasks file for telemetry_autoscaling
   # TODO: Update the pre-checks to include the resources that the stack expects to exist
   # i.e. networks, flavor, image, security group
-- name: |
-    TEST Verify services running
+  # NOTE: not TEST-prefixed. An include is recorded by custom_junit as an
+  # "included" event, which renders as a *passing* testcase regardless of what
+  # happens inside it. The checks in test_services.yml report themselves.
+- name: Verify services running
   when: metrics_backend == "prometheus"
   ansible.builtin.include_tasks: 
     file: test_services.yml

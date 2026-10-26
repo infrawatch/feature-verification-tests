@@ -4,3 +4,9 @@ openstack_cmd: "openstack"
 stack_name: vnf
 metrics_backend: gnocchi
 telemetry_autoscaling_cleanup: true
+# Latches to false when a check fails. Later gather tasks are then skipped and
+# their TEST asserts report a BLOCKED failure instead of burning their retries.
+# Role-internal only.
+autoscaling_prereqs_ok: true
+autoscaling_blocked_msg: >-
+  BLOCKED: an earlier autoscaling stage failed, so this check was not attempted
