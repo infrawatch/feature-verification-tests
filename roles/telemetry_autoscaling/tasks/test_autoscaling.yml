@@ -2,6 +2,7 @@
   # NOTE: The format of the output appears to have changed; There are now 2
   # IP addresses, and the second one is the one associated with the floating IP
 - name: Register instance IP
+  when: autoscaling_prereqs_ok | bool
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
@@ -11,39 +12,44 @@
         awk -F'|' '{print $1}' | \
         awk -F',' '{print $2}'
   register: vnf_instance_ip
+  failed_when: false
 
 - name: Show the IP
   ansible.builtin.debug:
     var: vnf_instance_ip
 
-- when: vnf_instance_ip.stdout | length == 0
-  fail:
-    msg: "bad vnf_instance_ip"
+  # Without an instance IP nothing below can work, so latch the flag instead of
+  # failing outright: the inherited ignore_errors would swallow a fail anyway.
+- name: Record whether an instance IP was found
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: >-
+      {{ autoscaling_prereqs_ok | bool
+         and (vnf_instance_ip.stdout | default('') | length) > 0 }}
 
-- name: |
-    TEST Verify number instances before scaling
+- name: Count the instances before scaling
+  when: autoscaling_prereqs_ok | bool
   ansible.builtin.shell: |
     # source ~/overcloudrc;
     {{ openstack_cmd }} server list --long | grep -i 'metering.server_group'
   register: instance_count1
-  failed_when: instance_count1.stdout_lines | length != 1
+  failed_when: false
 
-- shell: |
-    cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
-  with_items: "{{ vnf_instance_ip.stdout_lines }}"
-  ignore_errors: true
+- name: |
+    TEST Verify number instances before scaling
+  ansible.builtin.assert:
+    that:
+      - instance_count1 is not skipped
+      - instance_count1.stdout_lines | default([]) | length == 1
+    success_msg: "exactly one metering.server_group instance is running before scaling"
+    fail_msg: >-
+      {{ (instance_count1 is not skipped)
+         | ternary('expected exactly one metering.server_group instance before scaling',
+                   autoscaling_blocked_msg) }}
+  register: test_instance_count1
 
-- name: Remove the existing hostkey, if there is one for the target IP
-  ansible.builtin.lineinfile:
-    dest: '{{ ansible_env.HOME }}/.ssh/known_hosts'
-    state: absent
-    regexp: "{{ item | trim }}"
-  with_items: "{{ vnf_instance_ip.stdout_lines }}"
-
-- shell: |
-    cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
-  with_items: "{{ vnf_instance_ip.stdout_lines }}"
-  ignore_errors: true
+- name: Record whether the pre-scaling instance count is correct
+  ansible.builtin.set_fact:
+    autoscaling_prereqs_ok: "{{ autoscaling_prereqs_ok | bool and not (test_instance_count1 is failed) }}"
 
   # NOTE: Disabling strict host key checking so that ssh doesn't give an error
   # when the host key changes i.e. if a new VM has been assigned a
@@ -53,17 +59,41 @@
   # using both in case the order was not consistent.
   # Disabling hostkey checking didn't work. I need to remove the key from the known_hosts file before trying to tun this.
   # The key removal should move to some pre/pre-run stage.
-- name: Test automatic scaling up of instances
-  ansible.builtin.shell: |
-    sshpass -p gocubsgo ssh -o StrictHostKeyChecking=False cirros@{{ item | trim }} "sudo yes > /dev/null &"
-  register: busy_process
-  with_items: "{{ vnf_instance_ip.stdout_lines }}"
+- name: Drive the instance CPU up
+  when: autoscaling_prereqs_ok | bool
+  block:
+    - name: Show any existing hostkey for the target IP
+      ansible.builtin.shell: |
+        cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
+      with_items: "{{ vnf_instance_ip.stdout_lines }}"
+      ignore_errors: true
+
+    - name: Remove the existing hostkey, if there is one for the target IP
+      ansible.builtin.lineinfile:
+        dest: '{{ ansible_env.HOME }}/.ssh/known_hosts'
+        state: absent
+        regexp: "{{ item | trim }}"
+      with_items: "{{ vnf_instance_ip.stdout_lines }}"
+
+    - name: Confirm the hostkey is gone
+      ansible.builtin.shell: |
+        cat {{ ansible_env.HOME }}/.ssh/known_hosts | grep "{{ item | trim }}"
+      with_items: "{{ vnf_instance_ip.stdout_lines }}"
+      ignore_errors: true
+
+    - name: Test automatic scaling up of instances
+      ansible.builtin.shell: |
+        sshpass -p gocubsgo ssh -o StrictHostKeyChecking=False cirros@{{ item | trim }} "sudo yes > /dev/null &"
+      register: busy_process
+      with_items: "{{ vnf_instance_ip.stdout_lines }}"
 
 - name: Show ceilometer_cpu metrics from Prometheus
-  when: metrics_backend == "prometheus"
+  when:
+    - metrics_backend == "prometheus"
+    - autoscaling_prereqs_ok | bool
   block:
     - name: Register autoscaling query results
-      shell: |
+      ansible.builtin.shell: |
         export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
         {{ openstack_cmd }} metric query '(rate(ceilometer_cpu{server_group=~"$STACK_ID"}[150s]))/10000000'
       ignore_errors: true
@@ -74,7 +104,7 @@
         var: result
 
     - name: Register ceilometer_cpu metrics
-      shell: |
+      ansible.builtin.shell: |
         {{ openstack_cmd }} metric show ceilometer_cpu --disable-rbac
       ignore_errors: true
       register: result
@@ -83,11 +113,14 @@
       ansible.builtin.debug:
         var: result
 
-
-- name:  TEST Scaling Up instance
+  # ignore_errors is inherited as true from the import_role in the CI playbook,
+  # so it is overridden here to let the rescue latch the prereq flag. Without
+  # this the scale-down checks would run even after scale-up had failed.
+- name: Wait for the cpu high alarm
+  when: autoscaling_prereqs_ok | bool
+  ignore_errors: false
   block:
-    - name: |
-        TEST Verify cpu high alarm has been triggered
+    - name: Poll the cpu_alarm_high state
       ansible.builtin.shell: |
         # source ~/overcloudrc;
         {{ openstack_cmd }} alarm list -c state -c name -f value| \
@@ -96,11 +129,30 @@
             awk '{print $2}'
       retries: 100
       delay: 5
-      register: result
-      until: result.stdout == "alarm"
+      register: alarm_high
+      until: alarm_high.stdout == "alarm"
+  rescue:
+    - name: Record that the cpu high alarm was not triggered
+      ansible.builtin.set_fact:
+        autoscaling_prereqs_ok: false
 
-    - name: |
-        TEST Verify orchestration scaled up instances
+- name: |
+    TEST Verify cpu high alarm has been triggered
+  ansible.builtin.assert:
+    that:
+      - alarm_high is not skipped
+      - alarm_high.stdout | default('') == "alarm"
+    success_msg: "cpu_alarm_high for {{ stack_name }} reached the alarm state"
+    fail_msg: >-
+      {{ (alarm_high is not skipped)
+         | ternary('cpu_alarm_high for ' ~ stack_name ~ ' did not reach the alarm state',
+                   autoscaling_blocked_msg) }}
+
+- name: Wait for the instances to scale up
+  when: autoscaling_prereqs_ok | bool
+  ignore_errors: false
+  block:
+    - name: Poll the instance count
       ansible.builtin.shell: |
         # source ~/overcloudrc;
         {{ openstack_cmd }} server list --long | grep -i metering.server_group
@@ -108,37 +160,36 @@
       delay: 5
       register: instance_count2
       until: instance_count2.stdout_lines | length == 3
-
-    - name: Ensure Scaling Up instance result is set
-      ansible.builtin.set_fact:
-        scaling_up_success: true
-
-    - name: Debug scaling_up_success
-      ansible.builtin.debug:
-        var: scaling_up_success
-
   rescue:
-    - name: "TEST Scaling Up instance - marking scale-up as failed"
+    - name: Record that the instances did not scale up
       ansible.builtin.set_fact:
-        scaling_up_success: false
+        autoscaling_prereqs_ok: false
 
+- name: |
+    TEST Verify orchestration scaled up instances
+  ansible.builtin.assert:
+    that:
+      - instance_count2 is not skipped
+      - instance_count2.stdout_lines | default([]) | length == 3
+    success_msg: "orchestration scaled up to 3 metering.server_group instances"
+    fail_msg: >-
+      {{ (instance_count2 is not skipped)
+         | ternary('orchestration did not scale up to 3 metering.server_group instances',
+                   autoscaling_blocked_msg) }}
 
 - name: Stop the busy process
+  when: autoscaling_prereqs_ok | bool
   ansible.builtin.shell: |
     sshpass -p gocubsgo ssh cirros@{{ item | trim }} "sudo killall yes"
   register: kill_busy_process
   with_items: "{{ vnf_instance_ip.stdout_lines }}"
   ignore_errors: true
 
-- name:  TEST Scaling down instance
+- name: Wait for the cpu low alarm
+  when: autoscaling_prereqs_ok | bool
+  ignore_errors: false
   block:
-    - name: "TEST Scaling down instance"
-      ansible.builtin.fail:
-        msg: "Scale-down tests cannot run: scale-up did not succeed"
-      when: not (scaling_up_success | default(false) | bool)
-
-    - name: |
-        TEST Verify cpu low alarm has been triggered
+    - name: Poll the cpu_alarm_low state
       ansible.builtin.shell: |
         # source ~/overcloudrc;
         {{ openstack_cmd }} alarm list -c state -c name -f value| \
@@ -147,11 +198,30 @@
             awk '{print $2}'
       retries: 160
       delay: 5
-      register: result
-      until: result.stdout == "alarm"
+      register: alarm_low
+      until: alarm_low.stdout == "alarm"
+  rescue:
+    - name: Record that the cpu low alarm was not triggered
+      ansible.builtin.set_fact:
+        autoscaling_prereqs_ok: false
 
-    - name: |
-        TEST Verify Orchestration scaled down instances
+- name: |
+    TEST Verify cpu low alarm has been triggered
+  ansible.builtin.assert:
+    that:
+      - alarm_low is not skipped
+      - alarm_low.stdout | default('') == "alarm"
+    success_msg: "cpu_alarm_low for {{ stack_name }} reached the alarm state"
+    fail_msg: >-
+      {{ (alarm_low is not skipped)
+         | ternary('cpu_alarm_low for ' ~ stack_name ~ ' did not reach the alarm state',
+                   autoscaling_blocked_msg) }}
+
+- name: Wait for the instances to scale down
+  when: autoscaling_prereqs_ok | bool
+  ignore_errors: false
+  block:
+    - name: Poll the instance count
       ansible.builtin.shell: |
         # source ~/overcloudrc;
         export STACK_ID=$({{ openstack_cmd }} stack show {{ stack_name }} -c id -f value)
@@ -160,3 +230,19 @@
       delay: 5
       register: instance_count3
       until: instance_count3.stdout_lines | length == 1
+  rescue:
+    - name: Record that the instances did not scale down
+      ansible.builtin.set_fact:
+        autoscaling_prereqs_ok: false
+
+- name: |
+    TEST Verify Orchestration scaled down instances
+  ansible.builtin.assert:
+    that:
+      - instance_count3 is not skipped
+      - instance_count3.stdout_lines | default([]) | length == 1
+    success_msg: "orchestration scaled back down to 1 metering.server_group instance"
+    fail_msg: >-
+      {{ (instance_count3 is not skipped)
+         | ternary('orchestration did not scale back down to 1 metering.server_group instance',
+                   autoscaling_blocked_msg) }}
