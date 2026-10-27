@@ -33,26 +33,36 @@
 - name: "TEST Retrieve Logs from Loki via API - {{ scenario_name }}"
   block:
     - name: "Query Loki API for current month data - {{ scenario_name }}"
-      ansible.builtin.uri:
-        url: "{{ loki_query_url }}?query={{ total_rate_logql_query | urlencode }}&start={{ month_start_ns }}&end={{ month_end_ns }}&limit={{ limit }}"
-        method: GET
-        client_cert: "{{ cert_dir }}/tls.crt"
-        client_key: "{{ cert_dir }}/tls.key"
-        ca_path: "{{ cert_dir }}/ca.crt"
-        validate_certs: false
-        return_content: true
-        body_format: json
+      ansible.builtin.command:
+        cmd: >
+          oc exec -n {{ cloudkitty_namespace }} {{ openstackpod }} --
+          curl -s -S --fail --get
+          --connect-timeout {{ loki_connect_timeout }}
+          --max-time {{ loki_request_timeout }}
+          --cert {{ loki_api_cert_dir }}/tls.crt
+          --key {{ loki_api_cert_dir }}/tls.key
+          --cacert {{ loki_api_cert_dir }}/service-ca.crt
+          --data-urlencode 'query={{ total_rate_logql_query }}'
+          --data-urlencode 'start={{ month_start_ns }}'
+          --data-urlencode 'end={{ month_end_ns }}'
+          --data-urlencode 'limit={{ limit }}'
+          {{ loki_query_url }}
       register: loki_response
+      changed_when: false
       until:
-        - loki_response.status == 200
-        - loki_response.json.status == 'success'
-        - loki_response.json.data.result | length > 0
-      retries: 10
-      delay: 30
+        - loki_response.rc == 0
+        - (loki_response.stdout | from_json).status == 'success'
+        - (loki_response.stdout | from_json).data.result | length > 0
+      retries: "{{ loki_query_retries }}"
+      delay: "{{ loki_query_delay }}"
+
+    - name: "Parse Loki query response - {{ scenario_name }}"
+      ansible.builtin.set_fact:
+        loki_response_json: "{{ loki_response.stdout | from_json }}"
 
     - name: "Save Loki Data to JSON file - {{ scenario_name }}"
       ansible.builtin.copy:
-        content: "{{ loki_response.json | to_json }}"
+        content: "{{ loki_response_json | to_json }}"
         dest: "{{ cloudkitty_loki_totals_file }}"
         mode: '0644'
 
@@ -74,7 +84,8 @@
           - "Failed to retrieve Loki total_rate data for current month"
           - "Query: {{ total_rate_logql_query }}"
           - "Start time: {{ month_start }}"
-          - "Status: {{ loki_response.status | default('Unknown') }}"
+          - "Response: {{ loki_response.stdout | default('No response') }}"
+          - "Error: {{ loki_response.stderr | default('No error output') }}"
           - "Message: {{ loki_response.msg | default('Request failed') }}"
 
 # Display accumulated total rate for job
