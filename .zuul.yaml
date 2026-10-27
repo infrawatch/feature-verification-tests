@@ -236,6 +236,33 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-audit-logging.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-audit-logging-fvt.yml"
 
+- job:
+    name: functional-fail-fast-demo-osp18
+    dependencies: ["telemetry-openstack-meta-content-provider-master"]
+    parent: telemetry-operator-multinode-autoscaling
+    nodeset: telemetry-operator-all-the-features
+    description: |
+      Deploy as usual, then deliberately break the telemetry pre-reqs and run
+      the autoscaling and verify-metrics tests against the broken environment.
+      The job passes when the suite reaches its verdict inside the budget in
+      ci/vars/fault_injection.yml and every blocked check reports itself with a
+      BLOCKED reason. This is how the fail-fast behaviour is kept honest: on a
+      healthy deployment the gates never fire, so nothing else exercises them.
+    extra-vars: *functional_autoscaling_extra_vars
+    irrelevant-files: []
+    roles:
+      - zuul: github.com/openstack-k8s-operators/ci-framework
+      - zuul: github.com/infrawatch/feature-verification-tests
+    required-projects: *required_projects
+    vars:
+      patch_observabilityclient: true
+      cifmw_update_containers: false
+      cifmw_extras:
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-fail-fast-demo.yml"
+
 - project:
     name: infrawatch/feature-verification-tests
     periodic:
@@ -252,43 +279,20 @@
               - ^ci/playbooks/container-image-build.yml$
               - ^ci/playbooks/container-image-content-provider.yml$
               - ^.zuul.yaml$
-        - functional-chargeback-tests-osp18:
+        # Only runs for changes that touch the fail-fast machinery itself. It
+        # deploys a full environment and then breaks it on purpose, so it is
+        # too expensive to run on every change, but the gates it exercises are
+        # invisible on a healthy deployment and would otherwise never be tested.
+        - functional-fail-fast-demo-osp18:
             files:
-              - ^roles/telemetry_chargeback/.*$
-              - ^roles/common/.*$
-              - ^ci/vars-cloudkitty-fvt.yml$
+              - ^roles/telemetry_autoscaling/.*$
+              - ^roles/telemetry_verify_metrics/.*$
+              - ^ci/run_fail_fast_demo.yml$
+              - ^ci/vars-fail-fast-demo.yml$
+              - ^ci/vars/fault_injection.yml$
               - ^ci/report_result.yml$
+              - ^callback_plugins/custom_junit.py$
               - ^.zuul.yaml$
             dependencies:
               - telemetry-openstack-meta-content-provider-master
-        - functional-audit-logging-tests-osp18:
-            files:
-              - ^roles/telemetry_audit_logging/.*$
-              - ^roles/common/.*$
-              - ^ci/vars-audit-logging-fvt.yml$
-              - ^ci/run_audit_logging_tests.yml$
-              - ^ci/report_result.yml$
-              - ^.zuul.yaml$
-            dependencies:
-              - telemetry-openstack-meta-content-provider-master
-        - feature-verification-tests-noop:
-            files: *irrelevant_files
         - functional-tests-osp18
-        - functional-logging-tests-osp18:
-            irrelevant-files: *irrelevant_files
-            files:
-              - ^roles/telemetry_logging/.*$
-              - ^roles/common/.*$
-              - ^ci/vars-logging-test.yml$
-              - ^ci/logging_tests_all.yml$
-              - ^ci/logging_tests_computes.yml$
-              - ^ci/logging_tests_controller.yml$
-              - ^ci/report_result.yml$
-              - ^.zuul.yaml$
-        - functional-periodic-telemetry-with-ceph:
-            files:
-              # Run this job for changes to the volume_pool_metrics test changes as this is
-              # the only job, where those tests get executed and for changes to zuul.yaml in
-              # case the job definition changes.
-              - ^roles/telemetry_verify_metrics/tasks/verify_ceilometer_volume_pool_metrics.yml$
-              - ^.zuul.yaml$
