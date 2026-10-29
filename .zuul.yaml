@@ -169,7 +169,12 @@
     vars:
       run_graphing_test: false
       patch_observabilityclient: true
-      cifmw_update_containers: false
+      # Must be true so the OpenStackVersion CR generated from
+      # ci/vars-use-master-containers.yml (master heat/aodh/ceilometer images)
+      # is actually applied. Job vars override the extras file, so leaving this
+      # false silently keeps the stable Antelope containers.
+      cifmw_update_containers: true
+      cifmw_update_containers_openstack: false
       telemetry_verify_metrics_metric_sources_to_test:
         - ceilometer_compute_agent
         - ceilometer_central_agent
@@ -228,7 +233,10 @@
       - zuul: github.com/infrawatch/feature-verification-tests
     required-projects: *required_projects
     vars:
-      cifmw_update_containers: false
+      # Same as functional-periodic-telemetry-with-ceph: apply the master
+      # containers from ci/vars-use-master-containers.yml.
+      cifmw_update_containers: true
+      cifmw_update_containers_openstack: false
       cifmw_extras:
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-9/multinode-ci.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-logging.yml"
