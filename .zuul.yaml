@@ -254,6 +254,10 @@
         - functional-periodic-telemetry-with-ceph
     github-check:
       jobs:
+        - telemetry-container-image-content-provider:
+            files:
+              - ^ci/playbooks/container-image-build.yml$
+              - ^ci/playbooks/container-image-content-provider.yml$
         - functional-chargeback-tests-osp18:
             files:
               - ^roles/telemetry_chargeback/.*$
