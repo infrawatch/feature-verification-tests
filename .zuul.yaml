@@ -53,7 +53,7 @@
 
 - job:
     name: functional-tests-osp18
-    dependencies: 
+    dependencies:
       - name: telemetry-openstack-meta-content-provider-master
         soft: true
       - name: telemetry-container-image-content-provider
@@ -127,6 +127,65 @@
       - roles/test_verify_email/.*
 
 - job:
+    name: functional-tests-osp19
+    dependencies:
+      - name: s2i-openstack-container-content-provider
+        soft: true
+      - name: telemetry-container-image-content-provider
+        soft: true
+    parent: telemetry-operator-multinode-autoscaling
+    nodeset: telemetry-operator-all-the-features
+    description: |
+      Run autoscaling functional tests, tempest tests, metrics
+      functional tests, graphing functional tests and logging functional tests on
+      osp19.
+    vars:
+      cifmw_crc_additional_insecure_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_crc_additional_allowed_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_set_containers_preserve_unlisted: true
+      cifmw_set_containers_images: >-
+        {{ (s2i_content_provider_os_custom_container_images |
+           dict2items |
+           json_query('[].{name: key, full_registry: value}'))
+           if s2i_content_provider_os_custom_container_images is defined else [] }}
+      cifmw_update_containers: true
+      cifmw_update_containers_openstack: false
+      crc_enable_monitoring: true
+      cifmw_extras:
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-10/multinode-ci.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-logging.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-power-monitoring.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-logging-test.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-functional-test.yml"
+    roles:
+      - zuul: github.com/openstack-k8s-operators/ci-framework
+    required-projects: &required_projects_osp19
+      - name: github.com/infrawatch/service-telemetry-operator
+      - name: github.com/openstack-k8s-operators/ci-framework
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/install_yamls
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/dataplane-operator
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/infra-operator
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/openstack-operator
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/openstack-must-gather
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/telemetry-operator
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/sg-core
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/prometheus-podman-exporter
+        override-checkout: main
+      - name: github.com/openstack-k8s-operators/mysqld_exporter
+        override-checkout: main
+    irrelevant-files: *irrelevant_files
+
+- job:
     name: functional-logging-tests-osp18
     dependencies:
       - name: telemetry-openstack-meta-content-provider-master
@@ -147,6 +206,34 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
+
+- job:
+    name: functional-logging-tests-osp19
+    dependencies:
+      - name: s2i-openstack-container-content-provider
+        soft: true
+    parent: telemetry-operator-multinode-logging
+    description: |
+      Run the logging functional tests and tempest smoketests on osp19.
+    extra-vars: *functional_autoscaling_extra_vars
+    vars:
+      cifmw_crc_additional_insecure_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_crc_additional_allowed_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_set_containers_preserve_unlisted: true
+      cifmw_set_containers_images: >-
+        {{ (s2i_content_provider_os_custom_container_images |
+           dict2items |
+           json_query('[].{name: key, full_registry: value}'))
+           if s2i_content_provider_os_custom_container_images is defined else [] }}
+      cifmw_update_containers: false
+      cifmw_extras:
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir  }}/scenarios/centos-10/multinode-ci.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-logging.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-logging-test.yml"
+    roles:
+      - zuul: github.com/openstack-k8s-operators/ci-framework
+    required-projects: *required_projects_osp19
 
 - job:
     name: feature-verification-tests-noop
@@ -219,6 +306,33 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
 
 - job:
+    name: functional-chargeback-tests-osp19
+    parent: telemetry-operator-multinode-cloudkitty
+    description: |
+      Run chargeback functional tests on osp19.
+    dependencies:
+      - name: s2i-openstack-container-content-provider
+        soft: true
+    irrelevant-files: []
+    roles:
+      - zuul: github.com/openstack-k8s-operators/ci-framework
+      - zuul: github.com/infrawatch/feature-verification-tests
+    required-projects: *required_projects_osp19
+    vars:
+      cifmw_crc_additional_insecure_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_crc_additional_allowed_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_set_containers_preserve_unlisted: true
+      cifmw_set_containers_images: >-
+        {{ (s2i_content_provider_os_custom_container_images |
+           dict2items |
+           json_query('[].{name: key, full_registry: value}'))
+           if s2i_content_provider_os_custom_container_images is defined else [] }}
+      cifmw_extras:
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-10/multinode-ci.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-cloudkitty-tempest.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-cloudkitty-fvt.yml"
+
+- job:
     name: functional-audit-logging-tests-osp18
     dependencies:
       - name: telemetry-openstack-meta-content-provider-master
@@ -245,6 +359,38 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-audit-logging.yml"
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-audit-logging-fvt.yml"
 
+- job:
+    name: functional-audit-logging-tests-osp19
+    dependencies:
+      - name: s2i-openstack-container-content-provider
+        soft: true
+    parent: telemetry-operator-multinode-logging
+    description: |
+      Run audit logging functional tests on osp19
+    extra-vars: *functional_autoscaling_extra_vars
+    irrelevant-files: []
+    roles:
+      - zuul: github.com/openstack-k8s-operators/ci-framework
+      - zuul: github.com/infrawatch/feature-verification-tests
+    required-projects: *required_projects_osp19
+    vars:
+      cifmw_crc_additional_insecure_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_crc_additional_allowed_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_set_containers_preserve_unlisted: true
+      cifmw_set_containers_images: >-
+        {{ (s2i_content_provider_os_custom_container_images |
+           dict2items |
+           json_query('[].{name: key, full_registry: value}'))
+           if s2i_content_provider_os_custom_container_images is defined else [] }}
+      cifmw_update_containers: true
+      cifmw_update_containers_openstack: false
+      cifmw_extras:
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-10/multinode-ci.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-logging.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-autoscaling-tempest.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/vars-audit-logging.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-audit-logging-fvt.yml"
+
 - project:
     name: infrawatch/feature-verification-tests
     periodic:
@@ -261,7 +407,22 @@
               - ^ci/vars-cloudkitty-fvt.yml$
               - ^ci/report_result.yml$
               - ^.zuul.yaml$
+        - functional-chargeback-tests-osp19:
+            files:
+              - ^roles/telemetry_chargeback/.*$
+              - ^roles/common/.*$
+              - ^ci/vars-cloudkitty-fvt.yml$
+              - ^ci/report_result.yml$
+              - ^.zuul.yaml$
         - functional-audit-logging-tests-osp18:
+            files:
+              - ^roles/telemetry_audit_logging/.*$
+              - ^roles/common/.*$
+              - ^ci/vars-audit-logging-fvt.yml$
+              - ^ci/run_audit_logging_tests.yml$
+              - ^ci/report_result.yml$
+              - ^.zuul.yaml$
+        - functional-audit-logging-tests-osp19:
             files:
               - ^roles/telemetry_audit_logging/.*$
               - ^roles/common/.*$
@@ -272,7 +433,19 @@
         - feature-verification-tests-noop:
             files: *irrelevant_files
         - functional-tests-osp18
+        - functional-tests-osp19
         - functional-logging-tests-osp18:
+            irrelevant-files: *irrelevant_files
+            files:
+              - ^roles/telemetry_logging/.*$
+              - ^roles/common/.*$
+              - ^ci/vars-logging-test.yml$
+              - ^ci/logging_tests_all.yml$
+              - ^ci/logging_tests_computes.yml$
+              - ^ci/logging_tests_controller.yml$
+              - ^ci/report_result.yml$
+              - ^.zuul.yaml$
+        - functional-logging-tests-osp19:
             irrelevant-files: *irrelevant_files
             files:
               - ^roles/telemetry_logging/.*$
