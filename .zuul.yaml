@@ -260,7 +260,6 @@
               - ^roles/common/.*$
               - ^ci/vars-cloudkitty-fvt.yml$
               - ^ci/report_result.yml$
-              - ^.zuul.yaml$
         - functional-audit-logging-tests-osp18:
             files:
               - ^roles/telemetry_audit_logging/.*$
@@ -268,7 +267,6 @@
               - ^ci/vars-audit-logging-fvt.yml$
               - ^ci/run_audit_logging_tests.yml$
               - ^ci/report_result.yml$
-              - ^.zuul.yaml$
         - feature-verification-tests-noop:
             files: *irrelevant_files
         - functional-tests-osp18
@@ -282,11 +280,8 @@
               - ^ci/logging_tests_computes.yml$
               - ^ci/logging_tests_controller.yml$
               - ^ci/report_result.yml$
-              - ^.zuul.yaml$
         - functional-periodic-telemetry-with-ceph:
             files:
               # Run this job for changes to the volume_pool_metrics test changes as this is
-              # the only job, where those tests get executed and for changes to zuul.yaml in
-              # case the job definition changes.
+              # the only job, where those tests get executed.
               - ^roles/telemetry_verify_metrics/tasks/verify_ceilometer_volume_pool_metrics.yml$
-              - ^.zuul.yaml$
