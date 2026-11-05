@@ -53,7 +53,7 @@
 
 - job:
     name: functional-tests-osp18
-    dependencies: 
+    dependencies:
       - name: telemetry-openstack-meta-content-provider-master
         soft: true
       - name: telemetry-container-image-content-provider
@@ -125,6 +125,8 @@
       - roles/test_sensubility/.*
       - roles/test_snmp_traps/.*
       - roles/test_verify_email/.*
+    files:
+      - ci/*
 
 - job:
     name: functional-logging-tests-osp18
@@ -147,6 +149,8 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: *required_projects
+    files:
+      - ci/*
 
 - job:
     name: feature-verification-tests-noop
