@@ -1,0 +1,4 @@
+---
+- name: Verify the PersesDashboard custom resources
+  ansible.builtin.include_tasks:
+    file: verify_crs.yml
