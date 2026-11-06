@@ -13,8 +13,7 @@
         name: telemetry-ovn-northd
   when: ovn_northd_metric.stdout != ""
 
-- name: |
-    TEST Use openstack observabilityclient to verify ovn-northd metrics are stored in prometheus
+- name: Query ovn-northd metrics
   vars:
     ovn_northd_metrics:
       - ovn_northd_status
@@ -25,12 +24,34 @@
       - ovn_northd_txn_unchanged_total
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac {{ item }}
-  register: result
+  register: ovn_northd_result
   delay: 30
   retries: 10
   changed_when: false
-  until: result.rc == 0 and item in result.stdout
+  ignore_errors: true
+  until: ovn_northd_result.rc == 0 and item in ovn_northd_result.stdout
   loop: "{{ ovn_northd_metrics }}"
+  when:
+    - verify_metrics_prereqs_ok | bool
+    - ovn_northd_metric.stdout != ""
+
+  # The assert keeps the applicability condition but not the prereq gate, so a
+  # deployment without ovn-northd metrics still reports this as not applicable
+  # rather than as a failure.
+- name: |
+    TEST Use openstack observabilityclient to verify ovn-northd metrics are stored in prometheus
+  ansible.builtin.assert:
+    that:
+      - ovn_northd_result is not skipped
+      - ovn_northd_result is not failed
+    success_msg: "all ovn-northd metrics are stored in prometheus"
+    fail_msg: >-
+      {{ (ovn_northd_result is not skipped)
+         | ternary('ovn-northd metrics not found in prometheus: '
+                   ~ (ovn_northd_result.results | default([])
+                      | selectattr('failed', 'defined') | selectattr('failed')
+                      | map(attribute='item') | list | join(', ')),
+                   verify_metrics_blocked_msg) }}
   when: ovn_northd_metric.stdout != ""
 
 - name: Get ovn-controller metric services
@@ -48,8 +69,7 @@
         name: telemetry-ovn-controller
   when: ovn_controller_metric.stdout != ""
 
-- name: |
-    TEST Use openstack observabilityclient to verify ovn controller metrics are stored in prometheus
+- name: Query ovn controller metrics
   vars:
     ovn_controller_base_metrics:
       - ovnc_rconn_queued
@@ -80,12 +100,31 @@
       }}
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac {{ item }}
-  register: result
+  register: ovn_controller_result
   delay: 30
   retries: 10
   changed_when: false
-  until: result.rc == 0 and item in result.stdout and ":1981" in result.stdout
+  ignore_errors: true
+  until: ovn_controller_result.rc == 0 and item in ovn_controller_result.stdout and ":1981" in ovn_controller_result.stdout
   loop: "{{ ovn_controller_metrics }}"
+  when:
+    - verify_metrics_prereqs_ok | bool
+    - ovn_controller_metric.stdout != ""
+
+- name: |
+    TEST Use openstack observabilityclient to verify ovn controller metrics are stored in prometheus
+  ansible.builtin.assert:
+    that:
+      - ovn_controller_result is not skipped
+      - ovn_controller_result is not failed
+    success_msg: "all ovn controller metrics are stored in prometheus and scraped from port 1981"
+    fail_msg: >-
+      {{ (ovn_controller_result is not skipped)
+         | ternary('ovn controller metrics not found in prometheus on port 1981: '
+                   ~ (ovn_controller_result.results | default([])
+                      | selectattr('failed', 'defined') | selectattr('failed')
+                      | map(attribute='item') | list | join(', ')),
+                   verify_metrics_blocked_msg) }}
   when: ovn_controller_metric.stdout != ""
 
 - name: Get RAFT metric services
@@ -106,8 +145,7 @@
         name: telemetry-ovsdbserver-sb
   when: ovn_raft_metric.stdout != ""
 
-- name: |
-    TEST Use openstack observabilityclient to verify RAFT metrics are stored in prometheus
+- name: Query RAFT metrics
   vars:
     ovn_raft_metrics:
       - ovn_raft_cluster_election_timer
@@ -126,10 +164,29 @@
       - ovn_raft_cluster_log_not_applied
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac {{ item }}
-  register: result
+  register: ovn_raft_result
   delay: 30
   retries: 10
   changed_when: false
-  until: result.rc == 0 and item in result.stdout and ":1981" in result.stdout
+  ignore_errors: true
+  until: ovn_raft_result.rc == 0 and item in ovn_raft_result.stdout and ":1981" in ovn_raft_result.stdout
   loop: "{{ ovn_raft_metrics }}"
+  when:
+    - verify_metrics_prereqs_ok | bool
+    - ovn_raft_metric.stdout != ""
+
+- name: |
+    TEST Use openstack observabilityclient to verify RAFT metrics are stored in prometheus
+  ansible.builtin.assert:
+    that:
+      - ovn_raft_result is not skipped
+      - ovn_raft_result is not failed
+    success_msg: "all RAFT metrics are stored in prometheus and scraped from port 1981"
+    fail_msg: >-
+      {{ (ovn_raft_result is not skipped)
+         | ternary('RAFT metrics not found in prometheus on port 1981: '
+                   ~ (ovn_raft_result.results | default([])
+                      | selectattr('failed', 'defined') | selectattr('failed')
+                      | map(attribute='item') | list | join(', ')),
+                   verify_metrics_blocked_msg) }}
   when: ovn_raft_metric.stdout != ""

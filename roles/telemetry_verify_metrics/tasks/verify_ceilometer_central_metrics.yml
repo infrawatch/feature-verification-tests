@@ -17,22 +17,44 @@
 
 - block:
     - name: Create an image
+      when: verify_metrics_prereqs_ok | bool
       ansible.builtin.shell: |
         curl -L -# http://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.img > /tmp/fvt_testing_image.img
         {{ openstack_cmd }} image create --container-format bare --disk-format qcow2 fvt_central_testing_image < /tmp/fvt_testing_image.img
-      register: result
-      changed_when: result.rc == 0
-      failed_when: result.rc >= 1
+      register: central_image
+      changed_when: central_image.rc == 0
+      ignore_errors: true
+
+      # Source-local: a failure here must not block the sources that run after
+      # this one, only the rest of this file.
+    - name: Record whether the test image was created
+      ansible.builtin.set_fact:
+        central_ok: "{{ verify_metrics_prereqs_ok | bool and not (central_image is failed) }}"
+
+    - name: Query the ceilometer image size metric
+      when: central_ok | bool
+      ansible.builtin.shell: |
+        {{ openstack_cmd }} metric show ceilometer_image_size
+      register: central_result
+      delay: 30
+      retries: 10
+      changed_when: false
+      ignore_errors: true
+      until: central_result.rc == 0 and "ceilometer_image_size" in central_result.stdout
 
     - name: |
         TEST Use openstack observabilityclient to verify ceilometer central metrics are stored in prometheus
-      ansible.builtin.shell: |
-        {{ openstack_cmd }} metric show ceilometer_image_size
-      register: result
-      delay: 30
-      retries: 10
-      until: result.rc == 0 and "ceilometer_image_size" in result.stdout
-      changed_when: false
+      ansible.builtin.assert:
+        that:
+          - central_result is not skipped
+          - central_result is not failed
+        success_msg: "ceilometer_image_size is stored in prometheus"
+        fail_msg: >-
+          {{ (central_result is not skipped)
+             | ternary('ceilometer_image_size was not found in prometheus',
+                       (central_image is failed)
+                       | ternary('BLOCKED: the test image could not be created, so no image size metric was produced',
+                                 verify_metrics_blocked_msg)) }}
 
   always:
     - name: Delete the image
