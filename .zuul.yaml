@@ -87,7 +87,8 @@
     roles:
       - zuul: github.com/openstack-k8s-operators/ci-framework
     required-projects: &required_projects_osp19
-      - name: github.com/infrawatch/service-telemetry-operator
+      - name: github.com/infrawatch/feature-verification-tests
+        override-checkout: master
       - name: github.com/openstack-k8s-operators/ci-framework
         override-checkout: main
       - name: github.com/openstack-k8s-operators/install_yamls
@@ -204,7 +205,8 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-use-master-containers.yml"
     irrelevant-files: *irrelevant_files
     required-projects: &required_projects_osp18
-      - name: github.com/infrawatch/service-telemetry-operator
+      - name: github.com/infrawatch/feature-verification-tests
+        override-checkout: rhoso-18
       - name: github.com/openstack-k8s-operators/ci-framework
       - name: github.com/openstack-k8s-operators/install_yamls
         override-checkout: 18-stable
