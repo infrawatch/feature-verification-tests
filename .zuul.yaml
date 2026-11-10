@@ -253,6 +253,16 @@
         - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-cloudkitty-fvt.yml"
 
 - job:
+    name: functional-perses-tests-osp19
+    parent: functional-tests-osp19
+    description: |
+      Run the Perses-based dashboards tests on RHOSO-19.
+    vars:
+      cifmw_extras:
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/ci-framework'].src_dir }}/scenarios/centos-10/multinode-ci.yml"
+        - "@{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/vars-perses-test.yml"
+
+- job:
     name: functional-audit-logging-tests-osp18
     dependencies:
       - name: telemetry-openstack-meta-content-provider-master
@@ -329,3 +339,7 @@
               # Run this job for changes to the volume_pool_metrics test changes as this is
               # the only job, where those tests get executed.
               - ^roles/telemetry_verify_metrics/tasks/verify_ceilometer_volume_pool_metrics.yml$
+        - functional-perses-tests-osp19:
+            vars:
+              # Why this override is necessary? -> see functional-tests-osp19
+              content_provider_registry_ip: "{{ telemetry_content_provider_registry_ip | default('') }}"
