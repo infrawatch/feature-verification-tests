@@ -1,0 +1,89 @@
+---
+- name: "Run Perses dashboard verification tests"
+  hosts: "{{ cifmw_target_hook_host | default('localhost') }}"
+  gather_facts: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/common.yml
+  pre_tasks:
+    - name: "Notify if Perses test is skipped by run_perses_dashboard_test variable"
+      ansible.builtin.debug:
+        msg: >-
+          Skipping the Perses dashboard test because run_perses_dashboard_test
+          is set to false.
+      when: not run_perses_dashboard_test | default(true) | bool
+
+    - name: "Skip Perses test by run_perses_dashboard_test false"
+      ansible.builtin.meta: end_play
+      when: not run_perses_dashboard_test | default(true) | bool
+
+    - name: "Get OpenStackControlPlane telemetry dashboardsEnabled status"
+      ansible.builtin.command: >-
+        oc get oscp -n openstack
+        -o jsonpath='{.items[0].spec.telemetry.template.metricStorage.dashboardsEnabled}'
+      register: dashboard_status
+      changed_when: false
+
+    - name: "Set fact if dashboards are enabled"
+      ansible.builtin.set_fact:
+        dashboards_enabled: "{{ dashboard_status.stdout | trim | bool }}"
+
+    - name: "Notify if Perses test is skipped by dashboardsEnabled status"
+      ansible.builtin.debug:
+        msg: >-
+          Skipping the Perses dashboard test because OpenStackControlPlane
+          telemetry dashboards are disabled.
+      when: not dashboards_enabled
+
+    - name: "Skip Perses test by dashboardsEnabled disabled"
+      ansible.builtin.meta: end_play
+      when: not dashboards_enabled
+
+    - name: "Get the Monitoring UIPlugin"
+      ansible.builtin.command: >-
+        oc get uiplugin monitoring
+        -o jsonpath='{.spec.monitoring.perses.enabled}'
+      register: perses_uiplugin
+      changed_when: false
+      failed_when: false
+
+    - name: "Set fact if the Perses backend is enabled"
+      ansible.builtin.set_fact:
+        perses_enabled: >-
+          {{ perses_uiplugin.rc == 0
+          and perses_uiplugin.stdout | trim | bool }}
+
+    - name: "Notify if Perses test is skipped by missing Monitoring UIPlugin"
+      ansible.builtin.debug:
+        msg: >-
+          Skipping the Perses dashboard test because no UIPlugin of type
+          Monitoring with spec.monitoring.perses.enabled is present,
+          so no Perses backend exists to render the dashboards.
+      when: not perses_enabled
+
+    - name: "Skip Perses test by missing Monitoring UIPlugin"
+      ansible.builtin.meta: end_play
+      when: not perses_enabled
+
+    - name: "Get disabledDashboards list from MetricStorage spec"
+      ansible.builtin.command: >-
+        oc get oscp -n openstack
+        -o jsonpath='{.items[0].spec.telemetry.template.metricStorage.disabledDashboards}'
+      register: disabled_dashboards_raw
+      changed_when: false
+      failed_when: false
+
+    - name: "Set disabledDashboards fact"
+      ansible.builtin.set_fact:
+        telemetry_perses_disabled_dashboards: >-
+          {{ disabled_dashboards_raw.stdout | default('[]', true) | from_json | default([], true) }}
+      when: disabled_dashboards_raw.rc == 0 and disabled_dashboards_raw.stdout | length > 0
+
+  tasks:
+    - block:
+        - name: "Run Perses dashboard verification tests"
+          ansible.builtin.import_role:
+            name: telemetry_perses_dashboards
+      ignore_errors: true

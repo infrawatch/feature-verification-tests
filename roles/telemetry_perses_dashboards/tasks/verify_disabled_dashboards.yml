@@ -1,0 +1,21 @@
+---
+- name: Check for disabled PersesDashboard {{ item }}
+  ansible.builtin.command:
+    cmd: >-
+      oc get persesdashboard {{ item }}
+      -n {{ telemetry_perses_namespace }}
+  register: disabled_dashboard_results
+  changed_when: false
+  failed_when: false
+  loop: "{{ telemetry_perses_disabled_dashboards }}"
+
+- name: |
+    TEST Verify disabled dashboard {{ item.item }} is not deployed
+  ansible.builtin.assert:
+    that:
+      - item.rc != 0
+    success_msg: "Dashboard {{ item.item }} correctly not deployed (disabled)"
+    fail_msg: "Dashboard {{ item.item }} exists but is in the disabledDashboards list"
+  loop: "{{ disabled_dashboard_results.results }}"
+  loop_control:
+    label: "{{ item.item }}"
