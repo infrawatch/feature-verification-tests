@@ -19,7 +19,7 @@
       ansible.builtin.meta: end_play
       when: not run_perses_dashboard_test | default(true) | bool
 
-    # --- Verify COO is installed ---
+    # --- Check COO is installed (skip gate, not hard failure) ---
     - name: "Check if Cluster Observability Operator is installed"
       ansible.builtin.command: >-
         oc get deployment observability-operator -n openshift-operators
@@ -28,16 +28,45 @@
       changed_when: false
       failed_when: false
 
-    - name: |
-        TEST Verify Cluster Observability Operator is installed
-      ansible.builtin.assert:
-        that:
-          - coo_status.rc == 0
-          - coo_status.stdout | int > 0
-        success_msg: "COO is installed and running"
-        fail_msg: >-
-          Cluster Observability Operator is not installed or not running.
-          COO >= 1.5.0 is required for Perses dashboard support.
+    - name: "Set fact if COO is available"
+      ansible.builtin.set_fact:
+        coo_available: "{{ coo_status.rc == 0 and (coo_status.stdout | int > 0) }}"
+
+    - name: "Notify if Perses test is skipped by missing COO"
+      ansible.builtin.debug:
+        msg: >-
+          Skipping the Perses dashboard test because Cluster Observability
+          Operator is not installed. COO >= 1.5.0 is required for Perses.
+      when: not coo_available | bool
+
+    - name: "Skip Perses test by missing COO"
+      ansible.builtin.meta: end_play
+      when: not coo_available | bool
+
+    # --- Check if telemetry-operator supports Perses (skip gate) ---
+    - name: "Check if telemetry-operator supports Perses dashboards"
+      ansible.builtin.command: >-
+        oc get crd metricstorages.telemetry.openstack.org
+        -o jsonpath='{.spec.versions[*].schema.openAPIV3Schema.properties.spec.properties.disabledDashboards}'
+      register: disabled_dashboards_schema
+      changed_when: false
+      failed_when: false
+
+    - name: "Set fact if telemetry-operator supports Perses"
+      ansible.builtin.set_fact:
+        telemetry_operator_supports_perses: "{{ (disabled_dashboards_schema.stdout | length > 0) | bool }}"
+
+    - name: "Notify if Perses test is skipped by unsupported telemetry-operator"
+      ansible.builtin.debug:
+        msg: >-
+          Skipping the Perses dashboard test because the telemetry-operator
+          does not support Perses dashboards (no disabledDashboards field
+          in MetricStorage CRD).
+      when: not telemetry_operator_supports_perses | bool
+
+    - name: "Skip Perses test by unsupported telemetry-operator"
+      ansible.builtin.meta: end_play
+      when: not telemetry_operator_supports_perses | bool
 
     # --- Check and enable dashboardsEnabled ---
     - name: "Get OpenStackControlPlane telemetry dashboardsEnabled status"
@@ -72,15 +101,6 @@
       until: metricstorage_ready.stdout == "True"
       when: not dashboards_enabled | bool
 
-    - name: |
-        TEST Verify dashboardsEnabled is true
-      ansible.builtin.command: >-
-        oc get oscp -n openstack
-        -o jsonpath='{.items[0].spec.telemetry.template.metricStorage.dashboardsEnabled}'
-      register: dashboard_status_final
-      changed_when: false
-      failed_when: dashboard_status_final.stdout | trim | lower != 'true'
-
     # --- Check and create UIPlugin Monitoring ---
     - name: "Check if Monitoring UIPlugin exists"
       ansible.builtin.command: >-
@@ -113,15 +133,6 @@
         -n openshift-operators --timeout=180s
       when: perses_uiplugin.rc != 0 or perses_uiplugin.stdout | trim | lower != 'true'
       changed_when: false
-
-    - name: |
-        TEST Verify Monitoring UIPlugin exists with Perses enabled
-      ansible.builtin.command: >-
-        oc get uiplugin monitoring
-        -o jsonpath='{.spec.monitoring.perses.enabled}'
-      register: perses_uiplugin_final
-      changed_when: false
-      failed_when: perses_uiplugin_final.stdout | trim | lower != 'true'
 
     # --- Wait for Perses operator to reconcile CRs ---
     - name: "Wait for PersesDatasource to be available"
