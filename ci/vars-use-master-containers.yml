@@ -1,4 +1,48 @@
 ---
-post_ctlplane_deploy_99_modify_openstackversions:
-  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/use-master-containers.yml"
-  type: playbook
+# vars for setting container registry while working with meta content provider
+
+#
+# When there is a Depends-On: <Opendev Change> on github pull request description
+# then zuul meta content provider will return content_provider_os_registry_url with value
+# <content_provider_ip:port/registry_namespace>.
+#
+# When there is no Depends-On: <Opendev Change> then
+# then zuul meta content provider will return content_provider_os_registry_url with value
+# null string.
+#
+telemetry_registry: >-
+  {%- if content_provider_os_registry_url is defined and content_provider_os_registry_url != 'null' -%}
+  {{ content_provider_os_registry_url }}
+  {%- else -%}
+  quay.rdoproject.org/podified-master-centos10
+  {%- endif -%}
+
+telemetry_tag: >-
+  {%- if content_provider_os_registry_url is defined and content_provider_os_registry_url != 'null' -%}
+  telemetry_latest
+  {%- else -%}
+  consistent
+  {%- endif -%}
+
+cifmw_update_containers: true
+cifmw_update_containers_openstack: false  # Don't update ALL containers, just specific ones
+cifmw_update_containers_custom_images:
+  # Heat images from RDO master
+  heatAPIImage: "{{ telemetry_registry }}/openstack-heat-api:{{ telemetry_tag }}"
+  heatCfnapiImage: "{{ telemetry_registry }}/openstack-heat-api-cfn:{{ telemetry_tag }}"
+  heatEngineImage: "{{ telemetry_registry }}/openstack-heat-engine:{{ telemetry_tag }}"
+  # Telemetry images (Aodh)
+  aodhAPIImage: "{{ telemetry_registry }}/openstack-aodh-api:{{ telemetry_tag }}"
+  aodhEvaluatorImage: "{{ telemetry_registry }}/openstack-aodh-evaluator:{{ telemetry_tag }}"
+  aodhListenerImage: "{{ telemetry_registry }}/openstack-aodh-listener:{{ telemetry_tag }}"
+  aodhNotifierImage: "{{ telemetry_registry }}/openstack-aodh-notifier:{{ telemetry_tag }}"
+  # Telemetry images (Ceilometer)
+  ceilometerCentralImage: "{{ telemetry_registry }}/openstack-ceilometer-central:{{ telemetry_tag }}"
+  ceilometerComputeImage: "{{ telemetry_registry }}/openstack-ceilometer-compute:{{ telemetry_tag }}"
+  ceilometerNotificationImage: "{{ telemetry_registry }}/openstack-ceilometer-notification:{{ telemetry_tag }}"
+  ceilometerIpmiImage: "{{ telemetry_registry }}/openstack-ceilometer-ipmi:{{ telemetry_tag }}"
+  # Telemetry images (CloudKitty)
+  cloudkittyAPIImage: "{{ telemetry_registry }}/openstack-cloudkitty-api:{{ telemetry_tag }}"
+  cloudkittyProcImage: "{{ telemetry_registry }}/openstack-cloudkitty-processor:{{ telemetry_tag }}"
+  # Tempest image
+  tempestAllImage: "{{ telemetry_registry }}/openstack-tempest-all:{{ telemetry_tag }}"
