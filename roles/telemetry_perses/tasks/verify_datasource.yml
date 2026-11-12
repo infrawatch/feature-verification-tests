@@ -1,0 +1,59 @@
+---
+- name: TEST Verify PersesDatasource CR {{ perses_datasource_name }} exists
+  ansible.builtin.command: >
+    oc get persesdatasource {{ perses_datasource_name }}
+    -n {{ perses_project }}
+  register: datasource_result
+  changed_when: false
+  failed_when: datasource_result.rc != 0
+
+- name: Get PersesDatasource Prometheus URL
+  ansible.builtin.command: >
+    oc get persesdatasource {{ perses_datasource_name }}
+    -n {{ perses_project }}
+    -o jsonpath={.spec.config.plugin.spec.proxy.spec.url}
+  register: datasource_url
+  changed_when: false
+
+- name: TEST Verify PersesDatasource points to the MetricStorage Prometheus
+  ansible.builtin.assert:
+    that:
+      - "'metric-storage-prometheus' in datasource_url.stdout"
+    success_msg: "PersesDatasource URL is {{ datasource_url.stdout }}"
+    fail_msg: >-
+      PersesDatasource URL '{{ datasource_url.stdout }}' does not contain
+      expected 'metric-storage-prometheus'
+
+- name: Get PersesDatasource plugin kind
+  ansible.builtin.command: >
+    oc get persesdatasource {{ perses_datasource_name }}
+    -n {{ perses_project }}
+    -o jsonpath={.spec.config.plugin.kind}
+  register: datasource_kind
+  changed_when: false
+
+- name: TEST Verify PersesDatasource is of type PrometheusDatasource
+  ansible.builtin.assert:
+    that:
+      - datasource_kind.stdout == "PrometheusDatasource"
+    success_msg: "PersesDatasource plugin kind is PrometheusDatasource"
+    fail_msg: >-
+      PersesDatasource plugin kind is '{{ datasource_kind.stdout }}',
+      expected PrometheusDatasource
+
+- name: Get PersesDatasource owner
+  ansible.builtin.command: >
+    oc get persesdatasource {{ perses_datasource_name }}
+    -n {{ perses_project }}
+    -o jsonpath={.metadata.ownerReferences[0].kind}
+  register: datasource_owner
+  changed_when: false
+
+- name: TEST Verify PersesDatasource is owned by MetricStorage
+  ansible.builtin.assert:
+    that:
+      - datasource_owner.stdout == "MetricStorage"
+    success_msg: "PersesDatasource is owned by MetricStorage"
+    fail_msg: >-
+      PersesDatasource is owned by '{{ datasource_owner.stdout }}',
+      expected MetricStorage

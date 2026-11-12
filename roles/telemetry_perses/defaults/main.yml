@@ -20,3 +20,38 @@ perses_expected_dashboards:
   - openstack-network-traffic
   - openstack-vm
   - openstack-rabbitmq
+
+
+#
+# Perses CRDs provided by COO (cluster-scoped)
+#
+perses_crds:
+  - persesdashboards.perses.dev
+  - persesdatasources.perses.dev
+
+
+#
+# PersesDatasource CR name created by the telemetry-operator
+#
+perses_datasource_name: prometheus
+
+
+#
+# Dashboards to exclude from existence checks.
+# Maps to MetricStorage.spec.disabledDashboards.
+#
+perses_disabled_dashboards: []
+
+
+#
+# Legacy Grafana dashboard ConfigMaps that should be cleaned up
+# after migration to Perses.
+#
+perses_legacy_namespace: openshift-config-managed
+perses_legacy_configmaps:
+  - grafana-dashboard-openstack-cloud
+  - grafana-dashboard-openstack-node
+  - grafana-dashboard-openstack-vm
+  - grafana-dashboard-openstack-rabbitmq
+  - grafana-dashboard-openstack-network-traffic
+  - grafana-dashboard-openstack-openstack-network
