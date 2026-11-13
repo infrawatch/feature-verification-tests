@@ -99,6 +99,7 @@
     cmd: >-
       {{ openstack_cmd }} --rating-api-version 2
       rating summary get -f yaml -g type
+      --limit "{{ cloudkitty_rating_query_limit }}"
   register: cost_totals_by_type
   changed_when: false
   failed_when: cost_totals_by_type.rc != 0
@@ -120,6 +121,7 @@
       rating summary get -f yaml
       -b "{{ job_earliest_start_time }}"
       -e "{{ job_latest_end_time }}"
+      --limit "{{ cloudkitty_rating_query_limit }}"
   register: cost_totals_summary
   changed_when: false
   failed_when: cost_totals_summary.rc != 0
@@ -135,6 +137,7 @@
       rating dataframes get -f yaml
       -b "{{ job_earliest_start_time }}"
       -e "{{ job_latest_end_time }}"
+      --limit "{{ cloudkitty_rating_query_limit }}"
   register: cost_dataframes
   changed_when: false
   failed_when: cost_dataframes.rc != 0
