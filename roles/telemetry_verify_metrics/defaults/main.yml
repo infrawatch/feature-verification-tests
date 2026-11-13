@@ -14,3 +14,10 @@ telemetry_verify_metrics_metric_sources_to_test:
   # - ceilometer_ipmi_agent
   # NOTE: volume pool metrics can only be verified when a pool with a correct backend is configured
   # - volume_pool
+
+# Latches to false when the shared prerequisite probe fails. The per-source
+# metric queries are then skipped and their TEST asserts report a BLOCKED
+# failure instead of burning their retry budgets. Role-internal only.
+verify_metrics_prereqs_ok: true
+verify_metrics_blocked_msg: >-
+  BLOCKED: metrics could not be queried from Prometheus, so this check was not attempted
