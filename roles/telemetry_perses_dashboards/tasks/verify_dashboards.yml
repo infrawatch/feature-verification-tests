@@ -1,0 +1,53 @@
+---
+- name: Get the PersesDashboard custom resources
+  ansible.builtin.command:
+    cmd: >-
+      oc get persesdashboards
+      -n {{ telemetry_perses_namespace }}
+      -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'
+  register: perses_dashboard_list
+  changed_when: false
+
+- name: Set the PersesDashboard names fact
+  ansible.builtin.set_fact:
+    perses_dashboard_names: "{{ perses_dashboard_list.stdout_lines | select | list }}"
+
+- name: Show the PersesDashboard custom resources found
+  ansible.builtin.debug:
+    var: perses_dashboard_names
+
+- name: Compute expected dashboards excluding disabled ones
+  ansible.builtin.set_fact:
+    telemetry_perses_active_dashboards: >-
+      {{ telemetry_perses_expected_dashboards | difference(telemetry_perses_disabled_dashboards) }}
+
+- name: |
+    TEST Verify PersesDashboard {{ item }} exists
+  ansible.builtin.assert:
+    that:
+      - item in perses_dashboard_names
+    fail_msg: "No PersesDashboard custom resource named {{ item }}"
+    success_msg: "PersesDashboard {{ item }} exists"
+  loop: "{{ telemetry_perses_active_dashboards }}"
+
+- name: Get the owner of each PersesDashboard
+  ansible.builtin.command:
+    cmd: >-
+      oc get persesdashboard {{ item }}
+      -n {{ telemetry_perses_namespace }}
+      -o jsonpath='{.metadata.ownerReferences[0].kind}'
+  register: perses_dashboard_owners
+  changed_when: false
+  loop: "{{ telemetry_perses_active_dashboards }}"
+
+- name: |
+    TEST Verify PersesDashboard {{ item.item }} is owned by MetricStorage
+  ansible.builtin.assert:
+    that:
+      - item.stdout == "MetricStorage"
+    fail_msg: >-
+      {{ item.item }} is owned by '{{ item.stdout }}', expected MetricStorage
+    success_msg: "{{ item.item }} is owned by MetricStorage"
+  loop: "{{ perses_dashboard_owners.results }}"
+  loop_control:
+    label: "{{ item.item }}"
