@@ -65,8 +65,8 @@
       functional tests, graphing functional tests and logging functional tests on
       osp19.
     vars:
-      cifmw_crc_additional_insecure_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
-      cifmw_crc_additional_allowed_registries: "{{ [s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else [] }}"
+      cifmw_crc_additional_insecure_registries: "{{ ([s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else []) + ([telemetry_content_provider_registry_ip ~ ':5001'] if telemetry_content_provider_registry_ip is defined else []) }}"
+      cifmw_crc_additional_allowed_registries: "{{ ([s2i_content_provider_registry_ip ~ ':5001'] if s2i_content_provider_registry_ip is defined else []) + ([telemetry_content_provider_registry_ip ~ ':5001'] if telemetry_content_provider_registry_ip is defined else []) }}"
       cifmw_set_containers_preserve_unlisted: true
       cifmw_set_containers_images: >-
         {{ (s2i_content_provider_os_custom_container_images |
@@ -301,9 +301,19 @@
               - ^ci/vars-audit-logging-fvt.yml$
               - ^ci/run_audit_logging_tests.yml$
               - ^ci/report_result.yml$
+        - telemetry-container-image-content-provider:
+            files:
+              - ^ci/playbooks/container-image-build.yml$
+              - ^ci/playbooks/container-image-content-provider.yml$
+              - ^.zuul.yaml$
         - feature-verification-tests-noop:
             files: *irrelevant_files
-        - functional-tests-osp19
+        - functional-tests-osp19:
+            vars:
+              # Override content_provider_registry_ip because there is no
+              # openstack-operator content provider job, which would set
+              # this value. Use the telemetry content provider instead.
+              content_provider_registry_ip: "{{ telemetry_content_provider_registry_ip | default('') }}"
         - functional-logging-tests-osp19:
             irrelevant-files: *irrelevant_files
             files:
