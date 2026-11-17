@@ -78,7 +78,7 @@
 - name: |
     TEST Use openstack observabilityclient to verify rabbitmq metrics are stored in prometheus
   ansible.builtin.command: |
-    {{ openstack_cmd }} metric query rabbitmq_identity_info{pod=\'{{ item }}\'} --disable-rbac
+    {{ openstack_cmd }} metric query rabbitmq_identity_info{pod=\'{{ item }}\'}
   register: result
   delay: 30
   retries: 10

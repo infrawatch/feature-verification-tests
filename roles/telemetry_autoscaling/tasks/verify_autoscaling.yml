@@ -79,7 +79,7 @@
 - name: Verify that PROMETHEUS is enabled
   when: metrics_backend == "prometheus"
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric query up --disable-rbac -f value -c container -c value | grep -i "prometheus" | awk '{print $2}'
+    {{ openstack_cmd }} metric query up -f value -c container -c value | grep -i "prometheus" | awk '{print $2}'
   register: prometheus_status
   failed_when:
     - prometheus_status.stdout == "0"

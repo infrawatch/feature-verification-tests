@@ -105,7 +105,7 @@
 
     - name: Register ceilometer_cpu metrics
       ansible.builtin.shell: |
-        {{ openstack_cmd }} metric show ceilometer_cpu --disable-rbac
+        {{ openstack_cmd }} metric show ceilometer_cpu
       ignore_errors: true
       register: result
 

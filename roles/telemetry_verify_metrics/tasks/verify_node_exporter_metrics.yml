@@ -22,7 +22,7 @@
 - name: |
     TEST Use openstack observabilityclient to verify Node Exporter metrics are stored in prometheus
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac node_exporter_build_info
+    {{ openstack_cmd }} metric show node_exporter_build_info
   register: result
   delay: 30
   retries: 10
@@ -32,7 +32,7 @@
 - name: |
     TEST Use openstack observabilityclient to verify health reporting related metric from systemd collector is stored in prometheus
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac node_systemd_unit_state
+    {{ openstack_cmd }} metric show node_systemd_unit_state
   register: result
   delay: 30
   retries: 10
@@ -42,7 +42,7 @@
 - name: |
     TEST Use openstack observabilityclient to verify filesystem metrics from node exporter are stored in prometheus
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac node_filesystem_size_bytes
+    {{ openstack_cmd }} metric show node_filesystem_size_bytes
   register: result
   delay: 30
   retries: 10
@@ -52,7 +52,7 @@
 - name: |
     Get the filesystem metrics
   ansible.builtin.command: |
-    {{ openstack_cmd }} metric query --disable-rbac 'node_filesystem_size_bytes{mountpoint="/"}'
+    {{ openstack_cmd }} metric query 'node_filesystem_size_bytes{mountpoint="/"}'
   register: result
   delay: 30
   retries: 10
