@@ -21,7 +21,7 @@
 - name: |
     TEST Use openstack observabilityclient to verify Openstack Network Exporter metrics are stored in prometheus
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac ovs_build_info
+    {{ openstack_cmd }} metric show ovs_build_info
   register: result
   delay: 30
   retries: 10
