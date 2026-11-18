@@ -24,72 +24,49 @@
   loop_control:
     loop_var: compute_node
 
-- name: Query the node exporter build info metric
-  when: verify_metrics_prereqs_ok | bool
-  ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac node_exporter_build_info
-  register: build_info_metric
-  delay: 30
-  retries: 10
-  changed_when: false
-  ignore_errors: true
-  until: build_info_metric.rc == 0 and "node_exporter_build_info" in build_info_metric.stdout
+- name: Get the node exporter metric list
+  ansible.builtin.include_tasks:
+    file: get_metric_list.yml
+  vars:
+    metric_list_gate: "{{ verify_metrics_prereqs_ok | bool }}"
+    metric_list_expected:
+      - node_exporter_build_info
+      - node_systemd_unit_state
+      - node_filesystem_size_bytes
 
 - name: |
     TEST Use openstack observabilityclient to verify Node Exporter metrics are stored in prometheus
   ansible.builtin.assert:
     that:
-      - build_info_metric is not skipped
-      - build_info_metric is not failed
+      - verify_metrics_prereqs_ok | bool
+      - '"node_exporter_build_info" in (metric_list.stdout_lines | default([]))'
     success_msg: "node_exporter_build_info is stored in prometheus"
     fail_msg: >-
-      {{ (build_info_metric is not skipped)
+      {{ (verify_metrics_prereqs_ok | bool)
          | ternary('node_exporter_build_info was not found in prometheus',
                    verify_metrics_blocked_msg) }}
-
-- name: Query the systemd unit state metric
-  when: verify_metrics_prereqs_ok | bool
-  ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac node_systemd_unit_state
-  register: systemd_unit_metric
-  delay: 30
-  retries: 10
-  changed_when: false
-  ignore_errors: true
-  until: systemd_unit_metric.rc == 0 and "node_systemd_unit_state" in systemd_unit_metric.stdout
 
 - name: |
     TEST Use openstack observabilityclient to verify health reporting related metric from systemd collector is stored in prometheus
   ansible.builtin.assert:
     that:
-      - systemd_unit_metric is not skipped
-      - systemd_unit_metric is not failed
+      - verify_metrics_prereqs_ok | bool
+      - '"node_systemd_unit_state" in (metric_list.stdout_lines | default([]))'
     success_msg: "node_systemd_unit_state is stored in prometheus"
     fail_msg: >-
-      {{ (systemd_unit_metric is not skipped)
+      {{ (verify_metrics_prereqs_ok | bool)
          | ternary('node_systemd_unit_state was not found in prometheus',
                    verify_metrics_blocked_msg) }}
-
-- name: Query the filesystem size metric
-  when: verify_metrics_prereqs_ok | bool
-  ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac node_filesystem_size_bytes
-  register: filesystem_size_metric
-  delay: 30
-  retries: 10
-  changed_when: false
-  ignore_errors: true
-  until: filesystem_size_metric.rc == 0 and "node_filesystem_size_bytes" in filesystem_size_metric.stdout
 
 - name: |
     TEST Use openstack observabilityclient to verify filesystem metrics from node exporter are stored in prometheus
   ansible.builtin.assert:
     that:
-      - filesystem_size_metric is not skipped
-      - filesystem_size_metric is not failed
+      - verify_metrics_prereqs_ok | bool
+      - '"node_filesystem_size_bytes" in (metric_list.stdout_lines | default([]))'
     success_msg: "node_filesystem_size_bytes is stored in prometheus"
     fail_msg: >-
-      {{ (filesystem_size_metric is not skipped)
+      {{ (verify_metrics_prereqs_ok | bool)
          | ternary('node_filesystem_size_bytes was not found in prometheus',
                    verify_metrics_blocked_msg) }}
 

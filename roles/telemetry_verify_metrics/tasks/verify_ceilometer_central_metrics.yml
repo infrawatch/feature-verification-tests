@@ -31,26 +31,24 @@
       ansible.builtin.set_fact:
         central_ok: "{{ verify_metrics_prereqs_ok | bool and not (central_image is failed) }}"
 
-    - name: Query the ceilometer image size metric
-      when: central_ok | bool
-      ansible.builtin.shell: |
-        {{ openstack_cmd }} metric show ceilometer_image_size
-      register: central_result
-      delay: 30
-      retries: 10
-      changed_when: false
-      ignore_errors: true
-      until: central_result.rc == 0 and "ceilometer_image_size" in central_result.stdout
+    - name: Get the ceilometer central metric list
+      ansible.builtin.include_tasks:
+        file: get_metric_list.yml
+      vars:
+        metric_list_gate: "{{ central_ok | bool }}"
+        metric_list_expected:
+          - ceilometer_image_size
 
     - name: |
         TEST Use openstack observabilityclient to verify ceilometer central metrics are stored in prometheus
       ansible.builtin.assert:
         that:
-          - central_result is not skipped
-          - central_result is not failed
+          - central_ok | bool
+          - metric_list is not failed
+          - metric_list_missing | default([]) | length == 0
         success_msg: "ceilometer_image_size is stored in prometheus"
         fail_msg: >-
-          {{ (central_result is not skipped)
+          {{ (central_ok | bool)
              | ternary('ceilometer_image_size was not found in prometheus',
                        (central_image is failed)
                        | ternary('BLOCKED: the test image could not be created, so no image size metric was produced',
