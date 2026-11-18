@@ -18,32 +18,26 @@
   loop_control:
     loop_var: compute_node
 
-- name: Query podman exporter health reporting metrics
-  when: verify_metrics_prereqs_ok | bool
-  ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
-  register: podman_result
-  delay: 30
-  retries: 10
-  changed_when: false
-  ignore_errors: true
-  until: podman_result.rc == 0 and item in podman_result.stdout
-  loop:
-    - podman_container_info
-    - podman_container_state
-    - podman_container_health
+- name: Get the podman exporter health reporting metric list
+  ansible.builtin.include_tasks:
+    file: get_metric_list.yml
+  vars:
+    metric_list_gate: "{{ verify_metrics_prereqs_ok | bool }}"
+    metric_list_expected:
+      - podman_container_info
+      - podman_container_state
+      - podman_container_health
 
 - name: |
     TEST Use openstack observabilityclient to verify health reporting related metrics from podman exporter are stored in Prometheus
   ansible.builtin.assert:
     that:
-      - podman_result is not skipped
-      - podman_result is not failed
+      - verify_metrics_prereqs_ok | bool
+      - metric_list is not failed
+      - metric_list_missing | default([]) | length == 0
     success_msg: "the podman exporter health reporting metrics are stored in prometheus"
     fail_msg: >-
-      {{ (podman_result is not skipped)
+      {{ (verify_metrics_prereqs_ok | bool)
          | ternary('podman exporter metrics not found in prometheus: '
-                   ~ (podman_result.results | default([])
-                      | selectattr('failed', 'defined') | selectattr('failed')
-                      | map(attribute='item') | list | join(', ')),
+                   ~ (metric_list_missing | default([]) | join(', ')),
                    verify_metrics_blocked_msg) }}

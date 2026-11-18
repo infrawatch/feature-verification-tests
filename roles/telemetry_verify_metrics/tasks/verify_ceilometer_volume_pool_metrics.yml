@@ -47,34 +47,26 @@
   ansible.builtin.set_fact:
     volume_pool_ok: "{{ verify_metrics_prereqs_ok | bool and not (test_volume_pool_list is failed) }}"
 
-- name: Query the ceilometer volume pool metrics
+- name: Get the ceilometer volume pool metric list
+  ansible.builtin.include_tasks:
+    file: get_metric_list.yml
   vars:
-    volume_pool_metrics:
+    metric_list_gate: "{{ volume_pool_ok | bool }}"
+    metric_list_expected:
       - ceilometer_volume_provider_pool_capacity_allocated
       - ceilometer_volume_provider_pool_capacity_free
       - ceilometer_volume_provider_pool_capacity_total
-  when: volume_pool_ok | bool
-  ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
-  register: volume_pool_result
-  delay: 30
-  retries: 10
-  changed_when: false
-  ignore_errors: true
-  until: volume_pool_result.rc == 0 and item in volume_pool_result.stdout
-  loop: "{{ volume_pool_metrics }}"
 
 - name: |
     TEST Use openstack observabilityclient to verify ceilometer volume pool metrics are stored in prometheus
   ansible.builtin.assert:
     that:
-      - volume_pool_result is not skipped
-      - volume_pool_result is not failed
+      - volume_pool_ok | bool
+      - metric_list is not failed
+      - metric_list_missing | default([]) | length == 0
     success_msg: "the ceilometer volume pool metrics are stored in prometheus"
     fail_msg: >-
-      {{ (volume_pool_result is not skipped)
+      {{ (volume_pool_ok | bool)
          | ternary('ceilometer volume pool metrics not found in prometheus: '
-                   ~ (volume_pool_result.results | default([])
-                      | selectattr('failed', 'defined') | selectattr('failed')
-                      | map(attribute='item') | list | join(', ')),
+                   ~ (metric_list_missing | default([]) | join(', ')),
                    verify_metrics_blocked_msg) }}
