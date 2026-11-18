@@ -7,9 +7,11 @@
   ansible.builtin.set_fact:
     month_start: >-
       {{ lookup('pipe', 'date -u +%Y-%m-01T00:00:00Z') }}
+    # .timestamp() keeps the value in UTC; strftime('%s') would apply the
+    # host's local timezone to the tz-aware datetime.
     month_start_ns: >-
       {{ (lookup('pipe', 'date -u +%Y-%m-01T00:00:00Z') |
-         to_datetime('%Y-%m-%dT%H:%M:%S%z')).strftime('%s') | int * 1000000000 }}
+         to_datetime('%Y-%m-%dT%H:%M:%S%z')).timestamp() | int * 1000000000 }}
     month_end: >-
       {{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%S%z') }}
     month_end_ns: >-

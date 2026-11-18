@@ -5,8 +5,10 @@
 
 - name: "Calculate Loki query start and end times in nanoseconds"
   ansible.builtin.set_fact:
-    scenario_start_ns: "{{ ((synth_data_rates.time.begin_step.begin | to_datetime('%Y-%m-%dT%H:%M:%S%z')).strftime('%s') | int * 1000000000) }}"
-    scenario_end_ns: "{{ ((synth_data_rates.time.end_step.end | to_datetime('%Y-%m-%dT%H:%M:%S%z')).strftime('%s') | int * 1000000000) }}"
+    # Use .timestamp(): strftime('%s') applies the local timezone to the
+    # tz-aware datetime, shifting the query window by the host's UTC offset.
+    scenario_start_ns: "{{ ((synth_data_rates.time.begin_step.begin | to_datetime('%Y-%m-%dT%H:%M:%S%z')).timestamp() | int * 1000000000) }}"
+    scenario_end_ns: "{{ ((synth_data_rates.time.end_step.end | to_datetime('%Y-%m-%dT%H:%M:%S%z')).timestamp() | int * 1000000000) }}"
 
 - name: "Debug: Show Loki query parameters for {{ scenario_name }}"
   ansible.builtin.debug:
