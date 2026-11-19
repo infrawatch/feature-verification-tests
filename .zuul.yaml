@@ -305,7 +305,6 @@
             files:
               - ^ci/playbooks/container-image-build.yml$
               - ^ci/playbooks/container-image-content-provider.yml$
-              - ^.zuul.yaml$
         - feature-verification-tests-noop:
             files: *irrelevant_files
         - functional-tests-osp19:
