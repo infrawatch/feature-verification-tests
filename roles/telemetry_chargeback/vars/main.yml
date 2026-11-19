@@ -17,7 +17,7 @@ cloudkitty_test_file: "{{ cloudkitty_scenario_dir }}/{{ scenario_name }}.yml"
 
 # CloudKitty's rating queries default to returning 100 dataframes, which
 # truncates the total once repeated test runs have accumulated more.
-cloudkitty_rating_query_limit: 5000
+cloudkitty_rating_query_limit: 4900
 
 # initialize var
 previous_scenario_end_time: ""
