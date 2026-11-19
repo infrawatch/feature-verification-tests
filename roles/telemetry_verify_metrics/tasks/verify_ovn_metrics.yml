@@ -139,14 +139,32 @@
         name: telemetry-ovsdbserver-sb
   when: ovn_raft_metric.stdout != ""
 
+  # Read the targets from the ScrapeConfigs and query by instance instead.
+- name: Get the RAFT scrape targets
+  ansible.builtin.command: >-
+    oc get scrapeconfig.monitoring.rhobs -n openstack
+    telemetry-ovsdbserver-nb telemetry-ovsdbserver-sb
+    --ignore-not-found
+    -o jsonpath='{range .items[*]}{range .spec.staticConfigs[*]}{.targets[*]}{"\n"}{end}{end}'
+  register: ovn_raft_targets
+  changed_when: false
+
+  # A "." in a Prometheus label regex matches any character and this client
+  # does not preserve backslash escapes, so match literal dots with "[.]".
+- name: Set the RAFT scrape target pattern
+  ansible.builtin.set_fact:
+    ovn_raft_targets_regex: >-
+      {{ ovn_raft_targets.stdout.split()
+         | map('replace', '.', '[.]') | join('|') }}
+
 - name: |
     TEST Use openstack observabilityclient to verify RAFT metrics are stored in prometheus
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
+    {{ openstack_cmd }} metric query '{{ item }}{instance=~"{{ ovn_raft_targets_regex }}"}' -f value
   register: result
   delay: 30
   retries: 10
   changed_when: false
-  until: result.rc == 0 and item in result.stdout and ":1981" in result.stdout
+  until: result.rc == 0 and item in result.stdout
   loop: "{{ ovn_raft_metrics }}"
   when: ovn_raft_metric.stdout != ""
