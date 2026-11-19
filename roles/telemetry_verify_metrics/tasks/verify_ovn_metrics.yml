@@ -50,34 +50,6 @@
 
 - name: |
     TEST Use openstack observabilityclient to verify ovn controller metrics are stored in prometheus
-  vars:
-    ovn_controller_base_metrics:
-      - ovnc_rconn_queued
-      - ovnc_txn_incomplete
-      - ovnc_bridge_mappings
-      - ovnc_encap_ip
-      - ovnc_encap_type
-      - ovnc_sb_connection_method
-      - ovs_build_info
-      - ovs_dpdk_initialized
-      - ovs_bridge_flow_count
-      - ovs_bridge_port_count
-      - ovs_datapath_flows_total
-      - ovs_datapath_lookup_hits_total
-      - ovs_datapath_lookup_missed_total
-      - ovs_datapath_lookup_lost_total
-      - ovs_memory_handlers_total
-      - ovs_memory_ports_total
-      - ovs_memory_revalidators_total
-      - ovs_memory_rules_total
-    ovn_controller_traffic_metrics:
-      - ovnc_router_port_traffic_pkts
-      - ovnc_router_port_traffic_bytes
-    ovn_controller_metrics: >-
-      {{
-        ovn_controller_base_metrics +
-        (ovn_controller_traffic_metrics if test_ovn_router_traffic_metrics | default(false) else [])
-      }}
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac {{ item }}
   register: result
@@ -108,22 +80,6 @@
 
 - name: |
     TEST Use openstack observabilityclient to verify RAFT metrics are stored in prometheus
-  vars:
-    ovn_raft_metrics:
-      - ovn_raft_cluster_election_timer
-      - ovn_raft_cluster_id
-      - ovn_raft_cluster_server_id
-      - ovn_raft_cluster_server_role
-      - ovn_raft_cluster_server_status
-      - ovn_raft_cluster_server_vote
-      - ovn_raft_cluster_term
-      - ovn_raft_cluster_leader
-      - ovn_raft_cluster_inbound_connections_total
-      - ovn_raft_cluster_outbound_connections_total
-      - ovn_raft_log_entry_index
-      - ovn_raft_cluster_log_index_next
-      - ovn_raft_cluster_log_not_committed
-      - ovn_raft_cluster_log_not_applied
   ansible.builtin.shell: |
     {{ openstack_cmd }} metric show --disable-rbac {{ item }}
   register: result
