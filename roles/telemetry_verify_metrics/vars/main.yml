@@ -50,4 +50,3 @@ ovn_raft_metrics:
   - ovn_raft_cluster_log_index_next
   - ovn_raft_cluster_log_not_committed
   - ovn_raft_cluster_log_not_applied
-
