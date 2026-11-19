@@ -48,16 +48,77 @@
         name: telemetry-ovn-controller
   when: ovn_controller_metric.stdout != ""
 
-- name: |
-    TEST Use openstack observabilityclient to verify ovn controller metrics are stored in prometheus
+  # Read the targets from the ScrapeConfigs so each check follows the
+  # deployment instead of assuming a fixed port.
+- name: Get the ovn-controller scrape targets
+  ansible.builtin.command: >-
+    oc get scrapeconfig.monitoring.rhobs -n openstack telemetry-ovn-controller
+    --ignore-not-found
+    -o jsonpath='{range .spec.staticConfigs[*]}{.targets[*]}{"\n"}{end}'
+  register: ovn_controller_targets
+  changed_when: false
+
+- name: Get the openstack network exporter scrape targets
+  ansible.builtin.command: >-
+    oc get scrapeconfig.monitoring.rhobs -n openstack
+    telemetry-openstack-network-exporter telemetry-openstack-network-exporter-tls
+    --ignore-not-found
+    -o jsonpath='{range .items[*]}{range .spec.staticConfigs[*]}{.targets[*]}{"\n"}{end}{end}'
+  register: ovn_network_exporter_targets
+  changed_when: false
+
+  # A "." in a Prometheus label regex matches any character, and this client
+  # does not preserve backslash escapes, so match literal dots with "[.]".
+- name: Set the ovn controller scrape target patterns
+  ansible.builtin.set_fact:
+    ovn_controller_targets_regex: >-
+      {{ ovn_controller_targets.stdout.split()
+         | map('replace', '.', '[.]') | join('|') }}
+    ovn_network_exporter_targets_regex: >-
+      {{ ovn_network_exporter_targets.stdout.split()
+         | map('replace', '.', '[.]') | join('|') }}
+
+- name: Query ovn controller metrics from the controller exporter
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
-  register: result
+    {{ openstack_cmd }} metric query '{{ item }}{instance=~"{{ ovn_controller_targets_regex }}"}' -f value
+  register: ovn_controller_ovs_result
   delay: 30
   retries: 10
   changed_when: false
-  until: result.rc == 0 and item in result.stdout and ":1981" in result.stdout
-  loop: "{{ ovn_controller_metrics }}"
+  ignore_errors: true
+  until: ovn_controller_ovs_result.rc == 0 and item in ovn_controller_ovs_result.stdout
+  loop: "{{ ovn_controller_ovs_metrics }}"
+  when: ovn_controller_metric.stdout != ""
+
+- name: Query ovn controller metrics from the openstack network exporter
+  ansible.builtin.shell: |
+    {{ openstack_cmd }} metric query '{{ item }}{instance=~"{{ ovn_network_exporter_targets_regex }}"}' -f value
+  register: ovn_controller_network_result
+  delay: 30
+  retries: 10
+  changed_when: false
+  ignore_errors: true
+  until: ovn_controller_network_result.rc == 0 and item in ovn_controller_network_result.stdout
+  loop: "{{ ovn_controller_network_metrics_all }}"
+  when: ovn_controller_metric.stdout != ""
+
+  # Both queries feed this TEST, so their failed metrics are merged into one
+  # message: the metrics not found on the target they belong to.
+- name: |
+    TEST Use openstack observabilityclient to verify ovn controller metrics are stored in prometheus
+  ansible.builtin.assert:
+    that:
+      - ovn_controller_ovs_result is not skipped
+      - ovn_controller_ovs_result is not failed
+      - ovn_controller_network_result is not skipped
+      - ovn_controller_network_result is not failed
+    success_msg: "all ovn controller metrics are stored in prometheus and scraped from their configured scrape targets"
+    fail_msg: >-
+      ovn controller metrics not found in prometheus from their configured scrape targets:
+      {{ ((ovn_controller_ovs_result.results | default([]))
+          + (ovn_controller_network_result.results | default([])))
+         | selectattr('failed', 'defined') | selectattr('failed')
+         | map(attribute='item') | unique | join(', ') }}
   when: ovn_controller_metric.stdout != ""
 
 - name: Get RAFT metric services
