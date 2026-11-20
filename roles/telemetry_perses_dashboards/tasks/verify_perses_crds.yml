@@ -1,0 +1,6 @@
+---
+- name: Verify Perses CRDs are available
+  ansible.builtin.include_role:
+    name: common
+  vars:
+    common_crd_list: "{{ telemetry_perses_crds }}"

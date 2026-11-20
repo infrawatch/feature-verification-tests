@@ -1,0 +1,32 @@
+---
+telemetry_perses_namespace: openstack
+
+telemetry_perses_crds:
+  - persesdashboards.perses.dev
+  - persesdatasources.perses.dev
+
+telemetry_perses_datasource_name: prometheus
+
+telemetry_perses_expected_dashboards:
+  - openstack-cloud
+  # NOTE: The following dashboards will be available once
+  # telemetry-operator PR #1075 is complete:
+  # - openstack-node
+  # - openstack-vm
+  # - openstack-rabbitmq
+  # - openstack-network-traffic
+  # - openstack-openstack-network
+  # NOTE: EDPM and Lightspeed dashboards cannot be tested in CI
+  # - openstack-ceilometer-ipmi
+  # - openstack-lightspeed
+
+telemetry_perses_disabled_dashboards: []
+
+telemetry_perses_legacy_namespace: openshift-config-managed
+telemetry_perses_legacy_configmaps:
+  - grafana-dashboard-openstack-cloud
+  - grafana-dashboard-openstack-node
+  - grafana-dashboard-openstack-vm
+  - grafana-dashboard-openstack-rabbitmq
+  - grafana-dashboard-openstack-network-traffic
+  - grafana-dashboard-openstack-openstack-network
