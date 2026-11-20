@@ -20,6 +20,34 @@
       ansible.builtin.meta: end_play
       when: not run_graphing_test | default(true) | bool
 
+    # Note: telemetry-operator has moved to Perses-based dashboards, however
+    #       the switch that enables them remains the same as for legacy ones.
+    #       The Perses change introduced a new `disabledDashboards` option,
+    #       so we guard on its presence whether to run legacy tests.
+    #       The option is omitempty, so we probe the CRD schema, not the CR.
+    - name: Check if telemetry-operator supports disabledDashboards
+      ansible.builtin.command: >
+        oc get crd metricstorages.telemetry.openstack.org
+        -o jsonpath='{.spec.versions[*].schema.openAPIV3Schema.properties.spec.properties.disabledDashboards}'
+      register: disabled_dashboards_schema
+      changed_when: false
+
+    - name: Set fact if dashboards are Perses-based
+      ansible.builtin.set_fact:
+        perses_dashboards: "{{ (disabled_dashboards_schema.stdout | length > 0) | bool }}"
+
+    - name: Notify if graphing test is skipped by Perses dashboards
+      ansible.builtin.debug:
+        msg: >-
+          Skipping the legacy graphing test
+          because telemetry-operator serves Perses dashboards,
+          not the OpenShift Console-native ones.
+      when: perses_dashboards
+
+    - name: Skip graphing test by Perses dashboards
+      ansible.builtin.meta: end_play
+      when: perses_dashboards
+
     - name: "Get OpenStackControlPlane telemetry dashboardsEnabled status"
       ansible.builtin.command: >
         oc get oscp -n openstack -o jsonpath='{.items[0].spec.telemetry.template.metricStorage.dashboardsEnabled}'
