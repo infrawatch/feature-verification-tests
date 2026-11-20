@@ -2,6 +2,7 @@
 import logging
 import argparse
 import json
+import re
 import sys
 import yaml
 from datetime import datetime, timezone, timedelta
@@ -488,6 +489,21 @@ def main():
         config = load_config(args.test)
     except (FileNotFoundError, ValueError) as e:
         logger.critical(f"Failed to load config: {e}")
+        sys.exit(1)
+
+    # Labels are rendered unescaped into the logql queries that read the data
+    # back, so reject an unsafe value before generating or printing anything.
+    bad_labels = [
+        f"{k}={v!r}" for k, v in config.get("loki_stream", {}).items()
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", str(v))
+    ]
+    if bad_labels:
+        logger.critical(
+            "Label values are used unescaped in logql queries and must be "
+            "limited to [A-Za-z0-9_-]. Rename the label value to use only "
+            "letters, digits, underscores and hyphens. Got: "
+            + ", ".join(bad_labels)
+        )
         sys.exit(1)
 
     # Get generation parameters from config
