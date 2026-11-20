@@ -180,7 +180,7 @@ can be set at the play level.
             - logging-loki-query-frontend-grpc
             - logging-loki-query-frontend-http
             - logging-view-plugin
-            - openstack-logging-openstack
+            - openstack-logging
 
       - name: "Verify files"
         ansible.builtin.import_role:
