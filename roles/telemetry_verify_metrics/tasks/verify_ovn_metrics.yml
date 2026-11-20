@@ -24,7 +24,7 @@
       - ovn_northd_txn_success_total
       - ovn_northd_txn_unchanged_total
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
+    {{ openstack_cmd }} metric show {{ item }}
   register: result
   delay: 30
   retries: 10
@@ -79,7 +79,7 @@
         (ovn_controller_traffic_metrics if test_ovn_router_traffic_metrics | default(false) else [])
       }}
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
+    {{ openstack_cmd }} metric show {{ item }}
   register: result
   delay: 30
   retries: 10
@@ -125,7 +125,7 @@
       - ovn_raft_cluster_log_not_committed
       - ovn_raft_cluster_log_not_applied
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
+    {{ openstack_cmd }} metric show {{ item }}
   register: result
   delay: 30
   retries: 10
