@@ -1,0 +1,23 @@
+---
+- name: Check for legacy ConfigMap {{ item }}
+  ansible.builtin.command: >
+    oc get configmap {{ item }}
+    -n {{ perses_legacy_namespace }}
+  register: legacy_cm_results
+  changed_when: false
+  failed_when: false
+  loop: "{{ perses_legacy_configmaps }}"
+
+- name: TEST Verify legacy ConfigMap {{ item.item }} has been cleaned up
+  ansible.builtin.assert:
+    that:
+      - item.rc != 0
+    success_msg: >-
+      Legacy ConfigMap {{ item.item }} correctly removed
+      from {{ perses_legacy_namespace }}
+    fail_msg: >-
+      Legacy ConfigMap {{ item.item }} still exists
+      in {{ perses_legacy_namespace }}
+  loop: "{{ legacy_cm_results.results }}"
+  loop_control:
+    label: "{{ item.item }}"

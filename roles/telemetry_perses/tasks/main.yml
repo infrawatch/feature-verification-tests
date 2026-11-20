@@ -1,0 +1,26 @@
+---
+- name: Verify Perses CRDs are present
+  ansible.builtin.include_tasks:
+    file: verify_crds.yml
+  tags: precheck
+
+- name: Verify the PersesDatasource custom resource
+  ansible.builtin.include_tasks:
+    file: verify_datasource.yml
+  tags: test
+
+- name: Verify the PersesDashboard custom resources
+  ansible.builtin.include_tasks:
+    file: verify_crs.yml
+  tags: test
+
+- name: Verify legacy Grafana ConfigMaps are cleaned up
+  ansible.builtin.include_tasks:
+    file: verify_legacy_cleanup.yml
+  tags: test
+
+- name: Verify disabled dashboards are absent
+  ansible.builtin.include_tasks:
+    file: verify_disabled_dashboards.yml
+  when: perses_disabled_dashboards | length > 0
+  tags: test
