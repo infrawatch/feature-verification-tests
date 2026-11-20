@@ -2,6 +2,7 @@
 import logging
 import argparse
 import json
+import re
 import sys
 import yaml
 from datetime import datetime, timezone, timedelta
@@ -421,6 +422,36 @@ def _str_to_bool(value: str) -> bool:
         )
 
 
+def _validate_label_values(labels: Dict[str, str]) -> None:
+    """
+    Reject label values that would need escaping in a logql query.
+
+    The labels are matched unescaped in the queries that read the generated
+    data back, and the fvt_run_id label is used as a regex alternative, so a
+    value with characters outside ``[A-Za-z0-9_-]`` cannot be supported. The
+    value is never rewritten or escaped, because that would change the data
+    and hide the mistake, so the caller has to rename it.
+
+    Args:
+        labels: Stream labels that will be rendered onto every log entry.
+
+    Raises:
+        ValueError: If a label value contains characters outside
+            ``[A-Za-z0-9_-]``.
+    """
+    invalid = [
+        f"{key}={value!r}" for key, value in sorted(labels.items())
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", str(value))
+    ]
+    if invalid:
+        raise ValueError(
+            "Label values are used unescaped in logql queries and must be "
+            "limited to [A-Za-z0-9_-]. Rename the label value to use only "
+            "letters, digits, underscores and hyphens; for fvt_run_id this "
+            "is the scenario name. Got: " + ", ".join(invalid)
+        )
+
+
 def main():
     """Main entry point for the script."""
     parser = argparse.ArgumentParser(
@@ -488,6 +519,17 @@ def main():
         config = load_config(args.test)
     except (FileNotFoundError, ValueError) as e:
         logger.critical(f"Failed to load config: {e}")
+        sys.exit(1)
+
+    # Labels are rendered unescaped into the logql queries that read the data
+    # back, so reject an unsafe value before generating or printing anything.
+    try:
+        _validate_label_values({
+            **(config.get("loki_stream") or {}),
+            **dict(args.label),
+        })
+    except ValueError as e:
+        logger.critical(f"Invalid input: {e}")
         sys.exit(1)
 
     # Get generation parameters from config
