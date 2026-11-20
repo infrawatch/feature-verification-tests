@@ -1,0 +1,17 @@
+---
+# Sample inventory for running the feature verification tests from a
+# workstation, against a cluster your kubeconfig already points at.
+#
+# The playbooks that only talk to OpenShift (metrics, autoscaling, graphing,
+# chargeback, audit logging) run entirely from the controller, so localhost is
+# enough. The compute-node logging tests need real EDPM hosts: add them to the
+# computes group below, with whatever ansible_user/ssh settings they need.
+all:
+  children:
+    controller:
+      hosts:
+        localhost:
+          ansible_connection: local
+          ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    computes:
+      hosts: {}
