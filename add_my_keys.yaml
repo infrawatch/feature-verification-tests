@@ -1,0 +1,17 @@
+---
+- name: Add authorized keys
+  hosts: all
+  tasks:
+    - name: Ensure .ssh directory exists
+      ansible.builtin.file:
+        path: /root/.ssh
+        state: directory
+        mode: '0700'
+
+    - name: Add public key to authorized_keys
+      ansible.builtin.lineinfile:
+        path: /root/.ssh/authorized_keys
+        line: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAi7Mwq8Gxd1skVfFAJ+E7p9Ug2CApHROS5WDaIqtFhq ayefimov@ayefimov-mac"
+        state: present
+        create: yes
+        mode: '0600'
