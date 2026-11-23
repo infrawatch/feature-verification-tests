@@ -2,6 +2,7 @@
 - name: "Create the output directory"
   hosts:
      - controller
+  gather_facts: true
   vars_files:
     - vars/defaults.yml
   tasks:

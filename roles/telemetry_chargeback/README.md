@@ -327,7 +327,7 @@ Example Playbook
 ```yaml
 - name: "Run chargeback tests"
   hosts: controllers
-  gather_facts: false
+  gather_facts: true
 
   tasks:
     - name: "Run chargeback validation"
@@ -339,7 +339,7 @@ Example Playbook
 ```yaml
 - name: "Run chargeback tests with custom settings"
   hosts: controllers
-  gather_facts: false
+  gather_facts: true
 
   tasks:
     - name: "Run chargeback validation"
@@ -355,7 +355,7 @@ Example Playbook
 ```yaml
 - name: "Run chargeback tests with specific scenarios"
   hosts: controllers
-  gather_facts: false
+  gather_facts: true
 
   tasks:
     - name: "Run chargeback validation with custom scenarios"

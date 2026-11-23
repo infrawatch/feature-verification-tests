@@ -7,23 +7,31 @@
 # or via the artifacts/parameters files) and are picked up here unchanged; when
 # they are absent, each var falls back to something sensible for a local run.
 #
-# lookup('env', ...) is used instead of ansible_env so that these also resolve
-# in plays that run with gather_facts: no. The values are resolved on the
-# Ansible controller, which matches how the cifmw_* vars are passed in CI.
+# The local fallbacks read target-host facts (ansible_env, ansible_user_dir),
+# not the controller's environment, because the resulting values are used as
+# filesystem locators on the target. Two consequences:
+#
+#   * Every play that consumes these vars must set gather_facts: true.
+#   * The vars must be referenced from task-scoped `environment:` (on a task,
+#     block or import_role), never a play-level `environment:`. Ansible renders
+#     a play-level environment for the implicit Gathering Facts task, i.e.
+#     before the facts exist, so these vars fail to resolve, facts are never
+#     gathered, and every task in the play fails.
 #
 
 # Path to the kubeconfig for the OpenShift cluster under test.
 fvt_kubeconfig: >-
   {{ cifmw_openshift_kubeconfig |
-     default(lookup('env', 'KUBECONFIG') |
-             default(lookup('env', 'HOME') ~ '/.kube/config', true), true) }}
+     default(ansible_env.KUBECONFIG |
+             default(ansible_user_dir ~ '/.kube/config', true), true) }}
 
-# PATH the tests run with. Must contain the oc binary.
-fvt_path: "{{ cifmw_path | default(lookup('env', 'PATH'), true) }}"
+# PATH the tests run with. Must contain the oc binary. Read from the target
+# host's environment, not the controller's, so facts must be gathered.
+fvt_path: "{{ cifmw_path | default(ansible_env.PATH, true) }}"
 
 # Base directory for CI artifacts and test parameters.
 fvt_basedir: >-
-  {{ cifmw_basedir | default(lookup('env', 'HOME') ~ '/ci-framework-data', true) }}
+  {{ cifmw_basedir | default(ansible_user_dir ~ '/ci-framework-data', true) }}
 
 # Directory where the JUnit XML results are written and read back from by
 # ci/report_result.yml. In CI this resolves to
@@ -43,4 +51,4 @@ fvt_ocp_password: >-
 # Off by default locally: provide the VM yourself, or set this to true and
 # point install_yamls_dir at a checkout.
 fvt_create_test_vm: "{{ zuul is defined }}"
-install_yamls_dir: "{{ lookup('env', 'HOME') ~ '/install_yamls' }}"
+install_yamls_dir: "{{ ansible_user_dir ~ '/install_yamls' }}"

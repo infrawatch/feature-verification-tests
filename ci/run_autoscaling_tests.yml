@@ -2,9 +2,6 @@
 - name: Run telemetry autoscaling tests on osp18
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
-  environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
   vars_files:
     - vars/defaults.yml
     - vars/osp18_env.yml
@@ -19,6 +16,9 @@
       when: not run_autoscaling_test | default(true) | bool
 
     - name: "Get OpenStackControlPlane autoscaling status"
+      environment:
+        KUBECONFIG: "{{ fvt_kubeconfig }}"
+        PATH: "{{ fvt_path }}"
       ansible.builtin.command: >
         oc get oscp -n openstack -o jsonpath='{.items[0].spec.telemetry.template.autoscaling.enabled}'
       register: autoscaling_status
@@ -43,13 +43,25 @@
           ansible.builtin.include_vars:
             dir: "{{ cifmw_basedir }}/artifacts/parameters"
 
-        - community.general.make:
-            chdir: '{{ ansible_env.HOME }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup'
+        - name: Create the instance the autoscaling tests scale from
+          environment:
+            KUBECONFIG: "{{ fvt_kubeconfig }}"
+            PATH: "{{ fvt_path }}"
+          community.general.make:
+            chdir: >-
+              {%- if zuul is defined -%}
+              {{ ansible_user_dir }}/{{ zuul.projects["github.com/openstack-k8s-operators/install_yamls"].src_dir }}/devsetup
+              {%- else -%}
+              {{ install_yamls_dir }}/devsetup
+              {%- endif -%}
             target: edpm_deploy_instance
           tags:
             - setup
 
         - name: Patch observabilityclient into openstackclient
+          environment:
+            KUBECONFIG: "{{ fvt_kubeconfig }}"
+            PATH: "{{ fvt_path }}"
           ansible.builtin.shell:
             cmd: |
               oc exec -n openstack openstackclient -- python3 -m ensurepip --upgrade
@@ -60,6 +72,9 @@
             - setup
 
         - name: "Run Telemetry Autoscaling tests"
+          environment:
+            KUBECONFIG: "{{ fvt_kubeconfig }}"
+            PATH: "{{ fvt_path }}"
           ansible.builtin.import_role:
             name: telemetry_autoscaling
           vars:
@@ -67,17 +82,30 @@
           ignore_errors: true
 
         - name: "Run Telemetry Verify Metrics tests"
+          environment:
+            KUBECONFIG: "{{ fvt_kubeconfig }}"
+            PATH: "{{ fvt_path }}"
           ansible.builtin.import_role:
             name: telemetry_verify_metrics
           ignore_errors: true
 
       always:
         - name: "Run Telemetry Autoscaling cleanup"
-          ansible.builtin.include_role:
+          environment:
+            KUBECONFIG: "{{ fvt_kubeconfig }}"
+            PATH: "{{ fvt_path }}"
+          ansible.builtin.import_role:
             name: telemetry_autoscaling
             tasks_from: post_teardown
 
         - name: Delete test_0 VM
-          ansible.builtin.shell:
-            cmd: |
-              {{ openstack_cmd }} server delete test_0
+          environment:
+            KUBECONFIG: "{{ fvt_kubeconfig }}"
+            PATH: "{{ fvt_path }}"
+          ansible.builtin.command:
+            cmd: "{{ openstack_cmd }} server delete test_0"
+          register: fvt_delete_test_0
+          changed_when: fvt_delete_test_0.rc == 0
+          # The VM is absent when the tests were not run against a locally
+          # created instance; that is not a failure.
+          failed_when: false

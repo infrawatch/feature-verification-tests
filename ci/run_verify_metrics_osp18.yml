@@ -2,9 +2,6 @@
 - name: Run telemetry tests to verify metrics on osp18
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
-  environment:
-    KUBECONFIG: "{{ fvt_kubeconfig }}"
-    PATH: "{{ fvt_path }}"
   vars_files:
     - vars/defaults.yml
     - vars/osp18_env.yml
@@ -20,6 +17,9 @@
       when: fvt_parameters_dir.stat.isdir | default(false)
 
     - name: Patch observabilityclient into openstackclient
+      environment:
+        KUBECONFIG: "{{ fvt_kubeconfig }}"
+        PATH: "{{ fvt_path }}"
       ansible.builtin.shell:
         cmd: |
           oc exec -n openstack openstackclient -- python3 -m ensurepip --upgrade
@@ -30,6 +30,9 @@
         - setup
 
     - name: "Run Telemetry Verify Metrics tests"
+      environment:
+        KUBECONFIG: "{{ fvt_kubeconfig }}"
+        PATH: "{{ fvt_path }}"
       ansible.builtin.import_role:
         name: telemetry_verify_metrics
       ignore_errors: true
