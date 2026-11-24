@@ -1,0 +1,46 @@
+---
+- name: Get the PersesDashboard custom resources
+  ansible.builtin.command: >
+    oc get persesdashboards -n {{ perses_project }}
+    -o jsonpath={range .items[*]}{.metadata.name}{"\n"}{end}
+  register: perses_cr_list
+  changed_when: false
+
+- name: Set the PersesDashboard names fact
+  ansible.builtin.set_fact:
+    perses_cr_names: "{{ perses_cr_list.stdout_lines | select | list }}"
+
+- name: Show the PersesDashboard custom resources found
+  ansible.builtin.debug:
+    var: perses_cr_names
+
+- name: TEST Every expected dashboard has a PersesDashboard custom resource
+  ansible.builtin.assert:
+    that:
+      - item in perses_cr_names
+    fail_msg: "No PersesDashboard custom resource named {{ item }}"
+    success_msg: "PersesDashboard {{ item }} exists"
+  loop: "{{ perses_expected_dashboards }}"
+
+#
+# Note: telemetry-operator owns these dashboard objects through MetricStorage.
+#       A dashboard object without that owner reference was not created
+#       by the operator and would survive a MetricStorage deletion.
+#
+- name: Get the owner of each PersesDashboard
+  ansible.builtin.command: >
+    oc get persesdashboard {{ item }} -n {{ perses_project }}
+    -o jsonpath={.metadata.ownerReferences[0].kind}
+  register: perses_cr_owners
+  changed_when: false
+  loop: "{{ perses_expected_dashboards }}"
+
+- name: TEST Every dashboard is owned by MetricStorage
+  ansible.builtin.assert:
+    that:
+      - item.stdout == "MetricStorage"
+    fail_msg: "{{ item.item }} is owned by '{{ item.stdout }}', expected MetricStorage"
+    success_msg: "{{ item.item }} is owned by MetricStorage"
+  loop: "{{ perses_cr_owners.results }}"
+  loop_control:
+    label: "{{ item.item }}"

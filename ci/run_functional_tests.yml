@@ -3,3 +3,6 @@
 
 - name: Run Graphing Console UI test
   ansible.builtin.import_playbook: run_graphing_test.yml
+
+- name: Run Perses dashboards test
+  ansible.builtin.import_playbook: run_perses_test.yml

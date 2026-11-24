@@ -1,0 +1,198 @@
+---
+- name: Run functional test playbooks
+  hosts: "{{ cifmw_target_hook_host | default('localhost') }}"
+  gather_facts: true
+  environment:
+    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
+    PATH: "{{ cifmw_path }}"
+  vars:
+    USERNAME: "{{ cifmw_openshift_user }}"
+    PASSWORD: "{{ cifmw_openshift_password }}"
+  vars_files:
+    - vars/common.yml
+  pre_tasks:
+    - name: Notify if perses test is skipped by run_perses_test variable
+      ansible.builtin.debug:
+        msg: >-
+          Skipping the perses test because `run_perses_test` variable
+          is set to `false`.
+      when: not run_perses_test | default(true) | bool
+
+    - name: Skip perses test by run_perses_test false
+      ansible.builtin.meta: end_play
+      when: not run_perses_test | default(true) | bool
+
+    # --- Check COO is installed (skip gate) ---
+    - name: Check if Cluster Observability Operator is installed
+      ansible.builtin.command: >-
+        oc get deployment observability-operator -n openshift-operators
+        -o jsonpath='{.status.availableReplicas}'
+      register: coo_status
+      changed_when: false
+      failed_when: false
+
+    - name: Set fact if COO is available
+      ansible.builtin.set_fact:
+        coo_available: "{{ coo_status.rc == 0 and (coo_status.stdout | int > 0) }}"
+
+    - name: Notify if perses test is skipped by missing COO
+      ansible.builtin.debug:
+        msg: >-
+          Skipping the perses test because Cluster Observability Operator
+          is not installed. COO >= 1.5.0 is required for Perses.
+      when: not coo_available | bool
+
+    - name: Skip perses test by missing COO
+      ansible.builtin.meta: end_play
+      when: not coo_available | bool
+
+    # --- Check if telemetry-operator supports Perses (skip gate) ---
+    - name: Check if telemetry-operator supports Perses dashboards
+      ansible.builtin.command: >-
+        oc get crd metricstorages.telemetry.openstack.org
+        -o jsonpath='{.spec.versions[*].schema.openAPIV3Schema.properties.spec.properties.disabledDashboards}'
+      register: disabled_dashboards_schema
+      changed_when: false
+      failed_when: false
+
+    - name: Set fact if telemetry-operator supports Perses
+      ansible.builtin.set_fact:
+        telemetry_operator_supports_perses: "{{ (disabled_dashboards_schema.stdout | length > 0) | bool }}"
+
+    - name: Notify if perses test is skipped by unsupported telemetry-operator
+      ansible.builtin.debug:
+        msg: >-
+          Skipping the perses test because the telemetry-operator does not
+          support Perses dashboards (no disabledDashboards field in
+          MetricStorage CRD).
+      when: not telemetry_operator_supports_perses | bool
+
+    - name: Skip perses test by unsupported telemetry-operator
+      ansible.builtin.meta: end_play
+      when: not telemetry_operator_supports_perses | bool
+
+    # --- Check and enable dashboardsEnabled ---
+    - name: Get OpenStackControlPlane telemetry dashboardsEnabled status
+      ansible.builtin.command: >-
+        oc get oscp -n openstack
+        -o jsonpath='{.items[0].spec.telemetry.template.metricStorage.dashboardsEnabled}'
+      register: dashboard_status
+      changed_when: false
+
+    - name: Set fact if dashboards are enabled
+      ansible.builtin.set_fact:
+        dashboards_enabled: "{{ dashboard_status.stdout | trim | lower == 'true' }}"
+
+    - name: Enable dashboards if not already enabled
+      ansible.builtin.command: >-
+        oc patch oscp
+        {{ lookup('pipe', 'oc get oscp -n openstack -o jsonpath={.items[0].metadata.name}') }}
+        -n openstack --type merge
+        -p '{"spec":{"telemetry":{"template":{"metricStorage":{"dashboardsEnabled":true}}}}}'
+      when: not dashboards_enabled | bool
+      register: enable_dashboards_result
+      changed_when: enable_dashboards_result.rc == 0
+
+    - name: Wait for MetricStorage to reconcile after enabling dashboards
+      ansible.builtin.command: >-
+        oc get metricstorage metric-storage
+        -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+      register: metricstorage_ready
+      changed_when: false
+      retries: 30
+      delay: 10
+      until: metricstorage_ready.stdout == "True"
+      when: not dashboards_enabled | bool
+
+    # --- Check and create UIPlugin Monitoring ---
+    - name: Get the Monitoring UIPlugin
+      ansible.builtin.command: >-
+        oc get uiplugin monitoring
+        -o jsonpath='{.spec.monitoring.perses.enabled}'
+      register: perses_uiplugin
+      changed_when: false
+      failed_when: false
+
+    - name: Set fact if the Perses backend is enabled
+      ansible.builtin.set_fact:
+        perses_enabled: >-
+          {{ perses_uiplugin.rc == 0
+             and perses_uiplugin.stdout | trim | bool }}
+
+    - name: Create Monitoring UIPlugin with Perses enabled
+      ansible.builtin.shell: |
+        oc apply -f - <<UIEOF
+        apiVersion: observability.openshift.io/v1alpha1
+        kind: UIPlugin
+        metadata:
+          name: monitoring
+        spec:
+          type: Monitoring
+          monitoring:
+            perses:
+              enabled: true
+        UIEOF
+      when: not perses_enabled | bool
+      register: create_uiplugin_result
+      changed_when: create_uiplugin_result.rc == 0
+
+    - name: Wait for Perses StatefulSet to be ready
+      ansible.builtin.command: >-
+        oc rollout status statefulset/perses
+        -n openshift-operators --timeout=180s
+      when: not perses_enabled | bool
+      changed_when: false
+
+    # --- Wait for Perses operator to reconcile CRs ---
+    - name: Wait for PersesDatasource to be available
+      ansible.builtin.command: >-
+        oc get persesdatasource
+        -n openstack
+        -o jsonpath='{.items[0].status.conditions[?(@.type=="Available")].status}'
+      register: datasource_available
+      changed_when: false
+      retries: 30
+      delay: 10
+      until: datasource_available.stdout == "True"
+      failed_when: false
+
+    - name: Restart Perses operator if datasource not reconciled
+      ansible.builtin.command: >-
+        oc delete pod
+        -n openshift-operators
+        -l app.kubernetes.io/name=perses-operator
+      when: datasource_available.stdout != "True"
+      changed_when: true
+
+    - name: Wait for PersesDatasource after operator restart
+      ansible.builtin.command: >-
+        oc get persesdatasource
+        -n openstack
+        -o jsonpath='{.items[0].status.conditions[?(@.type=="Available")].status}'
+      register: datasource_available_retry
+      changed_when: false
+      retries: 30
+      delay: 10
+      until: datasource_available_retry.stdout == "True"
+      when: datasource_available.stdout != "True"
+
+    # --- Read disabledDashboards ---
+    - name: Get disabledDashboards list from MetricStorage spec
+      ansible.builtin.command: >-
+        oc get oscp -n openstack
+        -o jsonpath='{.items[0].spec.telemetry.template.metricStorage.disabledDashboards}'
+      register: disabled_dashboards_raw
+      changed_when: false
+      failed_when: false
+
+    - name: Set disabledDashboards fact
+      ansible.builtin.set_fact:
+        perses_disabled_dashboards: >-
+          {{ disabled_dashboards_raw.stdout | default('[]', true) | from_json | default([], true) }}
+      when: disabled_dashboards_raw.rc == 0 and disabled_dashboards_raw.stdout | length > 0
+
+  tasks:
+    - name: Run Perses dashboards tests
+      ansible.builtin.import_role:
+        name: telemetry_perses
+      ignore_errors: true
