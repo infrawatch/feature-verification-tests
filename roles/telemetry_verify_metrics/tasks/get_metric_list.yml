@@ -1,0 +1,28 @@
+---
+# Gather one snapshot of the metric names and record which expected names are
+# missing. Callers pass metric_list_gate and metric_list_expected via vars:.
+#
+# The gate lives on the command rather than the include so a gated source still
+# registers metric_list as a skipped result. That keeps the variable defined for
+# the caller's membership checks, which then fail on the prereq "ok" bool and
+# report the blocked message instead of an undefined-variable error.
+- name: Get the list of metrics
+  when: metric_list_gate | default(true) | bool
+  ansible.builtin.command:
+    cmd: "{{ openstack_cmd }} metric list -f value"
+  register: metric_list
+  retries: 10
+  delay: 30
+  changed_when: false
+  ignore_errors: true
+  until: >-
+    metric_list.rc == 0 and
+    (metric_list_expected | reject('in', metric_list.stdout_lines | default([]))
+     | list | length == 0)
+
+- name: Record the metrics that are still missing
+  ansible.builtin.set_fact:
+    metric_list_missing: >-
+      {{ metric_list_expected
+         | reject('in', metric_list.stdout_lines | default([]))
+         | list }}
