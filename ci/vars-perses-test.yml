@@ -1,0 +1,83 @@
+---
+#
+# The tests for Perses-based dashboards need the telemetry stack deployed
+# with dashboards enabled in the operator, as well as both COO installed
+# and the Monitoring UIPlugin configured to provision the Perses backend.
+#
+# – COO is deployed by the ci-framework openshift_obs role,
+# – the UIPlugin is applied via a CI playbook from the telemetry-operator,
+# – FVT tasks executed via hook along with basic sanity tests.
+#
+
+#
+# Install Cluster Observability Operator
+#
+cifmw_deploy_obs: true
+
+
+#
+# Deploy the telemetry stack
+#
+cifmw_edpm_prepare_kustomizations:
+  - apiVersion: kustomize.config.k8s.io/v1beta1
+    kind: Kustomization
+    namespace: openstack
+    patches:
+    - patch: |-
+        apiVersion: core.openstack.org/v1beta1
+        kind: OpenStackControlPlane
+        metadata:
+          name: unused
+        spec:
+          telemetry:
+            enabled: true
+            template:
+              metricStorage:
+                enabled: true
+                monitoringStack:
+                  alertingEnabled: false
+                dashboardsEnabled: true
+      target:
+        kind: OpenStackControlPlane
+
+
+#
+# Prepare dependencies and configure the tests run via hooks
+#
+pre_tests_00_enable_perses_backend:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/openstack-k8s-operators/telemetry-operator'].src_dir }}/ci/enable-perses-backend.yml"
+  type: playbook
+
+pre_tests_10_run_perses_test:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/run_perses_test.yml"
+  type: playbook
+  config_file: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/ansible.cfg"
+
+post_tests_99_collect_results:
+  source: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/infrawatch/feature-verification-tests'].src_dir }}/ci/report_result.yml"
+  type: playbook
+
+
+#
+# Override test-operator to include only a minimal set of sanity tests
+#
+# Note(sdatko): the scenario deploys Cinder service with no backend configured,
+#               hence we exclude any related volumes test that fail with ERROR.
+#
+cifmw_run_tests: true
+cifmw_test_operator_stages:
+  - name: tempest
+    type: tempest
+
+cifmw_test_operator_tempest_workflow: []
+
+cifmw_test_operator_tempest_include_list: |
+  ^tempest.*\[.*\bsmoke\b.*\]
+  ^tempest.scenario.test_network_basic_ops
+
+cifmw_test_operator_tempest_exclude_list: |
+  ^tempest.api.compute.servers.test_create_server.ServersTestBootFromVolume
+  ^tempest.api.volume.test_volumes_actions
+  ^tempest.api.volume.test_volumes_list
+  ^tempest.api.volume.test_volumes_get
+  ^tempest.scenario.test_network_basic_ops.TestNetworkBasicOps.test_mtu_sized_frames
