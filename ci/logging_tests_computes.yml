@@ -3,9 +3,8 @@
   hosts: computes
   gather_facts: true
   ignore_errors: true
-  environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/defaults.yml
   vars:
     journal_list:
       - ceilometer_agent_compute
@@ -14,10 +13,16 @@
       - /etc/rsyslog.d/10-telemetry.conf
   tasks:
     - name: "Run Telemetry Logging tests"
+      environment:
+        KUBECONFIG: "{{ fvt_kubeconfig }}"
+        PATH: "{{ fvt_path }}"
       ansible.builtin.import_role:
         name: telemetry_logging
 
     - name: "Run the tests from the common role"
+      environment:
+        KUBECONFIG: "{{ fvt_kubeconfig }}"
+        PATH: "{{ fvt_path }}"
       ansible.builtin.import_role:
         name: common
 
@@ -26,14 +31,16 @@
   gather_facts: true
   become: true
   ignore_errors: true
-  environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
+  vars_files:
+    - vars/defaults.yml
   vars:
     common_container_list:
       - ceilometer_agent_compute
       - node_exporter
   tasks:
     - name: "Run the tests from the common role"
+      environment:
+        KUBECONFIG: "{{ fvt_kubeconfig }}"
+        PATH: "{{ fvt_path }}"
       ansible.builtin.import_role:
         name: common

@@ -3,11 +3,8 @@
   hosts: "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
   ignore_errors: true
-  environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
   vars_files:
-    - vars/common.yml
+    - vars/defaults.yml
     - vars/osp18_env.yml
   vars:
     common_pod_status_str: "Running"
@@ -54,9 +51,15 @@
 
   tasks:
     - name: "Verify cloudkitty infrastructure components"
+      environment:
+        KUBECONFIG: "{{ fvt_kubeconfig }}"
+        PATH: "{{ fvt_path }}"
       ansible.builtin.import_role:
         name: common
 
     - name: "Verify cloudkitty deployment"
+      environment:
+        KUBECONFIG: "{{ fvt_kubeconfig }}"
+        PATH: "{{ fvt_path }}"
       ansible.builtin.import_role:
         name: telemetry_chargeback

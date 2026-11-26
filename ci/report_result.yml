@@ -2,8 +2,9 @@
 - name: "Create the output directory"
   hosts:
      - controller
+  gather_facts: true
   vars_files:
-    - vars/common.yml
+    - vars/defaults.yml
   tasks:
     - name: Check whether the log dir exists
       ansible.builtin.stat:
@@ -21,7 +22,7 @@
   hosts: controller
   gather_facts: true
   vars_files:
-    - vars/common.yml
+    - vars/defaults.yml
   pre_tasks:
     - name: Stop play early if we do not want to check the failures
       when:

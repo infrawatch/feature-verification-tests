@@ -2,14 +2,11 @@
 - name: "Run functional test playbooks"
   hosts:  "{{ cifmw_target_hook_host | default('localhost')  }}"
   gather_facts: true
-  environment:
-    KUBECONFIG: "{{ cifmw_openshift_kubeconfig }}"
-    PATH: "{{ cifmw_path }}"
   vars:
-    USERNAME: "{{ cifmw_openshift_user }}"
-    PASSWORD: "{{ cifmw_openshift_password }}"
+    USERNAME: "{{ fvt_ocp_user }}"
+    PASSWORD: "{{ fvt_ocp_password }}"
   vars_files:
-    - vars/common.yml
+    - vars/defaults.yml
   pre_tasks:
     - name: "Notify if graphing test is skipped by run_graphing_test false"
       ansible.builtin.debug:
@@ -26,6 +23,9 @@
     #       so we guard on its presence whether to run legacy tests.
     #       The option is omitempty, so we probe the CRD schema, not the CR.
     - name: Check if telemetry-operator supports disabledDashboards
+      environment:
+        KUBECONFIG: "{{ fvt_kubeconfig }}"
+        PATH: "{{ fvt_path }}"
       ansible.builtin.command: >
         oc get crd metricstorages.telemetry.openstack.org
         -o jsonpath='{.spec.versions[*].schema.openAPIV3Schema.properties.spec.properties.disabledDashboards}'
@@ -49,6 +49,9 @@
       when: perses_dashboards
 
     - name: "Get OpenStackControlPlane telemetry dashboardsEnabled status"
+      environment:
+        KUBECONFIG: "{{ fvt_kubeconfig }}"
+        PATH: "{{ fvt_path }}"
       ansible.builtin.command: >
         oc get oscp -n openstack -o jsonpath='{.items[0].spec.telemetry.template.metricStorage.dashboardsEnabled}'
       register: dashboard_status
@@ -69,6 +72,9 @@
   tasks:
     - block:
         - name: "Run Graphing Console UI tests"
+          environment:
+            KUBECONFIG: "{{ fvt_kubeconfig }}"
+            PATH: "{{ fvt_path }}"
           ansible.builtin.import_role:
             name: telemetry_graphing
           ignore_errors: true

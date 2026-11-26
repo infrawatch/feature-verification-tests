@@ -1,0 +1,54 @@
+---
+#
+# Defaults that let the ci/run_*.yml playbooks run outside of CI.
+#
+# The playbooks use the fvt_* names below rather than the cifmw_* names
+# directly. In CI the cifmw_* vars are supplied by ci-framework (as extra vars
+# or via the artifacts/parameters files) and are picked up here unchanged; when
+# they are absent, each var falls back to something sensible for a local run.
+#
+# The local fallbacks read target-host facts (ansible_env, ansible_user_dir),
+# not the controller's environment, because the resulting values are used as
+# filesystem locators on the target. Two consequences:
+#
+#   * Every play that consumes these vars must set gather_facts: true.
+#   * The vars must be referenced from task-scoped `environment:` (on a task,
+#     block or import_role), never a play-level `environment:`. Ansible renders
+#     a play-level environment for the implicit Gathering Facts task, i.e.
+#     before the facts exist, so these vars fail to resolve, facts are never
+#     gathered, and every task in the play fails.
+#
+
+# Path to the kubeconfig for the OpenShift cluster under test.
+fvt_kubeconfig: >-
+  {{ cifmw_openshift_kubeconfig |
+     default(ansible_env.KUBECONFIG |
+             default(ansible_user_dir ~ '/.kube/config', true), true) }}
+
+# PATH the tests run with. Must contain the oc binary. Read from the target
+# host's environment, not the controller's, so facts must be gathered.
+fvt_path: "{{ cifmw_path | default(ansible_env.PATH, true) }}"
+
+# Base directory for CI artifacts and test parameters.
+fvt_basedir: >-
+  {{ cifmw_basedir | default(ansible_user_dir ~ '/ci-framework-data', true) }}
+
+# Directory where the JUnit XML results are written and read back from by
+# ci/report_result.yml. In CI this resolves to
+# $HOME/ci-framework-data/tests/feature-verification-tests as before.
+logs_dir: "{{ fvt_basedir }}/tests/feature-verification-tests"
+
+# Checkout of this repository. In CI this is the zuul src_dir; locally the
+# playbooks live in <repo>/ci, so the repo root is the parent of playbook_dir.
+fvt_src_dir: "{{ playbook_dir | dirname }}"
+
+# Credentials used by the Grafana/console UI (graphing) tests.
+fvt_ocp_user: "{{ cifmw_openshift_user | default('kubeadmin', true) }}"
+fvt_ocp_password: >-
+  {{ cifmw_openshift_password | default(lookup('env', 'OCP_PASSWORD'), true) }}
+
+# CI creates the VM the autoscaling tests scale from, using install_yamls.
+# Off by default locally: provide the VM yourself, or set this to true and
+# point install_yamls_dir at a checkout.
+fvt_create_test_vm: "{{ zuul is defined }}"
+install_yamls_dir: "{{ ansible_user_dir ~ '/install_yamls' }}"
