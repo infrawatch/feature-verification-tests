@@ -1,0 +1,20 @@
+---
+- name: Collect and process FVT test results
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Collect FVT test results
+      block:
+        - name: Check for FVT test results
+          ansible.builtin.stat:
+            path: "{{ ansible_user_dir }}/src/github.com/infrawatch/feature-verification-tests/test_results"
+          register: fvt_results
+
+        - name: Process FVT results if present
+          ansible.builtin.debug:
+            msg: "FVT results found at {{ fvt_results.stat.path }}"
+          when: fvt_results.stat.exists
+      always:
+        - name: FVT post-run processing complete
+          ansible.builtin.debug:
+            msg: "Post-run processing for FVT tests completed"
