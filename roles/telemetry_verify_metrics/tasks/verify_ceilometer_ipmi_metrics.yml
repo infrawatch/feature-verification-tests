@@ -28,7 +28,7 @@
 - name: |
     TEST Use openstack observabilityclient to verify ceilometer ipmi metrics are stored in prometheus
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show ceilometer_hardware_ipmi_fan --disable-rbac
+    {{ openstack_cmd }} metric show ceilometer_hardware_ipmi_fan
   register: result
   delay: 30
   retries: 10

@@ -24,7 +24,7 @@
       - ovn_northd_txn_success_total
       - ovn_northd_txn_unchanged_total
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
+    {{ openstack_cmd }} metric show {{ item }}
   register: result
   delay: 30
   retries: 10
@@ -51,7 +51,7 @@
 - name: |
     TEST Use openstack observabilityclient to verify ovn controller metrics are stored in prometheus
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
+    {{ openstack_cmd }} metric show {{ item }}
   register: result
   delay: 30
   retries: 10
@@ -81,7 +81,7 @@
 - name: |
     TEST Use openstack observabilityclient to verify RAFT metrics are stored in prometheus
   ansible.builtin.shell: |
-    {{ openstack_cmd }} metric show --disable-rbac {{ item }}
+    {{ openstack_cmd }} metric show {{ item }}
   register: result
   delay: 30
   retries: 10

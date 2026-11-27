@@ -70,7 +70,7 @@
   - name: |
       TEST Use openstack observabilityclient to verify mariadb metrics are stored in prometheus
     ansible.builtin.shell: |
-      {{ openstack_cmd }} metric query --disable-rbac mysql_version_info{instance=\'{{ item }}.openstack.svc:3306\'}
+      {{ openstack_cmd }} metric query mysql_version_info{instance=\'{{ item }}.openstack.svc:3306\'}
     register: result
     delay: 30
     retries: 10
@@ -114,7 +114,7 @@
   - name: |
       TEST Use openstack observabilityclient to verify mariadb metrics are stored in prometheus
     ansible.builtin.command: |
-      {{ openstack_cmd }} metric query --disable-rbac mysql_version_info{pod=\'{{ item }}\'}
+      {{ openstack_cmd }} metric query mysql_version_info{pod=\'{{ item }}\'}
     register: result
     delay: 30
     retries: 10
